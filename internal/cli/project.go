@@ -12,9 +12,6 @@ import (
 	"tasks-ai/internal/store"
 )
 
-// productFolder is the folder the product keeps inside a project.
-const productFolder = install.DirName
-
 // project is one project's data, open for the work at hand.
 type project struct {
 	core *core.Core
@@ -29,12 +26,12 @@ func openProject(ctx context.Context, dir string, warn io.Writer) (*project, err
 		return nil, err
 	}
 
-	cfg, err := settings.Load(filepath.Join(root, productFolder))
+	cfg, err := settings.Load(filepath.Join(root, install.DirName))
 	if err != nil {
 		return nil, err
 	}
 
-	base, err := store.Open(ctx, settings.DatabasePath(filepath.Join(root, productFolder), cfg))
+	base, err := store.Open(ctx, settings.DatabasePath(filepath.Join(root, install.DirName), cfg))
 	if err != nil {
 		return nil, err
 	}

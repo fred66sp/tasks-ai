@@ -6,9 +6,7 @@ package install
 import (
 	"context"
 	_ "embed"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"tasks-ai/internal/core"
@@ -153,10 +151,8 @@ func prepare(dir string) (settings.Settings, error) {
 func writeInstructions(dir string) error {
 	path := filepath.Join(dir, instructionsName)
 
-	if _, err := os.Stat(path); err == nil {
+	if exists(path) {
 		return nil
-	} else if !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("mirando las instrucciones de %s: %w", dir, err)
 	}
 
 	if err := os.WriteFile(path, instructions, 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto

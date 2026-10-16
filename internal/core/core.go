@@ -27,11 +27,6 @@ func New(project *store.Store, prefix string) *Core {
 	return &Core{store: project, prefix: prefix}
 }
 
-// Prefix is the prefix this core composes visible references with.
-func (c *Core) Prefix() string {
-	return c.prefix
-}
-
 // Task is a task as it crosses the core's boundary: the internal number, so that
 // whoever reads it has a key that does not change, and the visible reference,
 // composed with the project's prefix.

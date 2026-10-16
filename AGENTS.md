@@ -52,7 +52,9 @@ npm run odd:tk -- show tk-XXXX
 - Una tarea se cierra cuando su resultado y sus comprobaciones se han observado. Lo
   que se comprueba es el criterio, no la impresión de quien hizo el trabajo.
 - Una unidad a la vez sobre el mismo código: dos tareas listas no se trabajan en
-  paralelo si tocan los mismos archivos, se encadenan.
+  paralelo si tocan los mismos archivos, se encadenan. Tampoco se entrega un cambio
+  mientras una verificación independiente recorre el árbol: se espera su veredicto, o
+  la verificación acabará describiendo algo distinto de lo entregado.
 
 ## Qué se toca y qué no
 

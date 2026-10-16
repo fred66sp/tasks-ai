@@ -17,8 +17,15 @@ import (
 	sqlite3 "modernc.org/sqlite/lib"
 )
 
-// ErrNotFound says that nothing is stored under the key that was asked for.
+// ErrNotFound dice que no hay nada guardado con la clave que se pidió.
 var ErrNotFound = errors.New("no hay nada guardado con esa clave")
+
+// ErrClosed dice que la tarea que se quiso cerrar ya está cerrada.
+var ErrClosed = errors.New("la tarea ya está cerrada")
+
+// ErrOpenSubtasks dice que la tarea que se quiso cerrar tiene subtareas que no
+// lo están.
+var ErrOpenSubtasks = errors.New("la tarea tiene subtareas abiertas")
 
 // driverName is the engine this package registers with database/sql.
 const driverName = "sqlite"

@@ -16,6 +16,7 @@ func newCreateCommand() *cobra.Command {
 		assignee    string
 		notes       string
 		priority    int
+		parent      string
 	)
 
 	command := &cobra.Command{
@@ -37,6 +38,10 @@ func newCreateCommand() *cobra.Command {
 
 			if command.Flags().Changed("priority") {
 				newTask.Priority = &priority
+			}
+
+			if command.Flags().Changed("parent") {
+				newTask.Parent = parent
 			}
 
 			dir, err := workingDir()
@@ -65,6 +70,7 @@ func newCreateCommand() *cobra.Command {
 	command.Flags().StringVar(&assignee, "assignee", "", "persona responsable de la tarea")
 	command.Flags().StringVar(&notes, "notes", "", "notas sueltas de la tarea")
 	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "prioridad de la tarea, de 0 a 3")
+	command.Flags().StringVar(&parent, "parent", "", "referencia de la tarea padre, para crear una subtarea")
 
 	return command
 }

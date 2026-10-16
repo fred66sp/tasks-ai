@@ -11,6 +11,9 @@ import (
 // timeLayout is how the moments travel to the base: readable, ordered and in UTC.
 const timeLayout = time.RFC3339Nano
 
+// statusDone es el estado de una tarea cerrada.
+const statusDone = "done"
+
 // Task is a task as it is stored.
 type Task struct {
 	ID          int64
@@ -160,4 +163,66 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 	}
 
 	return changed, nil
+}
+
+// CloseTask closes the task with the reason given. The refusal and the write
+// happen inside one transaction: the check of the subtasks and the write of the
+// close read and write under the same lock, so a close that is refused leaves
+// nothing written and nobody can slip a subtask in between the check and the
+// write. It returns ErrClosed for an already closed task and ErrOpenSubtasks
+// for one with subtasks that are not done.
+func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Task{}, fmt.Errorf("abriendo la transacción del cierre: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	stored, err := readTask(ctx, tx, id)
+	if err != nil {
+		return Task{}, err
+	}
+
+	if stored.Status == statusDone {
+		return Task{}, ErrClosed
+	}
+
+	var open int64
+
+	err = tx.QueryRowContext(ctx,
+		`SELECT count(*) FROM tasks WHERE parent_id = ? AND status <> ?`, id, statusDone,
+	).Scan(&open)
+	if err != nil {
+		return Task{}, fmt.Errorf("mirando las subtareas de la tarea %d: %w", id, err)
+	}
+
+	if open > 0 {
+		return Task{}, ErrOpenSubtasks
+	}
+
+	now := time.Now().UTC().Truncate(time.Second)
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE tasks
+		SET status = ?, close_reason = ?, updated_at = ?
+		WHERE id = ?`,
+		statusDone,
+		reason,
+		now.Format(timeLayout),
+		id,
+	)
+	if err != nil {
+		return Task{}, fmt.Errorf("guardando el cierre de la tarea %d: %w", id, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return Task{}, fmt.Errorf("cerrando la transacción del cierre de la tarea %d: %w", id, err)
+	}
+
+	stored.Status = statusDone
+	stored.CloseReason = &reason
+	stored.UpdatedAt = now
+
+	return stored, nil
 }

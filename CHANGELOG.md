@@ -13,6 +13,12 @@ Changelog* y el versionado es semántico.
 - **Cambio de una tarea**: la línea de comandos cambia el título, la descripción, las
   notas, el responsable y la prioridad de una tarea guardada, y rechaza la prioridad que
   se salga de su rango.
+- **Ciclo de vida de una tarea**: la línea de comandos cierra una tarea con su motivo
+  obligatorio —`done`, `duplicate`, `absorbed`, `stale` o `superseded`— y la reabre.
+  Cerrar una tarea con subtareas abiertas se rechaza sin escribir nada, cerrar una
+  subtarea no cierra su padre, y una tarea ya cerrada no se cierra otra vez ni una
+  abierta se reabre. `create` acepta `--parent` para dar a la tarea nueva su tarea
+  padre.
 - **Documentación del producto**: requisitos y criterios de aceptación en
   [`docs/PRD.md`](docs/PRD.md); decisiones durables en
   [`docs/decisions/`](docs/decisions/); diseño en

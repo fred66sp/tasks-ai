@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"tasks-ai/internal/core"
@@ -73,6 +74,9 @@ func runScenarios(m *testing.M, tmp string) int {
 type errorBody struct {
 	Error string `json:"error"`
 }
+
+// statusOpen es el estado de una tarea que nadie ha cerrado.
+const statusOpen = "open"
 
 // run llama al binario dentro de la carpeta dir, como si fuera el proyecto en
 // el que trabaja el usuario, y devuelve el código de salida y las dos salidas.
@@ -526,6 +530,273 @@ func TestUpdateRefusesAPriorityOutOfRangeAndLeavesTheTaskAsItWas(t *testing.T) {
 		if changed.Priority != priority {
 			t.Errorf("la prioridad quedó en %d, se esperaba %d", changed.Priority, priority)
 		}
+	}
+}
+
+// readTask deja leída la tarea que apunta la referencia.
+func readTask(t *testing.T, project, ref string) core.Task {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "show", ref)
+	if code != 0 {
+		t.Fatalf("show %s salió con %d: %s", ref, code, errOut)
+	}
+
+	var task core.Task
+	decode(t, out, &task)
+
+	return task
+}
+
+// createTask deja creada una tarea con los argumentos que se le añadan y
+// devuelve la respuesta del create.
+func createTask(t *testing.T, project string, args ...string) core.Task {
+	t.Helper()
+
+	code, out, errOut := run(t, project, append([]string{"create", "--title", "Preparar el análisis"}, args...)...)
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	return created
+}
+
+// TestCloseRefusesATaskWithOpenSubtasksAndLeavesItAsItWas: cerrar una tarea con
+// subtareas abiertas se rechaza y no toca la tarea guardada.
+func TestCloseRefusesATaskWithOpenSubtasksAndLeavesItAsItWas(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	parent := createTask(t, project)
+	createTask(t, project, "--parent", parent.Ref)
+
+	before := readTask(t, project, parent.Ref)
+
+	code, out, errOut := run(t, project, "close", parent.Ref, "--reason", "done")
+
+	if code != 1 {
+		t.Fatalf("cerrar una tarea con subtareas abiertas salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("el cierre rechazado escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "subtareas abiertas") {
+		t.Errorf("el mensaje no dice que hay subtareas abiertas: %s", message)
+	}
+
+	after := readTask(t, project, parent.Ref)
+
+	if !reflect.DeepEqual(after, before) {
+		t.Errorf("el cierre rechazado tocó la tarea: antes %+v, después %+v", before, after)
+	}
+}
+
+// TestClosingASubtaskLeavesItsParentOpen: cerrar una subtarea no cierra su
+// tarea padre.
+func TestClosingASubtaskLeavesItsParentOpen(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	parent := createTask(t, project)
+	child := createTask(t, project, "--parent", parent.Ref)
+
+	code, out, errOut := run(t, project, "close", child.Ref, "--reason", "done")
+	if code != 0 {
+		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+
+	var closed core.Task
+	decode(t, out, &closed)
+
+	if closed.Status != "done" || closed.CloseReason == nil || *closed.CloseReason != "done" {
+		t.Errorf("la subtarea quedó %+v, se esperaba cerrada con motivo done", closed)
+	}
+
+	read := readTask(t, project, parent.Ref)
+
+	if read.Status != statusOpen || read.CloseReason != nil {
+		t.Errorf("cerrar la subtarea cerró también a su padre: %+v", read)
+	}
+}
+
+// TestCloseRefusesAnUnknownOrMissingReason: el motivo es obligatorio y debe ser
+// uno de los conocidos; cualquier otra cosa es un mal uso y no toca la tarea.
+func TestCloseRefusesAnUnknownOrMissingReason(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+
+	code, out, errOut := run(t, project, "close", task.Ref)
+
+	if code != 2 {
+		t.Errorf("close sin motivo salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("close sin motivo escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "motivo") {
+		t.Errorf("el mensaje de close sin motivo no habla del motivo: %s", message)
+	}
+
+	code, out, errOut = run(t, project, "close", task.Ref, "--reason", "vanished")
+
+	if code != 2 {
+		t.Errorf("close con un motivo desconocido salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("close con un motivo desconocido escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "motivo") {
+		t.Errorf("el mensaje del motivo desconocido no habla del motivo: %s", message)
+	}
+
+	read := readTask(t, project, task.Ref)
+
+	if read.Status != statusOpen || read.CloseReason != nil {
+		t.Errorf("un cierre rechazado tocó la tarea: %+v", read)
+	}
+}
+
+// TestCloseThenReopenReturnsTheTaskToOpen: reabrir devuelve la tarea a abierta
+// y le quita el motivo de cierre.
+func TestCloseThenReopenReturnsTheTaskToOpen(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+
+	code, out, errOut := run(t, project, "close", task.Ref, "--reason", "duplicate")
+	if code != 0 {
+		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+
+	var closed core.Task
+	decode(t, out, &closed)
+
+	if closed.Status != "done" || closed.CloseReason == nil || *closed.CloseReason != "duplicate" {
+		t.Errorf("la tarea cerrada quedó %+v, se esperaba done con motivo duplicate", closed)
+	}
+
+	code, out, errOut = run(t, project, "reopen", task.Ref)
+	if code != 0 {
+		t.Fatalf("reopen salió con %d: %s", code, errOut)
+	}
+
+	var reopened core.Task
+	decode(t, out, &reopened)
+
+	if reopened.Status != statusOpen || reopened.CloseReason != nil {
+		t.Errorf("reabrir dejó la tarea %+v, se esperaba abierta y sin motivo de cierre", reopened)
+	}
+
+	read := readTask(t, project, task.Ref)
+
+	if read.Status != statusOpen || read.CloseReason != nil {
+		t.Errorf("la tarea guardada tras reabrir es %+v, se esperaba abierta y sin motivo", read)
+	}
+}
+
+// TestCreateWithAParentLinksItAndRefusesAnUnknownOne: --parent da a la tarea su
+// tarea padre, y un padre que no existe se rechaza como una referencia que no
+// resuelve.
+func TestCreateWithAParentLinksItAndRefusesAnUnknownOne(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	parent := createTask(t, project)
+	child := createTask(t, project, "--parent", parent.Ref)
+
+	if child.ParentID == nil || *child.ParentID != parent.ID {
+		t.Errorf("la subtarea nació con padre %v, se esperaba %d", child.ParentID, parent.ID)
+	}
+
+	code, out, errOut := run(t, project, "create", "--title", "Huérfana", "--parent", "tk-999")
+
+	if code != 1 {
+		t.Errorf("create con un padre inexistente salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("create con un padre inexistente escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "tk-999") {
+		t.Errorf("el mensaje no menciona la referencia del padre: %s", message)
+	}
+}
+
+// TestCloseTwiceAndReopenAnOpenTaskAreRefused: una tarea cerrada no se cierra
+// otra vez y una abierta no se reabre; el rechazo no toca la tarea.
+func TestCloseTwiceAndReopenAnOpenTaskAreRefused(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+
+	code, _, errOut := run(t, project, "close", task.Ref, "--reason", "done")
+	if code != 0 {
+		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+
+	closed := readTask(t, project, task.Ref)
+
+	code, out, errOut := run(t, project, "close", task.Ref, "--reason", "stale")
+
+	if code != 1 {
+		t.Errorf("el segundo close salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("el segundo close escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "ya está cerrada") {
+		t.Errorf("el mensaje no dice que la tarea ya está cerrada: %s", message)
+	}
+
+	if again := readTask(t, project, task.Ref); !reflect.DeepEqual(again, closed) {
+		t.Errorf("el segundo close tocó la tarea: antes %+v, después %+v", closed, again)
+	}
+
+	code, _, errOut = run(t, project, "reopen", task.Ref)
+	if code != 0 {
+		t.Fatalf("reopen salió con %d: %s", code, errOut)
+	}
+
+	code, out, errOut = run(t, project, "reopen", task.Ref)
+
+	if code != 1 {
+		t.Errorf("el segundo reopen salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("el segundo reopen escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "no está cerrada") {
+		t.Errorf("el mensaje no dice que la tarea no está cerrada: %s", message)
 	}
 }
 

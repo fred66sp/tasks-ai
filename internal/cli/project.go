@@ -10,6 +10,8 @@ import (
 	"tasks-ai/internal/install"
 	"tasks-ai/internal/settings"
 	"tasks-ai/internal/store"
+
+	"github.com/spf13/cobra"
 )
 
 // project is one project's data, open for the work at hand.
@@ -55,6 +57,25 @@ func openProject(ctx context.Context, dir string, warn io.Writer) (*project, err
 // Close lets the project's data go.
 func (p *project) Close() error {
 	return p.base.Close()
+}
+
+// withProject opens the project of the working folder, hands it to run and
+// closes it on the way out. It keeps the boilerplate of opening and closing out
+// of every command.
+func withProject(command *cobra.Command, run func(*project) error) error {
+	dir, err := workingDir()
+	if err != nil {
+		return err
+	}
+
+	opened, err := openProject(command.Context(), dir, command.ErrOrStderr())
+	if err != nil {
+		return err
+	}
+
+	defer func() { _ = opened.Close() }()
+
+	return run(opened)
 }
 
 // workingDir is where the product was called from.

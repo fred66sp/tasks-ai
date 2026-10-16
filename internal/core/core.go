@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"tasks-ai/internal/store"
 	"time"
@@ -43,6 +44,30 @@ func invalid(format string, args ...any) error {
 // statusOpen is the state a task is born in.
 const statusOpen = "open"
 
+// statusDone is the state a task is left in when it is closed.
+const statusDone = "done"
+
+// The reasons a task can be closed with.
+const (
+	CloseReasonDone       = "done"
+	CloseReasonDuplicate  = "duplicate"
+	CloseReasonAbsorbed   = "absorbed"
+	CloseReasonStale      = "stale"
+	CloseReasonSuperseded = "superseded"
+)
+
+// closeReasons lists the values a close reason may take.
+var closeReasons = []string{
+	CloseReasonDone,
+	CloseReasonDuplicate,
+	CloseReasonAbsorbed,
+	CloseReasonStale,
+	CloseReasonSuperseded,
+}
+
+// errStillOpen marks a reopen the rules refuse because the task is not closed.
+var errStillOpen = errors.New("la tarea no está cerrada")
+
 // Core applies the product's rules over one project.
 type Core struct {
 	store  *store.Store
@@ -75,13 +100,15 @@ type Task struct {
 }
 
 // NewTask is what it takes to create a task. An empty text is an absent value,
-// and a priority left out is the default one.
+// a priority left out is the default one and a parent left out leaves the task
+// on its own.
 type NewTask struct {
 	Title       string
 	Description string
 	Assignee    string
 	Notes       string
 	Priority    *int
+	Parent      string
 }
 
 // CreateTask stores a new task and returns it as it crosses the boundary.
@@ -100,6 +127,16 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		return Task{}, err
 	}
 
+	parentID, err := c.parentID(ctx, task.Parent)
+	if err != nil {
+		return Task{}, err
+	}
+
+	var storedParent *int64
+	if parentID != 0 {
+		storedParent = &parentID
+	}
+
 	stored, err := c.store.CreateTask(ctx, store.Task{
 		Title:       title,
 		Description: optional(task.Description),
@@ -107,6 +144,7 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		Priority:    priority,
 		Assignee:    optional(task.Assignee),
 		Notes:       optional(task.Notes),
+		ParentID:    storedParent,
 	})
 	if err != nil {
 		return Task{}, fmt.Errorf("guardando la tarea: %w", err)
@@ -215,6 +253,98 @@ func (changes Changes) empty() bool {
 		changes.Priority == nil
 }
 
+// CloseTask closes the task the reference points at with the reason given: it
+// leaves its status in done, records the reason and refreshes the moment of
+// change. The reason is required and must be one of the known ones; closing an
+// already closed task and closing one with subtasks that are not done are both
+// refused, and a refused close writes nothing.
+func (c *Core) CloseTask(ctx context.Context, ref, reason string) (Task, error) {
+	if err := checkCloseReason(reason); err != nil {
+		return Task{}, err
+	}
+
+	id, err := ParseRef(c.prefix, ref)
+	if err != nil {
+		return Task{}, err
+	}
+
+	stored, err := c.store.CloseTask(ctx, id, reason)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			return Task{}, c.missing(ref)
+		case errors.Is(err, store.ErrClosed):
+			return Task{}, fmt.Errorf("no se puede cerrar la tarea %q: ya está cerrada", ref)
+		case errors.Is(err, store.ErrOpenSubtasks):
+			return Task{}, fmt.Errorf("no se puede cerrar la tarea %q: tiene subtareas abiertas", ref)
+		default:
+			return Task{}, fmt.Errorf("cerrando la tarea: %w", err)
+		}
+	}
+
+	return c.task(stored), nil
+}
+
+// ReopenTask returns a closed task to open and clears its close reason.
+// Reopening a task that is not closed is refused.
+func (c *Core) ReopenTask(ctx context.Context, ref string) (Task, error) {
+	id, err := ParseRef(c.prefix, ref)
+	if err != nil {
+		return Task{}, err
+	}
+
+	stored, err := c.store.UpdateTask(ctx, id, reopened)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			return Task{}, c.missing(ref)
+		case errors.Is(err, errStillOpen):
+			return Task{}, fmt.Errorf("no se puede reabrir la tarea %q: no está cerrada", ref)
+		default:
+			return Task{}, fmt.Errorf("reabriendo la tarea: %w", err)
+		}
+	}
+
+	return c.task(stored), nil
+}
+
+// reopened applies the reopen inside the transaction that holds the write lock.
+// It must not ask the base for anything: the task it receives was read there.
+func reopened(task store.Task) (store.Task, error) {
+	if task.Status != statusDone {
+		return store.Task{}, errStillOpen
+	}
+
+	task.Status = statusOpen
+	task.CloseReason = nil
+
+	return task, nil
+}
+
+// parentID resolves the reference of the parent task, 0 when there is none. A
+// parent that does not exist is refused the same way as a reference that
+// resolves to no task.
+func (c *Core) parentID(ctx context.Context, ref string) (int64, error) {
+	if strings.TrimSpace(ref) == "" {
+		return 0, nil
+	}
+
+	id, err := ParseRef(c.prefix, ref)
+	if err != nil {
+		return 0, err
+	}
+
+	if _, err := c.store.Task(ctx, id); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			return 0, c.missing(ref)
+		}
+
+		return 0, fmt.Errorf("buscando la tarea padre: %w", err)
+	}
+
+	return id, nil
+}
+
 // CheckPrefix makes the settings prefix and the base agree. The first time it
 // records it, and when they differ it returns the warning that the references
 // written with the previous prefix no longer resolve.
@@ -293,4 +423,17 @@ func optional(text string) *string {
 	}
 
 	return &trimmed
+}
+
+// checkCloseReason refuses an absent or unknown close reason.
+func checkCloseReason(reason string) error {
+	if strings.TrimSpace(reason) == "" {
+		return invalid("falta el motivo de cierre: usa --reason con uno de %s", strings.Join(closeReasons, ", "))
+	}
+
+	if slices.Contains(closeReasons, reason) {
+		return nil
+	}
+
+	return invalid("el motivo de cierre %q no es válido: usa uno de %s", reason, strings.Join(closeReasons, ", "))
 }

@@ -79,6 +79,11 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - Las etiquetas viajan por su nombre.
 - El detalle de una tarea añade sus bloqueantes, sus dependientes, sus hijas y sus
   comentarios.
+- Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y
+  refresca `updated_at`; reabrir la devuelve a `open` y le quita el motivo. Cerrar una
+  tarea ya cerrada y reabrir una no cerrada se rechazan. Cerrar una tarea con subtareas
+  abiertas —estado distinto de `done`— se rechaza sin escribir nada, y cerrar una
+  subtarea no cierra a su padre.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
   API responde con `400`—, y `1` en cualquier otro caso.

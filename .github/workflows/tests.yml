@@ -13,8 +13,10 @@ permissions:
   contents: read
 
 env:
-  # Suelo de cobertura total de sentencias, en porcentaje.
-  MIN_COVERAGE: "84.0"
+  # Suelo de cobertura total de sentencias, en porcentaje. El número sigue a lo que mide
+  # el servidor con la herramienta fijada en la matriz, no a lo que mide una máquina con
+  # otra versión de Go: la cobertura se cuenta distinto según con qué se instrumente.
+  MIN_COVERAGE: "83.0"
 
 jobs:
   test:
@@ -24,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         go:
-          - "1.27"
+          - "1.27.2"
           - "stable"
 
     steps:
@@ -52,7 +54,9 @@ jobs:
         run: go test -v -race -shuffle=on -coverprofile=coverage.out ./...
 
       - name: Comprobar el suelo de cobertura
-        if: matrix.go == 'stable'
+        # Solo con la versión fijada: con `stable` el número se movería cada vez que Go
+        # publique un parche, y el suelo dejaría de significar lo mismo de una semana a otra.
+        if: matrix.go == '1.27.2'
         run: |
           total=$(awk '/^total:/ {gsub(/%/, "", $NF); print $NF}' <(go tool cover -func=coverage.out))
           echo "cobertura total: ${total}% con un mínimo de ${MIN_COVERAGE}%"

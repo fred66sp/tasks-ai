@@ -1,5 +1,6 @@
-# El linter del proyecto, con la misma versión que se usa en local para que un cambio
-# no pase aquí y falle allí, ni al revés.
+# El linter del proyecto. Su versión tiene que estar construida con un Go al menos tan
+# nuevo como el que analiza: uno construido con un Go más viejo no sabe leer los datos
+# exportados del más nuevo, y falla con un error de importación que no dice la causa.
 name: Linter
 
 on:
@@ -30,5 +31,5 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13.2
+          version: v2.15.0
           args: --timeout 5m

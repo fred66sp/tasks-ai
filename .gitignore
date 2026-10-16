@@ -1,0 +1,43 @@
+# Dependencias y cachés de herramientas
+node_modules/
+.npm-cache/
+
+# Directorios de herramientas locales
+.atl/
+.codegraph/
+
+# Estado local del arnés y de la memoria
+.pi/
+.engram/*
+!.engram/config.json
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.code-workspace
+
+# Registros
+*.log
+npm-debug.log*
+
+# Marcadores de zona de seguridad de Windows (ADS)
+*:Zone.Identifier
+
+# Entorno: nunca se versiona, las claves no viajan en el repositorio
+.env
+.env.local
+.env.*.local
+
+# Bases de datos locales: nunca se versionan
+#   task-manager/tk/.tacks/  las tareas, y pertenecen al binario
+#   task-manager/data/*.db   el catálogo de etiquetas de esa instalación
+task-manager/tk/.tacks/
+task-manager/data/*.db
+task-manager/data/*.db-*
+
+# Salidas generadas
+coverage/
+dist/

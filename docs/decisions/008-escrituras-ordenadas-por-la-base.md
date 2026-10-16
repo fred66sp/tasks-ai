@@ -1,0 +1,34 @@
+# ADR-008: Las escrituras las ordena la base
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-10-16
+
+## Contexto
+
+El producto lo usa una persona con sus agentes, y más de uno puede escribir sobre la
+misma base a la vez: la persona en la interfaz y un agente por línea de comandos, o
+dos agentes. La interfaz de partida ya recarga cuando detecta que los datos han
+cambiado por fuera.
+
+El Product Owner eligió que no haya bloqueo de aplicación ni control de versión: que
+lo ordene la propia base.
+
+## Decisión
+
+- Varias sesiones o agentes pueden escribir sobre la misma base.
+- La base ordena las escrituras: quien llega después entra cuando le toca.
+- La interfaz recarga cuando los datos cambian desde fuera.
+
+## Consecuencias
+
+- No hay control de versión ni resolución de conflictos entre escritores.
+- La interfaz necesita un canal para enterarse de los cambios que no ha hecho ella.
+- Se asume que las escrituras son cortas, como corresponde a un producto local.
+- Requisitos afectados: `RNF-03`, `CA-06`.
+
+## Alternativas consideradas
+
+- **Bloqueo de aplicación: solo un escritor a la vez.** Rechazada por incómoda en el
+  uso real, donde la persona y un agente trabajan a la vez.
+- **Control de versión por escritor, con aviso de conflicto.** Rechazada: más trabajo
+  del que este producto necesita para su uso.

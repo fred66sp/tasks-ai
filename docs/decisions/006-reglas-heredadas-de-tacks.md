@@ -1,0 +1,45 @@
+# ADR-006: Reglas heredadas de la referencia funcional
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-10-16
+
+## Contexto
+
+La referencia funcional trae reglas propias, ya probadas en ella: el estado bloqueado
+se calcula, cerrar una tarea con subtareas abiertas se rechaza, cerrar la última
+subtarea cierra el padre, el padre se marca como épica al crear su primera subtarea,
+la prioridad se acepta sin validar y los errores viajan dentro de una respuesta
+correcta.
+
+El Product Owner decidió una por una cuáles se conservan, con el criterio de que la
+referencia es funcional y no una obligación de compatibilidad.
+
+## Decisión
+
+Se conservan:
+
+- El estado bloqueado se calcula desde las dependencias y no se almacena.
+- Una tarea con subtareas abiertas no se puede cerrar.
+
+Se descartan o se corrigen:
+
+- Cerrar la última subtarea no cierra la tarea padre.
+- La marca de épica la pone quien crea la tarea; el producto no la añade sola.
+- La prioridad se valida contra su rango y el valor que se salga se rechaza.
+- Los errores se comunican con el código de estado que corresponde, no dentro de una
+  respuesta correcta.
+
+## Consecuencias
+
+- El estado bloqueado no ocupa lugar en el modelo: se deriva de las dependencias.
+- Nada cierra tareas por su cuenta: el cierre lo decide quien lo pide.
+- La interfaz de partida se ajusta donde asumía lo contrario, en particular al tratar
+  los errores y al cerrar.
+- Requisitos afectados: `RN-04`, `RN-05`, `RN-06`, `RN-07`, `RN-08`, `RF-09`, `NO-01`.
+
+## Alternativas consideradas
+
+- **Copiar las reglas de la referencia tal cual.** Rechazada: sería una traducción de
+  su implementación, y la compatibilidad con ella es un no objetivo.
+- **Diseñar las seis reglas desde cero.** Rechazada por innecesaria: las conservadas
+  ya están resueltas y probadas en la referencia.

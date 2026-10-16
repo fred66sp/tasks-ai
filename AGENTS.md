@@ -35,6 +35,9 @@ npm run odd:tk -- show tk-XXXX
 - Además de lo que dice esa skill, cada tarea declara **el resultado que cierra** y **el
   criterio con el que se comprueba**, observable por la interfaz pública. Una tarea sin
   criterio no se empieza: se escribe primero.
+- Cuando el tablero o su skill no digan algo que haga falta, se corrige ahí en el
+  momento: si algo cuesta entenderlo, el hueco es de la documentación, no de quien lo
+  sufre.
 - No se registra en el tablero el estado de Git ni el del proceso de revisión: cada
   uno vive donde vive.
 

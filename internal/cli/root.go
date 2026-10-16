@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"tasks-ai/internal/install"
 
 	"github.com/spf13/cobra"
 )
@@ -42,7 +43,7 @@ func New(out, errOut io.Writer) *cobra.Command {
 		Use:   Name,
 		Short: "Gestor de tareas local del proyecto",
 		Long: "Gestor de tareas local del proyecto.\n\n" +
-			"Trabaja sobre la carpeta " + productFolder + " del proyecto en el que estés, la encuentre donde la encuentre.\n" +
+			"Trabaja sobre la carpeta " + install.DirName + " del proyecto en el que estés, la encuentre donde la encuentre.\n" +
 			"Toda operación responde en JSON por la salida estándar.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -66,7 +67,7 @@ func Run(args []string, out, errOut io.Writer) int {
 	command.SetArgs(args)
 
 	if err := command.Execute(); err != nil {
-		writeJSON(errOut, errorBody{Error: err.Error()})
+		_ = writeJSON(errOut, errorBody{Error: err.Error()})
 
 		if _, isMisuse := errors.AsType[*usageError](err); isMisuse {
 			return 2
@@ -95,13 +96,17 @@ func usage(check cobra.PositionalArgs) cobra.PositionalArgs {
 }
 
 // writeJSON writes a value as JSON, which is how the command line always answers.
-func writeJSON(out io.Writer, value any) {
+// Without a place to leave the answer there is no answer: the caller turns the
+// write's error into the exit code and into the JSON of the error output.
+func writeJSON(out io.Writer, value any) error {
 	raw, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
-		_, _ = fmt.Fprintf(out, "{\"error\": \"no se pudo preparar la respuesta: %v\"}\n", err)
+		_, err = fmt.Fprintf(out, "{\"error\": \"no se pudo preparar la respuesta: %v\"}\n", err)
 
-		return
+		return err
 	}
 
-	_, _ = fmt.Fprintf(out, "%s\n", raw)
+	_, err = fmt.Fprintf(out, "%s\n", raw)
+
+	return err
 }

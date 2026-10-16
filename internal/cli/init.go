@@ -25,9 +25,7 @@ func newInitCommand() *cobra.Command {
 				return err
 			}
 
-			writeJSON(command.OutOrStdout(), result)
-
-			return nil
+			return writeJSON(command.OutOrStdout(), result)
 		},
 	}
 }

@@ -49,9 +49,7 @@ func newCreateCommand() *cobra.Command {
 				return err
 			}
 
-			writeJSON(command.OutOrStdout(), task)
-
-			return nil
+			return writeJSON(command.OutOrStdout(), task)
 		},
 	}
 

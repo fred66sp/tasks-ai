@@ -3,6 +3,7 @@ package cli_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"tasks-ai/internal/cli"
@@ -132,6 +133,31 @@ func TestRun_installsCreatesAndReadsATask(t *testing.T) {
 	// Una entrada inválida es un error de uso, con su propio código de salida.
 	if code, _, _ := run(t, "create"); code != 2 {
 		t.Errorf("crear sin título salió con %d, se esperaba 2", code)
+	}
+}
+
+// failingWriter simula una salida donde ya no se puede escribir nada, como un
+// disco lleno.
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) {
+	return 0, errors.New("no queda espacio en el dispositivo")
+}
+
+//nolint:paralleltest // t.Chdir no permite paralelismo
+func TestRun_reportsAFailingAnswerWriter(t *testing.T) {
+	t.Chdir(t.TempDir())
+
+	var errOut bytes.Buffer
+
+	code := cli.Run([]string{"init"}, failingWriter{}, &errOut)
+
+	if code != 1 {
+		t.Errorf("escribir la respuesta falló y el comando salió con %d, se esperaba 1", code)
+	}
+
+	if msg := errorText(t, errOut.String()); msg == "" {
+		t.Errorf("el error debe cruzar en JSON por la salida de errores, se obtuvo %q", errOut.String())
 	}
 }
 

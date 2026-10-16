@@ -9,7 +9,12 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 |---|---|
 | `docs/` | La documentación del producto: requisitos, decisiones, diseño, contratos y riesgos |
 | `docs/decisions/` | Un documento por decisión durable |
-| `cmd/` | El punto de entrada del binario |
+| `cmd/tasks-ai/` | El punto de entrada del binario |
+| `internal/settings/` | Los ajustes del proyecto: su archivo en la carpeta del producto y sus valores por omisión |
+| `internal/store/` | La base SQLite: su esquema versionado y lo que guarda de las tareas |
+| `internal/core/` | Las reglas del producto: crear tareas, darles identidad y referencia, y leerlas |
+| `internal/install/` | La instalación en un proyecto: su carpeta con la base, los ajustes y las instrucciones |
+| `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
 | `task-manager/` | La herramienta con la que se desarrolla el proyecto, con su tablero |
 
@@ -44,6 +49,16 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
    documentación.
 4. Un cambio de diseño se documenta antes de implementarlo, y su documento de decisión
    explica qué se descartó.
+
+Los comandos del día a día son objetivos de `make`, con su equivalente de `go`:
+
+```bash
+make build      # go build -o bin/tasks-ai ./cmd/tasks-ai
+make test       # go test ./...
+make test-race  # go test -race ./...
+make lint       # golangci-lint run ./...
+make fmt        # golangci-lint fmt ./...
+```
 
 ## Lo que no se hace
 

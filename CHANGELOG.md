@@ -7,6 +7,9 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **Primera rebanada del producto**: se instala en la carpeta del proyecto, guarda su
+  estado en una base SQLite con esquema versionado, y crea y lee tareas desde la línea
+  de comandos, en JSON.
 - **Documentación del producto**: requisitos y criterios de aceptación en
   [`docs/PRD.md`](docs/PRD.md); decisiones durables en
   [`docs/decisions/`](docs/decisions/); diseño en

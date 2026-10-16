@@ -1,8 +1,9 @@
 # tasks-ai
 
 Gestor de tareas local-first para un proyecto, escrito en Go. Las tareas viven en una
-base SQLite dentro del propio proyecto y se usan de dos maneras: por línea de comandos,
-con salida JSON, y por una interfaz web que sirve el mismo binario.
+base SQLite dentro del propio proyecto y hoy se usan por línea de comandos, con salida
+JSON. La interfaz web que sirve el mismo binario está por llegar; su diseño está en
+[`docs/PRD.md`](docs/PRD.md).
 
 Todo lo del producto vive en la carpeta `.task-ai/` del proyecto —la base, la
 configuración y las instrucciones—, de modo que el proyecto no se ensucia.
@@ -29,10 +30,11 @@ El contrato de documentación dice qué contiene cada documento de `docs/`.
 Del producto:
 
 ```bash
-go build ./cmd/...     # compila el binario
-go test ./...          # ejecuta las pruebas
-./tasks-ai init        # instala el producto en el proyecto: crea .task-ai/
-./tasks-ai serve       # arranca la interfaz web
+go build ./cmd/tasks-ai  # compila el binario
+
+./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones
+./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
+./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
 ```
 
 De la herramienta de desarrollo:

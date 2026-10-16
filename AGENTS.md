@@ -26,8 +26,22 @@ npm run odd:tk -- show tk-XXXX
   solo por su CLI.
 - Ciclo: crear o seleccionar la tarea antes de tocar archivos, marcarla en curso,
   mantener las notas y los comentarios al día y cerrarla tras verificar.
+- Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de
+  ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
+  arreglo, una decisión, una duda— se anota como tarea antes de tocarlo.
 - No se registra en el tablero el estado de Git ni el del proceso de revisión: cada
   uno vive donde vive.
+
+## Alcance del trabajo
+
+- Se hace lo que pide el encargo, con el mínimo que lo resuelve. Sin puertas,
+  candados, permisos ni comprobaciones de adorno que nadie pidió.
+- El trabajo se delega en encargos acotados: el criterio citado literalmente, las
+  pruebas escritas antes del código, una lista cerrada de archivos que se pueden
+  tocar, y la evidencia de lo comprobado. Quien orquesta revisa, comprueba el
+  criterio contra el binario real y entrega.
+- Una tarea se cierra cuando su resultado y sus comprobaciones se han observado. Lo
+  que se comprueba es el criterio, no la impresión de quien hizo el trabajo.
 
 ## Qué se toca y qué no
 

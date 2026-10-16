@@ -1,11 +1,14 @@
 package store_test
 
 import (
+	"database/sql"
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"tasks-ai/internal/store"
 	"testing"
+	"time"
 )
 
 func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
@@ -176,6 +179,76 @@ func TestOpen_createsTheFolderTheBaseLivesIn(t *testing.T) {
 	}
 }
 
+func TestOpen_saysSoWhenTheFolderOfTheBaseCannotBeCreated(t *testing.T) {
+	t.Parallel()
+
+	// Un fichero ocupa el sitio de la carpeta: nadie puede crearla y Open
+	// debe rendirse enseguida, sin gastar las pausas de reintento que son
+	// solo para el caso en que otro proceso está creando la base.
+	folder := filepath.Join(t.TempDir(), "datos")
+	if err := os.WriteFile(folder, []byte("aquí hay un fichero, no una carpeta"), 0o600); err != nil {
+		t.Fatalf("preparando el fichero que estorba: %v", err)
+	}
+
+	started := time.Now()
+
+	_, err := store.Open(t.Context(), filepath.Join(folder, "tasks.db"))
+	if err == nil {
+		t.Fatal("abriendo la base con una carpeta imposible: no falló")
+	}
+
+	if !strings.Contains(err.Error(), "creando la carpeta de la base") {
+		t.Errorf("el error no dice que la carpeta no pudo crearse: %v", err)
+	}
+
+	// Las cinco pausas de reintento suman 250 ms: fallar antes demuestra
+	// que este caso no las gastó.
+	if elapsed := time.Since(started); elapsed >= 250*time.Millisecond {
+		t.Errorf("Open tardó %v en fallar: gastó las pausas de reintento", elapsed)
+	}
+}
+
+func TestOpen_saysSoWhenTheFileIsNotADatabase(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	if err := os.WriteFile(path, []byte("esto es un cuaderno, no una base"), 0o600); err != nil {
+		t.Fatalf("escribiendo el texto que estorba: %v", err)
+	}
+
+	_, err := store.Open(t.Context(), path)
+	if err == nil {
+		t.Fatal("abriendo un fichero que no es una base: no falló")
+	}
+
+	if !strings.Contains(err.Error(), path) {
+		t.Errorf("el error no menciona la base %s: %v", path, err)
+	}
+
+	if !strings.Contains(err.Error(), "not a database") {
+		t.Errorf("el error no dice que el fichero no es una base de datos: %v", err)
+	}
+}
+
+func TestOpen_saysSoWhenTheRecordedSchemaVersionIsNotANumber(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	// Otra herramienta dejó en la base una versión del esquema sin sentido.
+	rawBase(t, path, "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+	rawBase(t, path, "INSERT INTO meta (key, value) VALUES ('schema_version', 'próximamente')")
+
+	_, err := store.Open(t.Context(), path)
+	if err == nil {
+		t.Fatal("abriendo una base con una versión del esquema sin sentido: no falló")
+	}
+
+	if !strings.Contains(err.Error(), `"próximamente"`) || !strings.Contains(err.Error(), "no es un número") {
+		t.Errorf("el error no señala la versión guardada: %v", err)
+	}
+}
+
 func TestCreateTask_givesEachTaskItsOwnIdentity(t *testing.T) {
 	t.Parallel()
 
@@ -238,6 +311,54 @@ func TestTask_saysWhenThereIsNothingUnderThatIdentity(t *testing.T) {
 	}
 }
 
+func TestTask_saysSoWhenTheStoredDatesCannotBeRead(t *testing.T) {
+	t.Parallel()
+
+	today := time.Now().UTC().Format(time.RFC3339Nano)
+
+	for _, caso := range []struct {
+		name      string
+		createdAt string
+		updatedAt string
+		fragment  string
+	}{
+		{name: "la fecha de creación", createdAt: "ayer", updatedAt: today, fragment: "la fecha de creación de la tarea 1"},
+		{name: "la fecha de cambio", createdAt: today, updatedAt: "el martes pasado", fragment: "la fecha de cambio de la tarea 1"},
+	} {
+		t.Run(caso.name, func(t *testing.T) {
+			t.Parallel()
+
+			path := filepath.Join(t.TempDir(), "tasks.db")
+
+			base, err := store.Open(t.Context(), path)
+			if err != nil {
+				t.Fatalf("abriendo la base de prueba: %v", err)
+			}
+
+			if err := base.Close(); err != nil {
+				t.Fatalf("cerrando la base: %v", err)
+			}
+
+			// Otra herramienta escribió la tarea con una fecha sin sentido.
+			rawBase(t, path,
+				`INSERT INTO tasks (title, status, created_at, updated_at) VALUES ('Rota', 'open', ?, ?)`,
+				caso.createdAt, caso.updatedAt,
+			)
+
+			base, err = store.Open(t.Context(), path)
+			if err != nil {
+				t.Fatalf("reabriendo la base con la fecha rota: %v", err)
+			}
+
+			defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+			if _, err := base.Task(t.Context(), 1); err == nil || !strings.Contains(err.Error(), caso.fragment) {
+				t.Errorf("Task devolvió %v, se esperaba un error que mencionara %q", err, caso.fragment)
+			}
+		})
+	}
+}
+
 func TestRecordedPrefix_keepsThePrefixItWasGiven(t *testing.T) {
 	t.Parallel()
 
@@ -292,6 +413,24 @@ func storedTask(t *testing.T) (created, read store.Task) {
 	}
 
 	return created, read
+}
+
+// rawBase ejecuta una instrucción sobre la base directamente con el motor, sin
+// pasar por la store: sirve para dejarla en estados que la store no crea pero
+// un usuario puede encontrarse.
+func rawBase(t *testing.T, path, statement string, args ...any) {
+	t.Helper()
+
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la base por debajo de la store: %v", err)
+	}
+
+	defer raw.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	if _, err := raw.ExecContext(t.Context(), statement, args...); err != nil {
+		t.Fatalf("ejecutando %q sobre la base: %v", statement, err)
+	}
 }
 
 func openStore(t *testing.T) *store.Store {

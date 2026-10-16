@@ -130,7 +130,7 @@ func (cfg Settings) validate() error {
 		)
 	}
 
-	if cfg.DB == "" || filepath.IsAbs(cfg.DB) {
+	if !filepath.IsLocal(cfg.DB) {
 		return fmt.Errorf("%s: la base %q debe ser un archivo dentro de la carpeta del producto", FileName, cfg.DB)
 	}
 

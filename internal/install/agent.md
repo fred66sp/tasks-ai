@@ -17,6 +17,7 @@ Desde cualquier punto del proyecto:
 ```bash
 tasks-ai create --title "Preparar el análisis"   # crea una tarea y devuelve su JSON
 tasks-ai show tk-1                               # devuelve la tarea en JSON
+tasks-ai update tk-1 --priority 1                # cambia los campos que se piden y devuelve la tarea
 ```
 
 Toda operación responde en JSON por la salida estándar, y los avisos y errores van por

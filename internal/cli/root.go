@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
 
 	"github.com/spf13/cobra"
@@ -55,7 +56,7 @@ func New(out, errOut io.Writer) *cobra.Command {
 		return &usageError{err: err}
 	})
 
-	root.AddCommand(newInitCommand(), newCreateCommand(), newShowCommand())
+	root.AddCommand(newInitCommand(), newCreateCommand(), newShowCommand(), newUpdateCommand())
 
 	return root
 }
@@ -69,7 +70,9 @@ func Run(args []string, out, errOut io.Writer) int {
 	if err := command.Execute(); err != nil {
 		_ = writeJSON(errOut, errorBody{Error: err.Error()})
 
-		if _, isMisuse := errors.AsType[*usageError](err); isMisuse {
+		// An entry that breaks a rule is the same misuse of the command line as a
+		// flag that does not fit: it has its own exit code.
+		if _, isMisuse := errors.AsType[*usageError](err); isMisuse || errors.Is(err, core.ErrInvalid) {
 			return 2
 		}
 

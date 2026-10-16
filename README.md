@@ -35,6 +35,7 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
+./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable o prioridad
 ```
 
 De la herramienta de desarrollo:

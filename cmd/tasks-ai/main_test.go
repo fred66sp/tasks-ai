@@ -275,6 +275,260 @@ func TestCreateWithoutTitleIsMisuse(t *testing.T) {
 	errorJSON(t, errOut)
 }
 
+// TestUpdateChangesOnlyTheFieldsItIsGiven: cambiar un campo deja los demás como
+// estaban.
+func TestUpdateChangesOnlyTheFieldsItIsGiven(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	created := createWithFields(t, project)
+
+	code, out, errOut := run(t, project, "update", created.Ref, "--title", "Preparar el informe")
+	if code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
+
+	var changed core.Task
+	decode(t, out, &changed)
+
+	if changed.Title != "Preparar el informe" {
+		t.Errorf("el título quedó en %q, se esperaba %q", changed.Title, "Preparar el informe")
+	}
+
+	if changed.ID != created.ID || changed.Ref != created.Ref {
+		t.Errorf("el cambio respondió otra tarea: identidad %d y referencia %q", changed.ID, changed.Ref)
+	}
+
+	checkUntouched(t, created, changed, "title")
+
+	// Lo que se lee por la referencia es lo que quedó guardado.
+	code, out, errOut = run(t, project, "show", created.Ref)
+	if code != 0 {
+		t.Fatalf("show salió con %d: %s", code, errOut)
+	}
+
+	var read core.Task
+	decode(t, out, &read)
+
+	if read.Title != changed.Title {
+		t.Errorf("la tarea guardada tiene el título %q, se esperaba %q", read.Title, changed.Title)
+	}
+
+	checkUntouched(t, created, read, "title")
+}
+
+// checkUntouched comprueba que los campos que nadie pidió siguen como estaban.
+// changing es el campo que el caso estaba cambiando y por eso se queda fuera.
+func checkUntouched(t *testing.T, before, after core.Task, changing string) {
+	t.Helper()
+
+	if changing != "title" && after.Title != before.Title {
+		t.Errorf("el título cambió sin que nadie lo pidiera: %q", after.Title)
+	}
+
+	if changing != "description" && !sameText(before.Description, after.Description) {
+		t.Errorf("la descripción cambió sin que nadie lo pidiera: %v", after.Description)
+	}
+
+	if !sameText(before.Notes, after.Notes) {
+		t.Errorf("las notas cambiaron sin que nadie lo pidiera: %v", after.Notes)
+	}
+
+	if !sameText(before.Assignee, after.Assignee) {
+		t.Errorf("el responsable cambió sin que nadie lo pidiera: %v", after.Assignee)
+	}
+
+	if after.Priority != before.Priority || after.Status != before.Status {
+		t.Errorf("la prioridad o el estado cambiaron sin que nadie lo pidiera: %+v", after)
+	}
+}
+
+// sameText compara dos textos que pueden faltar.
+func sameText(before, after *string) bool {
+	if before == nil || after == nil {
+		return before == nil && after == nil
+	}
+
+	return *before == *after
+}
+
+// createWithFields deja una tarea con todos sus campos opcionales puestos.
+func createWithFields(t *testing.T, project string) core.Task {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "create",
+		"--title", "Preparar el análisis",
+		"--description", "El de siempre",
+		"--notes", "pendiente de revisión",
+		"--assignee", "ana",
+	)
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	return created
+}
+
+// TestUpdateClearsAnOptionalFieldGivenEmpty: un texto vacío deja ese campo sin
+// valor y no toca los demás.
+func TestUpdateClearsAnOptionalFieldGivenEmpty(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	created := createWithFields(t, project)
+
+	code, out, errOut := run(t, project, "update", created.Ref, "--description", "")
+	if code != 0 {
+		t.Fatalf("update con la descripción vacía salió con %d: %s", code, errOut)
+	}
+
+	var cleared core.Task
+	decode(t, out, &cleared)
+
+	if cleared.Description != nil {
+		t.Errorf("vaciar la descripción debía dejarla sin valor, quedó en %q", *cleared.Description)
+	}
+
+	checkUntouched(t, created, cleared, "description")
+}
+
+// TestUpdateWithoutAnythingToChangeIsMisuse: una orden de cambio sin ningún
+// campo es un mal uso de la línea de comandos, con su código y su mensaje.
+func TestUpdateWithoutAnythingToChangeIsMisuse(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	code, out, errOut = run(t, project, "update", created.Ref)
+
+	if code != 2 {
+		t.Errorf("update sin campos salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("update sin campos escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "cambiar") {
+		t.Errorf("el mensaje no dice que no hay nada que cambiar: %s", message)
+	}
+}
+
+// TestCreateRefusesAPriorityOutOfRange: una prioridad fuera del rango se
+// rechaza por los dos extremos y no deja ninguna tarea guardada.
+func TestCreateRefusesAPriorityOutOfRange(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	for _, priority := range []string{"-1", "4"} {
+		code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis", "--priority="+priority)
+
+		if code != 2 {
+			t.Errorf("create con la prioridad %s salió con %d, se esperaba 2", priority, code)
+		}
+
+		if out != "" {
+			t.Errorf("create con la prioridad %s escribió en la salida estándar: %s", priority, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, "rango") {
+			t.Errorf("el mensaje de la prioridad %s no explica el rango: %s", priority, message)
+		}
+	}
+
+	// Ninguna de las dos rechazadas dejó tarea: la siguiente lleva la primera identidad.
+	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	if created.ID != 1 {
+		t.Errorf("una tarea rechazada consumió identidad: la siguiente es la %d", created.ID)
+	}
+}
+
+// TestUpdateRefusesAPriorityOutOfRangeAndLeavesTheTaskAsItWas: el rango tiene
+// dos extremos válidos y todo lo que se salga de él se rechaza sin tocar la
+// tarea guardada.
+func TestUpdateRefusesAPriorityOutOfRangeAndLeavesTheTaskAsItWas(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	for _, priority := range []string{"-1", "4"} {
+		code, out, errOut = run(t, project, "update", created.Ref, "--priority="+priority)
+
+		if code != 2 {
+			t.Errorf("update con la prioridad %s salió con %d, se esperaba 2", priority, code)
+		}
+
+		if out != "" {
+			t.Errorf("update con la prioridad %s escribió en la salida estándar: %s", priority, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, "rango") {
+			t.Errorf("el mensaje de la prioridad %s no explica el rango: %s", priority, message)
+		}
+	}
+
+	code, out, errOut = run(t, project, "show", created.Ref)
+	if code != 0 {
+		t.Fatalf("show salió con %d: %s", code, errOut)
+	}
+
+	var read core.Task
+	decode(t, out, &read)
+
+	if read.Priority != created.Priority {
+		t.Errorf("la prioridad rechazada tocó la tarea: quedó en %d", read.Priority)
+	}
+
+	// Los dos extremos del rango sí se aceptan.
+	for _, priority := range []int{core.MinPriority, core.MaxPriority} {
+		code, out, errOut = run(t, project, "update", created.Ref, fmt.Sprintf("--priority=%d", priority))
+		if code != 0 {
+			t.Fatalf("update con la prioridad %d salió con %d: %s", priority, code, errOut)
+		}
+
+		var changed core.Task
+		decode(t, out, &changed)
+
+		if changed.Priority != priority {
+			t.Errorf("la prioridad quedó en %d, se esperaba %d", changed.Priority, priority)
+		}
+	}
+}
+
 // TestInitTwiceFails: instalar dos veces falla con un mensaje claro.
 func TestInitTwiceFails(t *testing.T) {
 	t.Parallel()

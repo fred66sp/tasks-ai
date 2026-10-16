@@ -79,7 +79,9 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - Las etiquetas viajan por su nombre.
 - El detalle de una tarea añade sus bloqueantes, sus dependientes, sus hijas y sus
   comentarios.
-- Los errores del CLI son un objeto con `error` y salida distinta de cero.
+- Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
+  el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
+  API responde con `400`—, y `1` en cualquier otro caso.
 
 ## 3. API HTTP
 

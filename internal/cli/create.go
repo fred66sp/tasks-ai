@@ -15,6 +15,7 @@ func newCreateCommand() *cobra.Command {
 		description string
 		assignee    string
 		notes       string
+		priority    int
 	)
 
 	command := &cobra.Command{
@@ -25,6 +26,17 @@ func newCreateCommand() *cobra.Command {
 		RunE: func(command *cobra.Command, _ []string) error {
 			if strings.TrimSpace(title) == "" {
 				return &usageError{err: errors.New("falta el título de la tarea: usa --title")}
+			}
+
+			newTask := core.NewTask{
+				Title:       title,
+				Description: description,
+				Assignee:    assignee,
+				Notes:       notes,
+			}
+
+			if command.Flags().Changed("priority") {
+				newTask.Priority = &priority
 			}
 
 			dir, err := workingDir()
@@ -39,12 +51,7 @@ func newCreateCommand() *cobra.Command {
 
 			defer func() { _ = project.Close() }()
 
-			task, err := project.core.CreateTask(command.Context(), core.NewTask{
-				Title:       title,
-				Description: description,
-				Assignee:    assignee,
-				Notes:       notes,
-			})
+			task, err := project.core.CreateTask(command.Context(), newTask)
 			if err != nil {
 				return err
 			}
@@ -57,6 +64,7 @@ func newCreateCommand() *cobra.Command {
 	command.Flags().StringVarP(&description, "description", "d", "", "descripción de la tarea")
 	command.Flags().StringVar(&assignee, "assignee", "", "persona responsable de la tarea")
 	command.Flags().StringVar(&notes, "notes", "", "notas sueltas de la tarea")
+	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "prioridad de la tarea, de 0 a 3")
 
 	return command
 }

@@ -94,6 +94,9 @@ en tk para que el proyecto no dependa de la memoria de una sesión.
 - No hay borrado. Una tarea se cierra con `done`, `duplicate`, `absorbed`,
   `stale` o `superseded`.
 - No hay reapertura dedicada: se usa `update <id> -s open`.
+- Cerrar la última subtarea abierta cierra el padre: al cerrar la última hija de un
+  frente, el frente pasa a `done` sin pedirlo, y el tablero se queda sin nada en curso
+  aunque el trabajo siga. Se reabre el frente con `update <id> -s in_progress`.
 - Cerrar con subtareas abiertas falla sin `--force`; no se usa `--force`.
 - `--claim` fija `assignee = "agent"` y no permite elegir nombre.
 - La prioridad no está validada por el binario; se usan solo los valores 0 a 3.

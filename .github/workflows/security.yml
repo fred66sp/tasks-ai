@@ -1,0 +1,30 @@
+# Vulnerabilidades conocidas en lo que el producto realmente llama. Un análisis
+# genérico de dependencias avisa de mucho que no se usa; este no.
+name: Seguridad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vulnerabilities:
+    name: Vulnerabilidades conocidas
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Preparar Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: stable
+
+      - name: Buscar vulnerabilidades en el código que se ejecuta
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...

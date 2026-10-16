@@ -1,0 +1,34 @@
+# El linter del proyecto, con la misma versión que se usa en local para que un cambio
+# no pase aquí y falle allí, ni al revés.
+name: Linter
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Preparar Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: stable
+
+      - name: Análisis del propio lenguaje
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+          args: --timeout 5m

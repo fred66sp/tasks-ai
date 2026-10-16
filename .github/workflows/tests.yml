@@ -1,0 +1,59 @@
+# Pruebas del producto en cada cambio. El suelo de cobertura es un contrato: un cambio
+# que lo baje no pasa. Deja margen a que una rama poco frecuente no se recorra en una
+# ejecución concreta, pero no al hueco que deja una prueba que falta.
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Suelo de cobertura total de sentencias, en porcentaje.
+  MIN_COVERAGE: "84.0"
+
+jobs:
+  test:
+    name: Pruebas (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - "1.27"
+          - "stable"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Preparar Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Comprobar las dependencias
+        run: |
+          go mod verify
+          go mod download
+
+      - name: Comprobar que go.mod y go.sum estén al día
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Compilar
+        run: go build ./...
+
+      - name: Pasar las pruebas, con carreras y en orden mezclado
+        run: go test -v -race -shuffle=on -coverprofile=coverage.out ./...
+
+      - name: Comprobar el suelo de cobertura
+        if: matrix.go == 'stable'
+        run: |
+          total=$(awk '/^total:/ {gsub(/%/, "", $NF); print $NF}' <(go tool cover -func=coverage.out))
+          echo "cobertura total: ${total}% con un mínimo de ${MIN_COVERAGE}%"
+          awk -v total="${total}" -v min="${MIN_COVERAGE}" 'BEGIN { exit !(total + 0 >= min + 0) }'

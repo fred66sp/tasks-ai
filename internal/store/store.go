@@ -7,7 +7,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	sqlite "modernc.org/sqlite" // el motor de SQLite, escrito en Go puro
@@ -65,6 +68,12 @@ const bootstrapAttempts = 5
 // Open opens the database at path, creating it when it is not there, and applies
 // the migrations it still owes.
 func Open(ctx context.Context, path string) (*Store, error) {
+	// Los ajustes aceptan rutas en subcarpetas del proyecto y nadie más crea
+	// esa carpeta: sin esto, abrir falla porque SQLite no la crea por su cuenta.
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+		return nil, fmt.Errorf("creando la carpeta de la base %s: %w", path, err)
+	}
+
 	for attempt := 1; ; attempt++ {
 		instance, err := openOnce(ctx, path)
 		if err == nil {
@@ -132,7 +141,14 @@ func (s *Store) Close() error {
 // of failing, a write-ahead log lets a reader read while the product writes,
 // and the references between tables are honoured.
 func dataSourceName(path string) string {
-	return "file:" + path +
+	// SQLite corta el nombre del fichero de una URI en la primera ? o # y lee
+	// %HH como escape: sin esto, esos caracteres en la ruta sacan la base de
+	// su carpeta. El % se escapa primero para no re-escapar lo ya escapado.
+	escaped := strings.ReplaceAll(path, "%", "%25")
+	escaped = strings.ReplaceAll(escaped, "?", "%3F")
+	escaped = strings.ReplaceAll(escaped, "#", "%23")
+
+	return "file:" + escaped +
 		"?_txlock=immediate" +
 		"&_pragma=busy_timeout(5000)" +
 		"&_pragma=journal_mode(WAL)" +

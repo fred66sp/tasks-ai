@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"tasks-ai/internal/store"
 	"testing"
@@ -98,6 +99,80 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {
 		t.Errorf("la base quedó inservible tras la carrera: %v", err)
+	}
+}
+
+func TestOpen_keepsTheBaseInsideAFolderWhoseNameHasAnInterrogation(t *testing.T) {
+	t.Parallel()
+
+	parent := t.TempDir()
+
+	firstPath := filepath.Join(parent, "a?b", "tasks.db")
+	twinPath := filepath.Join(parent, "a?c", "tasks.db")
+
+	first, err := store.Open(t.Context(), firstPath)
+	if err != nil {
+		t.Fatalf("abriendo la base en una ruta con interrogación: %v", err)
+	}
+
+	defer first.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	if _, err := os.Stat(firstPath); err != nil {
+		t.Errorf("la base no está en su carpeta %s: %v", firstPath, err)
+	}
+
+	entries, err := os.ReadDir(parent)
+	if err != nil {
+		t.Fatalf("leyendo la carpeta padre: %v", err)
+	}
+
+	for _, entry := range entries {
+		if entry.Name() != "a?b" && entry.Name() != "a?c" {
+			t.Errorf("la carpeta padre contiene %q, solo se esperaban a?b y a?c", entry.Name())
+		}
+	}
+
+	twin, err := store.Open(t.Context(), twinPath)
+	if err != nil {
+		t.Fatalf("abriendo la base gemela: %v", err)
+	}
+
+	defer twin.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	if _, err := os.Stat(twinPath); err != nil {
+		t.Errorf("la base gemela no está en su carpeta %s: %v", twinPath, err)
+	}
+
+	ctx := t.Context()
+
+	if err := first.SetPrefix(ctx, "primera"); err != nil {
+		t.Fatalf("anotando el prefijo de la primera base: %v", err)
+	}
+
+	recorded, err := twin.RecordedPrefix(ctx)
+	if err != nil {
+		t.Fatalf("leyendo el prefijo de la base gemela: %v", err)
+	}
+
+	if recorded != "" {
+		t.Errorf("las dos bases comparten datos: la gemela trae el prefijo %q, se esperaba ninguno", recorded)
+	}
+}
+
+func TestOpen_createsTheFolderTheBaseLivesIn(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "datos", "tasks.db")
+
+	base, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base en una subcarpeta aún sin crear: %v", err)
+	}
+
+	defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	if _, err := os.Stat(path); err != nil {
+		t.Errorf("la base no está en la subcarpeta %s: %v", path, err)
 	}
 }
 

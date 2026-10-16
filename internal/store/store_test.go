@@ -20,8 +20,8 @@ func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 2 {
-		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 2", version)
+	if version != 3 {
+		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 3", version)
 	}
 }
 
@@ -51,8 +51,8 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 2 {
-		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 2", version)
+	if version != 3 {
+		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 3", version)
 	}
 }
 
@@ -97,8 +97,8 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 2 {
-		t.Errorf("la base quedó en el esquema %d, se esperaba el 2", version)
+	if version != 3 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 3", version)
 	}
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {

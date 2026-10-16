@@ -142,10 +142,12 @@ func scanTask(scan func(dest ...any) error) (Task, error) {
 }
 
 // UpdateTask reads the task, hands it to change and writes back what change
-// returns. Everything happens inside one transaction: two writes at once queue
+// returns. When tags is not nil it also leaves the task with exactly those tag
+// names, refusing the whole change when one of them is not in the catalogue.
+// Everything happens inside one transaction: two writes at once queue
 // behind the base instead of overwriting each other. change must not ask the
 // base for anything, because the transaction already holds the write lock.
-func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Task, error)) (Task, error) {
+func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Task, error), tags []string) (Task, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return Task{}, fmt.Errorf("abriendo la transacción del cambio: %w", err)
@@ -187,6 +189,12 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 	)
 	if err != nil {
 		return Task{}, fmt.Errorf("guardando el cambio de la tarea %d: %w", id, err)
+	}
+
+	if tags != nil {
+		if err := replaceTaskTags(ctx, tx, id, tags); err != nil {
+			return Task{}, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {

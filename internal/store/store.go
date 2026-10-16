@@ -71,6 +71,22 @@ var migrations = []migration{
 			)`,
 		},
 	},
+	{
+		version: 3,
+		statements: []string{
+			`CREATE TABLE tags (
+				id          INTEGER PRIMARY KEY AUTOINCREMENT,
+				name        TEXT    NOT NULL UNIQUE,
+				color       TEXT    NOT NULL,
+				description TEXT
+			)`,
+			`CREATE TABLE task_tags (
+				task_id INTEGER NOT NULL REFERENCES tasks (id),
+				tag_id  INTEGER NOT NULL REFERENCES tags (id),
+				PRIMARY KEY (task_id, tag_id)
+			)`,
+		},
+	},
 }
 
 // migration is one schema change, applied as a whole.
@@ -150,12 +166,19 @@ func openOnce(ctx context.Context, path string) (*Store, error) {
 	return instance, nil
 }
 
+// isCode reports whether the error is one of SQLite's codes, its extended forms
+// included: the driver answers with the extended one, whose low byte is the code
+// the manual names, and comparing against the plain code would miss it.
+func isCode(err error, code int) bool {
+	var sqliteErr *sqlite.Error
+
+	return errors.As(err, &sqliteErr) && sqliteErr.Code()&0xFF == code
+}
+
 // isBusy reports whether the error is SQLite's occupied code, the only case
 // Open retries.
 func isBusy(err error) bool {
-	var sqliteErr *sqlite.Error
-
-	return errors.As(err, &sqliteErr) && sqliteErr.Code() == sqlite3.SQLITE_BUSY
+	return isCode(err, sqlite3.SQLITE_BUSY)
 }
 
 // Close lets the database go.

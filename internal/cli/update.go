@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strings"
 	"tasks-ai/internal/core"
 
 	"github.com/spf13/cobra"
@@ -14,6 +15,7 @@ func newUpdateCommand() *cobra.Command {
 		notes       string
 		assignee    string
 		priority    int
+		tags        string
 	)
 
 	command := &cobra.Command{
@@ -46,6 +48,11 @@ func newUpdateCommand() *cobra.Command {
 				changes.Priority = &priority
 			}
 
+			if command.Flags().Changed("tags") {
+				names := splitTags(tags)
+				changes.Tags = &names
+			}
+
 			dir, err := workingDir()
 			if err != nil {
 				return err
@@ -72,6 +79,22 @@ func newUpdateCommand() *cobra.Command {
 	command.Flags().StringVar(&notes, "notes", "", "nuevas notas, vacías las quitan")
 	command.Flags().StringVar(&assignee, "assignee", "", "nueva persona responsable, vacía la quita")
 	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "nueva prioridad, de 0 a 3")
+	command.Flags().StringVar(&tags, "tags", "", "nuevas etiquetas de la tarea, separadas por comas; una lista vacía las quita todas")
 
 	return command
+}
+
+// splitTags parts the list of names --tags carries, separated by commas and
+// with spare space around each name. The empty pieces fall out: a list left
+// empty leaves the task without any tag.
+func splitTags(list string) []string {
+	names := []string{}
+
+	for name := range strings.SplitSeq(list, ",") {
+		if name = strings.TrimSpace(name); name != "" {
+			names = append(names, name)
+		}
+	}
+
+	return names
 }

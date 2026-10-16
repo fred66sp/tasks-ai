@@ -25,6 +25,14 @@ Changelog* y el versionado es semántico.
   retirar el bloqueo. `comment` añade un comentario —su cuerpo es obligatorio— y los
   comentarios solo se añaden: no se editan ni se borran. `show` responde con el detalle
   de la tarea: sus hijas, sus bloqueantes, sus dependientes y sus comentarios.
+- **Catálogo de etiquetas**: `tags` responde el catálogo ordenado por nombre, cada
+  etiqueta con su color, su descripción y el número de tareas que la usan; `tag create`,
+  `tag edit` y `tag delete` la crean, la cambian —solo lo que se pide— y la borran con
+  sus asignaciones. Renombrar una etiqueta no modifica ninguna tarea, porque las
+  asignaciones apuntan al número interno de la etiqueta, y borrar una avisa de las
+  tareas que la usaban. `update` acepta `--tags "uno,dos"` para poner la lista entera de
+  etiquetas de una tarea, y una lista vacía la deja sin ninguna. La paleta de colores y
+  su color por omisión vienen de la interfaz de referencia del proyecto.
 - **Documentación del producto**: requisitos y criterios de aceptación en
   [`docs/PRD.md`](docs/PRD.md); decisiones durables en
   [`docs/decisions/`](docs/decisions/); diseño en

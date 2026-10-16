@@ -19,6 +19,11 @@ tasks-ai create --title "Preparar el análisis"   # crea una tarea y devuelve su
 tasks-ai create --title "Revisar el análisis" --parent tk-1  # crea una subtarea de tk-1
 tasks-ai show tk-1                               # devuelve la tarea en JSON, con sus hijas, sus bloqueantes, sus dependientes y sus comentarios
 tasks-ai update tk-1 --priority 1                # cambia los campos que se piden y devuelve la tarea
+tasks-ai update tk-1 --tags "docs,urgente"       # pone la lista entera de etiquetas de tk-1: una lista vacía la deja sin ninguna
+tasks-ai tags                                    # devuelve el catálogo de etiquetas con el uso de cada una
+tasks-ai tag create --name "docs" --color blue   # crea una etiqueta; el color que falta es blue
+tasks-ai tag edit docs --name "documentacion"    # cambia de la etiqueta lo que se pide y nada más; renombrar no toca ninguna tarea
+tasks-ai tag delete docs                         # borra la etiqueta con sus asignaciones y avisa de las tareas que la usaban
 tasks-ai close tk-1 --reason done                # cierra la tarea con su motivo y devuelve la tarea
 tasks-ai reopen tk-1                             # reabre la tarea cerrada y devuelve la tarea
 tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
@@ -36,6 +41,12 @@ tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloq
 al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede
 bloquearse por sí misma. Los comentarios solo se añaden: no hay manera de editar ni de
 borrar uno, y su cuerpo es obligatorio.
+
+Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
+debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create
+--help`); un color que falte es `blue` y un color desconocido se rechaza. Renombrar una
+etiqueta cambia el nombre que muestran las tareas sin tocar su fila guardada, y borrar
+una retira sus asignaciones avisando de las tareas que la usaban.
 
 Toda operación responde en JSON por la salida estándar, y los avisos y errores van por
 la salida de error con la forma `{"error": "..."}`.

@@ -31,14 +31,20 @@ código, en inglés.
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | entero | Clave. Mantiene el renombrado lejos de las tareas |
-| `name` | texto | Único. Es lo que se muestra y se escribe |
+| `name` | texto | Único. Es lo que se muestra y se escribe, y se compara tal cual: `docs` y `Docs` son dos etiquetas distintas |
 | `color` | texto | Uno de los colores de la paleta |
 | `description` | texto | Opcional |
+
+La paleta de colores y su color por omisión vienen de la interfaz de referencia del
+proyecto (`project-task-manager`). La lista de colores aceptados vive en el núcleo
+(`internal/core`) y en ningún otro sitio: este documento no la copia.
 
 ### Etiquetas de una tarea
 
 Una fila por pareja de tarea y etiqueta. El recuento de uso de una etiqueta sale de
-aquí.
+aquí. La fila apunta al número interno de la etiqueta, así que renombrar una etiqueta
+cambia el nombre que muestran las tareas sin tocar su fila guardada, y borrar una
+deja las tareas sin ella.
 
 ### Dependencia
 
@@ -80,7 +86,25 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 ```
 
 - `id` es la identidad interna y `ref` la referencia visible compuesta.
-- Las etiquetas viajan por su nombre.
+- Las etiquetas viajan por su nombre, ordenadas por él: las lleva cada tarea, y también
+  las tareas de las listas del detalle.
+- `tags` responde el catálogo ordenado por nombre, cada etiqueta con su identidad
+  interna, su nombre, su color, su descripción y el número de tareas que la usan.
+- `tag create` crea una etiqueta y responde con la guardada: el color que falta es el
+  de por omisión de la paleta, un color desconocido es entrada inválida —código `2`— y
+  un nombre que ya existe lo rechaza la regla que lo impone —código `1`—.
+- `tag edit` cambia solo lo que se pide, como `update` cambia una tarea, y responde con
+  la etiqueta tal como queda. Un cambio sin ningún campo es entrada inválida, un nombre
+  que no existe se rechaza con el código `1` igual que una referencia que no resuelve,
+  y renombrar sobre un nombre que ya lleva otra etiqueta se rechaza con el código `1`
+  sin tocar ni el catálogo ni las tareas.
+- `tag delete` borra la etiqueta con sus asignaciones y responde con la etiqueta
+  borrada; si había tareas que la usaban, avisa de sus referencias por la salida de
+  errores. Una etiqueta sin uso se borra sin aviso, y un nombre que no existe se
+  rechaza con el código `1`.
+- `update --tags "uno,dos"` pone la lista entera de etiquetas de la tarea, separadas
+  por comas: una lista vacía la deja sin ninguna, y un nombre que no está en el
+  catálogo es entrada inválida que no toca la tarea.
 - El detalle de una tarea añade sus bloqueantes, sus dependientes, sus hijas y sus
   comentarios.
 - Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y

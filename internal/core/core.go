@@ -192,14 +192,16 @@ func (c *Core) Task(ctx context.Context, ref string) (Task, error) {
 }
 
 // Changes is what an update asks to change. A field left out is not touched, and
-// a text given empty clears the field. An update that asks for nothing is
-// refused: it would touch the answer without touching the task.
+// a text given empty clears the field; the tags travel as the whole list of
+// names, and an empty list leaves the task without any. An update that asks for
+// nothing is refused: it would touch the answer without touching the task.
 type Changes struct {
 	Title       *string
 	Description *string
 	Notes       *string
 	Assignee    *string
 	Priority    *int
+	Tags        *[]string
 }
 
 // UpdateTask changes what the update asks for and returns the task as it is left.
@@ -213,15 +215,23 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 		return Task{}, err
 	}
 
+	var tags []string
+	if changes.Tags != nil {
+		tags = *changes.Tags
+	}
+
 	stored, err := c.store.UpdateTask(ctx, id, func(task store.Task) (store.Task, error) {
 		return changed(task, changes)
-	})
+	}, tags)
 	if err != nil {
-		if errors.Is(err, store.ErrNotFound) {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
+		case errors.Is(err, store.ErrUnknownTag):
+			return Task{}, invalid("%v", err)
+		default:
+			return Task{}, fmt.Errorf("cambiando la tarea: %w", err)
 		}
-
-		return Task{}, fmt.Errorf("cambiando la tarea: %w", err)
 	}
 
 	return c.task(ctx, stored)
@@ -269,7 +279,8 @@ func (changes Changes) empty() bool {
 		changes.Description == nil &&
 		changes.Notes == nil &&
 		changes.Assignee == nil &&
-		changes.Priority == nil
+		changes.Priority == nil &&
+		changes.Tags == nil
 }
 
 // CloseTask closes the task the reference points at with the reason given: it
@@ -312,7 +323,7 @@ func (c *Core) ReopenTask(ctx context.Context, ref string) (Task, error) {
 		return Task{}, err
 	}
 
-	stored, err := c.store.UpdateTask(ctx, id, reopened)
+	stored, err := c.store.UpdateTask(ctx, id, reopened, nil)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -387,6 +398,11 @@ func (c *Core) task(ctx context.Context, stored store.Task) (Task, error) {
 		return Task{}, err
 	}
 
+	names, err := c.store.TaskTagNames(ctx, stored.ID)
+	if err != nil {
+		return Task{}, err
+	}
+
 	shaped := Task{
 		ID:          stored.ID,
 		Ref:         Ref(c.prefix, stored.ID),
@@ -396,7 +412,7 @@ func (c *Core) task(ctx context.Context, stored store.Task) (Task, error) {
 		Priority:    stored.Priority,
 		Assignee:    stored.Assignee,
 		ParentID:    stored.ParentID,
-		Tags:        []string{},
+		Tags:        names,
 		CreatedAt:   stored.CreatedAt.UTC(),
 		UpdatedAt:   stored.UpdatedAt.UTC(),
 		CloseReason: stored.CloseReason,

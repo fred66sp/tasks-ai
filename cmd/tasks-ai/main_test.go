@@ -155,7 +155,7 @@ func TestHelpListsTheCommands(t *testing.T) {
 		t.Fatalf("--help salió con %d: %s", code, errOut)
 	}
 
-	for _, name := range []string{"init", "create", "show"} {
+	for _, name := range []string{"init", createCmd, "show"} {
 		if !strings.Contains(out, name) {
 			t.Errorf("--help no menciona %q:\n%s", name, out)
 		}
@@ -209,7 +209,7 @@ func TestCreateAnswersAndShowReadsTheTask(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	code, out, errOut := run(t, project, createCmd, "--title", "Preparar el análisis")
 	if code != 0 {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
@@ -271,7 +271,7 @@ func TestCreateWithoutTitleIsMisuse(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	code, out, errOut := run(t, project, "create")
+	code, out, errOut := run(t, project, createCmd)
 
 	if code != 2 {
 		t.Fatalf("create sin título salió con %d, se esperaba 2", code)
@@ -367,7 +367,7 @@ func sameText(before, after *string) bool {
 func createWithFields(t *testing.T, project string) core.Task {
 	t.Helper()
 
-	code, out, errOut := run(t, project, "create",
+	code, out, errOut := run(t, project, createCmd,
 		"--title", "Preparar el análisis",
 		"--description", "El de siempre",
 		"--notes", "pendiente de revisión",
@@ -416,7 +416,7 @@ func TestUpdateWithoutAnythingToChangeIsMisuse(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	code, out, errOut := run(t, project, createCmd, "--title", "Preparar el análisis")
 	if code != 0 {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
@@ -448,7 +448,7 @@ func TestCreateRefusesAPriorityOutOfRange(t *testing.T) {
 	installProject(t, project)
 
 	for _, priority := range []string{"-1", "4"} {
-		code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis", "--priority="+priority)
+		code, out, errOut := run(t, project, createCmd, "--title", "Preparar el análisis", "--priority="+priority)
 
 		if code != 2 {
 			t.Errorf("create con la prioridad %s salió con %d, se esperaba 2", priority, code)
@@ -464,7 +464,7 @@ func TestCreateRefusesAPriorityOutOfRange(t *testing.T) {
 	}
 
 	// Ninguna de las dos rechazadas dejó tarea: la siguiente lleva la primera identidad.
-	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	code, out, errOut := run(t, project, createCmd, "--title", "Preparar el análisis")
 	if code != 0 {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
@@ -486,7 +486,7 @@ func TestUpdateRefusesAPriorityOutOfRangeAndLeavesTheTaskAsItWas(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	code, out, errOut := run(t, project, "create", "--title", "Preparar el análisis")
+	code, out, errOut := run(t, project, createCmd, "--title", "Preparar el análisis")
 	if code != 0 {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
@@ -558,7 +558,7 @@ func readTask(t *testing.T, project, ref string) core.Task {
 func createTask(t *testing.T, project string, args ...string) core.Task {
 	t.Helper()
 
-	code, out, errOut := run(t, project, append([]string{"create", "--title", "Preparar el análisis"}, args...)...)
+	code, out, errOut := run(t, project, append([]string{createCmd, "--title", "Preparar el análisis"}, args...)...)
 	if code != 0 {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
@@ -735,7 +735,7 @@ func TestCreateWithAParentLinksItAndRefusesAnUnknownOne(t *testing.T) {
 		t.Errorf("la subtarea nació con padre %v, se esperaba %d", child.ParentID, parent.ID)
 	}
 
-	code, out, errOut := run(t, project, "create", "--title", "Huérfana", "--parent", missingRef)
+	code, out, errOut := run(t, project, createCmd, "--title", "Huérfana", "--parent", missingRef)
 
 	if code != 1 {
 		t.Errorf("create con un padre inexistente salió con %d, se esperaba 1", code)
@@ -811,6 +811,7 @@ type blockedBody struct {
 	Ref        string        `json:"ref"`
 	Blocked    bool          `json:"blocked"`
 	Status     string        `json:"status"`
+	Tags       []string      `json:"tags"`
 	Children   []blockedBody `json:"children"`
 	Blockers   []blockedBody `json:"blockers"`
 	Dependents []blockedBody `json:"dependents"`
@@ -1229,7 +1230,7 @@ func TestTwoCreatesOnABrandNewBase(t *testing.T) {
 	runs := make([]createRun, attempts)
 	for i := range runs {
 		//nolint:gosec // el binario es el propio producto y los argumentos, de prueba
-		runs[i].cmd = exec.CommandContext(t.Context(), binPath, "create", "--title", fmt.Sprintf("Tarea %d", i))
+		runs[i].cmd = exec.CommandContext(t.Context(), binPath, createCmd, "--title", fmt.Sprintf("Tarea %d", i))
 		runs[i].cmd.Dir = project
 		runs[i].cmd.Stdout = &runs[i].out
 		runs[i].cmd.Stderr = &runs[i].errOut
@@ -1303,4 +1304,566 @@ func collectCreate(t *testing.T, started *createRun) string {
 	decode(t, started.out.String(), &created)
 
 	return created.Ref
+}
+
+// tagBody trae lo que el catálogo muestra de una etiqueta: su identidad, su
+// nombre, su color, su descripción y el número de tareas que la usan.
+type tagBody struct {
+	ID          int64   `json:"id"`
+	Name        string  `json:"name"`
+	Color       string  `json:"color"`
+	Description *string `json:"description"`
+	Uses        int     `json:"uses"`
+}
+
+// Los nombres que los escenarios de etiquetas repiten.
+const (
+	tagCmd       = "tag"
+	createCmd    = "create"
+	greenColor   = "green"
+	unknownColor = "desconocida"
+)
+
+// createTag deja creada una etiqueta con los argumentos que se le añadan y
+// devuelve la etiqueta guardada.
+func createTag(t *testing.T, project string, args ...string) tagBody {
+	t.Helper()
+
+	code, out, errOut := run(t, project, append([]string{tagCmd, createCmd}, args...)...)
+	if code != 0 {
+		t.Fatalf("tag create salió con %d: %s", code, errOut)
+	}
+
+	var created tagBody
+	decode(t, out, &created)
+
+	return created
+}
+
+// listTags deja leído el catálogo de etiquetas.
+func listTags(t *testing.T, project string) []tagBody {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "tags")
+	if code != 0 {
+		t.Fatalf("tags salió con %d: %s", code, errOut)
+	}
+
+	var catalogue []tagBody
+	decode(t, out, &catalogue)
+
+	return catalogue
+}
+
+// setTags deja a la tarea con las etiquetas que se le dan, escritas como las
+// escribe un usuario en --tags.
+func setTags(t *testing.T, project, ref, list string) core.Task {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "update", ref, "--tags", list)
+	if code != 0 {
+		t.Fatalf("update %s --tags %q salió con %d: %s", ref, list, code, errOut)
+	}
+
+	var changed core.Task
+	decode(t, out, &changed)
+
+	return changed
+}
+
+// sameCatalogue comprueba que el catálogo quedó como se esperaba.
+func sameCatalogue(t *testing.T, got, want []tagBody) {
+	t.Helper()
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("el catálogo es %+v, se esperaba %+v", got, want)
+	}
+}
+
+// wantTag compara la etiqueta que llegó con la que se esperaba. La identidad
+// interna se queda fuera: la asigna la base y nada depende del valor concreto.
+func wantTag(t *testing.T, got, want tagBody) {
+	t.Helper()
+
+	want.ID = got.ID
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("la etiqueta es %+v, se esperaba %+v", got, want)
+	}
+}
+
+// wantTaskTags comprueba que la tarea quedó con las etiquetas que se esperaban.
+func wantTaskTags(t *testing.T, project, ref string, want ...string) {
+	t.Helper()
+
+	if tags := readTask(t, project, ref).Tags; !slices.Equal(tags, want) {
+		t.Errorf("la tarea %s quedó con las etiquetas %v, se esperaba %v", ref, tags, want)
+	}
+}
+
+// wantNamedIn comprueba que el aviso nombre las referencias que se esperan y
+// calla sobre las que no.
+func wantNamedIn(t *testing.T, warning string, mentioned, absent []string) {
+	t.Helper()
+
+	for _, name := range mentioned {
+		if !strings.Contains(warning, name) {
+			t.Errorf("el aviso no menciona a %q: %s", name, warning)
+		}
+	}
+
+	for _, name := range absent {
+		if strings.Contains(warning, name) {
+			t.Errorf("el aviso menciona a %q, que no venía al caso: %s", name, warning)
+		}
+	}
+}
+
+// TestTagsListsTheCatalogueOrderedByNameWithItsUses: el comando tags responde
+// el catálogo ordenado por nombre, y cada etiqueta con su nombre, su color, su
+// descripción y cuántas tareas la usan.
+func TestTagsListsTheCatalogueOrderedByNameWithItsUses(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	description := "Documentación del proyecto"
+
+	createTag(t, project, "--name", "zeta")
+	createTag(t, project, "--name", "alpha", "--color", greenColor, "--description", description)
+	createTag(t, project, "--name", "media", "--color", "red")
+
+	first := createTask(t, project)
+	second := createTask(t, project)
+	setTags(t, project, first.Ref, "alpha")
+	setTags(t, project, second.Ref, "alpha, media")
+
+	catalogue := listTags(t, project)
+
+	if len(catalogue) != 3 {
+		t.Fatalf("el catálogo es %+v, se esperaban tres etiquetas", catalogue)
+	}
+
+	if catalogue[0].Name != "alpha" || catalogue[1].Name != "media" || catalogue[2].Name != "zeta" {
+		t.Errorf("el catálogo está en el orden %v, se esperaba alpha, media, zeta",
+			[]string{catalogue[0].Name, catalogue[1].Name, catalogue[2].Name})
+	}
+
+	if catalogue[0].Uses != 2 {
+		t.Errorf("alpha aparece usada %d veces, se esperaban 2", catalogue[0].Uses)
+	}
+
+	if catalogue[2].Uses != 0 {
+		t.Errorf("zeta aparece usada %d veces, se esperaban 0", catalogue[2].Uses)
+	}
+
+	if catalogue[0].Color != greenColor {
+		t.Errorf("alpha quedó con el color %q, se esperaba green", catalogue[0].Color)
+	}
+
+	if catalogue[0].Description == nil || *catalogue[0].Description != description {
+		t.Errorf("alpha quedó con la descripción %v, se esperaba %q", catalogue[0].Description, description)
+	}
+}
+
+// TestTagCreateGivesTheDefaultColourAndRefusesBadEntry: una etiqueta a la que
+// nadie le dio color lleva el de por omisión; un color desconocido y un nombre
+// que falta son entrada inválida y no dejan nada en el catálogo.
+func TestTagCreateGivesTheDefaultColourAndRefusesBadEntry(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	created := createTag(t, project, "--name", "media")
+
+	if created.Color != "blue" {
+		t.Errorf("la etiqueta sin color quedó con %q, se esperaba blue", created.Color)
+	}
+
+	if created.Description != nil {
+		t.Errorf("la etiqueta sin descripción quedó con %q", *created.Description)
+	}
+
+	before := listTags(t, project)
+
+	for _, args := range [][]string{
+		{tagCmd, createCmd, "--name", "roja", "--color", "magenta"},
+		{tagCmd, createCmd, "--name", "   "},
+		{tagCmd, createCmd},
+	} {
+		code, out, errOut := run(t, project, args...)
+
+		if code != 2 {
+			t.Errorf("%v salió con %d, se esperaba 2", args, code)
+		}
+
+		if out != "" {
+			t.Errorf("%v escribió en la salida estándar: %s", args, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, "color") && !strings.Contains(message, "nombre") {
+			t.Errorf("el mensaje de %v no habla del color o del nombre: %s", args, message)
+		}
+	}
+
+	sameCatalogue(t, listTags(t, project), before)
+}
+
+// TestTagCreateRefusesADuplicateNameAndLeavesTheCatalogueAsItWas: un nombre que
+// ya existe se rechaza como lo rechaza la regla que lo impone, y el catálogo
+// queda tal como estaba.
+func TestTagCreateRefusesADuplicateNameAndLeavesTheCatalogueAsItWas(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "media", "--color", "red")
+	before := listTags(t, project)
+
+	code, out, errOut := run(t, project, tagCmd, createCmd, "--name", "media", "--color", greenColor)
+
+	if code != 1 {
+		t.Fatalf("tag create con un nombre repetido salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("tag create con un nombre repetido escribió en la salida estándar: %s", out)
+	}
+
+	message := errorJSON(t, errOut)
+
+	if !strings.Contains(message, "media") {
+		t.Errorf("el mensaje no menciona el nombre repetido: %s", message)
+	}
+
+	// Lo que lee quien usa el producto no lleva dentro el texto del motor de la
+	// base, ni repite la misma frase por envolverla dos veces.
+	if strings.Contains(message, "constraint") || strings.Contains(message, "SQLITE") {
+		t.Errorf("el mensaje enseña el error del motor de la base: %s", message)
+	}
+
+	if count := strings.Count(message, "ya existe"); count != 1 {
+		t.Errorf("el mensaje dice lo mismo %d veces: %s", count, message)
+	}
+
+	sameCatalogue(t, listTags(t, project), before)
+}
+
+// TestTagEditChangesOnlyWhatItIsGiven: un cambio de etiqueta toca solo los
+// campos que se piden, y un cambio sin ningún campo es un mal uso.
+func TestTagEditChangesOnlyWhatItIsGiven(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	description := "El de siempre"
+
+	createTag(t, project, "--name", "media", "--color", "red", "--description", description)
+
+	code, out, errOut := run(t, project, tagCmd, "edit", "media", "--color", greenColor)
+	if code != 0 {
+		t.Fatalf("tag edit salió con %d: %s", code, errOut)
+	}
+
+	var changed tagBody
+	decode(t, out, &changed)
+
+	wantTag(t, changed, tagBody{Name: "media", Color: greenColor, Description: &description})
+
+	code, out, errOut = run(t, project, tagCmd, "edit", "media", "--name", "nueva")
+	if code != 0 {
+		t.Fatalf("tag edit salió con %d: %s", code, errOut)
+	}
+
+	decode(t, out, &changed)
+
+	wantTag(t, changed, tagBody{Name: "nueva", Color: greenColor, Description: &description})
+
+	if catalogue := listTags(t, project); len(catalogue) != 1 || catalogue[0].Name != "nueva" {
+		t.Errorf("el catálogo es %+v, se esperaba una sola etiqueta nueva", catalogue)
+	}
+
+	code, out, errOut = run(t, project, tagCmd, "edit", "nueva")
+
+	if code != 2 {
+		t.Errorf("tag edit sin campos salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("tag edit sin campos escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "cambiar") {
+		t.Errorf("el mensaje no dice que no hay nada que cambiar: %s", message)
+	}
+}
+
+// TestTagEditRefusesARenameOntoAnExistingNameAndLeavesEverythingAsItWas:
+// renombrar una etiqueta sobre el nombre de otra se rechaza y no toca ni el
+// catálogo ni las tareas.
+func TestTagEditRefusesARenameOntoAnExistingNameAndLeavesEverythingAsItWas(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "una")
+	createTag(t, project, "--name", "dos", "--color", "red")
+	task := createTask(t, project)
+	setTags(t, project, task.Ref, "una")
+
+	before := listTags(t, project)
+	taskBefore := showRaw(t, project, task.Ref)
+
+	code, out, errOut := run(t, project, tagCmd, "edit", "una", "--name", "dos")
+
+	if code != 1 {
+		t.Fatalf("renombrar sobre un nombre existente salió con %d, se esperaba 1", code)
+	}
+
+	if out != "" {
+		t.Errorf("el renombrado rechazado escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, "dos") {
+		t.Errorf("el mensaje no menciona el nombre que ya existía: %s", message)
+	}
+
+	sameCatalogue(t, listTags(t, project), before)
+
+	if taskAfter := showRaw(t, project, task.Ref); taskAfter != taskBefore {
+		t.Errorf("el renombrado rechazado tocó la tarea: antes %s, después %s", taskBefore, taskAfter)
+	}
+}
+
+// TestTagEditAndDeleteRefuseAnUnknownName: un nombre que no apunta a ninguna
+// etiqueta se rechaza como show rechaza una referencia que no resuelve.
+func TestTagEditAndDeleteRefuseAnUnknownName(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "media")
+	before := listTags(t, project)
+
+	for _, args := range [][]string{
+		{tagCmd, "edit", unknownColor, "--color", greenColor},
+		{tagCmd, "delete", unknownColor},
+	} {
+		code, out, errOut := run(t, project, args...)
+
+		if code != 1 {
+			t.Errorf("%v salió con %d, se esperaba 1", args, code)
+		}
+
+		if out != "" {
+			t.Errorf("%v escribió en la salida estándar: %s", args, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, unknownColor) {
+			t.Errorf("el mensaje de %v no menciona el nombre: %s", args, message)
+		}
+	}
+
+	sameCatalogue(t, listTags(t, project), before)
+}
+
+// TestRenamingATagChangesNoTask: renombrar una etiqueta no modifica ninguna
+// tarea. Las asignaciones apuntan al número interno de la etiqueta, así que la
+// tarea pasa a mostrar el nombre nuevo sin que su fila guardada se mueva: su
+// updated_at no cambia.
+func TestRenamingATagChangesNoTask(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "docs")
+	task := createTask(t, project)
+	setTags(t, project, task.Ref, "docs")
+
+	before := readTask(t, project, task.Ref)
+
+	code, out, errOut := run(t, project, tagCmd, "edit", "docs", "--name", "documentacion")
+	if code != 0 {
+		t.Fatalf("tag edit salió con %d: %s", code, errOut)
+	}
+
+	var edited tagBody
+	decode(t, out, &edited)
+
+	if edited.Name != "documentacion" {
+		t.Errorf("la etiqueta quedó con el nombre %q, se esperaba documentacion", edited.Name)
+	}
+
+	after := readTask(t, project, task.Ref)
+
+	if !before.UpdatedAt.Equal(after.UpdatedAt) {
+		t.Errorf("renombrar la etiqueta movió updated_at de la tarea: antes %s, después %s",
+			before.UpdatedAt, after.UpdatedAt)
+	}
+
+	if !slices.Equal(after.Tags, []string{"documentacion"}) {
+		t.Errorf("la tarea muestra las etiquetas %v, se esperaba [documentacion]", after.Tags)
+	}
+}
+
+// TestTagDeleteWarnsOfTheTasksThatUsedIt: borrar una etiqueta la quita del
+// catálogo y retira sus asignaciones, avisando en la salida de errores de las
+// referencias de las tareas que la usaban; la respuesta es la etiqueta borrada.
+func TestTagDeleteWarnsOfTheTasksThatUsedIt(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	description := "El de siempre"
+	createTag(t, project, "--name", "docs", "--color", greenColor, "--description", description)
+	createTag(t, project, "--name", "otra")
+	first := createTask(t, project)
+	second := createTask(t, project)
+	other := createTask(t, project)
+	setTags(t, project, first.Ref, "docs")
+	setTags(t, project, second.Ref, "docs")
+	setTags(t, project, other.Ref, "otra")
+
+	code, out, errOut := run(t, project, tagCmd, "delete", "docs")
+
+	if code != 0 {
+		t.Fatalf("tag delete salió con %d: %s", code, errOut)
+	}
+
+	var deleted tagBody
+	decode(t, out, &deleted)
+
+	wantTag(t, deleted, tagBody{Name: "docs", Color: greenColor, Description: &description})
+	wantNamedIn(t, errOut, []string{first.Ref, second.Ref}, []string{other.Ref})
+
+	for _, ref := range []string{first.Ref, second.Ref} {
+		wantTaskTags(t, project, ref)
+	}
+
+	wantTaskTags(t, project, other.Ref, "otra")
+
+	catalogue := listTags(t, project)
+
+	if len(catalogue) != 1 || catalogue[0].Name != "otra" {
+		t.Errorf("el catálogo es %+v, se esperaba solo la etiqueta otra", catalogue)
+	}
+}
+
+// TestTagDeleteWithoutUsersWarnsNothing: una etiqueta que nadie usa se borra
+// sin aviso.
+func TestTagDeleteWithoutUsersWarnsNothing(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "sola")
+
+	code, out, errOut := run(t, project, tagCmd, "delete", "sola")
+
+	if code != 0 {
+		t.Fatalf("tag delete salió con %d: %s", code, errOut)
+	}
+
+	if errOut != "" {
+		t.Errorf("borrar una etiqueta sin uso escribió en la salida de errores: %s", errOut)
+	}
+
+	var deleted tagBody
+	decode(t, out, &deleted)
+
+	if deleted.Name != "sola" {
+		t.Errorf("la respuesta del borrado es %+v, se esperaba la etiqueta sola", deleted)
+	}
+
+	if catalogue := listTags(t, project); len(catalogue) != 0 {
+		t.Errorf("el catálogo es %+v, se esperaba vacío", catalogue)
+	}
+}
+
+// TestUpdateSetsAndClearsTheTagsOfATask: --tags pone la lista entera de
+// etiquetas de la tarea —una vacía la deja sin ninguna—, un nombre que no está
+// en el catálogo es entrada inválida sin tocar la tarea, y el detalle de show
+// muestra las etiquetas de cada tarea.
+func TestUpdateSetsAndClearsTheTagsOfATask(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "uno")
+	createTag(t, project, "--name", "dos")
+	task := createTask(t, project)
+
+	changed := setTags(t, project, task.Ref, "uno, dos")
+
+	if !slices.Equal(changed.Tags, []string{"dos", "uno"}) {
+		t.Errorf("la tarea quedó con las etiquetas %v, se esperaba [dos uno]", changed.Tags)
+	}
+
+	detail := showDetail(t, project, task.Ref)
+
+	if !slices.Equal(detail.Tags, []string{"dos", "uno"}) {
+		t.Errorf("el detalle muestra las etiquetas %v, se esperaba [dos uno]", detail.Tags)
+	}
+
+	before := showRaw(t, project, task.Ref)
+
+	code, out, errOut := run(t, project, "update", task.Ref, "--tags", "uno,desconocida")
+
+	if code != 2 {
+		t.Fatalf("update con una etiqueta desconocida salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("update con una etiqueta desconocida escribió en la salida estándar: %s", out)
+	}
+
+	if message := errorJSON(t, errOut); !strings.Contains(message, unknownColor) {
+		t.Errorf("el mensaje no menciona la etiqueta desconocida: %s", message)
+	}
+
+	if after := showRaw(t, project, task.Ref); after != before {
+		t.Errorf("una asignación rechazada tocó la tarea: antes %s, después %s", before, after)
+	}
+
+	cleared := setTags(t, project, task.Ref, "")
+
+	if len(cleared.Tags) != 0 {
+		t.Errorf("vaciar las etiquetas dejó la tarea con %v", cleared.Tags)
+	}
+}
+
+// TestTheTagsOfOneTaskAreUntouchedByAnotherTasksChange: cambiar las etiquetas
+// de una tarea no toca las de las demás.
+func TestTheTagsOfOneTaskAreUntouchedByAnotherTasksChange(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	createTag(t, project, "--name", "comun")
+	createTag(t, project, "--name", "otra")
+	first := createTask(t, project)
+	second := createTask(t, project)
+	setTags(t, project, first.Ref, "comun")
+	setTags(t, project, second.Ref, "comun")
+
+	setTags(t, project, second.Ref, "otra")
+
+	if tags := readTask(t, project, first.Ref).Tags; !slices.Equal(tags, []string{"comun"}) {
+		t.Errorf("las etiquetas de la primera tarea son %v, se esperaba [comun]", tags)
+	}
+
+	if tags := readTask(t, project, second.Ref).Tags; !slices.Equal(tags, []string{"otra"}) {
+		t.Errorf("las etiquetas de la segunda tarea son %v, se esperaba [otra]", tags)
+	}
 }

@@ -305,6 +305,46 @@ func TestServer_closesAndReopensThroughTheStatusOfThePatch(t *testing.T) {
 	}
 }
 
+// TestServer_putsATaskInProgressThroughThePatch recorre el ciclo del estado
+// por el cambio de la API: la tarea se pone en curso, vuelve a pendiente y
+// cerrar por el cambio sigue rechazándose con el mensaje de siempre.
+func TestServer_putsATaskInProgressThroughThePatch(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	do(t, server, "POST", "/api/tasks", `{"title": "En curso"}`)
+
+	status, body := do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "in_progress"}`)
+	if status != http.StatusOK {
+		t.Fatalf("poner en curso respondió %d: %s", status, body)
+	}
+
+	var progressed core.Task
+
+	decode(t, body, &progressed)
+
+	if progressed.Status != "in_progress" {
+		t.Errorf("la tarea quedó en %q, se esperaba in_progress", progressed.Status)
+	}
+
+	status, body = do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "open"}`)
+	if status != http.StatusOK {
+		t.Fatalf("volver a pendiente respondió %d: %s", status, body)
+	}
+
+	var returned core.Task
+
+	decode(t, body, &returned)
+
+	if returned.Status != "open" {
+		t.Errorf("la tarea quedó en %q, se esperaba open", returned.Status)
+	}
+
+	status, body = do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "done"}`)
+	expect(t, status, body, http.StatusBadRequest, `el estado "done" no se puede poner: para cerrar usa su ruta con el motivo`)
+}
+
 // errorTranslation nombra una negativa de la API con los pasos que la provocan.
 type errorTranslation struct {
 	name  string

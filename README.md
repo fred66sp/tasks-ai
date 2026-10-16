@@ -41,7 +41,8 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
 ./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
-./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad o etiquetas
+./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado o etiquetas
+./tasks-ai update <referencia> --status in_progress  # pone la tarea en curso: solo desde pendiente; --status open la devuelve a pendiente
 ./tasks-ai update <referencia> --tags "docs,urgente"  # pone la lista entera de etiquetas de la tarea: una lista vacía la deja sin ninguna
 ./tasks-ai tags                 # devuelve el catálogo de etiquetas con el uso de cada una
 ./tasks-ai tag create --name "docs" --color blue  # crea una etiqueta; el color que falta es blue

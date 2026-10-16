@@ -43,9 +43,12 @@ func badEntry(format string, args ...any) error {
 // un cambio pedido por otro proceso —el CLI— llegue también a este canal.
 const pollInterval = 500 * time.Millisecond
 
-// statusOpen is the only state a change of status may ask for: volver a open es
-// reabrir, y cerrar lleva su motivo y va por su propia ruta.
-const statusOpen = "open"
+// Los estados que un cambio de estado puede pedir: cerrar lleva su motivo y va
+// por su propia ruta, así que done no se pone por aquí.
+const (
+	statusOpen       = "open"
+	statusInProgress = "in_progress"
+)
 
 // Server serves the product's API over one project's core.
 type Server struct {
@@ -204,8 +207,8 @@ type taskPatch struct {
 }
 
 // patchTask changes what the change asks for. El estado va solo en el cambio:
-// pedir open es reabrir la tarea por el mismo camino del CLI, y los demás
-// estados no se ponen por aquí.
+// pedir open o in_progress lo lleva el cambio de la tarea, y cerrar no va por
+// aquí.
 func (s *Server) patchTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 	entry, err := decode[taskPatch](r)
 	if err != nil {
@@ -241,9 +244,10 @@ func (s *Server) patchTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 	writeJSON(w, nethttp.StatusOK, task)
 }
 
-// changeStatus translates the state of the patch into the operation of the core
-// that does it: open reopens, and anything else is an entry the API cannot
-// serve, porque cerrar lleva su motivo y va por su ruta.
+// changeStatus translates the state of the patch into the change of the core
+// that does it: open e in_progress van por el cambio de la tarea, y cualquier
+// otro estado es una entrada que la API no puede servir, porque cerrar lleva
+// su motivo y va por su ruta.
 func (s *Server) changeStatus(w nethttp.ResponseWriter, r *nethttp.Request, ref string, entry taskPatch) {
 	if entry.Title != nil || entry.Description != nil || entry.Notes != nil ||
 		entry.Assignee != nil || entry.Priority != nil || entry.Tags != nil {
@@ -252,13 +256,13 @@ func (s *Server) changeStatus(w nethttp.ResponseWriter, r *nethttp.Request, ref 
 		return
 	}
 
-	if *entry.Status != statusOpen {
+	if *entry.Status != statusOpen && *entry.Status != statusInProgress {
 		s.writeError(w, badEntry("el estado %q no se puede poner: para cerrar usa su ruta con el motivo", *entry.Status))
 
 		return
 	}
 
-	task, err := s.core.ReopenTask(r.Context(), ref)
+	task, err := s.core.UpdateTask(r.Context(), ref, core.Changes{Status: entry.Status})
 	if err != nil {
 		s.writeError(w, err)
 

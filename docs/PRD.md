@@ -59,8 +59,10 @@ hayan aprobado.
 ### Modelo de tarea
 
 Título, descripción, estado, prioridad numérica, responsable, tarea padre, etiquetas,
-marcas de tiempo, motivo de cierre y notas. Estados: abierta, en curso, cerrada y
-bloqueada.
+marcas de tiempo, motivo de cierre y notas. Los estados guardados son pendiente
+(`open`), en curso (`in_progress`) y hecha (`done`): abierta y cerrada no son estados,
+abierta agrupa pendiente y en curso, cerrada es hecha, y reabrir es volver a poner la
+tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 
 ### Capacidades
 

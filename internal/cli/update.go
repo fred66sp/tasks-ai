@@ -17,6 +17,7 @@ func newUpdateCommand() *cobra.Command {
 		assignee    string
 		priority    int
 		tags        string
+		status      string
 	)
 
 	command := &cobra.Command{
@@ -24,7 +25,9 @@ func newUpdateCommand() *cobra.Command {
 		Short: "Cambia los campos de una tarea",
 		Long: "Cambia los campos de una tarea y devuelve en JSON la tarea tal como queda.\n" +
 			"Solo se toca lo que se pide: un campo que no se menciona no cambia, y un texto\n" +
-			"dado vacío deja ese campo sin valor.",
+			"dado vacío deja ese campo sin valor.\n" +
+			"Con --status se cambia el estado: open (pendiente) o in_progress (en curso).\n" +
+			"Cerrar no va por aquí: usa close, con su motivo.",
 		Args: usage(cobra.ExactArgs(1)),
 		RunE: func(command *cobra.Command, args []string) error {
 			changes := core.Changes{}
@@ -54,6 +57,10 @@ func newUpdateCommand() *cobra.Command {
 				changes.Tags = &names
 			}
 
+			if command.Flags().Changed("status") {
+				changes.Status = &status
+			}
+
 			dir, err := workingDir()
 			if err != nil {
 				return err
@@ -81,6 +88,7 @@ func newUpdateCommand() *cobra.Command {
 	command.Flags().StringVar(&assignee, "assignee", "", "nueva persona responsable, vacía la quita")
 	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "nueva prioridad, de 0 a 3")
 	command.Flags().StringVar(&tags, "tags", "", "nuevas etiquetas de la tarea, separadas por comas; una lista vacía las quita todas")
+	command.Flags().StringVar(&status, "status", "", "nuevo estado de la tarea: open (pendiente) o in_progress (en curso); para cerrar usa close, con su motivo")
 
 	return command
 }

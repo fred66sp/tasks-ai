@@ -7,6 +7,12 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **Poner una tarea en curso**: una tarea pendiente se pone en curso con `update
+  --status in_progress` y vuelve a pendiente con `--status open`; ponerse en curso solo
+  cabe desde pendiente, y `--status done` se rechaza porque cerrar va por `close`, con
+  su motivo. El cambio de estado de la API acepta `in_progress`, la interfaz ofrece
+  «En curso» ya funcionando, y «Bloqueada» sigue viéndose sin poder elegirse, porque es
+  un estado que se calcula.
 - **Primera rebanada del producto**: se instala en la carpeta del proyecto, guarda su
   estado en una base SQLite con esquema versionado, y crea y lee tareas desde la línea
   de comandos, en JSON.

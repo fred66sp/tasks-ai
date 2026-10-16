@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"tasks-ai/internal/cli"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
@@ -157,6 +158,84 @@ func TestRun_reportsAFailingAnswerWriter(t *testing.T) {
 
 	if msg := errorText(t, errOut.String()); msg == "" {
 		t.Errorf("el error debe cruzar en JSON por la salida de errores, se obtuvo %q", errOut.String())
+	}
+}
+
+// TestRun_updateMovesATaskInProgressAndBack recorre el ciclo del estado desde
+// la línea de comandos: una tarea pendiente se pone en curso con --status y
+// vuelve a pendiente.
+func TestRun_updateMovesATaskInProgressAndBack(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	if code, _, errOut := run(t, "init"); code != 0 {
+		t.Fatalf("init salió con %d: %s", code, errOut)
+	}
+
+	code, out, errOut := run(t, "create", "--title", "Con estados")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	code, out, errOut = run(t, "update", created.Ref, "--status", "in_progress")
+	if code != 0 {
+		t.Fatalf("update --status in_progress salió con %d: %s", code, errOut)
+	}
+
+	var progressed core.Task
+	decode(t, out, &progressed)
+
+	if progressed.Status != "in_progress" {
+		t.Errorf("la tarea quedó en %q, se esperaba in_progress", progressed.Status)
+	}
+
+	code, out, errOut = run(t, "update", created.Ref, "--status", "open")
+	if code != 0 {
+		t.Fatalf("update --status open salió con %d: %s", code, errOut)
+	}
+
+	var returned core.Task
+	decode(t, out, &returned)
+
+	if returned.Status != "open" {
+		t.Errorf("la tarea quedó en %q, se esperaba open", returned.Status)
+	}
+}
+
+// TestRun_updateRejectsClosingThroughTheStatus comprueba que cerrar no va por
+// el cambio: --status done se rechaza como uso incorrecto y el mensaje manda a
+// close con su motivo.
+func TestRun_updateRejectsClosingThroughTheStatus(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	if code, _, errOut := run(t, "init"); code != 0 {
+		t.Fatalf("init salió con %d: %s", code, errOut)
+	}
+
+	code, out, errOut := run(t, "create", "--title", "Que no se cierra por aquí")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	code, out, errOut = run(t, "update", created.Ref, "--status", "done")
+	if code != 2 {
+		t.Errorf("update --status done salió con %d, se esperaba 2: %s", code, errOut)
+	}
+
+	if out != "" {
+		t.Errorf("un error no debe escribir en la salida: %q", out)
+	}
+
+	message := errorText(t, errOut)
+	if !strings.Contains(message, "close") || !strings.Contains(message, "motivo") {
+		t.Errorf("el mensaje del rechazo (%q) debe mandar a close con su motivo", message)
 	}
 }
 

@@ -93,6 +93,11 @@ const statusOpen = "open"
 // statusDone is the state a task is left in when it is closed.
 const statusDone = "done"
 
+// statusInProgress is the state of a task whose work has started: solo se
+// alcanza desde pendiente, y volver de él a pendiente es un cambio de estado
+// más.
+const statusInProgress = "in_progress"
+
 // The reasons a task can be closed with.
 const (
 	CloseReasonDone       = "done"
@@ -339,6 +344,7 @@ type Changes struct {
 	Assignee    *string
 	Priority    *int
 	Tags        *[]string
+	Status      *string
 }
 
 // UpdateTask changes what the update asks for and returns the task as it is left.
@@ -366,6 +372,10 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 			return Task{}, c.missing(ref)
 		case errors.Is(err, store.ErrUnknownTag):
 			return Task{}, invalid("%v", err)
+		case errors.Is(err, ErrInvalid), errors.Is(err, ErrConflict):
+			// La regla que el cambio ha pisado ya trae su mensaje: sale tal
+			// cual, sin la envoltura de la operación.
+			return Task{}, err
 		default:
 			return Task{}, fmt.Errorf("cambiando la tarea: %w", err)
 		}
@@ -407,7 +417,37 @@ func changed(task store.Task, changes Changes) (store.Task, error) {
 		task.Priority = *changes.Priority
 	}
 
+	if changes.Status != nil {
+		if err := applyStatus(&task, *changes.Status); err != nil {
+			return store.Task{}, err
+		}
+	}
+
 	return task, nil
+}
+
+// applyStatus applies the status a change asks for, under the product's rules:
+// ponerse en curso solo cabe desde pendiente, volver a pendiente es reabrir —
+// le quita el motivo de cierre— y cerrar no va por el cambio: lleva su motivo y
+// va por su propia operación.
+func applyStatus(task *store.Task, status string) error {
+	switch status {
+	case statusOpen:
+		task.Status = statusOpen
+		task.CloseReason = nil
+	case statusInProgress:
+		if task.Status != statusOpen {
+			return forbidden("solo una tarea pendiente se puede poner en curso")
+		}
+
+		task.Status = statusInProgress
+	case statusDone:
+		return invalid("el estado %q no se pone: cerrar va por close, con el motivo", statusDone)
+	default:
+		return invalid("el estado %q no se entiende: usa %s o %s", status, statusOpen, statusInProgress)
+	}
+
+	return nil
 }
 
 // empty says whether an update asks for nothing at all.
@@ -417,7 +457,8 @@ func (changes Changes) empty() bool {
 		changes.Notes == nil &&
 		changes.Assignee == nil &&
 		changes.Priority == nil &&
-		changes.Tags == nil
+		changes.Tags == nil &&
+		changes.Status == nil
 }
 
 // CloseTask closes the task the reference points at with the reason given: it

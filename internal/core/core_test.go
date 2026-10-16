@@ -199,6 +199,124 @@ func TestCloseTask_saysWithItsSentinelWhenTheTaskIsAlreadyClosed(t *testing.T) {
 	}
 }
 
+// TestUpdateTask_movesTheStatusUnderTheRule recorre el ciclo del estado por el
+// cambio: una tarea pendiente se pone en curso y vuelve a pendiente.
+func TestUpdateTask_movesTheStatusUnderTheRule(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Con estados"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	inProgress := "in_progress"
+
+	progressed, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Status: &inProgress})
+	if err != nil {
+		t.Fatalf("poniendo la tarea en curso: %v", err)
+	}
+
+	if progressed.Status != "in_progress" {
+		t.Errorf("la tarea quedó en %q, se esperaba in_progress", progressed.Status)
+	}
+
+	open := "open"
+
+	returned, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Status: &open})
+	if err != nil {
+		t.Fatalf("devolviendo la tarea a pendiente: %v", err)
+	}
+
+	if returned.Status != "open" {
+		t.Errorf("la tarea quedó en %q, se esperaba open", returned.Status)
+	}
+
+	if returned.CloseReason != nil {
+		t.Errorf("volver a pendiente no debe dejar motivo de cierre: %+v", returned.CloseReason)
+	}
+}
+
+// TestUpdateTask_refusesTheStatusChangesTheRulesRefuse recorre los cambios de
+// estado que las reglas se niegan a escribir: ponerse en curso solo cabe desde
+// pendiente, y cerrar no va por el cambio porque lleva su motivo en su ruta.
+func TestUpdateTask_refusesTheStatusChangesTheRulesRefuse(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	closedRef := func(t *testing.T) string {
+		t.Helper()
+
+		task, err := apply.CreateTask(ctx, core.NewTask{Title: "Cerrada"})
+		if err != nil {
+			t.Fatalf("creando la tarea: %v", err)
+		}
+
+		if _, err := apply.CloseTask(ctx, task.Ref, core.CloseReasonDone); err != nil {
+			t.Fatalf("cerrando la tarea: %v", err)
+		}
+
+		return task.Ref
+	}
+
+	pendingRef := func(t *testing.T) string {
+		t.Helper()
+
+		task, err := apply.CreateTask(ctx, core.NewTask{Title: "Pendiente"})
+		if err != nil {
+			t.Fatalf("creando la tarea: %v", err)
+		}
+
+		return task.Ref
+	}
+
+	tests := []struct {
+		name     string
+		prepare  func(t *testing.T) string
+		status   string
+		sentinel error
+		message  string
+	}{
+		{
+			name:     "ponerse en curso solo cabe desde pendiente",
+			prepare:  closedRef,
+			status:   "in_progress",
+			sentinel: core.ErrConflict,
+			message:  "solo una tarea pendiente se puede poner en curso",
+		},
+		{
+			name:     "cerrar no va por el cambio, va por close con su motivo",
+			prepare:  pendingRef,
+			status:   "done",
+			sentinel: core.ErrInvalid,
+			message:  "el estado \"done\" no se pone: cerrar va por close, con el motivo",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ref := tt.prepare(t)
+
+			status := tt.status
+
+			_, err := apply.UpdateTask(ctx, ref, core.Changes{Status: &status})
+			if !errors.Is(err, tt.sentinel) {
+				t.Errorf("el cambio de estado devolvió %v, se esperaba el centinela %v", err, tt.sentinel)
+			}
+
+			if err == nil || err.Error() != tt.message {
+				t.Errorf("el mensaje del cambio rechazado es %q, se esperaba %q", err, tt.message)
+			}
+		})
+	}
+}
+
 func TestReopenTask_saysWithItsSentinelWhenTheTaskIsNotClosed(t *testing.T) {
 	t.Parallel()
 

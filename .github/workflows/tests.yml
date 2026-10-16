@@ -13,10 +13,11 @@ permissions:
   contents: read
 
 env:
-  # Suelo de cobertura total de sentencias, en porcentaje. El número sigue a lo que mide
-  # el servidor con la herramienta fijada en la matriz, no a lo que mide una máquina con
-  # otra versión de Go: la cobertura se cuenta distinto según con qué se instrumente.
-  MIN_COVERAGE: "83.0"
+  # Suelo de cobertura total de sentencias, en porcentaje. El número sigue a lo que mide el
+  # servidor con la herramienta fijada en la matriz, apenas unas décimas por debajo, y no a
+  # lo que mide una máquina con otra versión de Go: la cobertura se cuenta distinto según con
+  # qué se instrumente, y con `stable` el número se movería con cada parche de Go.
+  MIN_COVERAGE: "83.5"
 
 jobs:
   test:

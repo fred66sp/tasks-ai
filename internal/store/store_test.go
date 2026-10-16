@@ -51,6 +51,56 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 	}
 }
 
+func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	// Ocho como ocho procesos que arrancan a la vez sobre una base sin crear.
+	const openers = 8
+
+	results := make(chan error, openers)
+	for range openers {
+		go func() {
+			base, err := store.Open(t.Context(), path)
+			if err != nil {
+				results <- err
+				return
+			}
+
+			results <- base.Close()
+		}()
+	}
+
+	for range openers {
+		if err := <-results; err != nil {
+			t.Errorf("abriendo la base nueva a la vez desde dos procesos: %v", err)
+		}
+	}
+
+	after, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base tras la carrera: %v", err)
+	}
+
+	defer after.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	ctx := t.Context()
+
+	version, err := after.SchemaVersion(ctx)
+	if err != nil {
+		t.Fatalf("SchemaVersion devolvió %v", err)
+	}
+
+	if version != 1 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 1", version)
+	}
+
+	if err := after.SetPrefix(ctx, "px"); err != nil {
+		t.Errorf("la base quedó inservible tras la carrera: %v", err)
+	}
+}
+
 func TestCreateTask_givesEachTaskItsOwnIdentity(t *testing.T) {
 	t.Parallel()
 

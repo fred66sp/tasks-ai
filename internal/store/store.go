@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
-	_ "modernc.org/sqlite" // el motor de SQLite, escrito en Go puro
+	sqlite "modernc.org/sqlite" // el motor de SQLite, escrito en Go puro
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 // ErrNotFound says that nothing is stored under the key that was asked for.
@@ -56,9 +58,37 @@ type Store struct {
 	db *sql.DB
 }
 
+// bootstrapAttempts is how many times Open may retry the whole bootstrap when
+// the base is brand new: another process may be creating it at the same time.
+const bootstrapAttempts = 5
+
 // Open opens the database at path, creating it when it is not there, and applies
 // the migrations it still owes.
 func Open(ctx context.Context, path string) (*Store, error) {
+	for attempt := 1; ; attempt++ {
+		instance, err := openOnce(ctx, path)
+		if err == nil {
+			return instance, nil
+		}
+
+		// Dos procesos pueden crear la base a la vez: el pragma que la pasa a
+		// WAL devuelve SQLITE_BUSY sin esperar, aunque busy_timeout esté
+		// puesto. Se reintenta solo ese caso, con pausas cortas y contadas.
+		if attempt >= bootstrapAttempts || !isBusy(err) {
+			return nil, err
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("abriendo la base %s: %w", path, ctx.Err())
+		case <-time.After(time.Duration(attempt) * 25 * time.Millisecond):
+		}
+	}
+}
+
+// openOnce connects, pings and migrates once; the caller owns the store it
+// returns, and every error leaves nothing open behind.
+func openOnce(ctx context.Context, path string) (*Store, error) {
 	db, err := sql.Open(driverName, dataSourceName(path))
 	if err != nil {
 		return nil, fmt.Errorf("abriendo la base %s: %w", path, err)
@@ -80,6 +110,14 @@ func Open(ctx context.Context, path string) (*Store, error) {
 	return instance, nil
 }
 
+// isBusy reports whether the error is SQLite's occupied code, the only case
+// Open retries.
+func isBusy(err error) bool {
+	var sqliteErr *sqlite.Error
+
+	return errors.As(err, &sqliteErr) && sqliteErr.Code() == sqlite3.SQLITE_BUSY
+}
+
 // Close lets the database go.
 func (s *Store) Close() error {
 	if err := s.db.Close(); err != nil {
@@ -89,26 +127,48 @@ func (s *Store) Close() error {
 	return nil
 }
 
-// dataSourceName builds the connection string: the base waits for whoever is
-// writing instead of failing, keeps a write-ahead log so a reader can read while
-// the product writes, and honours the references between tables.
+// dataSourceName builds the connection string: the transaction that migrates
+// takes the write lock up front, the base waits for whoever is writing instead
+// of failing, a write-ahead log lets a reader read while the product writes,
+// and the references between tables are honoured.
 func dataSourceName(path string) string {
 	return "file:" + path +
-		"?_pragma=busy_timeout(5000)" +
+		"?_txlock=immediate" +
+		"&_pragma=busy_timeout(5000)" +
 		"&_pragma=journal_mode(WAL)" +
 		"&_pragma=foreign_keys(on)"
 }
 
 // SchemaVersion is the schema version the database is at.
 func (s *Store) SchemaVersion(ctx context.Context) (int, error) {
-	empty, err := s.isEmpty(ctx)
-	if err != nil || empty {
-		return 0, err
+	return schemaVersion(ctx, s.db)
+}
+
+// rowQuerier reads one row: enough for both the live database and a
+// transaction, which read the schema version the same way.
+type rowQuerier interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
+// schemaVersion reads the schema version from wherever a row can be queried,
+// 0 when there is no schema yet.
+func schemaVersion(ctx context.Context, q rowQuerier) (int, error) {
+	var tables int
+
+	err := q.QueryRowContext(ctx,
+		`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'meta'`,
+	).Scan(&tables)
+	if err != nil {
+		return 0, fmt.Errorf("mirando el esquema de la base: %w", err)
+	}
+
+	if tables == 0 {
+		return 0, nil
 	}
 
 	var value string
 
-	err = s.db.QueryRowContext(ctx, `SELECT value FROM meta WHERE key = 'schema_version'`).Scan(&value)
+	err = q.QueryRowContext(ctx, `SELECT value FROM meta WHERE key = 'schema_version'`).Scan(&value)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, nil
 	}
@@ -155,18 +215,12 @@ func (s *Store) SetPrefix(ctx context.Context, prefix string) error {
 }
 
 // migrate applies the migrations the database still owes, each one in its own
-// transaction and recording the version it reached.
+// transaction and recording the version it reached. The version is re-read
+// inside each transaction: with the write lock already taken, whoever arrives
+// second sees the work the first one committed and skips it instead of
+// creating the same tables twice.
 func (s *Store) migrate(ctx context.Context) error {
-	version, err := s.SchemaVersion(ctx)
-	if err != nil {
-		return err
-	}
-
 	for _, change := range migrations {
-		if change.version <= version {
-			continue
-		}
-
 		if err := s.apply(ctx, change); err != nil {
 			return err
 		}
@@ -175,7 +229,8 @@ func (s *Store) migrate(ctx context.Context) error {
 	return nil
 }
 
-// apply writes one schema change and its version, all or nothing.
+// apply writes one schema change and its version, all or nothing, unless the
+// version is already there when the write lock is taken.
 func (s *Store) apply(ctx context.Context, change migration) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -183,6 +238,15 @@ func (s *Store) apply(ctx context.Context, change migration) error {
 	}
 
 	defer func() { _ = tx.Rollback() }()
+
+	version, err := schemaVersion(ctx, tx)
+	if err != nil {
+		return fmt.Errorf("aplicando el esquema %d: %w", change.version, err)
+	}
+
+	if change.version <= version {
+		return nil
+	}
 
 	for _, statement := range change.statements {
 		if _, err := tx.ExecContext(ctx, statement); err != nil {
@@ -202,18 +266,4 @@ func (s *Store) apply(ctx context.Context, change migration) error {
 	}
 
 	return nil
-}
-
-// isEmpty reports whether the database has no schema yet.
-func (s *Store) isEmpty(ctx context.Context) (bool, error) {
-	var tables int
-
-	err := s.db.QueryRowContext(ctx,
-		`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'meta'`,
-	).Scan(&tables)
-	if err != nil {
-		return false, fmt.Errorf("mirando el esquema de la base: %w", err)
-	}
-
-	return tables == 0, nil
 }

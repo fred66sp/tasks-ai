@@ -40,6 +40,7 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
+./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada
 ./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
 ./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado o etiquetas
 ./tasks-ai update <referencia> --status in_progress  # pone la tarea en curso: solo desde pendiente; --status open la devuelve a pendiente

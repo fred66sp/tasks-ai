@@ -110,6 +110,9 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   quita el motivo de cierre—. `done` no se pone por el cambio: cerrar va por `close`,
   con su motivo, y pedirlo se rechaza como entrada inválida —código `2`— sin tocar la
   tarea.
+- `list` responde todas las tareas del proyecto con la forma de arriba —las cerradas
+  también—, cada una con su referencia visible, su estado y su `blocked`, que es
+  verdadero mientras alguna de sus bloqueantes siga sin cerrar.
 - El detalle de una tarea añade sus bloqueantes, sus dependientes, sus hijas y sus
   comentarios.
 - Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y

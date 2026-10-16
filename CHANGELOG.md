@@ -7,6 +7,10 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **Ver todas las tareas por CLI**: `list` responde en JSON todas las tareas del
+  proyecto —las cerradas también—, cada una con su referencia visible, su estado, su
+  título y si está bloqueada. Antes solo la interfaz y la API sabían listarlas, así que
+  el ciclo de trabajo de un agente por CLI no se podía cerrar sin ellas.
 - **Poner una tarea en curso**: una tarea pendiente se pone en curso con `update
   --status in_progress` y vuelve a pendiente con `--status open`; ponerse en curso solo
   cabe desde pendiente, y `--status done` se rechaza porque cerrar va por `close`, con

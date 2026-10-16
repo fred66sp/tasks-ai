@@ -77,7 +77,8 @@ func TestServe_theSameOperationAskedByTheAPIAndByTheCommandLineLeavesTheDataTheS
 
 // TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes recorre la segunda
 // regla del criterio: una sesión deja el canal abierto y ve el aviso del cambio
-// que otra sesión pide, sea el CLI o la propia API.
+// que otra sesión pide, sea el CLI o la propia API, y el aviso viaja con el
+// nombre que la interfaz escucha y con su origen dentro.
 //
 //nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
@@ -92,10 +93,14 @@ func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
 		t.Fatalf("create salió con %d: %s", code, errOut)
 	}
 
-	event := readEvent(t, events)
+	notice := readNotice(t, events)
 
-	if event.Resource != "task" || event.Ref != "tk-1" || event.Origin != "cli" {
-		t.Errorf("el aviso del cambio del CLI es %+v, se esperaba la tarea tk-1 pedida por el cli", event)
+	if !strings.Contains(notice, "event: workspace.changed") {
+		t.Errorf("el aviso del cambio del CLI no lleva el nombre que la interfaz escucha: %q", notice)
+	}
+
+	if change := noticeOf(t, notice); change.Resource != "tasks" || change.Source != "external" {
+		t.Errorf("el aviso del cambio del CLI dice %+v, se esperaba la tarea como recurso y un cambio externo", change)
 	}
 
 	// Y también el cambio que otra sesión de la API pide.
@@ -104,10 +109,8 @@ func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
 		t.Fatalf("crear por la API respondió %d: %s", status, body)
 	}
 
-	event = readEvent(t, events)
-
-	if event.Resource != "task" || event.Ref != "tk-2" || event.Origin != "server" {
-		t.Errorf("el aviso del cambio del servidor es %+v, se esperaba la tarea tk-2 pedida por el servidor", event)
+	if change := noticeOf(t, readNotice(t, events)); change.Resource != "tasks" || change.Source != "http" {
+		t.Errorf("el aviso del cambio del servidor dice %+v, se esperaba la tarea como recurso y un cambio por la API", change)
 	}
 }
 
@@ -333,18 +336,28 @@ func openEvents(t *testing.T, address string) io.Reader {
 	return response.Body
 }
 
-func readEvent(t *testing.T, events io.Reader) core.Event {
+// notice is the body of a named notice, in the shape the interface reads.
+type notice struct {
+	Resource string `json:"resource"`
+	Source   string `json:"source"`
+}
+
+// readNotice lee el bloque completo del siguiente aviso del canal, con sus
+// líneas, para comprobar su nombre y no solo lo que lleva dentro.
+func readNotice(t *testing.T, events io.Reader) string {
 	t.Helper()
 
 	scanner := bufio.NewScanner(events)
 
+	var block strings.Builder
+
 	for scanner.Scan() {
-		if data, ok := strings.CutPrefix(scanner.Text(), "data: "); ok {
-			var event core.Event
+		line := scanner.Text()
 
-			decode(t, data, &event)
+		block.WriteString(line + "\n")
 
-			return event
+		if line == "" {
+			return block.String()
 		}
 	}
 
@@ -354,5 +367,25 @@ func readEvent(t *testing.T, events io.Reader) core.Event {
 
 	t.Fatal("el canal se cerró sin avisar de ningún cambio")
 
-	return core.Event{}
+	return ""
+}
+
+// noticeOf lee la carga del aviso que viaja por el canal, tal como la lee la
+// interfaz: el recurso cambiado y la superficie que pidió el cambio.
+func noticeOf(t *testing.T, raw string) notice {
+	t.Helper()
+
+	for line := range strings.SplitSeq(raw, "\n") {
+		if data, ok := strings.CutPrefix(line, "data: "); ok {
+			var change notice
+
+			decode(t, data, &change)
+
+			return change
+		}
+	}
+
+	t.Fatalf("el aviso no lleva carga que la interfaz pueda leer: %q", raw)
+
+	return notice{}
 }

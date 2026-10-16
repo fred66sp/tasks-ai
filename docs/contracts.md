@@ -168,23 +168,37 @@ error dentro de una respuesta correcta.
 Cada cambio deja un aviso escrito en la misma transacción que el cambio, sea la
 superficie que lo pidió. `GET /api/events` mantiene un canal abierto
 (`text/event-stream; charset=utf-8`, sin caché) y emite un evento por aviso, en el
-orden en que ocurrieron:
+orden en que ocurrieron. Cada evento viaja con el nombre `workspace.changed`, el
+mensaje que la interfaz escucha:
 
 ```
 id: 3
-data: {"id":3,"resource":"task","ref":"tk-3","origin":"cli","at":"2026-10-16T14:36:00Z"}
+event: workspace.changed
+data: {"resource":"tasks","source":"external","changes":[{"id":"tk-3","action":"creada","title":"Preparar el análisis"}]}
 ```
 
-- `id` es el número del aviso y `data` es el evento en JSON: el recurso que cambió
-  (`task` o `tag`), la referencia del recurso compuesta como se muestra ahora —el
-  aviso de una etiqueta borrada no tiene referencia y viaja vacía—, el origen del
-  cambio (`cli` o `server`) y el momento del cambio en UTC.
+- `id` es el número del aviso y `data` es el aviso en JSON: el recurso que cambió
+  con el nombre en plural que la interfaz compara (`tasks` o `tags`) y la superficie
+  que pidió el cambio: `external` cuando lo pidió otra superficie —la línea de
+  comandos— y `http` cuando lo pidió una sesión de la API. Con `external` la interfaz
+  avisa de que el cambio no lo hizo ella; con `http` recarga sin avisar, porque el
+  cambio viene de una sesión que ya sabe lo que pidió.
+- Cuando el cambio toca una tarea, `changes` nombra a esa tarea como la imprime el
+  aviso de la interfaz: su referencia visible (`id`), lo que le pasó (`creada`,
+  `cerrada` o `actualizada`) y su título. El servidor lo dice comparando el listado
+  que vio con el que ve, igual que hacía el servidor de referencia; el aviso de una
+  etiqueta no lleva `changes`, y un aviso cuyo cambio no alcanza a describirse —el
+  que se relee al reconectar desde el principio— viaja sin él.
 - Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
   consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
   Sin ninguna de las dos, el canal entrega los avisos desde el primero.
 - El aviso se lee de la base, no de la memoria del servidor: un cambio pedido por el
   CLI llega al canal igual que uno pedido por la API, y eso es lo que hace que dos
-  sesiones se vean. La interfaz recarga lo suyo y avisa cuando el origen no es ella.
+  sesiones se vean. La interfaz recarga lo suyo y avisa cuando el origen es externo.
+- El listado de tareas de la sección 3 entrega cada `parent_id` resuelto a la
+  referencia visible del padre, con la propia lista: la interfaz enlaza su árbol por
+  la referencia, y con ella el árbol anida y cada épica muestra el progreso de sus
+  subtareas. El detalle sigue nombrando el padre por su número interno.
 - Un canal pedido por alguien que no admite un canal abierto se rechaza con el código
   de entrada inválida de la sección 3, con el cuerpo de error de la API.
 

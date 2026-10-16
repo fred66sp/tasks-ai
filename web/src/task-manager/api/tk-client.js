@@ -60,7 +60,19 @@ function jsonRequest(path, method, body) {
 }
 
 // La identidad de una tarea en la API es su referencia visible: tk-18.
-export const listTasks = () => apiRequest('/api/tasks');
+// El árbol de la interfaz enlaza cada subtarea con su padre por esa misma
+// identidad, y el padre que la API nombra por número interno se traduce aquí
+// con la propia lista: así el árbol anida y cada épica enseña el progreso de
+// sus subtareas sin una ruta nueva.
+export async function listTasks() {
+  const tasks = await apiRequest('/api/tasks');
+  const refOf = new Map(tasks.map((task) => [task.id, task.ref]));
+  return tasks.map((task) => (
+    task.parent_id == null || !refOf.has(task.parent_id)
+      ? task
+      : { ...task, parent_id: refOf.get(task.parent_id) }
+  ));
+}
 export const listTags = () => apiRequest('/api/tags');
 export const showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
 export const createTask = (task) => jsonRequest('/api/tasks', 'POST', task);

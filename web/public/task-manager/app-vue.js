@@ -44,7 +44,11 @@
       body: body === void 0 ? void 0 : JSON.stringify(body)
     });
   }
-  var listTasks = () => apiRequest("/api/tasks");
+  async function listTasks() {
+    const tasks = await apiRequest("/api/tasks");
+    const refOf = new Map(tasks.map((task) => [task.id, task.ref]));
+    return tasks.map((task) => task.parent_id == null || !refOf.has(task.parent_id) ? task : { ...task, parent_id: refOf.get(task.parent_id) });
+  }
   var listTags = () => apiRequest("/api/tags");
   var showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
   var createTask = (task) => jsonRequest("/api/tasks", "POST", task);

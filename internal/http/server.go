@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"tasks-ai/internal/core"
+	"tasks-ai/internal/store"
 	"time"
 )
 
@@ -42,6 +43,118 @@ func badEntry(format string, args ...any) error {
 // viven en la base, no en la memoria del servidor: mirarla es lo que hace que
 // un cambio pedido por otro proceso —el CLI— llegue también a este canal.
 const pollInterval = 500 * time.Millisecond
+
+// workspaceEventName es el nombre con el que viaja cada aviso: es el mensaje
+// con nombre que la interfaz escucha, y sin él la pantalla no reacciona.
+const workspaceEventName = "workspace.changed"
+
+// notice is the body of a named notice, in the shape the interface reads: the
+// changed resource, in the plural que ella compara, the surface that asked for
+// the change and, cuando el cambio toca una tarea, la tarea tocada. Lo pedido
+// fuera del servidor —el CLI— es externo, y lo pedido por una sesión de la API
+// es http; con eso la interfaz recarga y avisa de lo que no hizo ella, nombrando
+// la tarea cuando el aviso puede describirla.
+type notice struct {
+	Resource string       `json:"resource"`
+	Source   string       `json:"source"`
+	Changes  []taskChange `json:"changes,omitempty"`
+}
+
+// taskChange is one task a batch of notices touched, in the shape the toast of
+// the interface prints: su referencia visible, lo que le pasó y su título.
+type taskChange struct {
+	ID     string `json:"id"`
+	Action string `json:"action"`
+	Title  string `json:"title"`
+}
+
+// Las acciones que un cambio de tarea puede declarar. Cerrar es un cambio de
+// estado que la interfaz nombra por su cuenta; el resto es un cambio.
+const (
+	actionCreated = "creada"
+	actionClosed  = "cerrada"
+	actionUpdated = "actualizada"
+)
+
+// noticeOf translates a change of the base into the notice the channel sends.
+// Las tareas descritas vienen del listado previo al lote: un aviso cuyo cambio
+// no está en él —el releído al reconectar— viaja sin ellas, y el aviso de una
+// etiqueta nunca las lleva, porque el aviso de la pantalla solo nombra tareas.
+func noticeOf(event core.Event, described map[string]taskChange) notice {
+	resource := "tags"
+	if event.Resource == store.ResourceTask {
+		resource = "tasks"
+	}
+
+	source := "http"
+	if event.Origin == store.OriginCLI {
+		source = "external"
+	}
+
+	result := notice{Resource: resource, Source: source}
+
+	if event.Resource == store.ResourceTask {
+		if change, ok := described[event.Ref]; ok {
+			result.Changes = []taskChange{change}
+		}
+	}
+
+	return result
+}
+
+// describeChanges compares the listing the channel last saw with the one it
+// sees now and says, per task that changed, what happened to it: alta, cierre o
+// cambio. La baja no existe en el producto —ninguna superficie borra tareas—,
+// así que no hay acción que declare. Sin listado previo no hay nada que
+// comparar: el primer lote de una conexión que reconstruye el pasado viaja sin
+// descripción, igual que el servidor de referencia.
+func describeChanges(previous, current []core.Task) map[string]taskChange {
+	if previous == nil {
+		return nil
+	}
+
+	before := make(map[int64]core.Task, len(previous))
+	for _, task := range previous {
+		before[task.ID] = task
+	}
+
+	described := make(map[string]taskChange)
+
+	for _, task := range current {
+		was, seen := before[task.ID]
+		if !seen {
+			described[task.Ref] = taskChange{ID: task.Ref, Action: actionCreated, Title: task.Title}
+
+			continue
+		}
+
+		if fingerprintOf(was) == fingerprintOf(task) {
+			continue
+		}
+
+		action := actionUpdated
+		if was.Status != "done" && task.Status == "done" {
+			action = actionClosed
+		}
+
+		described[task.Ref] = taskChange{ID: task.Ref, Action: action, Title: task.Title}
+	}
+
+	return described
+}
+
+// fingerprintOf freezes a task into one comparable line: lo que cambie en ella
+// cambia la línea, y lo que no, no.
+func fingerprintOf(task core.Task) string {
+	frozen, err := json.Marshal(task)
+	if err != nil {
+		// Una tarea de las que el núcleo devuelve siempre se compone en JSON:
+		// no hay camino a este error con campos que todos son datos.
+		return ""
+	}
+
+	return string(frozen)
+}
 
 // Los estados que un cambio de estado puede pedir: cerrar lleva su motivo y va
 // por su propia ruta, así que done no se pone por aquí.
@@ -474,6 +587,15 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 	w.WriteHeader(nethttp.StatusOK)
 
+	// El punto de partida del comparador: sin el listado de ahora, el primer
+	// lote con cambios no podría decir qué tarea cambió ni cómo.
+	previous, err := s.core.Tasks(r.Context())
+	if err != nil {
+		s.log.Warn("leyendo las tareas para el canal", "error", err.Error())
+
+		previous = nil
+	}
+
 	for {
 		events, err := s.core.Events(r.Context(), after)
 		if err != nil {
@@ -482,15 +604,19 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 			return
 		}
 
+		described, seen := s.describeBatch(r, previous, events)
+
+		previous = seen
+
 		for _, event := range events {
-			data, err := json.Marshal(event)
+			payload, err := json.Marshal(noticeOf(event, described))
 			if err != nil {
 				s.log.Warn("preparando el aviso del canal", "error", err.Error())
 
 				return
 			}
 
-			if _, err := fmt.Fprintf(w, "id: %d\ndata: %s\n\n", event.ID, data); err != nil {
+			if _, err := fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", event.ID, workspaceEventName, payload); err != nil {
 				// Quien lee se fue: el canal termina con él.
 				return
 			}
@@ -508,6 +634,24 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 		case <-time.After(pollInterval):
 		}
 	}
+}
+
+// describeBatch says what happened to the tasks a batch touched: compara el
+// listado que el canal vio la última vez con el que ve ahora y deja el nuevo
+// como punto de partida del lote siguiente.
+func (s *Server) describeBatch(r *nethttp.Request, previous []core.Task, events []core.Event) (map[string]taskChange, []core.Task) {
+	if len(events) == 0 {
+		return nil, previous
+	}
+
+	current, err := s.core.Tasks(r.Context())
+	if err != nil {
+		s.log.Warn("leyendo las tareas para el canal", "error", err.Error())
+
+		return nil, previous
+	}
+
+	return describeChanges(previous, current), current
 }
 
 // lastSeen reads where the reader left off: the identity of the last event it

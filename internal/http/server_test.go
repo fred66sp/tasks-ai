@@ -57,6 +57,10 @@ func TestServer_createsAndReadsTasksThroughTheCore(t *testing.T) {
 }
 
 // createsATaskThroughTheAPI crea una tarea por la API y comprueba que llega
+// firstRef es la referencia visible que el producto da a la primera tarea de un
+// proyecto: las pruebas la comparan con lo que el servidor devuelve.
+const firstRef = "tk-1"
+
 // como se pidió: su referencia, su estado y su prioridad por omisión.
 func createsATaskThroughTheAPI(t *testing.T, server string) core.Task {
 	t.Helper()
@@ -70,7 +74,7 @@ func createsATaskThroughTheAPI(t *testing.T, server string) core.Task {
 
 	decode(t, body, &created)
 
-	if created.Ref != "tk-1" || created.Status != "open" || created.Priority != core.DefaultPriority {
+	if created.Ref != firstRef || created.Status != "open" || created.Priority != core.DefaultPriority {
 		t.Errorf("la tarea creada es %+v, se esperaba tk-1 abierta con la prioridad por omisión", created)
 	}
 
@@ -533,6 +537,9 @@ func TestServer_reportsTheStatusOfTheProduct(t *testing.T) {
 	}
 }
 
+// TestServer_theEventsChannelKeepsOpenAndAnnouncesTheChange recorre lo que la
+// interfaz espera del canal: sigue abierto y cada cambio se anuncia con el
+// nombre que ella escucha, de modo que la pantalla reaccione sin sondeo.
 func TestServer_theEventsChannelKeepsOpenAndAnnouncesTheChange(t *testing.T) {
 	t.Parallel()
 
@@ -546,10 +553,130 @@ func TestServer_theEventsChannelKeepsOpenAndAnnouncesTheChange(t *testing.T) {
 		t.Fatalf("creando la tarea por el núcleo: %v", err)
 	}
 
-	event := readEvent(t, events)
+	notice := readRawEvent(t, events)
 
-	if event.Resource != "task" || event.Ref != "tk-1" || event.Origin != store.OriginServer {
-		t.Errorf("el aviso es %+v, se esperaba la tarea tk-1 pedida por el servidor", event)
+	if !strings.Contains(notice, "event: "+workspaceEventName) {
+		t.Errorf("el aviso no lleva el nombre que la interfaz escucha: %q", notice)
+	}
+
+	if !strings.Contains(notice, "id: 1") {
+		t.Errorf("el aviso no lleva su identidad delante: %q", notice)
+	}
+}
+
+// TestServer_aChangeAskedOutsideTheServerArrivesAsExternal recorre el aviso de
+// un cambio pedido por otra superficie: la línea de comandos abre su base en su
+// nombre, y el canal lo declara externo para que la interfaz avise de que no lo
+// hizo ella.
+func TestServer_aChangeAskedOutsideTheServerArrivesAsExternal(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	served, err := store.OpenAs(t.Context(), path, store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base del servidor: %v", err)
+	}
+
+	t.Cleanup(func() { _ = served.Close() })
+
+	server := newTestServer(t, core.New(served, "tk"), slog.New(slog.DiscardHandler))
+
+	commandLine, err := store.OpenAs(t.Context(), path, store.OriginCLI)
+	if err != nil {
+		t.Fatalf("abriendo la base como la línea de comandos: %v", err)
+	}
+
+	t.Cleanup(func() { _ = commandLine.Close() })
+
+	outer := core.New(commandLine, "tk")
+
+	events := openEvents(t, server+"/api/events")
+
+	if _, err := outer.CreateTask(t.Context(), core.NewTask{Title: "Externa"}); err != nil {
+		t.Fatalf("creando la tarea por la línea de comandos: %v", err)
+	}
+
+	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" || change.Source != "external" {
+		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso y un cambio externo", change)
+	}
+}
+
+// TestServer_aChangeAskedThroughTheAPIArrivesAsHTTP recorre el aviso de un
+// cambio pedido por una sesión de la API: viaja como http, que no es externo,
+// y así ninguna sesión avisa de sus propios cambios.
+func TestServer_aChangeAskedThroughTheAPIArrivesAsHTTP(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	events := openEvents(t, server+"/api/events")
+
+	if status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title": "De la API"}`); status != http.StatusCreated {
+		t.Fatalf("crear por la API respondió %d: %s", status, body)
+	}
+
+	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" || change.Source != "http" {
+		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso y un cambio por la API", change)
+	}
+}
+
+// TestServer_aTagChangeAnnouncesItsResourceInThePluralTheInterfaceReads
+// recorre el aviso de un cambio de etiqueta: el recurso viaja con el nombre en
+// plural que la interfaz compara.
+func TestServer_aTagChangeAnnouncesItsResourceInThePluralTheInterfaceReads(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	events := openEvents(t, server+"/api/events")
+
+	if status, body := do(t, server, http.MethodPost, "/api/tags", `{"name": "docs"}`); status != http.StatusCreated {
+		t.Fatalf("crear la etiqueta respondió %d: %s", status, body)
+	}
+
+	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tags" || len(change.Changes) != 0 {
+		t.Errorf("el aviso dice %+v con %+v, se esperaba tags sin tareas que nombre", change.Resource, change.Changes)
+	}
+}
+
+// TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow recorre la regla
+// del aviso de la pantalla: cada aviso que nombra una tarea lleva en changes la
+// referencia visible, lo que le pasó y su título, para que el aviso diga qué
+// tarea cambió y no una excusa genérica.
+func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
+	t.Parallel()
+
+	server, base := newServer(t)
+	apply := core.New(base, "tk")
+
+	events := openEvents(t, server+"/api/events")
+
+	if _, err := apply.CreateTask(t.Context(), core.NewTask{Title: "Avisada"}); err != nil {
+		t.Fatalf("creando la tarea por el núcleo: %v", err)
+	}
+
+	created := readNotice(t, readRawEvent(t, events))
+	if len(created.Changes) != 1 || created.Changes[0] != (taskChange{ID: firstRef, Action: "creada", Title: "Avisada"}) {
+		t.Errorf("el aviso de la alta dice %+v, se esperaba tk-1 creada como “Avisada”", created.Changes)
+	}
+
+	if _, err := apply.UpdateTask(t.Context(), firstRef, core.Changes{Title: new("Renombrada")}); err != nil {
+		t.Fatalf("cambiando la tarea por el núcleo: %v", err)
+	}
+
+	updated := readNotice(t, readRawEvent(t, events))
+	if len(updated.Changes) != 1 || updated.Changes[0] != (taskChange{ID: firstRef, Action: "actualizada", Title: "Renombrada"}) {
+		t.Errorf("el aviso del cambio dice %+v, se esperaba tk-1 actualizada como “Renombrada”", updated.Changes)
+	}
+
+	if _, err := apply.CloseTask(t.Context(), firstRef, "done"); err != nil {
+		t.Fatalf("cerrando la tarea por el núcleo: %v", err)
+	}
+
+	closed := readNotice(t, readRawEvent(t, events))
+	if len(closed.Changes) != 1 || closed.Changes[0] != (taskChange{ID: firstRef, Action: "cerrada", Title: "Renombrada"}) {
+		t.Errorf("el aviso del cierre dice %+v, se esperaba tk-1 cerrada como “Renombrada”", closed.Changes)
 	}
 }
 
@@ -577,11 +704,11 @@ func TestServer_theEventsChannelContinuesWhereTheReaderLeftOff(t *testing.T) {
 
 	second := readRawEvent(t, openEvents(t, server+"/api/events?after=1"))
 
-	if !strings.Contains(second, "id: 2") || !strings.Contains(second, "tk-2") {
+	if !strings.Contains(second, "id: 2") {
 		t.Errorf("quien continúa desde la primera recibió %q, se esperaba la segunda", second)
 	}
 
-	if strings.Contains(second, "tk-1") {
+	if strings.Contains(second, "id: 1") {
 		t.Errorf("quien continúa desde la primera volvió a recibir la primera: %q", second)
 	}
 
@@ -696,28 +823,43 @@ func openEvents(t *testing.T, url string) io.Reader {
 	return response.Body
 }
 
-func readEvent(t *testing.T, events io.Reader) core.Event {
+// workspaceEventName repite aquí el nombre con el que el servidor anuncia cada
+// cambio: es el mensaje con nombre que la interfaz escucha por el canal.
+const workspaceEventName = "workspace.changed"
+
+// notice is the body of a named notice, in the shape the interface reads.
+type notice struct {
+	Resource string       `json:"resource"`
+	Source   string       `json:"source"`
+	Changes  []taskChange `json:"changes"`
+}
+
+// taskChange is one task the change touched, as the toast of the interface
+// prints it: su referencia visible, lo que le pasó y su título.
+type taskChange struct {
+	ID     string `json:"id"`
+	Action string `json:"action"`
+	Title  string `json:"title"`
+}
+
+// readNotice lee la carga del aviso que viaja por el canal, tal como la lee la
+// interfaz: el recurso cambiado y la superficie que pidió el cambio.
+func readNotice(t *testing.T, raw string) notice {
 	t.Helper()
 
-	scanner := bufio.NewScanner(events)
+	for line := range strings.SplitSeq(raw, "\n") {
+		if data, ok := strings.CutPrefix(line, "data: "); ok {
+			var change notice
 
-	for scanner.Scan() {
-		if data, ok := strings.CutPrefix(scanner.Text(), "data: "); ok {
-			var event core.Event
+			decode(t, data, &change)
 
-			decode(t, data, &event)
-
-			return event
+			return change
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("leyendo el canal de eventos: %v", err)
-	}
+	t.Fatalf("el aviso no lleva carga que la interfaz pueda leer: %q", raw)
 
-	t.Fatal("el canal se cerró sin avisar de ningún cambio")
-
-	return core.Event{}
+	return notice{}
 }
 
 func errorOf(t *testing.T, body string) string {

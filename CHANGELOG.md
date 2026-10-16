@@ -67,3 +67,13 @@ Changelog* y el versionado es semántico.
   binario: la raíz del servidor abre la interfaz y la API conserva sus rutas
   `/api/...`. Desde la interfaz se crea, se ve, se cierra y se reabre una tarea.
   Decisión en [`docs/decisions/010-la-interfaz-vive-en-web-y-viaja-en-el-binario.md`](docs/decisions/010-la-interfaz-vive-en-web-y-viaja-en-el-binario.md).
+- **La pantalla se entera sola de los cambios** (`tk-4962.16`): cada aviso del canal
+  `GET /api/events` viaja con el nombre `workspace.changed`, el mensaje que la interfaz
+  escucha, y su carga nombra el recurso en plural, la superficie que pidió el cambio
+  (`external` para lo pedido por el CLI, `http` para lo pedido por una sesión de la
+  API) y, cuando toca una tarea, la propia tarea con su referencia, lo que le pasó y
+  su título. Con la pantalla abierta, un cambio hecho desde la línea de comandos
+  aparece solo, con su aviso de qué tarea cambió y de que no lo hizo ella, y el
+  progreso de las épicas y el recuento lo reflejan. El listado de tareas entrega
+  además cada `parent_id` resuelto a la referencia visible del padre, así que el
+  árbol anida y cada épica muestra el progreso de sus subtareas.

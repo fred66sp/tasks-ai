@@ -1,6 +1,7 @@
 package store_test
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"os"
@@ -430,6 +431,60 @@ func rawBase(t *testing.T, path, statement string, args ...any) {
 
 	if _, err := raw.ExecContext(t.Context(), statement, args...); err != nil {
 		t.Fatalf("ejecutando %q sobre la base: %v", statement, err)
+	}
+}
+
+// TestOpen_givesUpWhenTheLockNeverYields: un bloqueo que no se va a resolver solo,
+// como el de otro proceso con una transacción larga, no puede dejar al comando
+// aparentemente colgado: el arranque se rinde en unos segundos y lo dice.
+func TestOpen_givesUpWhenTheLockNeverYields(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	// Una base ya creada, para que la carrera al crearla no se mezcle con esto.
+	created, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	if err := created.Close(); err != nil {
+		t.Fatalf("cerrando la base de prueba: %v", err)
+	}
+
+	// Otra conexión toma la escritura y no la suelta, como un proceso atascado.
+	keen, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la conexión que bloquea: %v", err)
+	}
+
+	defer keen.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	locker, err := keen.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("tomando una conexión propia para bloquear: %v", err)
+	}
+
+	defer locker.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	if _, err := locker.ExecContext(t.Context(), "BEGIN IMMEDIATE"); err != nil {
+		t.Fatalf("tomando la escritura de la base: %v", err)
+	}
+
+	defer func() { _, _ = locker.ExecContext(context.Background(), "ROLLBACK") }()
+
+	started := time.Now()
+
+	_, err = store.Open(t.Context(), path)
+
+	elapsed := time.Since(started)
+
+	if err == nil {
+		t.Fatal("abriendo una base bloqueada: no falló")
+	}
+
+	if elapsed > 5*time.Second {
+		t.Errorf("Open tardó %v en rendirse: un bloqueo que no se resuelve deja al comando colgado", elapsed)
 	}
 }
 

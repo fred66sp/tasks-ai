@@ -65,6 +65,11 @@ type Store struct {
 // the base is brand new: another process may be creating it at the same time.
 const bootstrapAttempts = 5
 
+// bootstrapWait is the ceiling for the whole bootstrap. Adding up the wait of
+// every attempt would leave a lock nobody is going to release — a long
+// transaction, a stuck process — looking like a hung command for half a minute.
+const bootstrapWait = 2 * time.Second
+
 // Open opens the database at path, creating it when it is not there, and applies
 // the migrations it still owes.
 func Open(ctx context.Context, path string) (*Store, error) {
@@ -74,6 +79,8 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		return nil, fmt.Errorf("creando la carpeta de la base %s: %w", path, err)
 	}
 
+	limit := time.Now().Add(bootstrapWait)
+
 	for attempt := 1; ; attempt++ {
 		instance, err := openOnce(ctx, path)
 		if err == nil {
@@ -81,9 +88,10 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		}
 
 		// Dos procesos pueden crear la base a la vez: el pragma que la pasa a
-		// WAL devuelve SQLITE_BUSY sin esperar, aunque busy_timeout esté
-		// puesto. Se reintenta solo ese caso, con pausas cortas y contadas.
-		if attempt >= bootstrapAttempts || !isBusy(err) {
+		// WAL devuelve SQLITE_BUSY sin esperar. Se reintenta solo ese caso, con
+		// pausas cortas y contadas, y nunca más allá del techo total: un
+		// bloqueo que no se suelta tiene que fallar, no colgar el comando.
+		if attempt >= bootstrapAttempts || !isBusy(err) || time.Now().After(limit) {
 			return nil, err
 		}
 
@@ -137,9 +145,9 @@ func (s *Store) Close() error {
 }
 
 // dataSourceName builds the connection string: the transaction that migrates
-// takes the write lock up front, the base waits for whoever is writing instead
-// of failing, a write-ahead log lets a reader read while the product writes,
-// and the references between tables are honoured.
+// takes the write lock up front, the base waits a second for whoever is writing
+// before giving up, a write-ahead log lets a reader read while the product
+// writes, and the references between tables are honoured.
 func dataSourceName(path string) string {
 	// SQLite corta el nombre del fichero de una URI en la primera ? o # y lee
 	// %HH como escape: sin esto, esos caracteres en la ruta sacan la base de
@@ -150,7 +158,7 @@ func dataSourceName(path string) string {
 
 	return "file:" + escaped +
 		"?_txlock=immediate" +
-		"&_pragma=busy_timeout(5000)" +
+		"&_pragma=busy_timeout(1000)" +
 		"&_pragma=journal_mode(WAL)" +
 		"&_pragma=foreign_keys(on)"
 }

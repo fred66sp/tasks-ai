@@ -55,6 +55,22 @@ var migrations = []migration{
 			)`,
 		},
 	},
+	{
+		version: 2,
+		statements: []string{
+			`CREATE TABLE dependencies (
+				task_id    INTEGER NOT NULL REFERENCES tasks (id),
+				blocker_id INTEGER NOT NULL REFERENCES tasks (id),
+				PRIMARY KEY (task_id, blocker_id)
+			)`,
+			`CREATE TABLE comments (
+				id         INTEGER PRIMARY KEY AUTOINCREMENT,
+				task_id    INTEGER NOT NULL REFERENCES tasks (id),
+				body       TEXT    NOT NULL,
+				created_at TEXT    NOT NULL
+			)`,
+		},
+	},
 }
 
 // migration is one schema change, applied as a whole.

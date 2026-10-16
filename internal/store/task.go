@@ -67,44 +67,75 @@ func (s *Store) Task(ctx context.Context, id int64) (Task, error) {
 	return readTask(ctx, s.db, id)
 }
 
+// taskColumns is the column list every read of tasks asks for, in the order
+// the scan expects them.
+const taskColumns = `id, title, description, status, priority, assignee, parent_id,
+	created_at, updated_at, close_reason, notes`
+
 // readTask reads one task from wherever it is asked for.
 func readTask(ctx context.Context, from rowQuerier, id int64) (Task, error) {
+	task, err := scanTask(func(dest ...any) error {
+		return from.QueryRowContext(ctx,
+			`SELECT `+taskColumns+` FROM tasks WHERE id = ?`, id).Scan(dest...)
+	})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return Task{}, ErrNotFound
+	case err != nil:
+		return Task{}, fmt.Errorf("leyendo la tarea %d: %w", id, err)
+	}
+
+	return task, nil
+}
+
+// queryTasks reads the tasks a query answers, in the order the query leaves them.
+func (s *Store) queryTasks(ctx context.Context, query string, args ...any) ([]Task, error) {
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("leyendo tareas: %w", err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	tasks := []Task{}
+
+	for rows.Next() {
+		task, err := scanTask(rows.Scan)
+		if err != nil {
+			return nil, fmt.Errorf("leyendo tareas: %w", err)
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("leyendo tareas: %w", err)
+	}
+
+	return tasks, nil
+}
+
+// scanTask reads one row of the task columns and understands its moments, which
+// travel as text. ErrNoRows passes through for whoever reads a single row to
+// translate it; the rest of the failures already say what went wrong.
+func scanTask(scan func(dest ...any) error) (Task, error) {
 	var (
 		task               Task
 		createdAt, updated string
 	)
 
-	err := from.QueryRowContext(ctx, `
-		SELECT id, title, description, status, priority, assignee, parent_id, created_at, updated_at, close_reason, notes
-		FROM tasks
-		WHERE id = ?`, id,
-	).Scan(
-		&task.ID,
-		&task.Title,
-		&task.Description,
-		&task.Status,
-		&task.Priority,
-		&task.Assignee,
-		&task.ParentID,
-		&createdAt,
-		&updated,
-		&task.CloseReason,
-		&task.Notes,
-	)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Task{}, ErrNotFound
-	}
-
+	err := scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority,
+		&task.Assignee, &task.ParentID, &createdAt, &updated, &task.CloseReason, &task.Notes)
 	if err != nil {
-		return Task{}, fmt.Errorf("leyendo la tarea %d: %w", id, err)
+		return Task{}, err
 	}
 
 	if task.CreatedAt, err = time.Parse(timeLayout, createdAt); err != nil {
-		return Task{}, fmt.Errorf("la fecha de creación de la tarea %d no se entiende: %w", id, err)
+		return Task{}, fmt.Errorf("la fecha de creación de la tarea %d no se entiende: %w", task.ID, err)
 	}
 
 	if task.UpdatedAt, err = time.Parse(timeLayout, updated); err != nil {
-		return Task{}, fmt.Errorf("la fecha de cambio de la tarea %d no se entiende: %w", id, err)
+		return Task{}, fmt.Errorf("la fecha de cambio de la tarea %d no se entiende: %w", task.ID, err)
 	}
 
 	return task, nil

@@ -17,6 +17,7 @@ código, en inglés.
 | `title` | texto | Obligatorio |
 | `description` | texto | Opcional |
 | `status` | enumerado | `open`, `in_progress`, `done`. Bloqueada no se guarda: se deriva |
+| `blocked` | booleano | Se calcula desde las dependencias y no se almacena: cierto cuando la tarea tiene algún bloqueante que no está en `done` |
 | `priority` | entero | Rango de `0` a `3`, por omisión `2` |
 | `assignee` | texto | Opcional |
 | `parent_id` | entero | Tarea padre, opcional |
@@ -42,11 +43,13 @@ aquí.
 ### Dependencia
 
 Una fila por pareja: la tarea hija queda bloqueada por la padre. El estado bloqueado
-se calcula desde estas filas y no se guarda.
+se calcula desde estas filas y no se guarda. Bloquear la misma pareja otra vez no cambia
+nada, y retirar un bloqueo que no está tampoco.
 
 ### Comentario
 
-Tarea, cuerpo y fecha. Solo se añaden: no se editan ni se borran.
+Tarea, cuerpo y fecha. Solo se añaden: no se editan ni se borran. Se leen del primero
+al último.
 
 ### Configuración de la base
 
@@ -64,6 +67,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   "title": "Preparar el análisis",
   "description": null,
   "status": "open",
+  "blocked": false,
   "priority": 2,
   "assignee": null,
   "parent_id": null,
@@ -84,6 +88,15 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   tarea ya cerrada y reabrir una no cerrada se rechazan. Cerrar una tarea con subtareas
   abiertas —estado distinto de `done`— se rechaza sin escribir nada, y cerrar una
   subtarea no cierra a su padre.
+- `block` deja la primera tarea bloqueada por la segunda y `unblock` retira ese
+  bloqueo; las dos responden con la primera tarea tal como queda. Una referencia que
+  no resuelve se rechaza con el código `1`, igual que `show`, y bloquearse una tarea
+  por sí misma es entrada inválida: código `2`. Los ciclos se permiten. Una operación
+  rechazada no escribe nada.
+- `comment` añade un comentario con su cuerpo obligatorio y responde con la tarea tal
+  como está. Los comentarios solo se añaden: la herramienta no ofrece ninguna manera
+  de editar o de borrar uno, y cada uno muestra su cuerpo y el momento en que se
+  añadió.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
   API responde con `400`—, y `1` en cualquier otro caso.

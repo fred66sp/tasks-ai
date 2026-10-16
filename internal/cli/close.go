@@ -1,24 +1,42 @@
 package cli
 
 import (
+	"context"
+	"tasks-ai/internal/core"
+
 	"github.com/spf13/cobra"
 )
 
 // newCloseCommand closes a task with a reason.
 func newCloseCommand() *cobra.Command {
-	var reason string
+	return newFlagRefCommand(
+		"close <referencia>",
+		"Cierra una tarea con un motivo",
+		"Cierra una tarea: deja su estado en done, guarda el motivo y devuelve en JSON la\n"+
+			"tarea tal como queda. El motivo es obligatorio y debe ser uno de los conocidos.",
+		"reason",
+		"motivo del cierre: done, duplicate, absorbed, stale o superseded (obligatorio)",
+		(*core.Core).CloseTask,
+	)
+}
+
+// newFlagRefCommand builds a command that works over one reference and one
+// flag, hands both to the core and answers with the JSON of the task. It is the
+// body shared by the commands that take exactly one reference and one flag.
+func newFlagRefCommand(use, short, long, flag, flagHelp string, run func(*core.Core, context.Context, string, string) (core.Task, error)) *cobra.Command {
+	var value string
 
 	command := &cobra.Command{
-		Use:   "close <referencia>",
-		Short: "Cierra una tarea con un motivo",
-		Long: "Cierra una tarea: deja su estado en done, guarda el motivo y devuelve en JSON la\n" +
-			"tarea tal como queda. El motivo es obligatorio y debe ser uno de los conocidos.",
-		Args: usage(cobra.ExactArgs(1)),
+		Use:   use,
+		Short: short,
+		Long:  long,
+		Args:  usage(cobra.ExactArgs(1)),
 		RunE: func(command *cobra.Command, args []string) error {
-			// El motivo ausente o desconocido lo rechaza el núcleo: la lista de
-			// motivos vive en un solo sitio y el error sale con el código de uso.
+			// La regla sobre el valor de la bandera vive en el núcleo: la
+			// comprobación queda en un solo sitio y el error sale con el
+			// código de uso.
 			return withProject(command, func(project *project) error {
-				task, err := project.core.CloseTask(command.Context(), args[0], reason)
+				task, err := run(project.core, command.Context(), args[0], value)
 				if err != nil {
 					return err
 				}
@@ -28,7 +46,7 @@ func newCloseCommand() *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVar(&reason, "reason", "", "motivo del cierre: done, duplicate, absorbed, stale o superseded (obligatorio)")
+	command.Flags().StringVar(&value, flag, "", flagHelp)
 
 	return command
 }

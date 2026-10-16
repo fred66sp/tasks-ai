@@ -14,10 +14,12 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"slices"
 	"strings"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
 	"testing"
+	"time"
 )
 
 // binPath es donde quedó construido el binario, compartido por todos los escenarios.
@@ -77,6 +79,9 @@ type errorBody struct {
 
 // statusOpen es el estado de una tarea que nadie ha cerrado.
 const statusOpen = "open"
+
+// missingRef es una referencia que no apunta a ninguna tarea.
+const missingRef = "tk-999"
 
 // run llama al binario dentro de la carpeta dir, como si fuera el proyecto en
 // el que trabaja el usuario, y devuelve el código de salida y las dos salidas.
@@ -243,7 +248,7 @@ func TestShowMissingRefFailsWithAnError(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	code, out, errOut := run(t, project, "show", "tk-999")
+	code, out, errOut := run(t, project, "show", missingRef)
 
 	if code != 1 {
 		t.Fatalf("show con referencia inexistente salió con %d, se esperaba 1", code)
@@ -253,7 +258,7 @@ func TestShowMissingRefFailsWithAnError(t *testing.T) {
 		t.Errorf("show escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "tk-999") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, missingRef) {
 		t.Errorf("el mensaje de error no menciona la referencia: %s", message)
 	}
 }
@@ -730,7 +735,7 @@ func TestCreateWithAParentLinksItAndRefusesAnUnknownOne(t *testing.T) {
 		t.Errorf("la subtarea nació con padre %v, se esperaba %d", child.ParentID, parent.ID)
 	}
 
-	code, out, errOut := run(t, project, "create", "--title", "Huérfana", "--parent", "tk-999")
+	code, out, errOut := run(t, project, "create", "--title", "Huérfana", "--parent", missingRef)
 
 	if code != 1 {
 		t.Errorf("create con un padre inexistente salió con %d, se esperaba 1", code)
@@ -740,7 +745,7 @@ func TestCreateWithAParentLinksItAndRefusesAnUnknownOne(t *testing.T) {
 		t.Errorf("create con un padre inexistente escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "tk-999") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, missingRef) {
 		t.Errorf("el mensaje no menciona la referencia del padre: %s", message)
 	}
 }
@@ -797,6 +802,382 @@ func TestCloseTwiceAndReopenAnOpenTaskAreRefused(t *testing.T) {
 
 	if message := errorJSON(t, errOut); !strings.Contains(message, "no está cerrada") {
 		t.Errorf("el mensaje no dice que la tarea no está cerrada: %s", message)
+	}
+}
+
+// blockedBody trae lo que hacen falta para leer el estado bloqueado y las
+// listas del detalle, sin depender de los tipos del núcleo.
+type blockedBody struct {
+	Ref        string        `json:"ref"`
+	Blocked    bool          `json:"blocked"`
+	Status     string        `json:"status"`
+	Children   []blockedBody `json:"children"`
+	Blockers   []blockedBody `json:"blockers"`
+	Dependents []blockedBody `json:"dependents"`
+	Comments   []commentBody `json:"comments"`
+}
+
+// commentBody trae lo que un comentario muestra: su cuerpo y el momento en que
+// se añadió.
+type commentBody struct {
+	Body      string `json:"body"`
+	CreatedAt string `json:"created_at"`
+}
+
+// showDetail deja leído el detalle de la tarea que apunta la referencia.
+func showDetail(t *testing.T, project, ref string) blockedBody {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "show", ref)
+	if code != 0 {
+		t.Fatalf("show %s salió con %d: %s", ref, code, errOut)
+	}
+
+	var detail blockedBody
+	decode(t, out, &detail)
+
+	return detail
+}
+
+// showRaw devuelve la respuesta íntegra de show, para comparar que una
+// operación rechazada no dejó los datos como estaban.
+func showRaw(t *testing.T, project, ref string) string {
+	t.Helper()
+
+	code, out, errOut := run(t, project, "show", ref)
+	if code != 0 {
+		t.Fatalf("show %s salió con %d: %s", ref, code, errOut)
+	}
+
+	return out
+}
+
+// refs devuelve las referencias de una lista de tareas del detalle.
+func refs(list []blockedBody) []string {
+	found := make([]string, 0, len(list))
+	for _, task := range list {
+		found = append(found, task.Ref)
+	}
+
+	return found
+}
+
+// sameRefs comprueba que la lista del detalle trae las referencias que se
+// esperan, en el orden en que se esperan.
+func sameRefs(t *testing.T, got []blockedBody, want ...string) {
+	t.Helper()
+
+	if found := refs(got); !slices.Equal(found, want) {
+		t.Errorf("la lista es %v, se esperaba %v", found, want)
+	}
+}
+
+// TestBlockMarksTheTaskBlockedAndUnblockClearsIt: una tarea con un bloqueo
+// abierto aparece bloqueada y deja de estarlo al retirarlo.
+func TestBlockMarksTheTaskBlockedAndUnblockClearsIt(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	blocked := createTask(t, project)
+	blocker := createTask(t, project)
+
+	code, out, errOut := run(t, project, "block", blocked.Ref, blocker.Ref)
+	if code != 0 {
+		t.Fatalf("block salió con %d: %s", code, errOut)
+	}
+
+	var answered blockedBody
+	decode(t, out, &answered)
+
+	if answered.Ref != blocked.Ref || !answered.Blocked {
+		t.Errorf("block respondió %+v, se esperaba la tarea %q bloqueada", answered, blocked.Ref)
+	}
+
+	detail := showDetail(t, project, blocked.Ref)
+
+	if !detail.Blocked {
+		t.Error("la tarea con un bloqueo abierto no aparece bloqueada")
+	}
+
+	sameRefs(t, detail.Blockers, blocker.Ref)
+
+	code, out, errOut = run(t, project, "unblock", blocked.Ref, blocker.Ref)
+	if code != 0 {
+		t.Fatalf("unblock salió con %d: %s", code, errOut)
+	}
+
+	decode(t, out, &answered)
+
+	if answered.Ref != blocked.Ref || answered.Blocked {
+		t.Errorf("unblock respondió %+v, se esperaba la tarea %q sin bloqueo", answered, blocked.Ref)
+	}
+
+	detail = showDetail(t, project, blocked.Ref)
+
+	if detail.Blocked {
+		t.Error("retirado el bloqueo, la tarea sigue apareciendo bloqueada")
+	}
+
+	sameRefs(t, detail.Blockers)
+}
+
+// TestTheBlockedStateFollowsTheBlocker: el estado bloqueado se calcula desde
+// los bloqueos, así que cerrar al bloqueante la libera y reabrirlo la vuelve a
+// bloquear.
+func TestTheBlockedStateFollowsTheBlocker(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	blocked := createTask(t, project)
+	blocker := createTask(t, project)
+
+	code, _, errOut := run(t, project, "block", blocked.Ref, blocker.Ref)
+	if code != 0 {
+		t.Fatalf("block salió con %d: %s", code, errOut)
+	}
+
+	code, _, errOut = run(t, project, "close", blocker.Ref, "--reason", "done")
+	if code != 0 {
+		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+
+	if detail := showDetail(t, project, blocked.Ref); detail.Blocked {
+		t.Error("cerrado el bloqueante, la tarea sigue apareciendo bloqueada")
+	}
+
+	code, _, errOut = run(t, project, "reopen", blocker.Ref)
+	if code != 0 {
+		t.Fatalf("reopen salió con %d: %s", code, errOut)
+	}
+
+	if detail := showDetail(t, project, blocked.Ref); !detail.Blocked {
+		t.Error("reabierto el bloqueante, la tarea dejó de aparecer bloqueada")
+	}
+}
+
+// TestBlockAndUnblockRefuseAnUnknownReference: una referencia que no existe se
+// rechaza como la rechaza show, sin escribir nada y sin tocar los datos.
+func TestBlockAndUnblockRefuseAnUnknownReference(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+	before := showRaw(t, project, task.Ref)
+
+	for _, args := range [][]string{
+		{"block", task.Ref, missingRef},
+		{"block", missingRef, task.Ref},
+		{"unblock", task.Ref, missingRef},
+		{"unblock", missingRef, task.Ref},
+	} {
+		code, out, errOut := run(t, project, args...)
+
+		if code != 1 {
+			t.Errorf("%v salió con %d, se esperaba 1", args, code)
+		}
+
+		if out != "" {
+			t.Errorf("%v escribió en la salida estándar: %s", args, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, missingRef) {
+			t.Errorf("el mensaje de %v no menciona la referencia desconocida: %s", args, message)
+		}
+	}
+
+	if after := showRaw(t, project, task.Ref); after != before {
+		t.Errorf("un bloqueo rechazado tocó los datos: antes %s, después %s", before, after)
+	}
+}
+
+// TestBlockRefusesBlockingATaskByItself: una tarea no puede bloquearse por sí
+// misma; es un mal uso de la línea de comandos y no toca los datos.
+func TestBlockRefusesBlockingATaskByItself(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+	before := showRaw(t, project, task.Ref)
+
+	for _, name := range []string{"block", "unblock"} {
+		code, out, errOut := run(t, project, name, task.Ref, task.Ref)
+
+		if code != 2 {
+			t.Errorf("%s con la misma referencia dos veces salió con %d, se esperaba 2", name, code)
+		}
+
+		if out != "" {
+			t.Errorf("%s con la misma referencia dos veces escribió en la salida estándar: %s", name, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, task.Ref) {
+			t.Errorf("el mensaje de %s no menciona la tarea: %s", name, message)
+		}
+	}
+
+	if after := showRaw(t, project, task.Ref); after != before {
+		t.Errorf("un bloqueo rechazado tocó los datos: antes %s, después %s", before, after)
+	}
+}
+
+// TestShowAddsTheChildrenTheBlockersTheDependentsAndTheComments: el detalle de
+// una tarea trae sus hijas, sus bloqueantes, sus dependientes y sus comentarios,
+// y el de una tarea ajena no se ve tocado por los bloqueos de las demás.
+func TestShowAddsTheChildrenTheBlockersTheDependentsAndTheComments(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	parent := createTask(t, project)
+	child1 := createTask(t, project, "--parent", parent.Ref)
+	child2 := createTask(t, project, "--parent", parent.Ref)
+	dependent := createTask(t, project)
+	unrelated := createTask(t, project)
+
+	code, _, errOut := run(t, project, "comment", parent.Ref, "--body", "primer apunte")
+	if code != 0 {
+		t.Fatalf("comment salió con %d: %s", code, errOut)
+	}
+
+	code, _, errOut = run(t, project, "block", dependent.Ref, parent.Ref)
+	if code != 0 {
+		t.Fatalf("block salió con %d: %s", code, errOut)
+	}
+
+	detail := showDetail(t, project, parent.Ref)
+
+	sameRefs(t, detail.Children, child1.Ref, child2.Ref)
+	sameRefs(t, detail.Blockers)
+	sameRefs(t, detail.Dependents, dependent.Ref)
+
+	if len(detail.Comments) != 1 {
+		t.Fatalf("los comentarios son %+v, se esperaba uno", detail.Comments)
+	}
+
+	if detail.Comments[0].Body != "primer apunte" {
+		t.Errorf("el cuerpo del comentario es %q, se esperaba %q", detail.Comments[0].Body, "primer apunte")
+	}
+
+	if _, err := time.Parse(time.RFC3339, detail.Comments[0].CreatedAt); err != nil {
+		t.Errorf("el comentario no trae un momento que se entienda: %q", detail.Comments[0].CreatedAt)
+	}
+
+	detail = showDetail(t, project, dependent.Ref)
+
+	sameRefs(t, detail.Blockers, parent.Ref)
+	sameRefs(t, detail.Dependents)
+	sameRefs(t, detail.Children)
+
+	detail = showDetail(t, project, unrelated.Ref)
+
+	sameRefs(t, detail.Children)
+	sameRefs(t, detail.Blockers)
+	sameRefs(t, detail.Dependents)
+
+	if len(detail.Comments) != 0 {
+		t.Errorf("una tarea ajena trae comentarios: %+v", detail.Comments)
+	}
+}
+
+// TestCommentAppendsAndRefusesAnEmptyBody: el comentario se añade con su cuerpo,
+// que es obligatorio; sin él o vacío se rechaza sin añadir nada.
+func TestCommentAppendsAndRefusesAnEmptyBody(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+
+	code, out, errOut := run(t, project, "comment", task.Ref, "--body", "primer apunte")
+	if code != 0 {
+		t.Fatalf("comment salió con %d: %s", code, errOut)
+	}
+
+	var answered core.Task
+	decode(t, out, &answered)
+
+	if answered.Ref != task.Ref {
+		t.Errorf("comment respondió otra tarea: %q en vez de %q", answered.Ref, task.Ref)
+	}
+
+	detail := showDetail(t, project, task.Ref)
+
+	if len(detail.Comments) != 1 || detail.Comments[0].Body != "primer apunte" {
+		t.Fatalf("los comentarios son %+v, se esperaba uno con el cuerpo %q", detail.Comments, "primer apunte")
+	}
+
+	for _, body := range []string{"", "   "} {
+		code, out, errOut := run(t, project, "comment", task.Ref, "--body", body)
+
+		if code != 2 {
+			t.Errorf("comment con el cuerpo %q salió con %d, se esperaba 2", body, code)
+		}
+
+		if out != "" {
+			t.Errorf("comment con el cuerpo %q escribió en la salida estándar: %s", body, out)
+		}
+
+		if message := errorJSON(t, errOut); !strings.Contains(message, "cuerpo") {
+			t.Errorf("el mensaje de comment con el cuerpo %q no habla del cuerpo: %s", body, message)
+		}
+	}
+
+	code, out, _ = run(t, project, "comment", task.Ref)
+
+	if code != 2 {
+		t.Errorf("comment sin cuerpo salió con %d, se esperaba 2", code)
+	}
+
+	if out != "" {
+		t.Errorf("comment sin cuerpo escribió en la salida estándar: %s", out)
+	}
+
+	if detail := showDetail(t, project, task.Ref); len(detail.Comments) != 1 {
+		t.Errorf("un comentario rechazado añadió algo: quedaron %+v", detail.Comments)
+	}
+}
+
+// TestTheCommentCannotBeChangedOnceAdded: el comentario añadido no se puede
+// editar: la herramienta no ofrece ningún comando que cambie uno.
+func TestTheCommentCannotBeChangedOnceAdded(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	installProject(t, project)
+
+	task := createTask(t, project)
+
+	code, _, errOut := run(t, project, "comment", task.Ref, "--body", "primer apunte")
+	if code != 0 {
+		t.Fatalf("comment salió con %d: %s", code, errOut)
+	}
+
+	before := showRaw(t, project, task.Ref)
+
+	for _, name := range []string{"edit-comment", "delete-comment", "uncomment", "update-comment"} {
+		code, out, _ := run(t, project, name, task.Ref)
+
+		if code == 0 {
+			t.Errorf("%s no debía existir y salió bien", name)
+		}
+
+		if out != "" {
+			t.Errorf("%s escribió en la salida estándar: %s", name, out)
+		}
+	}
+
+	if after := showRaw(t, project, task.Ref); after != before {
+		t.Errorf("un intento de cambiar el comentario tocó los datos: antes %s, después %s", before, after)
 	}
 }
 

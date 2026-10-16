@@ -17,16 +17,25 @@ Desde cualquier punto del proyecto:
 ```bash
 tasks-ai create --title "Preparar el análisis"   # crea una tarea y devuelve su JSON
 tasks-ai create --title "Revisar el análisis" --parent tk-1  # crea una subtarea de tk-1
-tasks-ai show tk-1                               # devuelve la tarea en JSON
+tasks-ai show tk-1                               # devuelve la tarea en JSON, con sus hijas, sus bloqueantes, sus dependientes y sus comentarios
 tasks-ai update tk-1 --priority 1                # cambia los campos que se piden y devuelve la tarea
 tasks-ai close tk-1 --reason done                # cierra la tarea con su motivo y devuelve la tarea
 tasks-ai reopen tk-1                             # reabre la tarea cerrada y devuelve la tarea
+tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
+tasks-ai unblock tk-2 tk-1                       # retira el bloqueo entre tk-2 y tk-1 y devuelve tk-2
+tasks-ai comment tk-1 --body "..."               # añade un comentario a tk-1 y devuelve la tarea
 ```
 
 El motivo de cierre es obligatorio y debe ser uno de: `done`, `duplicate`, `absorbed`,
 `stale` o `superseded`. Cerrar una tarea con subtareas abiertas se rechaza sin escribir
 nada, cerrar una subtarea no cierra su padre, y una tarea ya cerrada no se cierra otra
 vez ni una abierta se reabre.
+
+El estado bloqueado se calcula y no se guarda: una tarea aparece bloqueada mientras
+tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloqueante o
+al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede
+bloquearse por sí misma. Los comentarios solo se añaden: no hay manera de editar ni de
+borrar uno, y su cuerpo es obligatorio.
 
 Toda operación responde en JSON por la salida estándar, y los avisos y errores van por
 la salida de error con la forma `{"error": "..."}`.

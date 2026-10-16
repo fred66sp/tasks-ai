@@ -39,6 +39,9 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable o prioridad
 ./tasks-ai close <referencia> --reason done  # cierra una tarea con su motivo: done, duplicate, absorbed, stale o superseded
 ./tasks-ai reopen <referencia>   # reabre una tarea cerrada: vuelve a open y quita el motivo de cierre
+./tasks-ai block <referencia> <referencia-bloqueante>   # deja la primera tarea bloqueada por la segunda
+./tasks-ai unblock <referencia> <referencia-bloqueante>  # retira el bloqueo entre las dos tareas
+./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea: los comentarios solo se añaden
 ```
 
 De la herramienta de desarrollo:

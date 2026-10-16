@@ -19,6 +19,12 @@ Changelog* y el versionado es semántico.
   subtarea no cierra su padre, y una tarea ya cerrada no se cierra otra vez ni una
   abierta se reabre. `create` acepta `--parent` para dar a la tarea nueva su tarea
   padre.
+- **Jerarquía, dependencias y comentarios**: `block` deja una tarea bloqueada por otra
+  y `unblock` retira el bloqueo; el estado bloqueado se calcula desde los bloqueos y no
+  se guarda, así que la tarea deja de aparecer bloqueada al cerrar al bloqueante o al
+  retirar el bloqueo. `comment` añade un comentario —su cuerpo es obligatorio— y los
+  comentarios solo se añaden: no se editan ni se borran. `show` responde con el detalle
+  de la tarea: sus hijas, sus bloqueantes, sus dependientes y sus comentarios.
 - **Documentación del producto**: requisitos y criterios de aceptación en
   [`docs/PRD.md`](docs/PRD.md); decisiones durables en
   [`docs/decisions/`](docs/decisions/); diseño en

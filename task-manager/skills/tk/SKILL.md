@@ -99,6 +99,11 @@ en tk para que el proyecto no dependa de la memoria de una sesión.
 - La prioridad no está validada por el binario; se usan solo los valores 0 a 3.
 - `blocked` se calcula a partir de dependencias; no se almacena como estado
   permanente.
+- `ready` deja fuera lo que espera a algo abierto. Una lista vacía significa «nada se
+  puede empezar», no «no hay trabajo»: es lo correcto mientras la tarea en curso bloquee
+  a las siguientes, y al cerrarla aparecen las que esperaban.
+- `list` no devuelve los bloqueos ni los dependientes de una tarea; `show` sí. A quién
+  espera una tarea se mira con `show`.
 - `notes` sobrescribe el relevo; los comentarios son append-only.
 - `dep add` y `dep remove` no devuelven JSON: el éxito se determina por el código
   de salida.

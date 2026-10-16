@@ -3,7 +3,7 @@
 BINARY := tasks-ai
 GO     := go
 
-.PHONY: help build test test-race lint lint-fix fmt clean
+.PHONY: help build test test-race coverage lint lint-fix fmt clean
 
 help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
@@ -17,6 +17,11 @@ test: ## Ejecuta las pruebas del proyecto
 
 test-race: ## Ejecuta las pruebas buscando carreras
 	$(GO) test -race ./...
+
+coverage: ## Mide la cobertura de las pruebas y deja el perfil en coverage/
+	@mkdir -p coverage
+	$(GO) test ./... -coverprofile=coverage/profile.out
+	$(GO) tool cover -func=coverage/profile.out
 
 lint: ## Revisa el código con el linter
 	golangci-lint run ./...

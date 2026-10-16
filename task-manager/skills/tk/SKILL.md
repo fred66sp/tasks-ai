@@ -104,6 +104,10 @@ en tk para que el proyecto no dependa de la memoria de una sesión.
   a las siguientes, y al cerrarla aparecen las que esperaban.
 - `list` no devuelve los bloqueos ni los dependientes de una tarea; `show` sí. A quién
   espera una tarea se mira con `show`.
+- La vista es un árbol y su plegado se guarda en el navegador: con un filtro puesto solo
+  baja a las hijas de lo que no esté plegado a mano. Una tarea que encaja con el filtro
+  puede no salir porque su padre esté plegado; se despliega y aparece. El dato está:
+  antes de dudar de él se mira con `show`, que lo enseña entero.
 - `notes` sobrescribe el relevo; los comentarios son append-only.
 - `dep add` y `dep remove` no devuelven JSON: el éxito se determina por el código
   de salida.

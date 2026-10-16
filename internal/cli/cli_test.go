@@ -15,7 +15,7 @@ import (
 // El criterio de la fase: en un proyecto vacío, instalar el producto, guardar una
 // tarea y leerla con la referencia formada por el prefijo configurado.
 //
-//nolint:gocyclo,paralleltest // es el recorrido completo del producto y debe quedarse lineal; t.Chdir no permite paralelismo
+//nolint:gocyclo // es el recorrido completo del producto y debe quedarse lineal
 func TestRun_installsCreatesAndReadsATask(t *testing.T) {
 	dir := t.TempDir()
 	t.Chdir(dir)
@@ -144,7 +144,6 @@ func (failingWriter) Write([]byte) (int, error) {
 	return 0, errors.New("no queda espacio en el dispositivo")
 }
 
-//nolint:paralleltest // t.Chdir no permite paralelismo
 func TestRun_reportsAFailingAnswerWriter(t *testing.T) {
 	t.Chdir(t.TempDir())
 

@@ -5,6 +5,7 @@ node_modules/
 # Directorios de herramientas locales
 .atl/
 .codegraph/
+.playwright-cli/
 
 # Estado local del arnés y de la memoria
 .pi/

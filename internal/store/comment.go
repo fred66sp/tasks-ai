@@ -16,11 +16,19 @@ type Comment struct {
 }
 
 // AddComment appends a comment to the task. Comments are only added: there is
-// no way to change the one that is already there.
+// no way to change the one that is already there. El comentario y el aviso de
+// su llegada se escriben en la misma transacción.
 func (s *Store) AddComment(ctx context.Context, taskID int64, body string) (Comment, error) {
 	now := time.Now().UTC().Truncate(time.Second)
 
-	result, err := s.db.ExecContext(ctx,
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Comment{}, fmt.Errorf("abriendo la transacción del comentario: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	result, err := tx.ExecContext(ctx,
 		`INSERT INTO comments (task_id, body, created_at) VALUES (?, ?, ?)`,
 		taskID, body, now.Format(timeLayout))
 	if err != nil {
@@ -30,6 +38,14 @@ func (s *Store) AddComment(ctx context.Context, taskID int64, body string) (Comm
 	id, err := result.LastInsertId()
 	if err != nil {
 		return Comment{}, fmt.Errorf("leyendo la identidad del comentario añadido: %w", err)
+	}
+
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, taskID); err != nil {
+		return Comment{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return Comment{}, fmt.Errorf("cerrando la transacción del comentario: %w", err)
 	}
 
 	return Comment{ID: id, TaskID: taskID, Body: body, CreatedAt: now}, nil

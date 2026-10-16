@@ -32,9 +32,17 @@ type TagUse struct {
 }
 
 // CreateTag guarda una etiqueta nueva y la devuelve con la identidad que la base
-// le dio. Un nombre que ya está en el catálogo sale por ErrTagExists.
+// le dio. Un nombre que ya está en el catálogo sale por ErrTagExists. La
+// etiqueta y el aviso se escriben en la misma transacción.
 func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
-	result, err := s.db.ExecContext(ctx,
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Tag{}, fmt.Errorf("abriendo la transacción de la etiqueta: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	result, err := tx.ExecContext(ctx,
 		`INSERT INTO tags (name, color, description) VALUES (?, ?, ?)`,
 		tag.Name, tag.Color, tag.Description)
 	if err != nil {
@@ -48,6 +56,14 @@ func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 	id, err := result.LastInsertId()
 	if err != nil {
 		return Tag{}, fmt.Errorf("leyendo la identidad de la etiqueta guardada: %w", err)
+	}
+
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, id); err != nil {
+		return Tag{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return Tag{}, fmt.Errorf("cerrando la transacción de la etiqueta: %w", err)
 	}
 
 	tag.ID = id
@@ -147,6 +163,10 @@ func (s *Store) UpdateTag(ctx context.Context, name string, change func(Tag) (Ta
 		return Tag{}, fmt.Errorf("guardando el cambio de la etiqueta %q: %w", name, err)
 	}
 
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID); err != nil {
+		return Tag{}, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return Tag{}, fmt.Errorf("cerrando la transacción del cambio de la etiqueta %q: %w", name, err)
 	}
@@ -207,6 +227,10 @@ func (s *Store) DeleteTag(ctx context.Context, name string) (Tag, []int64, error
 		}
 	}
 
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID); err != nil {
+		return Tag{}, nil, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return Tag{}, nil, fmt.Errorf("cerrando la transacción del borrado de la etiqueta %q: %w", name, err)
 	}
@@ -241,6 +265,23 @@ func readTagUsers(ctx context.Context, within *sql.Tx, tagID int64) ([]int64, er
 	}
 
 	return users, nil
+}
+
+// TagName returns the name the tag with that identity carries now: el aviso
+// viaja por el número interno, y quien lo lee compone aquí el nombre que se
+// muestra, siempre el de ahora.
+func (s *Store) TagName(ctx context.Context, id int64) (string, error) {
+	var name string
+
+	err := s.db.QueryRowContext(ctx, `SELECT name FROM tags WHERE id = ?`, id).Scan(&name)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return "", ErrNotFound
+	case err != nil:
+		return "", fmt.Errorf("leyendo el nombre de la etiqueta %d: %w", id, err)
+	}
+
+	return name, nil
 }
 
 // TaskTagNames returns the names of the tags a task carries, ordered by name.

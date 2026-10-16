@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"tasks-ai/internal/core"
+	"tasks-ai/internal/store"
 
 	"github.com/spf13/cobra"
 )
@@ -49,7 +50,7 @@ func newCreateCommand() *cobra.Command {
 				return err
 			}
 
-			project, err := openProject(command.Context(), dir, command.ErrOrStderr())
+			project, err := openProject(command.Context(), dir, command.ErrOrStderr(), store.OriginCLI)
 			if err != nil {
 				return err
 			}

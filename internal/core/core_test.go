@@ -1,6 +1,7 @@
 package core_test
 
 import (
+	"errors"
 	"path/filepath"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/store"
@@ -130,6 +131,211 @@ func TestCheckPrefix_recordsItTheFirstTimeAndWarnsWhenItChanges(t *testing.T) {
 
 	if recorded != "tk" {
 		t.Errorf("el aviso anotó el prefijo %q en la base, debía dejar el que había", recorded)
+	}
+}
+
+func TestTask_saysWithItsSentinelWhenTheReferenceResolvesToNothing(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	_, err := apply.Task(t.Context(), "tk-404")
+	if !errors.Is(err, core.ErrNotFound) {
+		t.Errorf("Task devolvió %v, se esperaba el centinela de referencia sin resolución", err)
+	}
+
+	if errors.Is(err, core.ErrInvalid) {
+		t.Error("una referencia que no resuelve no es entrada inválida")
+	}
+}
+
+func TestCloseTask_saysWithItsSentinelWhenARuleRefusesIt(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	parent, err := apply.CreateTask(ctx, core.NewTask{Title: "Padre"})
+	if err != nil {
+		t.Fatalf("creando la tarea padre: %v", err)
+	}
+
+	if _, err := apply.CreateTask(ctx, core.NewTask{Title: "Hija", Parent: parent.Ref}); err != nil {
+		t.Fatalf("creando la tarea hija: %v", err)
+	}
+
+	_, err = apply.CloseTask(ctx, parent.Ref, core.CloseReasonDone)
+	if !errors.Is(err, core.ErrConflict) {
+		t.Errorf("cerrar con subtareas abiertas devolvió %v, se esperaba el centinela de regla que lo impide", err)
+	}
+
+	if err == nil || err.Error() != "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" {
+		t.Errorf("el mensaje del cierre rechazado es %q", err)
+	}
+}
+
+func TestCloseTask_saysWithItsSentinelWhenTheTaskIsAlreadyClosed(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Con motivo"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	if _, err := apply.CloseTask(ctx, task.Ref, core.CloseReasonDone); err != nil {
+		t.Fatalf("cerrando la tarea: %v", err)
+	}
+
+	_, err = apply.CloseTask(ctx, task.Ref, core.CloseReasonDone)
+	if !errors.Is(err, core.ErrConflict) {
+		t.Errorf("cerrar dos veces devolvió %v, se esperaba el centinela de regla que lo impide", err)
+	}
+
+	if err == nil || err.Error() != "no se puede cerrar la tarea \"tk-1\": ya está cerrada" {
+		t.Errorf("el mensaje del segundo cierre es %q", err)
+	}
+}
+
+func TestReopenTask_saysWithItsSentinelWhenTheTaskIsNotClosed(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Abierta"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	_, err = apply.ReopenTask(ctx, task.Ref)
+	if !errors.Is(err, core.ErrConflict) {
+		t.Errorf("reabrir una tarea abierta devolvió %v, se esperaba el centinela de regla que lo impide", err)
+	}
+}
+
+func TestCreateTag_saysWithItsSentinelWhenARuleRefusesIt(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	if _, err := apply.CreateTag(ctx, "docs", "", ""); err != nil {
+		t.Fatalf("creando la etiqueta: %v", err)
+	}
+
+	_, err := apply.CreateTag(ctx, "docs", "", "")
+	if !errors.Is(err, core.ErrConflict) {
+		t.Errorf("crear una etiqueta repetida devolvió %v, se esperaba el centinela de regla que lo impide", err)
+	}
+
+	if err == nil || err.Error() != "ya existe una etiqueta con el nombre \"docs\"" {
+		t.Errorf("el mensaje de la etiqueta repetida es %q", err)
+	}
+}
+
+func TestEditTag_saysWithItsSentinelWhenTheTagIsMissing(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	_, err := apply.EditTag(t.Context(), "docs", core.TagChanges{Color: &[]string{"red"}[0]})
+	if !errors.Is(err, core.ErrNotFound) {
+		t.Errorf("cambiar una etiqueta que no está devolvió %v, se esperaba el centinela de referencia sin resolución", err)
+	}
+}
+
+func TestStatus_reportsTheVersionTheSchemaAndThePrefix(t *testing.T) {
+	t.Parallel()
+
+	status, err := core.New(openStore(t), "px").Status(t.Context())
+	if err != nil {
+		t.Fatalf("Status devolvió %v", err)
+	}
+
+	if status.Version != core.Version {
+		t.Errorf("el estado trae la versión %q, se esperaba %q", status.Version, core.Version)
+	}
+
+	if status.Schema != 4 {
+		t.Errorf("el estado trae el esquema %d, se esperaba el 4", status.Schema)
+	}
+
+	if status.Prefix != "px" {
+		t.Errorf("el estado trae el prefijo %q, se esperaba %q", status.Prefix, "px")
+	}
+}
+
+func TestEvents_speakOfTheChangeWithItsReferenceComposed(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+
+	task, tag := createTaskAndTag(t, apply)
+	speakOfTheTaskAndTheTag(t, apply, task, tag)
+	readingAfterTheLastNoticeSeenReturnsOnlyTheLaterOnes(t, apply)
+}
+
+// createTaskAndTag deja un cambio de cada recurso en la base y devuelve lo
+// creado, para comparar con ello los avisos que la base ha guardado.
+func createTaskAndTag(t *testing.T, apply *core.Core) (core.Task, core.Tag) {
+	t.Helper()
+
+	task, err := apply.CreateTask(t.Context(), core.NewTask{Title: "Con aviso"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	tag, err := apply.CreateTag(t.Context(), "docs", "", "")
+	if err != nil {
+		t.Fatalf("creando la etiqueta: %v", err)
+	}
+
+	return task, tag
+}
+
+// speakOfTheTaskAndTheTag comprueba que el canal guarda un aviso por cambio y
+// que cada uno habla del suyo: su identidad, su recurso, su referencia compuesta
+// y su origen.
+func speakOfTheTaskAndTheTag(t *testing.T, apply *core.Core, task core.Task, tag core.Tag) {
+	t.Helper()
+
+	events, err := apply.Events(t.Context(), 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("dos cambios dejaron %d avisos, se esperaban 2", len(events))
+	}
+
+	first, second := events[0], events[1]
+
+	if first.ID != 1 || first.Resource != "task" || first.Ref != task.Ref || first.Origin != "cli" {
+		t.Errorf("el aviso de la tarea es %+v, se esperaba la tarea %q pedida por el CLI", first, task.Ref)
+	}
+
+	if second.ID != 2 || second.Resource != "tag" || second.Ref != tag.Name || second.Origin != "cli" {
+		t.Errorf("el aviso de la etiqueta es %+v, se esperaba la etiqueta %q pedida por el CLI", second, tag.Name)
+	}
+}
+
+// readingAfterTheLastNoticeSeenReturnsOnlyTheLaterOnes comprueba que leer a
+// partir de un aviso deja fuera los anteriores: quien lee continúa donde se
+// quedó.
+func readingAfterTheLastNoticeSeenReturnsOnlyTheLaterOnes(t *testing.T, apply *core.Core) {
+	t.Helper()
+
+	// Leer a partir del aviso 1: el primero ya se vio.
+	remaining, err := apply.Events(t.Context(), 1)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	if len(remaining) != 1 || remaining[0].ID != 2 {
+		t.Errorf("leer a partir del aviso 1 devolvió %+v, se esperaba solo el aviso 2", remaining)
 	}
 }
 

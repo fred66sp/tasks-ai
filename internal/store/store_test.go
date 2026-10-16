@@ -20,8 +20,8 @@ func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 3 {
-		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 3", version)
+	if version != 4 {
+		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 4", version)
 	}
 }
 
@@ -51,8 +51,8 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 3 {
-		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 3", version)
+	if version != 4 {
+		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 4", version)
 	}
 }
 
@@ -97,8 +97,8 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 3 {
-		t.Errorf("la base quedó en el esquema %d, se esperaba el 3", version)
+	if version != 4 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 4", version)
 	}
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {
@@ -485,6 +485,297 @@ func TestOpen_givesUpWhenTheLockNeverYields(t *testing.T) {
 
 	if elapsed > 5*time.Second {
 		t.Errorf("Open tardó %v en rendirse: un bloqueo que no se resuelve deja al comando colgado", elapsed)
+	}
+}
+
+func TestCreateTask_annotatesTheChangeItMade(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	created, err := base.CreateTask(ctx, newTask("Primera tarea"))
+	if err != nil {
+		t.Fatalf("guardando la tarea: %v", err)
+	}
+
+	changes, err := base.Changes(ctx, 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(changes) != 1 {
+		t.Fatalf("la creación dejó %d filas de cambio, se esperaba 1", len(changes))
+	}
+
+	change := changes[0]
+	if change.Resource != store.ResourceTask || change.ResourceID != created.ID {
+		t.Errorf("el cambio habla de %s %d, se esperaba la tarea %d", change.Resource, change.ResourceID, created.ID)
+	}
+
+	if change.Origin != store.OriginCLI {
+		t.Errorf("el cambio dice que lo pidió %q, se esperaba %q", change.Origin, store.OriginCLI)
+	}
+
+	if change.HappenedAt.IsZero() {
+		t.Error("el cambio no dice cuándo ocurrió")
+	}
+}
+
+func TestCreateTask_namesTheIdentityInTheNoticeNeverTheReference(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	base, err := store.OpenAs(t.Context(), path, store.OriginCLI)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	if _, err := base.CreateTask(t.Context(), newTask("Tarea sin rastro")); err != nil {
+		t.Fatalf("guardando la tarea: %v", err)
+	}
+
+	// La fila se lee tal como está guardada: la identidad viaja por el número
+	// interno y la referencia compuesta no ocupa sitio en ningún sitio.
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la base por debajo de la store: %v", err)
+	}
+
+	defer raw.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	var resource, resourceID, origin, happenedAt string
+
+	err = raw.QueryRowContext(t.Context(),
+		`SELECT resource, CAST(resource_id AS TEXT), origin, happened_at FROM changes`,
+	).Scan(&resource, &resourceID, &origin, &happenedAt)
+	if err != nil {
+		t.Fatalf("leyendo la fila de cambio por debajo de la store: %v", err)
+	}
+
+	if resource != store.ResourceTask {
+		t.Errorf("la fila habla del recurso %q, se esperaba %q", resource, store.ResourceTask)
+	}
+
+	if resourceID != "1" {
+		t.Errorf("la fila nombra la identidad %q, se esperaba el número interno 1", resourceID)
+	}
+
+	for name, value := range map[string]string{"recurso": resource, "identidad": resourceID, "origen": origin, "momento": happenedAt} {
+		if strings.Contains(value, "tk") {
+			t.Errorf("la fila escribe %q en %s: el aviso no nombra referencias escritas", value, name)
+		}
+	}
+}
+
+func TestOpenAs_recordsTheSurfaceThatAsksForTheChanges(t *testing.T) {
+	t.Parallel()
+
+	base, err := store.OpenAs(t.Context(), filepath.Join(t.TempDir(), "tasks.db"), store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base del servidor: %v", err)
+	}
+
+	defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
+
+	created, err := base.CreateTask(t.Context(), newTask("Pedida por el servidor"))
+	if err != nil {
+		t.Fatalf("guardando la tarea: %v", err)
+	}
+
+	changes, err := base.Changes(t.Context(), 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(changes) != 1 || changes[0].Origin != store.OriginServer || changes[0].ResourceID != created.ID {
+		t.Errorf("el cambio no dice que lo pidió el servidor: %+v", changes)
+	}
+}
+
+func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	blocked, err := base.CreateTask(ctx, newTask("Bloqueada"))
+	if err != nil {
+		t.Fatalf("guardando la tarea bloqueada: %v", err)
+	}
+
+	blocker, err := base.CreateTask(ctx, newTask("Bloqueante"))
+	if err != nil {
+		t.Fatalf("guardando la tarea bloqueante: %v", err)
+	}
+
+	if err := base.AddBlock(ctx, blocked.ID, blocker.ID); err != nil {
+		t.Fatalf("bloqueando la tarea: %v", err)
+	}
+
+	// Bloquear la misma pareja otra vez no cambia nada, y tampoco deja aviso.
+	if err := base.AddBlock(ctx, blocked.ID, blocker.ID); err != nil {
+		t.Fatalf("bloqueando la misma pareja otra vez: %v", err)
+	}
+
+	changes, err := base.Changes(ctx, 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(changes) != 3 {
+		t.Fatalf("dos creaciones y un bloqueo dejaron %d filas, se esperaban 3", len(changes))
+	}
+
+	if changes[2].Resource != store.ResourceTask || changes[2].ResourceID != blocked.ID {
+		t.Errorf("el bloqueo habla de %s %d, se esperaba la tarea bloqueada %d", changes[2].Resource, changes[2].ResourceID, blocked.ID)
+	}
+
+	// Retirar un bloqueo que está deja aviso; retirar el que ya no está, no.
+	if err := base.RemoveBlock(ctx, blocked.ID, blocker.ID); err != nil {
+		t.Fatalf("retirando el bloqueo: %v", err)
+	}
+
+	if err := base.RemoveBlock(ctx, blocked.ID, blocker.ID); err != nil {
+		t.Fatalf("retirando un bloqueo que ya no está: %v", err)
+	}
+
+	changes, err = base.Changes(ctx, 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(changes) != 4 {
+		t.Errorf("retirar el bloqueo dos veces dejó %d filas, se esperaban 4", len(changes))
+	}
+}
+
+func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	created, err := base.CreateTask(ctx, newTask("Con historia"))
+	if err != nil {
+		t.Fatalf("guardando la tarea: %v", err)
+	}
+
+	// Cada operación que escribe deja su fila: el cambio, el cierre, el
+	// comentario y, en el catálogo, la creación, el renombrado y el borrado.
+	if _, err := base.UpdateTask(ctx, created.ID, func(task store.Task) (store.Task, error) {
+		task.Title = "Cambiada"
+
+		return task, nil
+	}, nil); err != nil {
+		t.Fatalf("cambiando la tarea: %v", err)
+	}
+
+	if _, err := base.CloseTask(ctx, created.ID, "done"); err != nil {
+		t.Fatalf("cerrando la tarea: %v", err)
+	}
+
+	if _, err := base.AddComment(ctx, created.ID, "un comentario"); err != nil {
+		t.Fatalf("añadiendo el comentario: %v", err)
+	}
+
+	tag, err := base.CreateTag(ctx, store.Tag{Name: "docs", Color: "blue"})
+	if err != nil {
+		t.Fatalf("creando la etiqueta: %v", err)
+	}
+
+	renamed, err := base.UpdateTag(ctx, "docs", func(tag store.Tag) (store.Tag, error) {
+		tag.Name = "documentacion"
+
+		return tag, nil
+	})
+	if err != nil {
+		t.Fatalf("renombrando la etiqueta: %v", err)
+	}
+
+	if _, _, err := base.DeleteTag(ctx, renamed.Name); err != nil {
+		t.Fatalf("borrando la etiqueta: %v", err)
+	}
+
+	changes, err := base.Changes(ctx, 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	expected := []struct {
+		resource string
+		id       int64
+	}{
+		{store.ResourceTask, created.ID},
+		{store.ResourceTask, created.ID},
+		{store.ResourceTask, created.ID},
+		{store.ResourceTask, created.ID},
+		{store.ResourceTag, tag.ID},
+		{store.ResourceTag, tag.ID},
+		{store.ResourceTag, tag.ID},
+	}
+
+	if len(changes) != len(expected) {
+		t.Fatalf("las operaciones dejaron %d filas, se esperaban %d: %+v", len(changes), len(expected), changes)
+	}
+
+	for i, want := range expected {
+		if changes[i].Resource != want.resource || changes[i].ResourceID != want.id {
+			t.Errorf("la fila %d habla de %s %d, se esperaba %s %d", i+1, changes[i].Resource, changes[i].ResourceID, want.resource, want.id)
+		}
+	}
+}
+
+func TestChanges_readsOnlyWhatHappenedAfter(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	first, err := base.CreateTask(ctx, newTask("Primera"))
+	if err != nil {
+		t.Fatalf("guardando la primera tarea: %v", err)
+	}
+
+	if _, err := base.CreateTask(ctx, newTask("Segunda")); err != nil {
+		t.Fatalf("guardando la segunda tarea: %v", err)
+	}
+
+	after, err := base.Changes(ctx, first.ID)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(after) != 1 {
+		t.Errorf("leer a partir de %d devolvió %d cambios, se esperaba 1", first.ID, len(after))
+	}
+}
+
+func TestTagName_returnsTheNameAndSaysWhenTheTagIsGone(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	tag, err := base.CreateTag(ctx, store.Tag{Name: "docs", Color: "blue"})
+	if err != nil {
+		t.Fatalf("creando la etiqueta: %v", err)
+	}
+
+	name, err := base.TagName(ctx, tag.ID)
+	if err != nil {
+		t.Fatalf("leyendo el nombre de la etiqueta: %v", err)
+	}
+
+	if name != "docs" {
+		t.Errorf("la etiqueta %d se llama %q, se esperaba %q", tag.ID, name, "docs")
+	}
+
+	if _, err := base.TagName(ctx, 404); !errors.Is(err, store.ErrNotFound) {
+		t.Errorf("TagName devolvió %v, se esperaba ErrNotFound", err)
 	}
 }
 

@@ -29,12 +29,21 @@ type Task struct {
 	Notes       *string
 }
 
-// CreateTask stores a new task and returns it with the identity the base gave it.
+// CreateTask stores a new task and returns it with the identity the base gave
+// it. La tarea y el aviso de su nacimiento se escriben en la misma transacción:
+// un aviso sin la tarea de la que habla mentiría a quien lo lee.
 func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 	now := time.Now().UTC().Truncate(time.Second)
 	task.CreatedAt, task.UpdatedAt = now, now
 
-	result, err := s.db.ExecContext(ctx, `
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Task{}, fmt.Errorf("abriendo la transacción de la creación: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	result, err := tx.ExecContext(ctx, `
 		INSERT INTO tasks (title, description, status, priority, assignee, parent_id, created_at, updated_at, close_reason, notes)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		task.Title,
@@ -57,9 +66,22 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 		return Task{}, fmt.Errorf("leyendo la identidad de la tarea guardada: %w", err)
 	}
 
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+		return Task{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return Task{}, fmt.Errorf("cerrando la transacción de la creación: %w", err)
+	}
+
 	task.ID = id
 
 	return task, nil
+}
+
+// Tasks returns every task of the project, by the identity the base gave them.
+func (s *Store) Tasks(ctx context.Context) ([]Task, error) {
+	return s.queryTasks(ctx, `SELECT `+taskColumns+` FROM tasks ORDER BY id`)
 }
 
 // Task returns the task with that identity.
@@ -197,6 +219,10 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		}
 	}
 
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+		return Task{}, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return Task{}, fmt.Errorf("cerrando la transacción del cambio de la tarea %d: %w", id, err)
 	}
@@ -253,6 +279,10 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 	)
 	if err != nil {
 		return Task{}, fmt.Errorf("guardando el cierre de la tarea %d: %w", id, err)
+	}
+
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+		return Task{}, err
 	}
 
 	if err := tx.Commit(); err != nil {

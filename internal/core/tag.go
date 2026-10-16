@@ -83,7 +83,7 @@ func (c *Core) CreateTag(ctx context.Context, name, color, description string) (
 	})
 	switch {
 	case errors.Is(err, store.ErrTagExists):
-		return Tag{}, fmt.Errorf("ya existe una etiqueta con el nombre %q", label)
+		return Tag{}, forbidden("ya existe una etiqueta con el nombre %q", label)
 	case err != nil:
 		return Tag{}, fmt.Errorf("creando la etiqueta %q: %w", label, err)
 	}
@@ -142,7 +142,7 @@ func (c *Core) EditTag(ctx context.Context, name string, changes TagChanges) (Ta
 	case errors.Is(err, store.ErrNotFound):
 		return Tag{}, c.missingTag(name)
 	case errors.Is(err, store.ErrTagExists):
-		return Tag{}, fmt.Errorf("ya existe una etiqueta con el nombre %q", newName)
+		return Tag{}, forbidden("ya existe una etiqueta con el nombre %q", newName)
 	case err != nil:
 		return Tag{}, fmt.Errorf("cambiando la etiqueta %q: %w", name, err)
 	}
@@ -198,7 +198,7 @@ func tagColor(color string) (string, error) {
 
 // missingTag is the error of a tag name that points at no tag in the catalogue.
 func (c *Core) missingTag(name string) error {
-	return fmt.Errorf("no hay ninguna etiqueta con el nombre %q", strings.TrimSpace(name))
+	return notFound("no hay ninguna etiqueta con el nombre %q", strings.TrimSpace(name))
 }
 
 // tag puts a stored tag in the shape that crosses the boundary.

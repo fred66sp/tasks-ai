@@ -58,7 +58,7 @@ func New(out, errOut io.Writer) *cobra.Command {
 
 	root.AddCommand(newInitCommand(), newCreateCommand(), newShowCommand(), newUpdateCommand(),
 		newCloseCommand(), newReopenCommand(), newBlockCommand(), newUnblockCommand(),
-		newCommentCommand(), newTagsCommand(), newTagCommand())
+		newCommentCommand(), newTagsCommand(), newTagCommand(), newServeCommand())
 
 	return root
 }

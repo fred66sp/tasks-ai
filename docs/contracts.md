@@ -132,8 +132,8 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `GET /api/tasks` | Lista de tareas |
 | `GET /api/tasks/:ref` | Detalle con bloqueantes, dependientes, hijas y comentarios |
 | `POST /api/tasks` | Crear tarea o subtarea |
-| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad o estado |
-| `POST /api/tasks/:ref/close` | Cerrar con motivo y comentario |
+| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas o prioridad, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo |
+| `POST /api/tasks/:ref/close` | Cerrar con motivo |
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
 | `DELETE /api/tasks/:ref/blockers/:blockerRef` | Retirar un bloqueo |
 | `POST /api/tasks/:ref/comments` | Añadir un comentario |
@@ -160,9 +160,28 @@ error dentro de una respuesta correcta.
 
 ## 4. Eventos
 
-`GET /api/events` mantiene un canal abierto y emite un evento por cambio, con el
-recurso afectado, el origen del cambio y las referencias que han cambiado. La interfaz
-recarga lo suyo y avisa cuando el origen no es ella.
+Cada cambio deja un aviso escrito en la misma transacción que el cambio, sea la
+superficie que lo pidió. `GET /api/events` mantiene un canal abierto
+(`text/event-stream; charset=utf-8`, sin caché) y emite un evento por aviso, en el
+orden en que ocurrieron:
+
+```
+id: 3
+data: {"id":3,"resource":"task","ref":"tk-3","origin":"cli","at":"2026-10-16T14:36:00Z"}
+```
+
+- `id` es el número del aviso y `data` es el evento en JSON: el recurso que cambió
+  (`task` o `tag`), la referencia del recurso compuesta como se muestra ahora —el
+  aviso de una etiqueta borrada no tiene referencia y viaja vacía—, el origen del
+  cambio (`cli` o `server`) y el momento del cambio en UTC.
+- Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
+  consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
+  Sin ninguna de las dos, el canal entrega los avisos desde el primero.
+- El aviso se lee de la base, no de la memoria del servidor: un cambio pedido por el
+  CLI llega al canal igual que uno pedido por la API, y eso es lo que hace que dos
+  sesiones se vean. La interfaz recarga lo suyo y avisa cuando el origen no es ella.
+- Un canal pedido por alguien que no admite un canal abierto se rechaza con el código
+  de entrada inválida de la sección 3, con el cuerpo de error de la API.
 
 ## 5. Referencias
 

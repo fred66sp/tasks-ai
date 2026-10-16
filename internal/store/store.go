@@ -20,6 +20,21 @@ import (
 // ErrNotFound dice que no hay nada guardado con la clave que se pidió.
 var ErrNotFound = errors.New("no hay nada guardado con esa clave")
 
+// Las superficies que abren la base y los recursos de los que un cambio puede
+// hablar. Viajan dentro de las filas de cambio, así que sus valores son datos,
+// no mensajes.
+const (
+	OriginCLI    = "cli"
+	OriginServer = "server"
+)
+
+// Los recursos de los que un aviso de cambio habla. Viajan dentro de las
+// filas de cambio, así que sus valores son datos, no mensajes.
+const (
+	ResourceTask = "task"
+	ResourceTag  = "tag"
+)
+
 // ErrClosed dice que la tarea que se quiso cerrar ya está cerrada.
 var ErrClosed = errors.New("la tarea ya está cerrada")
 
@@ -87,6 +102,22 @@ var migrations = []migration{
 			)`,
 		},
 	},
+	{
+		// Los avisos de cambio: una fila por cambio, escrita en la misma
+		// transacción que el cambio. La identidad del recurso viaja por su
+		// número interno, nunca por la referencia escrita, de modo que un
+		// cambio de prefijo no deja las filas mintiendo.
+		version: 4,
+		statements: []string{
+			`CREATE TABLE changes (
+				id          INTEGER PRIMARY KEY AUTOINCREMENT,
+				resource    TEXT    NOT NULL,
+				resource_id INTEGER NOT NULL,
+				origin      TEXT    NOT NULL,
+				happened_at TEXT    NOT NULL
+			)`,
+		},
+	},
 }
 
 // migration is one schema change, applied as a whole.
@@ -95,9 +126,10 @@ type migration struct {
 	statements []string
 }
 
-// Store is one project's data.
+// Store es una base de un proyecto.
 type Store struct {
-	db *sql.DB
+	db     *sql.DB
+	origin string
 }
 
 // bootstrapAttempts is how many times Open may retry the whole bootstrap when
@@ -109,9 +141,17 @@ const bootstrapAttempts = 5
 // transaction, a stuck process — looking like a hung command for half a minute.
 const bootstrapWait = 2 * time.Second
 
-// Open opens the database at path, creating it when it is not there, and applies
-// the migrations it still owes.
+// Open abre la base de datos en path, la crea si no está y le aplica las
+// migraciones que debe. Habla en nombre de la línea de comandos: es la única
+// superficie que abre la base sin decir quién es, porque la instalación corre
+// con ella.
 func Open(ctx context.Context, path string) (*Store, error) {
+	return OpenAs(ctx, path, OriginCLI)
+}
+
+// OpenAs abre la base de datos diciendo qué superficie pide los cambios: cada
+// aviso lo lleva, de modo que una sesión sabe si un cambio viene de otra.
+func OpenAs(ctx context.Context, path, origin string) (*Store, error) {
 	// Los ajustes aceptan rutas en subcarpetas del proyecto y nadie más crea
 	// esa carpeta: sin esto, abrir falla porque SQLite no la crea por su cuenta.
 	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
@@ -121,7 +161,7 @@ func Open(ctx context.Context, path string) (*Store, error) {
 	limit := time.Now().Add(bootstrapWait)
 
 	for attempt := 1; ; attempt++ {
-		instance, err := openOnce(ctx, path)
+		instance, err := openOnce(ctx, path, origin)
 		if err == nil {
 			return instance, nil
 		}
@@ -144,7 +184,7 @@ func Open(ctx context.Context, path string) (*Store, error) {
 
 // openOnce connects, pings and migrates once; the caller owns the store it
 // returns, and every error leaves nothing open behind.
-func openOnce(ctx context.Context, path string) (*Store, error) {
+func openOnce(ctx context.Context, path, origin string) (*Store, error) {
 	db, err := sql.Open(driverName, dataSourceName(path))
 	if err != nil {
 		return nil, fmt.Errorf("abriendo la base %s: %w", path, err)
@@ -156,7 +196,7 @@ func openOnce(ctx context.Context, path string) (*Store, error) {
 		return nil, fmt.Errorf("abriendo la base %s: %w", path, err)
 	}
 
-	instance := &Store{db: db}
+	instance := &Store{db: db, origin: origin}
 	if err := instance.migrate(ctx); err != nil {
 		_ = db.Close()
 
@@ -279,6 +319,74 @@ func (s *Store) SetPrefix(ctx context.Context, prefix string) error {
 		ON CONFLICT (key) DO UPDATE SET value = excluded.value`, prefix)
 	if err != nil {
 		return fmt.Errorf("anotando el prefijo %q: %w", prefix, err)
+	}
+
+	return nil
+}
+
+// Change es un aviso de cambio tal como está guardado: el recurso que cambió
+// por su clase y su identidad interna, quién lo pidió y cuándo ocurrió.
+type Change struct {
+	ID         int64
+	Resource   string
+	ResourceID int64
+	Origin     string
+	HappenedAt time.Time
+}
+
+// Changes lee los avisos guardados a partir del id dado, en el orden en que
+// ocurrieron: quien lee continúa donde se quedó pasando el último que vio.
+func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, resource, resource_id, origin, happened_at FROM changes WHERE id > ? ORDER BY id`, after)
+	if err != nil {
+		return nil, fmt.Errorf("leyendo los cambios: %w", err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	changes := []Change{}
+
+	for rows.Next() {
+		var (
+			change     Change
+			happenedAt string
+		)
+
+		if err := rows.Scan(&change.ID, &change.Resource, &change.ResourceID, &change.Origin, &happenedAt); err != nil {
+			return nil, fmt.Errorf("leyendo los cambios: %w", err)
+		}
+
+		if change.HappenedAt, err = time.Parse(timeLayout, happenedAt); err != nil {
+			return nil, fmt.Errorf("la fecha del cambio %d no se entiende: %w", change.ID, err)
+		}
+
+		changes = append(changes, change)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("leyendo los cambios: %w", err)
+	}
+
+	return changes, nil
+}
+
+// changeWriter escribe una fila de cambio: la transacción que está haciendo el
+// cambio es quien la lleva.
+type changeWriter interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+// recordChange deja una fila de cambio dentro de la transacción que está
+// haciendo el cambio: el aviso y el cambio se escriben juntos, o no se escribe
+// nada.
+func recordChange(ctx context.Context, within changeWriter, origin, resource string, resourceID int64) error {
+	now := time.Now().UTC().Truncate(time.Second)
+
+	if _, err := within.ExecContext(ctx,
+		`INSERT INTO changes (resource, resource_id, origin, happened_at) VALUES (?, ?, ?, ?)`,
+		resource, resourceID, origin, now.Format(timeLayout)); err != nil {
+		return fmt.Errorf("anotando el cambio de %s %d: %w", resource, resourceID, err)
 	}
 
 	return nil

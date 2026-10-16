@@ -3,6 +3,7 @@ package cli
 import (
 	"strings"
 	"tasks-ai/internal/core"
+	"tasks-ai/internal/store"
 
 	"github.com/spf13/cobra"
 )
@@ -58,7 +59,7 @@ func newUpdateCommand() *cobra.Command {
 				return err
 			}
 
-			project, err := openProject(command.Context(), dir, command.ErrOrStderr())
+			project, err := openProject(command.Context(), dir, command.ErrOrStderr(), store.OriginCLI)
 			if err != nil {
 				return err
 			}

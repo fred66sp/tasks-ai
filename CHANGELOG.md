@@ -46,5 +46,11 @@ Changelog* y el versionado es semántico.
   [`README.md`](README.md).
 - **Auditoría de las referencias**: análisis de la referencia funcional y de la
   interfaz de partida, con sus hallazgos registrados en el tablero de trabajo.
+- **Servidor HTTP y avisos de cambio**: `serve` arranca la API HTTP del mismo binario
+  sobre el mismo núcleo que la línea de comandos, con las rutas y los códigos de estado
+  de [`docs/contracts.md`](docs/contracts.md). Cada cambio deja un aviso escrito en la
+  misma transacción que el cambio, y `GET /api/events` los emite por un canal abierto:
+  quien lee continúa donde se quedó, así que dos sesiones se ven y una recarga al
+  recibir el aviso de la otra, sea el CLI o la propia API.
 - **Herramienta de desarrollo** instalada en `task-manager/`, con su tablero y su
   catálogo de etiquetas.

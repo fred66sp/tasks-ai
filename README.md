@@ -1,9 +1,10 @@
 # tasks-ai
 
 Gestor de tareas local-first para un proyecto, escrito en Go. Las tareas viven en una
-base SQLite dentro del propio proyecto y hoy se usan por línea de comandos, con salida
-JSON. La interfaz web que sirve el mismo binario está por llegar; su diseño está en
-[`docs/PRD.md`](docs/PRD.md).
+base SQLite dentro del propio proyecto y se usan por línea de comandos, con salida
+JSON; el mismo binario también sirve una API HTTP con `serve`, para que dos sesiones
+se vean. Las rutas, los códigos de estado y los avisos de cambio están en
+[`docs/contracts.md`](docs/contracts.md).
 
 Todo lo del producto vive en la carpeta `.task-ai/` del proyecto —la base, la
 configuración y las instrucciones—, de modo que el proyecto no se ensucia.
@@ -47,6 +48,7 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai block <referencia> <referencia-bloqueante>   # deja la primera tarea bloqueada por la segunda
 ./tasks-ai unblock <referencia> <referencia-bloqueante>  # retira el bloqueo entre las dos tareas
 ./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea: los comentarios solo se añaden
+./tasks-ai serve                # arranca la API HTTP en la dirección y el puerto del settings, y anuncia los cambios por un canal abierto
 ```
 
 De la herramienta de desarrollo:

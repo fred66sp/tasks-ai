@@ -23,6 +23,18 @@ const (
 // misuse of the command line, and the API will answer that the entry is invalid.
 var ErrInvalid = errors.New("entrada inválida")
 
+// ErrNotFound marks a reference that resolves to nothing stored: the API
+// answers it with 404, and the command line with its generic error code.
+var ErrNotFound = errors.New("no hay ninguna tarea ni etiqueta con esa referencia")
+
+// ErrConflict marks an operation a rule of the product refuses: the API answers
+// it with 409, and the command line with its generic error code.
+var ErrConflict = errors.New("la regla del producto lo impide")
+
+// Version is the version of the whole product, the same for both surfaces:
+// they travel together in one binary and the API answers with it.
+const Version = "0.1.0"
+
 // invalidError is an entry that breaks a rule. It carries its own message so it
 // reads well, and answers to ErrInvalid so whoever calls it knows what kind of
 // error it is without reading the text.
@@ -39,6 +51,40 @@ func (e *invalidError) Is(target error) bool { return target == ErrInvalid }
 // invalid builds the error of an entry that breaks a rule.
 func invalid(format string, args ...any) error {
 	return &invalidError{err: fmt.Errorf(format, args...)}
+}
+
+// notFoundError is a reference that resolves to nothing. It carries its own
+// message and answers to ErrNotFound, igual que invalidError responde al suyo.
+type notFoundError struct {
+	err error
+}
+
+func (e *notFoundError) Error() string { return e.err.Error() }
+
+func (e *notFoundError) Unwrap() error { return e.err }
+
+func (e *notFoundError) Is(target error) bool { return target == ErrNotFound }
+
+// notFound builds the error of a reference that resolves to nothing.
+func notFound(format string, args ...any) error {
+	return &notFoundError{err: fmt.Errorf(format, args...)}
+}
+
+// forbiddenError is an operation a rule of the product refuses. It carries its
+// own message and answers to ErrConflict.
+type forbiddenError struct {
+	err error
+}
+
+func (e *forbiddenError) Error() string { return e.err.Error() }
+
+func (e *forbiddenError) Unwrap() error { return e.err }
+
+func (e *forbiddenError) Is(target error) bool { return target == ErrConflict }
+
+// forbidden builds the error of an operation a rule refuses.
+func forbidden(format string, args ...any) error {
+	return &forbiddenError{err: fmt.Errorf(format, args...)}
 }
 
 // statusOpen is the state a task is born in.
@@ -78,6 +124,24 @@ type Core struct {
 // written with.
 func New(project *store.Store, prefix string) *Core {
 	return &Core{store: project, prefix: prefix}
+}
+
+// Status is the state of the product at a glance: its version, the version of
+// the schema its base is at and the prefix its references are written with.
+type Status struct {
+	Version string `json:"version"`
+	Schema  int    `json:"schema"`
+	Prefix  string `json:"prefix"`
+}
+
+// Status reads the state of the product: the API answers it as it is.
+func (c *Core) Status(ctx context.Context) (Status, error) {
+	schema, err := c.store.SchemaVersion(ctx)
+	if err != nil {
+		return Status{}, err
+	}
+
+	return Status{Version: Version, Schema: schema, Prefix: c.prefix}, nil
 }
 
 // Task is a task as it crosses the core's boundary: the internal number, so that
@@ -170,6 +234,79 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 	}
 
 	return c.task(ctx, stored)
+}
+
+// Tasks lists the tasks of the project, by the identity the base gave them. La
+// línea de comandos no lista: el listado es de la API, y lee el mismo núcleo.
+func (c *Core) Tasks(ctx context.Context) ([]Task, error) {
+	stored, err := c.store.Tasks(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("leyendo las tareas: %w", err)
+	}
+
+	return c.tasks(ctx, stored)
+}
+
+// Event is a change of the project as it crosses the boundary: el aviso viajó
+// por el número interno, y aquí se compone la referencia que se muestra ahora.
+type Event struct {
+	ID       int64     `json:"id"`
+	Resource string    `json:"resource"`
+	Ref      string    `json:"ref"`
+	Origin   string    `json:"origin"`
+	At       time.Time `json:"at"`
+}
+
+// Events reads the changes that happened after the notice id given, with the
+// reference of each changed resource composed the way it is shown now: quien
+// lee continúa donde se quedó pasando el último aviso que vio.
+func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
+	changes, err := c.store.Changes(ctx, after)
+	if err != nil {
+		return nil, fmt.Errorf("leyendo los avisos de cambio: %w", err)
+	}
+
+	events := make([]Event, 0, len(changes))
+
+	for _, change := range changes {
+		event := Event{
+			ID:       change.ID,
+			Resource: change.Resource,
+			Origin:   change.Origin,
+			At:       change.HappenedAt.UTC(),
+		}
+
+		if event.Ref, err = c.referenceOf(ctx, change); err != nil {
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+// referenceOf composes the reference a notice speaks of: la tarea se nombra con
+// el prefijo de ahora, y la etiqueta con el nombre que lleva ahora.
+func (c *Core) referenceOf(ctx context.Context, change store.Change) (string, error) {
+	switch change.Resource {
+	case store.ResourceTask:
+		return Ref(c.prefix, change.ResourceID), nil
+	case store.ResourceTag:
+		name, err := c.store.TagName(ctx, change.ResourceID)
+		if errors.Is(err, store.ErrNotFound) {
+			// La etiqueta se borró: su aviso no tiene nombre que mostrar.
+			return "", nil
+		}
+
+		if err != nil {
+			return "", fmt.Errorf("componiendo el aviso de la etiqueta %d: %w", change.ResourceID, err)
+		}
+
+		return name, nil
+	default:
+		return "", fmt.Errorf("el aviso %d habla del recurso %q, que no se entiende", change.ID, change.Resource)
+	}
 }
 
 // Task returns the task the reference points at.
@@ -304,9 +441,9 @@ func (c *Core) CloseTask(ctx context.Context, ref, reason string) (Task, error) 
 		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
 		case errors.Is(err, store.ErrClosed):
-			return Task{}, fmt.Errorf("no se puede cerrar la tarea %q: ya está cerrada", ref)
+			return Task{}, forbidden("no se puede cerrar la tarea %q: ya está cerrada", ref)
 		case errors.Is(err, store.ErrOpenSubtasks):
-			return Task{}, fmt.Errorf("no se puede cerrar la tarea %q: tiene subtareas abiertas", ref)
+			return Task{}, forbidden("no se puede cerrar la tarea %q: tiene subtareas abiertas", ref)
 		default:
 			return Task{}, fmt.Errorf("cerrando la tarea: %w", err)
 		}
@@ -329,7 +466,7 @@ func (c *Core) ReopenTask(ctx context.Context, ref string) (Task, error) {
 		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
 		case errors.Is(err, errStillOpen):
-			return Task{}, fmt.Errorf("no se puede reabrir la tarea %q: no está cerrada", ref)
+			return Task{}, forbidden("no se puede reabrir la tarea %q: no está cerrada", ref)
 		default:
 			return Task{}, fmt.Errorf("reabriendo la tarea: %w", err)
 		}
@@ -615,7 +752,7 @@ func (c *Core) taskID(ctx context.Context, ref string) (int64, error) {
 
 // missing is the error of a reference that points at no task.
 func (c *Core) missing(ref string) error {
-	return fmt.Errorf("no hay ninguna tarea con la referencia %q", strings.TrimSpace(ref))
+	return notFound("no hay ninguna tarea con la referencia %q", strings.TrimSpace(ref))
 }
 
 // checkTitle refuses an empty title and returns it trimmed.

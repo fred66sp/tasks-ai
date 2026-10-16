@@ -29,6 +29,7 @@ tasks-ai reopen tk-1                             # reabre la tarea cerrada y dev
 tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
 tasks-ai unblock tk-2 tk-1                       # retira el bloqueo entre tk-2 y tk-1 y devuelve tk-2
 tasks-ai comment tk-1 --body "..."               # añade un comentario a tk-1 y devuelve la tarea
+tasks-ai serve                                   # arranca la API HTTP en la dirección y el puerto del settings y anuncia los cambios por un canal abierto
 ```
 
 El motivo de cierre es obligatorio y debe ser uno de: `done`, `duplicate`, `absorbed`,
@@ -49,7 +50,8 @@ etiqueta cambia el nombre que muestran las tareas sin tocar su fila guardada, y 
 una retira sus asignaciones avisando de las tareas que la usaban.
 
 Toda operación responde en JSON por la salida estándar, y los avisos y errores van por
-la salida de error con la forma `{"error": "..."}`.
+la salida de error con la forma `{"error": "..."}`. `serve` no es una operación: no
+devuelve JSON, habla por la salida de error y se detiene con Ctrl+C o con SIGTERM.
 
 ## Las referencias
 

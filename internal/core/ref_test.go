@@ -1,9 +1,23 @@
 package core_test
 
 import (
+	"errors"
 	"tasks-ai/internal/core"
 	"testing"
 )
+
+func TestParseRef_marksAMalformedReferenceAsUnresolved(t *testing.T) {
+	t.Parallel()
+
+	_, err := core.ParseRef("tk", "tk-luego")
+	if !errors.Is(err, core.ErrNotFound) {
+		t.Errorf("ParseRef devolvió %v, se esperaba el centinela de referencia sin resolución", err)
+	}
+
+	if err == nil || err.Error() != `la referencia "tk-luego" no es válida: se espera tk-<número>` {
+		t.Errorf("el mensaje de la referencia mal escrita es %v", err)
+	}
+}
 
 func TestRef_composesTheVisibleReference(t *testing.T) {
 	t.Parallel()

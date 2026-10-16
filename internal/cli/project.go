@@ -14,15 +14,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// project is one project's data, open for the work at hand.
+// project es la base de un proyecto, abierta para el trabajo de turno, con los
+// ajustes con los que se abrió.
 type project struct {
 	core *core.Core
 	base *store.Store
+	cfg  settings.Settings
 }
 
 // openProject finds the project the working folder dir belongs to, reads its
-// settings and opens its data.
-func openProject(ctx context.Context, dir string, warn io.Writer) (*project, error) {
+// settings and opens its data saying which surface asks for the changes: la
+// línea de comandos abre la suya y el servidor la suya, y así sabe una sesión
+// que un cambio viene de otra.
+func openProject(ctx context.Context, dir string, warn io.Writer, origin string) (*project, error) {
 	root, err := install.Project(dir)
 	if err != nil {
 		return nil, err
@@ -33,7 +37,7 @@ func openProject(ctx context.Context, dir string, warn io.Writer) (*project, err
 		return nil, err
 	}
 
-	base, err := store.Open(ctx, settings.DatabasePath(filepath.Join(root, install.DirName), cfg))
+	base, err := store.OpenAs(ctx, settings.DatabasePath(filepath.Join(root, install.DirName), cfg), origin)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +55,7 @@ func openProject(ctx context.Context, dir string, warn io.Writer) (*project, err
 		_, _ = fmt.Fprintf(warn, "aviso: %s\n", note)
 	}
 
-	return &project{core: apply, base: base}, nil
+	return &project{core: apply, base: base, cfg: cfg}, nil
 }
 
 // Close lets the project's data go.
@@ -68,7 +72,7 @@ func withProject(command *cobra.Command, run func(*project) error) error {
 		return err
 	}
 
-	opened, err := openProject(command.Context(), dir, command.ErrOrStderr())
+	opened, err := openProject(command.Context(), dir, command.ErrOrStderr(), store.OriginCLI)
 	if err != nil {
 		return err
 	}

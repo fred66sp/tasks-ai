@@ -3,7 +3,7 @@
 BINARY := tasks-ai
 GO     := go
 
-.PHONY: help build test test-race coverage lint lint-fix fmt clean
+.PHONY: help build test test-race coverage lint lint-fix fmt check-web clean
 
 help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
@@ -31,6 +31,10 @@ lint-fix: ## Revisa el código corrigiendo lo que el linter sepa corregir
 
 fmt: ## Formatea el código
 	golangci-lint fmt ./...
+
+check-web: ## Comprueba que la interfaz construida coincide con su fuente
+	cd web && npm run build
+	git diff --exit-code -- web/public
 
 clean: ## Retira lo compilado
 	rm -rf bin/

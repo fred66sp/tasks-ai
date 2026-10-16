@@ -32,6 +32,7 @@ npm run server             # interfaz de la herramienta
 - Las pruebas del proyecto, cuando existan.
 - Las comprobaciones del contrato de documentación, que se ejecutan a mano hasta que
   haya una suite que las haga suyas.
+- `make check-web`: que la interfaz construida coincida con su fuente.
 
 ## Registro de verificaciones
 

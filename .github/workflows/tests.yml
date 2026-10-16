@@ -49,6 +49,16 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
+      - name: Preparar Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Comprobar que la interfaz construida esté al día
+        run: |
+          (cd web && npm ci && npm run build)
+          git diff --exit-code -- web/public
+
       - name: Compilar
         run: go build ./...
 

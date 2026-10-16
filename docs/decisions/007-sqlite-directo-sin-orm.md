@@ -13,6 +13,10 @@ justificación.
 ## Decisión
 
 - El acceso a datos se escribe directamente sobre SQLite.
+- El controlador de SQLite se escribe en Go puro, para no atar la compilación a un
+  compilador de C ni complicar el binario único.
+- El esquema se versiona dentro de la propia base y las migraciones son aditivas,
+  escritas a mano.
 - No se incorpora un ORM.
 - Cualquier capa de indirección sobre el acceso a datos deberá justificarse.
 
@@ -27,5 +31,11 @@ justificación.
 
 - **Un ORM.** Rechazada: añade una dependencia y una traducción del esquema que este
   producto no necesita.
+- **Una librería de acceso como `sqlx`.** Rechazada: el escaneo que aporta no compensa
+  una dependencia cuando las consultas son pocas y explícitas.
+- **Una herramienta externa de migraciones**, como `golang-migrate`. Rechazada para un
+  producto local de un solo archivo: el migrador aditivo propio son unas pocas líneas
+  y no añade herramientas que instalar.
+- **Un controlador con C.** Rechazado: ataría la compilación a un compilador de C.
 - **Una capa de repositorio sobre el acceso directo.** No se descarta de plano, pero
   no entra por defecto: tendría que justificarse con una necesidad concreta.

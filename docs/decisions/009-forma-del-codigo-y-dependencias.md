@@ -1,0 +1,48 @@
+# ADR-009: Forma del código y dependencias del producto
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-10-16
+
+## Contexto
+
+Antes del primer código del producto, las guías de Go del taller obligan a decidir la
+estructura y el cableado, porque equivocarse ahí se arrastra a todo lo que venga
+después. Esas guías recomiendan un árbol de comandos con Cobra y Viper, y una
+inyección de dependencias con librería. El alcance del producto pide, en cambio, no
+añadir capas ni dependencias sin justificación.
+
+El Product Owner decidió las cuatro cuestiones de forma explícita.
+
+## Decisión
+
+- **Estructura por capas sencillas**: paquetes por responsabilidad, el punto de
+  entrada en `cmd/` y el resto en `internal/`. Sin interfaces de más: se usan donde
+  aportan, como en el almacén para poder probarlo.
+- **Cableado manual por constructor**: cada pieza recibe lo que necesita al
+  construirse. Sin contenedor ni librería de inyección.
+- **Árbol de comandos con Cobra y sin Viper**: los ajustes se leen del archivo del
+  settings, con un solo formato y en un solo sitio.
+- **Acceso a datos con la biblioteca estándar** y el controlador de SQLite escrito en
+  Go puro, con migraciones aditivas propias (`ADR-007`).
+
+## Consecuencias
+
+- Las dependencias del producto son el árbol de comandos y el motor de SQLite. Nada
+  más por comodidad.
+- Sin contenedor, el cableado vive en el punto de entrada y se lee de arriba abajo.
+- Las interfaces se añaden cuando hay una razón, no por simetría.
+- La lectura de los ajustes es propia: un archivo, su esquema y sus valores por
+  omisión.
+- Requisitos afectados: `O-02`, `RNF-01`.
+
+## Alternativas consideradas
+
+- **Puertos y adaptadores en cada frontera.** Rechazada por ceremonia: el producto es
+  un binario local con dos superficies.
+- **Una librería de inyección.** Rechazada: el cableado es corto y se lee mejor
+  explícito.
+- **La biblioteca estándar para los comandos.** Se consideró y se descartó por la
+  ayuda, la validación de argumentos y el autocompletado que Cobra da para un árbol de
+  comandos amplio.
+- **Cobra con Viper.** Rechazada: Viper resuelve la precedencia entre banderas,
+  entorno y archivo, y aquí la configuración es un único archivo del proyecto.

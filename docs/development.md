@@ -24,6 +24,9 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 ## Convenciones
 
 - Un módulo de Go en la raíz del repositorio.
+- Capas sencillas con cableado manual por constructor, árbol de comandos con Cobra y
+  sin Viper, y acceso directo a SQLite con migraciones aditivas propias (`ADR-007`,
+  `ADR-009`).
 - Sin ORM y sin capas de indirección sin justificación; una capa nueva es una decisión,
   no una comodidad.
 - Los identificadores del código van en inglés; el texto que ve una persona, en

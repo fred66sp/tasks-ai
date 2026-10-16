@@ -54,6 +54,20 @@ npm run odd:tk -- show tk-XXXX
 Y siempre, antes de cerrar el cambio, las comprobaciones del contrato de
 documentación.
 
+## Trabajo en Go
+
+Antes de escribir, revisar o depurar código Go, carga las skills del taller para esa
+petición:
+
+```bash
+../../.strm/bin/strm -manifest ../../.strm/skills-manifest.json -prompt "<la petición>"
+```
+
+Después lee `../../skills/golang-how-to/SKILL.md`, que es el orquestador, y las skills
+que señale para la tarea. Para este producto suelen ser `golang-project-layout`,
+`golang-cli`, `golang-database`, `golang-testing`, `golang-error-handling`,
+`golang-code-style`, `golang-lint` y `golang-naming`.
+
 ## Idioma
 
 - Documentación, código, comentarios e interfaz: español.

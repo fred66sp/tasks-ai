@@ -39,5 +39,6 @@ task-manager/data/*.db
 task-manager/data/*.db-*
 
 # Salidas generadas
+bin/
 coverage/
 dist/

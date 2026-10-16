@@ -61,7 +61,9 @@ Changelog* y el versionado es semántico.
   de [`docs/contracts.md`](docs/contracts.md). Cada cambio deja un aviso escrito en la
   misma transacción que el cambio, y `GET /api/events` los emite por un canal abierto:
   quien lee continúa donde se quedó, así que dos sesiones se ven y una recarga al
-  recibir el aviso de la otra, sea el CLI o la propia API.
+  recibir el aviso de la otra, sea el CLI o la propia API. Quien abre o recarga la
+  pantalla empieza en el cambio siguiente: no recibe el historial de lo que ya estaba
+  antes de abrirla.
 - **Herramienta de desarrollo** instalada en `task-manager/`, con su tablero y su
   catálogo de etiquetas.
 - **Interfaz web en el binario** (`tk-4d8f.10`, primera rebanada): la interfaz de

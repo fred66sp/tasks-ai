@@ -262,6 +262,18 @@ type Event struct {
 	At       time.Time `json:"at"`
 }
 
+// LastEventID devuelve la identidad del último aviso anotado: quien abre el
+// canal sin decir desde dónde empieza por el siguiente, porque ya tiene delante
+// el estado del proyecto.
+func (c *Core) LastEventID(ctx context.Context) (int64, error) {
+	last, err := c.store.LastChangeID(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("leyendo el último aviso: %w", err)
+	}
+
+	return last, nil
+}
+
 // Events reads the changes that happened after the notice id given, with the
 // reference of each changed resource composed the way it is shown now: quien
 // lee continúa donde se quedó pasando el último aviso que vio.

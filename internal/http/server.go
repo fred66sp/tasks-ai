@@ -575,7 +575,7 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 		return
 	}
 
-	after, err := lastSeen(r)
+	after, err := s.startOfStream(r.Context(), r)
 	if err != nil {
 		s.writeError(w, err)
 
@@ -654,11 +654,27 @@ func (s *Server) describeBatch(r *nethttp.Request, previous []core.Task, events 
 	return describeChanges(previous, current), current
 }
 
+// startOfStream says where the channel starts: where the reader left off, or
+// the change after the newest one when nobody says it. Quien abre la pantalla
+// acaba de leer el estado del proyecto, así que el historial no es suyo.
+func (s *Server) startOfStream(ctx context.Context, r *nethttp.Request) (int64, error) {
+	after, seen, err := lastSeen(r)
+	if err != nil {
+		return 0, err
+	}
+
+	if seen {
+		return after, nil
+	}
+
+	return s.core.LastEventID(ctx)
+}
+
 // lastSeen reads where the reader left off: the identity of the last event it
-// saw, in the header of a reconnection or in the query of a first read. Una
-// identidad que no es un número no se puede cumplir, así que se dice en vez de
-// empezar por el principio en silencio.
-func lastSeen(r *nethttp.Request) (int64, error) {
+// saw, in the header of a reconnection or in the query of a first read, and
+// whether either of them said it. Una identidad que no es un número no se puede
+// cumplir, así que se dice en vez de empezar por el principio en silencio.
+func lastSeen(r *nethttp.Request) (int64, bool, error) {
 	for _, seen := range []string{r.Header.Get("Last-Event-ID"), r.URL.Query().Get("after")} {
 		if seen == "" {
 			continue
@@ -666,13 +682,13 @@ func lastSeen(r *nethttp.Request) (int64, error) {
 
 		id, err := strconv.ParseInt(seen, 10, 64)
 		if err != nil || id < 0 {
-			return 0, badEntry("la identidad desde la que continuar no es un número")
+			return 0, false, badEntry("la identidad desde la que continuar no es un número")
 		}
 
-		return id, nil
+		return id, true, nil
 	}
 
-	return 0, nil
+	return 0, false, nil
 }
 
 // decode reads the body of a request into the entry of the route. Un cuerpo que

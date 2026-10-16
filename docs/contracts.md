@@ -191,10 +191,13 @@ data: {"resource":"tasks","source":"external","changes":[{"id":"tk-3","action":"
   `cerrada` o `actualizada`) y su título. El servidor lo dice comparando el listado
   que vio con el que ve, igual que hacía el servidor de referencia; el aviso de una
   etiqueta no lleva `changes`, y un aviso cuyo cambio no alcanza a describirse —el
-  que se relee al reconectar desde el principio— viaja sin él.
+  que se relee al continuar desde muy atrás— viaja sin él.
 - Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
   consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
-  Sin ninguna de las dos, el canal entrega los avisos desde el primero.
+  Sin ninguna de las dos, el canal empieza por el cambio siguiente: quien acaba de
+  abrir la pantalla ya tiene delante el estado del proyecto, así que abrir o recargar
+  no suelta los avisos de lo que pasó antes, y el canal cuenta solo lo que pasa
+  mientras mira.
 - El aviso se lee de la base, no de la memoria del servidor: un cambio pedido por el
   CLI llega al canal igual que uno pedido por la API, y eso es lo que hace que dos
   sesiones se vean. La interfaz recarga lo suyo y avisa cuando el origen es externo.

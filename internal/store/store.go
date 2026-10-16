@@ -371,6 +371,19 @@ func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
 	return changes, nil
 }
 
+// LastChangeID devuelve la identidad del último cambio anotado, que es donde
+// empieza quien abre un canal nuevo: el aviso cuenta lo que pasa mientras mira,
+// no el historial que ya tiene delante.
+func (s *Store) LastChangeID(ctx context.Context) (int64, error) {
+	var last int64
+
+	if err := s.db.QueryRowContext(ctx, `SELECT COALESCE(MAX(id), 0) FROM changes`).Scan(&last); err != nil {
+		return 0, fmt.Errorf("leyendo el último cambio: %w", err)
+	}
+
+	return last, nil
+}
+
 // changeWriter escribe una fila de cambio: la transacción que está haciendo el
 // cambio es quien la lleva.
 type changeWriter interface {

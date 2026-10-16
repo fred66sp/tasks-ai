@@ -683,7 +683,9 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 // TestServer_theEventsChannelContinuesWhereTheReaderLeftOff recorre lo que el
 // contrato promete a quien vuelve: cada aviso lleva delante su identidad, quien
 // continúa desde una no recibe las anteriores, y una identidad que no es un
-// número se dice en vez de empezar por el principio en silencio.
+// número se dice en vez de empezar por el principio en silencio. Quien abre el
+// canal sin decir desde dónde no recibe nada del historial: eso lo recorre la
+// prueba de la sesión que se abre ahora.
 func TestServer_theEventsChannelContinuesWhereTheReaderLeftOff(t *testing.T) {
 	t.Parallel()
 
@@ -694,12 +696,6 @@ func TestServer_theEventsChannelContinuesWhereTheReaderLeftOff(t *testing.T) {
 		if _, err := apply.CreateTask(t.Context(), core.NewTask{Title: title}); err != nil {
 			t.Fatalf("creando la tarea %q: %v", title, err)
 		}
-	}
-
-	first := readRawEvent(t, openEvents(t, server+"/api/events"))
-
-	if !strings.Contains(first, "id: 1") {
-		t.Errorf("el primer aviso no lleva su identidad delante: %q", first)
 	}
 
 	second := readRawEvent(t, openEvents(t, server+"/api/events?after=1"))
@@ -731,6 +727,36 @@ func TestServer_theEventsChannelContinuesWhereTheReaderLeftOff(t *testing.T) {
 
 	if response.StatusCode != http.StatusBadRequest {
 		t.Errorf("continuar desde una identidad que no es un número respondió %d", response.StatusCode)
+	}
+}
+
+// TestServer_aSessionOpenedNowDoesNotReceiveTheChangesOfBefore recorre el
+// defecto: el aviso cuenta lo que pasa mientras miras, no lo que pasó antes.
+// Quien abre el canal recibe el cambio que ocurre después de abrirlo, y no los
+// que ya estaban en la base cuando abrió.
+func TestServer_aSessionOpenedNowDoesNotReceiveTheChangesOfBefore(t *testing.T) {
+	t.Parallel()
+
+	server, base := newServer(t)
+	apply := core.New(base, "tk")
+
+	// Dos cambios antes de que nadie mire.
+	for _, title := range []string{"De antes", "De antes también"} {
+		if _, err := apply.CreateTask(t.Context(), core.NewTask{Title: title}); err != nil {
+			t.Fatalf("creando la tarea %q: %v", title, err)
+		}
+	}
+
+	events := openEvents(t, server+"/api/events")
+
+	if _, err := apply.CreateTask(t.Context(), core.NewTask{Title: "De después"}); err != nil {
+		t.Fatalf("creando la tarea de después: %v", err)
+	}
+
+	notice := readNotice(t, readRawEvent(t, events))
+
+	if len(notice.Changes) != 1 || notice.Changes[0] != (taskChange{ID: "tk-3", Action: "creada", Title: "De después"}) {
+		t.Errorf("el primer aviso dice %+v, se esperaba tk-3 creada como “De después” y nada de antes", notice.Changes)
 	}
 }
 

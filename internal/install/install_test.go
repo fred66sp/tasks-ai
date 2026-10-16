@@ -106,6 +106,29 @@ func TestRun_refusesToInstallOverAnInstallation(t *testing.T) {
 	}
 }
 
+func TestRun_completesAnInstallationThatLostItsInstructions(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	if _, err := install.Run(t.Context(), dir); err != nil {
+		t.Fatalf("la primera instalación devolvió %v", err)
+	}
+
+	instructions := filepath.Join(dir, install.DirName, "AGENTS.md")
+	if err := os.Remove(instructions); err != nil {
+		t.Fatalf("quitando las instrucciones: %v", err)
+	}
+
+	if _, err := install.Run(t.Context(), dir); err != nil {
+		t.Fatalf("volver a instalar sobre una instalación incompleta devolvió %v", err)
+	}
+
+	if _, err := os.Stat(instructions); err != nil {
+		t.Errorf("volver a instalar no devolvió las instrucciones: %v", err)
+	}
+}
+
 func TestRun_keepsTheSettingsThatAreAlreadyThere(t *testing.T) {
 	t.Parallel()
 

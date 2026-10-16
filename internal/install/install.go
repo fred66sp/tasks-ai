@@ -76,8 +76,9 @@ func Project(dir string) (string, error) {
 	}
 }
 
-// Run installs the product in the project rooted at root. What is already there
-// is left alone, so the settings keep the values the project put in them.
+// Run installs the product in the project rooted at root, completing what a
+// previous attempt left half done. What is already there is left alone, so the
+// settings keep the values the project put in them.
 func Run(ctx context.Context, root string) (Result, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
@@ -92,8 +93,16 @@ func Run(ctx context.Context, root string) (Result, error) {
 	}
 
 	dbPath := settings.DatabasePath(dir, cfg)
-	if _, err := os.Stat(dbPath); err == nil {
+	instructions := filepath.Join(dir, instructionsName)
+
+	if exists(dbPath) && exists(instructions) {
 		return Result{}, fmt.Errorf("el proyecto ya tiene el producto instalado en %s", dir)
+	}
+
+	// Las instrucciones van antes que la base: si algo falla a mitad, lo que ya
+	// está hecho se puede volver a completar sin borrar nada.
+	if err := writeInstructions(dir); err != nil {
+		return Result{}, err
 	}
 
 	base, err := store.Open(ctx, dbPath)
@@ -107,17 +116,20 @@ func Run(ctx context.Context, root string) (Result, error) {
 		return Result{}, err
 	}
 
-	if err := writeInstructions(dir); err != nil {
-		return Result{}, err
-	}
-
 	return Result{
 		Dir:          dir,
 		DB:           dbPath,
-		Instructions: filepath.Join(dir, instructionsName),
+		Instructions: instructions,
 		Prefix:       cfg.Prefix,
 		Pointer:      pointer,
 	}, nil
+}
+
+// exists says whether there is a file at path.
+func exists(path string) bool {
+	_, err := os.Stat(path)
+
+	return err == nil
 }
 
 // prepare creates the product folder and leaves a settings file in it, without

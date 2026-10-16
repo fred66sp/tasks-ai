@@ -1,0 +1,55 @@
+# ADR-010: La interfaz vive en `web/` y viaja en el binario
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-10-16
+
+## Contexto
+
+`ADR-005` decidió reutilizar la interfaz de `project-task-manager` y sustituir su
+servidor Node por el núcleo en Go. Faltaba por decidir dónde vive esa interfaz en este
+repositorio, cómo se construye y cómo la sirve el producto: el binario ya arranca la
+API con `serve`, y el producto no admite un segundo servidor ni una dependencia de
+ejecución nueva.
+
+La interfaz de referencia se construye con esbuild —una dependencia de desarrollo que
+empaqueta el guion de la página y su CSS en `public/task-manager/`— y su servidor Node
+repartía `public/` como ficheros sueltos.
+
+## Decisión
+
+- El código de la interfaz vive en `web/`, con la misma forma que en el proyecto de
+  referencia: `web/src/` el código fuente y `web/public/` los ficheros que el
+  navegador descarga, con el Vue vendorizado entre ellos.
+- La construye la herramienta de desarrollo de la interfaz: `npm run build` dentro de
+  `web/`, con esbuild como dependencia de desarrollo. El compilador de Go no la
+  necesita y el producto no gana ninguna dependencia de ejecución.
+- El artefacto construido —`web/public/task-manager/app-vue.js` y su CSS— se
+  versiona: lo genera la construcción de la interfaz, y `web/embed.go` lo incrusta en
+  el binario con `go:embed`.
+- El comando `serve` la reparte: la raíz del servidor lleva a la página de la
+  interfaz, sus ficheros se sirven por su ruta dentro de `web/public/`, y la API
+  conserva sus rutas `/api/...`. Sin caché, como en el servidor de referencia: es una
+  herramienta de desarrollo y un bundle viejo escondido haría pensar que un cambio no
+  llegó.
+
+## Consecuencias
+
+- Un solo binario y un solo comando sirven las dos superficies; quien abre
+  `http://127.0.0.1:<puerto>/` encuentra la interfaz, y nada de esto necesita Node en
+  marcha.
+- La carpeta `web/` es un paquete de Go por su `embed.go`, aunque su contenido sea de
+  la interfaz: es lo que permite al binario llevarla dentro.
+- Cambiar la interfaz exige reconstruir con `npm run build` y volver a compilar el
+  binario para que lo nuevo viaje dentro.
+- Requisitos afectados: `RF-02`, `RNF-01`.
+
+## Alternativas consideradas
+
+- **Servir `web/public/` desde el disco, como hace el servidor de referencia.**
+  Rechazada: el binario dejaría de bastarse solo y la instalación dependería de una
+  carpeta que acompañar.
+- **Construir la interfaz desde `go generate` o desde el Makefile.** Rechazada: el
+  compilador de Go no debe necesitar Node, y la construcción de la interfaz es de su
+  propia herramienta de desarrollo.
+- **Una carpeta fuera del árbol del módulo.** Rechazada: `go:embed` no alcanza fuera
+  del módulo, y duplicar el artefacto para incrustarlo no simplifica nada.

@@ -112,6 +112,10 @@ bloqueado, las reglas de cierre y la cascada del catálogo de etiquetas— pasa 
 núcleo. Las capacidades nuevas, el progreso de épicas y el recuento, se añaden sobre
 la misma base.
 
+Su código vive en `web/` y su construcción es suya, no del compilador de Go: el
+artefacto construido se versiona y viaja incrustado en el binario, de modo que `serve`
+reparte las dos superficies sin depender de nada más (`ADR-010`).
+
 ## 10. De qué decisión sale cada pieza
 
 | Pieza del diseño | Decisión |
@@ -124,3 +128,5 @@ la misma base.
 | Reglas heredadas conservadas y descartadas | `ADR-006` |
 | SQLite directo | `ADR-007` |
 | Escrituras ordenadas por la base | `ADR-008` |
+| Forma del código y dependencias | `ADR-009` |
+| Interfaz en `web/`, incrustada en el binario | `ADR-010` |

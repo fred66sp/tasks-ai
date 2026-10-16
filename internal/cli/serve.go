@@ -24,9 +24,11 @@ func newServeCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
 		Short: "Arranca la superficie web del producto",
-		Long: "Sirve la API del producto en la dirección y el puerto del settings, y anuncia\n" +
-			"los cambios por un canal abierto, de modo que dos sesiones se ven. Lo que escribe\n" +
-			"va por la salida de errores, según el nivel de registro del settings.",
+		Long: "Sirve la API del producto y su interfaz en la dirección y el puerto del\n" +
+			"settings: la interfaz responde en la raíz y la API conserva sus rutas\n" +
+			"/api/... Los cambios se anuncian por un canal abierto, de modo que dos\n" +
+			"sesiones se ven. Lo que escribe va por la salida de errores, según el nivel\n" +
+			"de registro del settings.",
 		Args: usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			return serve(command)

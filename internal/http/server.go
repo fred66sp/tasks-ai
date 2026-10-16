@@ -73,6 +73,8 @@ func (s *Server) Handler() nethttp.Handler {
 // itself when the method does not fit the route.
 func (s *Server) routes() *nethttp.ServeMux {
 	mux := nethttp.NewServeMux()
+	mux.HandleFunc("GET /{$}", interfaceIndex)
+	mux.Handle("GET /", interfaceFiles())
 	mux.HandleFunc("GET /api/tasks", s.listTasks)
 	mux.HandleFunc("POST /api/tasks", s.createTask)
 	mux.HandleFunc("GET /api/tasks/{ref}", s.taskDetail)

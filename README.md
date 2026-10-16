@@ -2,8 +2,9 @@
 
 Gestor de tareas local-first para un proyecto, escrito en Go. Las tareas viven en una
 base SQLite dentro del propio proyecto y se usan por línea de comandos, con salida
-JSON; el mismo binario también sirve una API HTTP con `serve`, para que dos sesiones
-se vean. Las rutas, los códigos de estado y los avisos de cambio están en
+JSON; el mismo binario también sirve con `serve` la API HTTP y su interfaz web: la
+interfaz responde en la raíz del servidor y la API conserva sus rutas `/api/...`. Las
+rutas, los códigos de estado y los avisos de cambio están en
 [`docs/contracts.md`](docs/contracts.md).
 
 Todo lo del producto vive en la carpeta `.task-ai/` del proyecto —la base, la
@@ -17,6 +18,7 @@ configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 | `docs/decisions/` | Una decisión durable por documento |
 | `cmd/` | El binario del producto |
 | `internal/` | Su núcleo y sus superficies |
+| `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |
 | `task-manager/` | La herramienta con la que se desarrolla el proyecto, con su tablero |
 
 El contrato de documentación dice qué contiene cada documento de `docs/`.
@@ -24,7 +26,9 @@ El contrato de documentación dice qué contiene cada documento de `docs/`.
 ## Requisitos de entorno
 
 - Go, para el producto.
-- Node, para la herramienta con la que se desarrolla el proyecto.
+- Node, para la herramienta con la que se desarrolla el proyecto y para construir la
+  interfaz: el binario la lleva incrustada, así que Node no hace falta para compilar
+  en Go ni para usar el producto (`ADR-010`).
 
 ## Comandos
 
@@ -48,7 +52,18 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai block <referencia> <referencia-bloqueante>   # deja la primera tarea bloqueada por la segunda
 ./tasks-ai unblock <referencia> <referencia-bloqueante>  # retira el bloqueo entre las dos tareas
 ./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea: los comentarios solo se añaden
-./tasks-ai serve                # arranca la API HTTP en la dirección y el puerto del settings, y anuncia los cambios por un canal abierto
+./tasks-ai serve                # arranca la API HTTP y la interfaz en la dirección y el puerto del settings: la interfaz responde en la raíz, y los cambios se anuncian por un canal abierto
+```
+
+La interfaz se reconstruye —`npm run build` dentro de `web/`— y el binario se vuelve
+a compilar para que el artefacto nuevo viaje dentro (`ADR-010`).
+
+De la interfaz:
+
+```bash
+cd web && npm ci      # instala su herramienta de construcción
+cd web && npm run build  # construye la interfaz: deja el artefacto en web/public/task-manager/, que viaja incrustado en el binario
+cd web && npm run watch  # la reconstruye al cambiar
 ```
 
 De la herramienta de desarrollo:

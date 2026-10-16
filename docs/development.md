@@ -16,6 +16,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `internal/install/` | La instalación en un proyecto: su carpeta con la base, los ajustes y las instrucciones |
 | `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
+| `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
 | `task-manager/` | La herramienta con la que se desarrolla el proyecto, con su tablero |
 
 ## Fronteras del código
@@ -23,7 +24,9 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 - El núcleo contiene las reglas y el acceso a datos; no conoce comandos ni rutas.
 - Cada superficie traduce su idioma al del núcleo: el CLI con sus comandos y su JSON,
   el servidor HTTP con sus rutas y sus códigos.
-- La interfaz web es la de partida, ajustada a la API del núcleo.
+- La interfaz web es la de partida, ajustada a la API del núcleo. Vive en `web/`, la
+  construye su propia herramienta de desarrollo y viaja incrustada en el binario:
+  `serve` la reparte en la raíz y la API conserva sus rutas (`ADR-010`).
 - La base solo la toca el núcleo.
 
 ## Convenciones

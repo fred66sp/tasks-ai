@@ -54,3 +54,10 @@ Changelog* y el versionado es semántico.
   recibir el aviso de la otra, sea el CLI o la propia API.
 - **Herramienta de desarrollo** instalada en `task-manager/`, con su tablero y su
   catálogo de etiquetas.
+- **Interfaz web en el binario** (`tk-4d8f.10`, primera rebanada): la interfaz de
+  partida del proyecto de referencia vive ahora en `web/`, con su capa de peticiones
+  ajustada a la API de este producto —identidad por referencia, cierre con motivo,
+  bloqueos, etiquetas— y sus pantallas intactas. `serve` la reparte incrustada en el
+  binario: la raíz del servidor abre la interfaz y la API conserva sus rutas
+  `/api/...`. Desde la interfaz se crea, se ve, se cierra y se reabre una tarea.
+  Decisión en [`docs/decisions/010-la-interfaz-vive-en-web-y-viaja-en-el-binario.md`](docs/decisions/010-la-interfaz-vive-en-web-y-viaja-en-el-binario.md).

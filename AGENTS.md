@@ -29,6 +29,12 @@ npm run odd:tk -- show tk-XXXX
 - Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
   arreglo, una decisión, una duda— se anota como tarea antes de tocarlo.
+- Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización, relevo
+  y trampas conocidas del tablero— lo gobierna
+  [`task-manager/skills/tk/SKILL.md`](task-manager/skills/tk/SKILL.md).
+- Además de lo que dice esa skill, cada tarea declara **el resultado que cierra** y **el
+  criterio con el que se comprueba**, observable por la interfaz pública. Una tarea sin
+  criterio no se empieza: se escribe primero.
 - No se registra en el tablero el estado de Git ni el del proceso de revisión: cada
   uno vive donde vive.
 
@@ -42,6 +48,8 @@ npm run odd:tk -- show tk-XXXX
   criterio contra el binario real y entrega.
 - Una tarea se cierra cuando su resultado y sus comprobaciones se han observado. Lo
   que se comprueba es el criterio, no la impresión de quien hizo el trabajo.
+- Una unidad a la vez sobre el mismo código: dos tareas listas no se trabajan en
+  paralelo si tocan los mismos archivos, se encadenan.
 
 ## Qué se toca y qué no
 

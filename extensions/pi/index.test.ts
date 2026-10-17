@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import type { Detail } from "./board.ts";
+import { runCli } from "./cli.ts";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import tasksExtension from "./index.ts";
@@ -23,17 +24,36 @@ interface Registered {
 	) => Promise<{ content: { type: string; text: string }[]; details: unknown }>;
 }
 
-function load(): Record<string, Registered> {
+function harness(executeCli = runCli) {
 	const registered: Record<string, Registered> = {};
+	const handlers: Record<string, (event: any, ctx: any) => any> = {};
+	let active = ["read", "todo", "bash"];
+	const changes: string[][] = [];
 	const pi = {
 		registerTool(tool: Registered) {
 			registered[tool.name] = tool;
+			active.push(tool.name);
+		},
+		on(name: string, handler: (event: any, ctx: any) => any) {
+			handlers[name] = handler;
+			return () => {};
+		},
+		getActiveTools: () => [...active],
+		setActiveTools(names: string[]) {
+			active = [...names];
+			changes.push([...names]);
 		},
 	} as unknown as ExtensionAPI;
 
-	tasksExtension(pi);
+	tasksExtension(pi, executeCli);
+	const previous = [...active];
+	const start = () => handlers.session_start?.({ type: "session_start", reason: "startup" }, {});
+	start();
+	return { registered, handlers, previous, changes, start, active: () => [...active] };
+}
 
-	return registered;
+function load(): Record<string, Registered> {
+	return harness().registered;
 }
 
 describe("la extensión", () => {
@@ -75,6 +95,124 @@ describe("la extensión", () => {
 		assert.deepEqual(result.details, (cli("list") as Detail[]).find((entry) => entry.ref === task.ref));
 		return task;
 	}
+
+	it("añade al prompt un resumen corto, sin mensaje ni detalles privados", async () => {
+		cli("create", "--title", "trabajo actual", "--description", "detalle privado");
+		cli("update", "tk-1", "--status", "in_progress");
+		for (let i = 0; i < 7; i++) cli("create", "--title", `lista ${i}\nsegunda línea`);
+		cli("block", "tk-2", "tk-1");
+		const { handlers } = harness();
+		assert.ok(handlers.before_agent_start, "falta before_agent_start");
+		const sections = { existing: "conservar" };
+		const result = await handlers.before_agent_start({ systemPromptOptions: { sections } }, { cwd: project });
+		assert.equal(result?.message, undefined);
+		assert.equal(result?.systemPrompt, undefined);
+		assert.equal(sections.existing, "conservar");
+		const summary = (sections as Record<string, string>).tasks_board;
+		assert.match(summary, /tareas: 8 \(abiertas 7, en curso 1, cerradas 0\)/);
+		assert.match(summary, /en curso: .*tk-1 · trabajo actual/);
+		assert.match(summary, /tk-3 · lista 1/);
+		assert.doesNotMatch(summary, /tk-2 ·|tk-8 ·|detalle privado/);
+		assert.ok(summary.split("\n").length <= 12);
+		assert.match(summary, /crear o seleccionar.*antes de tocar archivos/i);
+		assert.match(summary, /marcar.*en curso/i);
+		assert.match(summary, /decisiones y bloqueos.*comentarios/i);
+		assert.match(summary, /cerrar solo tras verificar/i);
+	});
+
+	it("sin instalación informa en una línea y no ejecuta el CLI", async () => {
+		let calls = 0;
+		const { handlers } = harness(async () => { calls++; throw new Error("no debe ejecutarse"); });
+		assert.ok(handlers.before_agent_start, "falta before_agent_start");
+		const sections: Record<string, string> = {};
+		await handlers.before_agent_start({ systemPromptOptions: { sections } }, { cwd: path.parse(project).root });
+		assert.match(sections.tasks_board, /no.*instalado/i);
+		assert.equal(sections.tasks_board.split("\n").length, 1);
+		assert.equal(calls, 0);
+	});
+
+	it("retira solo todo al iniciar y restaura exactamente una vez al descargar", async () => {
+		const extension = harness();
+		assert.deepEqual(extension.active(), extension.previous.filter((name) => name !== "todo"));
+		extension.start();
+		assert.ok(extension.handlers.session_shutdown, "falta session_shutdown");
+		await extension.handlers.session_shutdown({}, {});
+		assert.deepEqual(extension.active(), extension.previous);
+		const changes = extension.changes.length;
+		await extension.handlers.session_shutdown({}, {});
+		assert.equal(extension.changes.length, changes);
+	});
+
+	it("comparte list entre el resumen y tasks_board e invalida tras escribir", async () => {
+		let lists = 0;
+		const extension = harness(async (...args) => {
+			if (args[0][0] === "list") lists++;
+			return runCli(...args);
+		});
+		assert.ok(extension.handlers.before_agent_start, "falta before_agent_start");
+		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, { cwd: project });
+		const board = extension.registered.tasks_board;
+		await board.execute("id", {}, undefined, undefined, { cwd: project });
+		await board.execute("id", {}, undefined, undefined, { cwd: project });
+		assert.equal(lists, 1);
+		await extension.registered.tasks_create.execute("id", { title: "nueva" }, undefined, undefined, { cwd: project });
+		const updated = await board.execute("id", {}, undefined, undefined, { cwd: project });
+		assert.equal(lists, 2);
+		assert.match(updated.content[0].text, /tareas: 1/);
+	});
+
+	it("la caché caduca al segundo y no se comparte entre directorios", async (t) => {
+		let now = 0;
+		t.mock.method(Date, "now", () => now);
+		let calls = 0;
+		const extension = harness(async () => { calls++; return { ok: true, data: [] }; });
+		const board = extension.registered.tasks_board;
+		const read = (cwd = project) => board.execute("id", {}, undefined, undefined, { cwd });
+		await read();
+		now = 999;
+		await read();
+		assert.equal(calls, 1);
+		now = 1000;
+		await read();
+		assert.equal(calls, 2);
+		await read(path.join(project, "subdirectorio"));
+		assert.equal(calls, 3);
+	});
+
+	it("comparte lecturas simultáneas y no guarda rechazos de list", async () => {
+		let calls = 0;
+		const extension = harness(async () => {
+			calls++;
+			return calls === 1 ? { ok: false, code: 1, message: "rechazo exacto" } : { ok: true, data: [] };
+		});
+		const read = () => extension.registered.tasks_board.execute("id", {}, undefined, undefined, { cwd: project });
+		await assert.rejects(read, /^Error: rechazo exacto$/);
+		await Promise.all([read(), read()]);
+		assert.equal(calls, 2);
+	});
+
+	it("todas las escrituras invalidan y un rechazo conserva la lectura", async () => {
+		let lists = 0;
+		let reject = false;
+		const extension = harness(async (args) => {
+			if (args[0] === "list") { lists++; return { ok: true, data: [] }; }
+			return reject ? { ok: false, code: 2, message: "entrada inválida" }
+				: { ok: true, data: { ref: "tk-1", title: "tarea", status: "open" } };
+		});
+		const invoke = (name: string) => extension.registered[name].execute("id", {
+			ref: "tk-1", title: "tarea", reason: "done", blocker: "tk-2", body: "comentario",
+		}, undefined, undefined, { cwd: project });
+		await invoke("tasks_board");
+		for (const name of ["tasks_create", "tasks_update", "tasks_close", "tasks_reopen", "tasks_block", "tasks_unblock", "tasks_comment"]) {
+			await invoke(name);
+			await invoke("tasks_board");
+		}
+		assert.equal(lists, 8);
+		reject = true;
+		await assert.rejects(() => invoke("tasks_update"), /entrada inválida/);
+		await invoke("tasks_board");
+		assert.equal(lists, 8);
+	});
 
 	it("registra las dos herramientas de lectura y las siete de escritura", () => {
 		assert.deepEqual(Object.keys(tools).sort(), [

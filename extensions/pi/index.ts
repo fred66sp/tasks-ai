@@ -3,8 +3,8 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { deriveBoard, renderBoard, renderDetail, type Detail, type Task } from "./board.ts";
-import { runCli } from "./cli.ts";
+import { deriveBoard, renderBoard, renderDetail, renderSummary, type Detail, type Task } from "./board.ts";
+import { findProjectRoot, runCli, type Outcome } from "./cli.ts";
 
 const taskFields = {
 	title: Type.Optional(Type.String({ pattern: "\\S", description: "el título de la tarea" })),
@@ -16,7 +16,59 @@ const taskFields = {
 
 const reference = Type.String({ description: "la referencia visible de la tarea, por ejemplo tk-18" });
 
-export default function tasksExtension(pi: ExtensionAPI) {
+export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
+	let previousTools: string[] | undefined;
+	let cached: { cwd: string; at: number; pending: Promise<Outcome> } | undefined;
+
+	pi.on("session_start", () => {
+		if (previousTools !== undefined) return;
+		previousTools = [...pi.getActiveTools()];
+		pi.setActiveTools(previousTools.filter((name) => name !== "todo"));
+	});
+	pi.on("session_shutdown", () => {
+		if (previousTools === undefined) return;
+		pi.setActiveTools(previousTools);
+		previousTools = undefined;
+		cached = undefined;
+	});
+
+	async function readBoard(cwd: string, signal?: AbortSignal) {
+		if (!cached || cached.cwd !== cwd || Date.now() - cached.at >= 1000) {
+			cached = { cwd, at: Date.now(), pending: executeCli(["list"], cwd, signal) };
+		}
+		const entry = cached;
+		try {
+			const outcome = await entry.pending;
+			if (!outcome.ok) throw new Error(outcome.message);
+			return deriveBoard(outcome.data as Task[]);
+		} catch (error) {
+			if (cached === entry) cached = undefined;
+			throw error;
+		}
+	}
+
+	pi.on("before_agent_start", async (event, ctx) => {
+		let summary = "Tablero: no hay tablero instalado en este proyecto.";
+		if (findProjectRoot(ctx.cwd) !== null) {
+			summary = renderSummary(await readBoard(ctx.cwd, ctx.signal));
+		}
+		event.systemPromptOptions.sections.tasks_board = summary;
+	});
+
+	/** Una línea para el modelo; la respuesta completa del producto queda en details. */
+	async function writeTask(args: string[], action: string, cwd: string, signal?: AbortSignal) {
+		const outcome = await executeCli(args, cwd, signal);
+		if (!outcome.ok) throw new Error(outcome.message);
+		cached = undefined;
+
+		const task = outcome.data as Task;
+		const title = task.title.replace(/\s+/g, " ").trim();
+		return {
+			content: [{ type: "text" as const, text: `${task.ref} · ${action} [${task.status}] ${title.length > 60 ? `${title.slice(0, 59)}…` : title}` }],
+			details: outcome.data,
+		};
+	}
+
 	pi.registerTool({
 		name: "tasks_board",
 		label: "Board",
@@ -25,10 +77,7 @@ export default function tasksExtension(pi: ExtensionAPI) {
 		promptSnippet: "Read the project task board",
 		parameters: Type.Object({}),
 		async execute(_toolCallId, _params, signal, _onUpdate, ctx) {
-			const outcome = await runCli(["list"], ctx.cwd, signal);
-			if (!outcome.ok) throw new Error(outcome.message);
-
-			const board = deriveBoard(outcome.data as Task[]);
+			const board = await readBoard(ctx.cwd, signal);
 
 			return {
 				content: [{ type: "text", text: renderBoard(board) }],
@@ -47,7 +96,7 @@ export default function tasksExtension(pi: ExtensionAPI) {
 			ref: Type.String({ description: "la referencia visible de la tarea, por ejemplo tk-18" }),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			const outcome = await runCli(["show", params.ref], ctx.cwd, signal);
+			const outcome = await executeCli(["show", params.ref], ctx.cwd, signal);
 			if (!outcome.ok) throw new Error(outcome.message);
 
 			return {
@@ -153,17 +202,4 @@ export default function tasksExtension(pi: ExtensionAPI) {
 			return writeTask(["comment", params.ref, "--body", params.body], "comentario añadido", ctx.cwd, signal);
 		},
 	});
-}
-
-/** Una línea para el modelo; la respuesta completa del producto queda en details. */
-async function writeTask(args: string[], action: string, cwd: string, signal?: AbortSignal) {
-	const outcome = await runCli(args, cwd, signal);
-	if (!outcome.ok) throw new Error(outcome.message);
-
-	const task = outcome.data as Task;
-	const title = task.title.replace(/\s+/g, " ").trim();
-	return {
-		content: [{ type: "text" as const, text: `${task.ref} · ${action} [${task.status}] ${title.length > 60 ? `${title.slice(0, 59)}…` : title}` }],
-		details: outcome.data,
-	};
 }

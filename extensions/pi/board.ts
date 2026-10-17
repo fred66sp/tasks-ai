@@ -104,6 +104,22 @@ export function renderBoard(board: Board): string {
 	return lines.join("\n");
 }
 
+/** Contexto breve de cada turno, sin el árbol ni campos privados. */
+export function renderSummary(board: Board): string {
+	const listed = (tasks: Task[], limit: number) => {
+		const shown = tasks.slice(0, limit).map((task) => `${task.ref} · ${clip(task.title, MAX_TITLE)}`);
+		const hidden = tasks.length - shown.length;
+		return `${shown.join(", ") || "ninguna"}${hidden > 0 ? ` (+${hidden} más; usa tasks_board)` : ""}`;
+	};
+	return [
+		`tareas: ${board.counts.total} (abiertas ${board.counts.open}, en curso ${board.counts.in_progress}, cerradas ${board.counts.done})`,
+		`en curso: ${listed(board.inProgress, MAX_LISTED)}`,
+		`listas para empezar: ${listed(board.ready, 5)}`,
+		"Usa el tablero como único sistema de tareas: crear o seleccionar una tarea antes de tocar archivos y marcarla en curso.",
+		"Anota decisiones y bloqueos como comentarios; cerrar solo tras verificar.",
+	].join("\n");
+}
+
 /** Compone el texto del detalle de una tarea, con sus comentarios más recientes. */
 export function renderDetail(detail: Detail): string {
 	const lines = [

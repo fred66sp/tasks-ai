@@ -61,6 +61,25 @@ export const taskActions = {
         }
       }
     },
+    /**
+     * Recarga pedida por el canal. Varios avisos pueden llegar mientras una
+     * recarga está en vuelo: el primero la hace y los demás se juntan en una
+     * sola ronda más, en vez de una recarga completa por aviso.
+     */
+    noticeReload() {
+      if (this.noticeReloadRunning) {
+        this.noticeReloadPending = true;
+        return;
+      }
+      this.noticeReloadRunning = true;
+      this.reloadWorkspace().finally(() => {
+        this.noticeReloadRunning = false;
+        if (this.noticeReloadPending) {
+          this.noticeReloadPending = false;
+          this.noticeReload();
+        }
+      });
+    },
     async loadTaskDetail(id, openOnMobile = true) {
       if (!id || this.isBusy(`detail:${id}`)) return;
       const requestSequence = ++this.detailRequestSequence;

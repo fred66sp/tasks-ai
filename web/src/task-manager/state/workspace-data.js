@@ -114,6 +114,10 @@ export const workspaceData = {
       // cambio, sin identidad viajando al servidor.
       lastTaskWriteRef: '',
       lastTaskWriteAt: 0,
+      // Una ronda de recarga pedida por el canal, con otra pendiente si
+      // llegaron más avisos mientras corría.
+      noticeReloadRunning: false,
+      noticeReloadPending: false,
       uiPreferencesPersistTimer: null,
       workspaceEventSource: null
     };

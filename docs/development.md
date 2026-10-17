@@ -24,6 +24,18 @@ Las pruebas de la extensión se ejecutan con `cd extensions/pi && npm test`, que
 de Node y construye el binario si falta. Ninguna prueba escribe en el tablero del
 repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
+La extensión no viaja en el binario: se carga desde el proyecto con una línea en el
+archivo de ajustes de Pi, que Git ignora (`.pi/settings.json`):
+
+```json
+{ "extensions": ["<ruta absoluta al proyecto>/extensions/pi/index.ts"] }
+```
+
+Con ese ajuste se arranca Pi desde la raíz del proyecto, y la extensión encuentra el
+tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que el CLI. Sus
+herramientas y lo que llega al modelo están en `contracts.md`; qué se gana con ellas, en
+el `README.md`; la forma y el riesgo, en `ADR-012`.
+
 ## Fronteras del código
 
 - El núcleo contiene las reglas y el acceso a datos; no conoce comandos ni rutas.

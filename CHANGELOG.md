@@ -15,6 +15,15 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **El agente opera el tablero con herramientas**: la extensión de Pi en
+  `extensions/pi/` envuelve el CLI en nueve herramientas con esquema —`tasks_board`,
+  `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`, `tasks_reopen`,
+  `tasks_block`, `tasks_unblock` y `tasks_comment`—, pone el tablero resumido delante
+  del agente en cada turno, añade el comando `/board` y una línea de estado con la tarea
+  en curso, y deja los comandos a mano para la persona. Vive fuera del binario, con sus
+  pruebas propias (`ADR-012`), y no toca la base ni reimplementa reglas: cada
+  herramienta ejecuta su comando y devuelve su JSON, rechazos incluidos.
+
 - **La interfaz lleva la identidad del producto**: el encabezado enseña el símbolo
   aprobado en lugar de la letra provisional, la paleta y las tipografías son las de la
   marca, y la pestaña del navegador y el manifiesto del sitio traen sus iconos. Los

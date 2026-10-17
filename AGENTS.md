@@ -13,7 +13,11 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
 ## Tablero del trabajo
 
 El trabajo se registra en el tablero del propio producto, instalado en `.task-ai/`.
-Toda llamada va por el binario del producto y responde en JSON:
+Con la extensión de Pi cargada, el agente lo opera con sus herramientas —`tasks_board`,
+`tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`, `tasks_reopen`,
+`tasks_block`, `tasks_unblock` y `tasks_comment`—, que envuelven el CLI y devuelven su
+JSON con sus rechazos tal cual. El agente no escribe comandos del tablero a mano: el CLI
+es el equivalente para la persona, que lo usa desde la terminal y responde en JSON:
 
 ```bash
 ./bin/tasks-ai list              # todas las tareas, con su estado y si están bloqueadas
@@ -22,7 +26,7 @@ Toda llamada va por el binario del producto y responde en JSON:
 ```
 
 - La base de tareas vive en `.task-ai/tasks.db`. No se edita con SQL: solo por el CLI
-  del producto.
+  del producto, y con la extensión cargada, por sus herramientas.
 - Un frente visible es una tarea de nivel superior con la etiqueta `epic`; una unidad de
   trabajo es una subtarea con padre y la etiqueta `task`. El trabajo del registro ODD
   lleva `ODD`, y cada tarea un tipo principal: `docs`, `feat`, `fix`, `test`, `chore`,

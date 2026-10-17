@@ -12,7 +12,10 @@ Este proyecto guarda sus tareas con el gestor local que vive en esta carpeta.
 
 ## Cómo se usa
 
-Desde cualquier punto del proyecto:
+Con la extensión de Pi cargada, el agente no escribe estos comandos: opera el tablero
+con sus herramientas (`tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`,
+`tasks_close`, `tasks_reopen`, `tasks_block`, `tasks_unblock` y `tasks_comment`). Los
+comandos quedan para la persona. Desde cualquier punto del proyecto:
 
 ```bash
 tasks-ai create --title "Preparar el análisis"   # crea una tarea y devuelve su JSON

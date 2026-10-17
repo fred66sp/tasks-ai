@@ -71,6 +71,26 @@ cd web && npm run build  # construye la interfaz: deja el artefacto en web/publi
 cd web && npm run watch  # la reconstruye al cambiar
 ```
 
+## Integración con el agente de Pi
+
+`extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
+`tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
+`tasks_reopen`, `tasks_block`, `tasks_unblock` y `tasks_comment` (`ADR-012`). El agente
+deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
+está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
+además del comando `/board` y una línea de estado con la tarea en curso.
+
+No forma parte del binario: se carga desde el proyecto con una línea en el archivo de
+ajustes de Pi del proyecto, que Git ignora (`.pi/settings.json`):
+
+```json
+{ "extensions": ["<ruta absoluta al proyecto>/extensions/pi/index.ts"] }
+```
+
+Con ese ajuste se arranca Pi desde la raíz del proyecto: la extensión encuentra el
+tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que el CLI. En un
+proyecto sin tablero las herramientas no responden.
+
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 
 Se retiró del repositorio al pasar el trabajo a `.task-ai/`. Era un servidor en Node sobre

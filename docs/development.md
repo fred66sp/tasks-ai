@@ -18,6 +18,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `internal/` | El núcleo del producto y sus superficies |
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
 | `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
+| `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 
 ## Fronteras del código
 

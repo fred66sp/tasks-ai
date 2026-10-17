@@ -22,6 +22,7 @@ configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 | `internal/` | Su núcleo y sus superficies |
 | `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |
 | `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
+| `extensions/pi/` | La integración con el agente de Pi: envuelve el CLI, no forma parte del binario |
 
 El contrato de documentación dice qué contiene cada documento de `docs/`.
 

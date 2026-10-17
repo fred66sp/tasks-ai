@@ -281,6 +281,23 @@ recompone un mensaje del producto.
   comentario no vacío. El producto lo vuelve a comprobar, y su rechazo es el que vale.
 - Un campo que no se nombra no cambia; `tasks_update` no manda lo que no se le ha dado.
 
+### Lo que llega al modelo
+
+El contexto es el recurso escaso: la extensión proyecta el tablero para que el agente
+decida, no para que lo lea entero.
+
+- De cada tarea viajan la referencia, el título, el estado, si está bloqueada, la
+  prioridad, el padre y las etiquetas. **Nunca** descripciones, notas ni comentarios: eso
+  solo sale en `tasks_show`, que es la puerta al detalle y se pide a propósito.
+- El árbol del tablero se recorta a 40 tareas y lo que queda fuera se cuenta en una
+  línea, para que el agente sepa que hay más y lo pida.
+- Las listas de en curso y de lo que se puede empezar se recortan a 8, con su recuento.
+- El detalle de una tarea trae su descripción entera y los 10 comentarios más recientes,
+  con el total a la vista.
+
+Los límites viven en la extensión, no en el producto: el CLI sigue devolviendo todo, y
+quien lea su JSON recibe la tarea completa.
+
 ### Errores
 
 - La salida `2` es el mal uso: una bandera que no encaja o una entrada que el núcleo

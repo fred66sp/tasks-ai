@@ -528,10 +528,11 @@
     <a href="#recetas" data-i18n="hero.7">6. Recetas</a>
     <a href="#interfaz" data-i18n="hero.8">7. La interfaz web</a>
     <a href="#api" data-i18n="hero.9">8. La API HTTP</a>
-    <a href="#configuracion" data-i18n="hero.10">9. La configuración</a>
-    <a href="#limites" data-i18n="hero.11">10. Lo que no hace</a>
-    <a href="#errores" data-i18n="hero.12">11. Errores y qué significan</a>
-    <a href="#preguntas" data-i18n="hero.13">12. Preguntas cortas</a>
+    <a href="#agente" data-i18n="hero.22">9. El agente de Pi</a>
+    <a href="#configuracion" data-i18n="hero.10">10. La configuración</a>
+    <a href="#limites" data-i18n="hero.11">11. Lo que no hace</a>
+    <a href="#errores" data-i18n="hero.12">12. Errores y qué significan</a>
+    <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
   </nav>
 
   <main>
@@ -1117,8 +1118,48 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
       </ul>
     </section>
 
+    <section id="agente">
+      <div class="section-head"><span class="section-num">9</span><h2 class="title" data-i18n="agente.2">El agente de Pi</h2></div>
+      <p class="sub" data-i18n="agente.3">Con esta extensión de Pi, tienes el tablero del proyecto como herramientas del agente. No forma parte del binario: vive en <code>extensions/pi/</code> del repositorio, está escrita en TypeScript y se carga desde la configuración de Pi. El producto no la instala.</p>
+      <p data-i18n="agente.4">La extensión ejecuta el CLI del producto y devuelve su JSON. No toca la base ni reimplementa reglas: lo que el producto rechaza, llega rechazado.</p>
+      <h3 data-i18n="agente.5">Las herramientas</h3>
+      <p data-i18n="agente.6">Las herramientas de lectura, <code>tasks_board</code> y <code>tasks_show</code>, están hechas. Las de escritura están en el contrato; no las des por implementadas.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th data-i18n="agente.7">Herramienta</th>
+            <th data-i18n="agente.8">Orden del CLI</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><code>tasks_board</code></td><td><code>list</code></td></tr>
+            <tr><td><code>tasks_show</code></td><td><code>show</code></td></tr>
+            <tr><td><code>tasks_create</code></td><td><code>create</code></td></tr>
+            <tr><td><code>tasks_update</code></td><td><code>update</code></td></tr>
+            <tr><td><code>tasks_close</code></td><td><code>close</code></td></tr>
+            <tr><td><code>tasks_reopen</code></td><td><code>reopen</code></td></tr>
+            <tr><td><code>tasks_block</code></td><td><code>block</code></td></tr>
+            <tr><td><code>tasks_unblock</code></td><td><code>unblock</code></td></tr>
+            <tr><td><code>tasks_comment</code></td><td><code>comment</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="agente.9">Cargar la extensión</h3>
+      <p data-i18n="agente.10">Para probarla, ejecuta esta orden desde la raíz del repositorio:</p>
+      <div class="code">
+        <pre data-lang="es"><code>pi --extension ./extensions/pi/index.ts</code></pre>
+        <pre data-lang="en" hidden><code>pi --extension ./extensions/pi/index.ts</code></pre>
+      </div>
+      <p data-i18n="agente.11">Para tenerla siempre, añade esa ruta a la lista de extensiones de la configuración de Pi.</p>
+      <h3 data-i18n="agente.12">El contexto que recibe el agente</h3>
+      <p data-i18n="agente.13">El tablero es una proyección: referencia, título, estado, bloqueo, prioridad, padre y etiquetas. No incluye descripciones, notas ni comentarios.</p>
+      <p data-i18n="agente.14">El árbol se recorta a 40 tareas, con un aviso de cuántas quedan fuera. Las listas de tareas en curso y de lo que puedes empezar se recortan a 8 cada una.</p>
+      <p data-i18n="agente.15">Cuando pides el detalle de una tarea, recibes su descripción entera y los 10 comentarios más recientes. Estos recortes son de la extensión: el CLI sigue devolviendo todo.</p>
+      <h3 data-i18n="agente.16">Lo que no hace</h3>
+      <p data-i18n="agente.17">La extensión no habla MCP, no añade un comando <code>ready</code> ni un importador. No es una tercera superficie del producto: envuelve el CLI.</p>
+    </section>
+
     <section id="configuracion">
-      <div class="section-head"><span class="section-num">9</span><h2 class="title" data-i18n="configuracion.2">La configuración</h2></div>
+      <div class="section-head"><span class="section-num">10</span><h2 class="title" data-i18n="configuracion.2">La configuración</h2></div>
       <p class="sub" data-i18n="configuracion.3">Un archivo, cuatro claves, y la posibilidad de editarlo a mano. El producto lo escribe al instalar y no vuelve a tocarlo.</p>
       <div class="code">
         <pre><code>{
@@ -1154,7 +1195,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
     </section>
 
     <section id="limites">
-      <div class="section-head"><span class="section-num">10</span><h2 class="title" data-i18n="limites.2">Lo que no hace</h2></div>
+      <div class="section-head"><span class="section-num">11</span><h2 class="title" data-i18n="limites.2">Lo que no hace</h2></div>
       <p class="sub" data-i18n="limites.3">Tan importante como lo anterior: lo que el producto no promete, para no esperarlo.</p>
       <div class="table-wrap">
         <table>
@@ -1176,7 +1217,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
     </section>
 
     <section id="errores">
-      <div class="section-head"><span class="section-num">11</span><h2 class="title" data-i18n="errores.2">Errores y qué significan</h2></div>
+      <div class="section-head"><span class="section-num">12</span><h2 class="title" data-i18n="errores.2">Errores y qué significan</h2></div>
       <p class="sub" data-i18n="errores.3">Los mensajes reales, con lo que hay que hacer con cada uno. Todos son JSON con una clave <code>error</code> y ninguno escribe nada.</p>
       <div class="table-wrap wrap-cells">
         <table>
@@ -1212,7 +1253,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
     </section>
 
     <section id="preguntas">
-      <div class="section-head"><span class="section-num">12</span><h2 class="title" data-i18n="preguntas.2">Preguntas cortas</h2></div>
+      <div class="section-head"><span class="section-num">13</span><h2 class="title" data-i18n="preguntas.2">Preguntas cortas</h2></div>
       <p class="sub" data-i18n="preguntas.3">Para quien llega con una duda concreta y no quiere releer la página entera.</p>
       <div class="qa"><h3 data-i18n="preguntas.4">¿Dónde están mis tareas?</h3><p data-i18n="preguntas.5">En <code>.task-ai/tasks.db</code>, dentro del proyecto. No hay nada fuera de esa carpeta: si la copias, te llevas las tareas; si la borras, no hay nada que recuperar.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.6">¿Puedo borrar una tarea?</h3><p data-i18n="preguntas.7">No. Se cierra con un motivo —<code>done</code>, <code>duplicate</code>, <code>absorbed</code>, <code>stale</code> o <code>superseded</code>— y se queda en el listado. Se puede reabrir después.</p></div>
@@ -1249,10 +1290,11 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "hero.7": "6. Recipes",
  "hero.8": "7. The web interface",
  "hero.9": "8. The HTTP API",
- "hero.10": "9. Configuration",
- "hero.11": "10. What it does not do",
- "hero.12": "11. Errors and what they mean",
- "hero.13": "12. Short answers",
+ "hero.22": "9. The Pi agent",
+ "hero.10": "10. Configuration",
+ "hero.11": "11. What it does not do",
+ "hero.12": "12. Errors and what they mean",
+ "hero.13": "13. Short answers",
  "hero.14": "<span class=\"dot\" aria-hidden=\"true\"></span>one binary · command line and API · one database per project",
  "hero.15": "Learn to drive tasks-ai <span class=\"grad\">from end to end</span>",
  "hero.16": "tasks-ai keeps a project's tasks in a SQLite database inside the project itself and offers them on the command line, as JSON, and through a web interface served by the same binary. This page walks the whole product: installing it, modelling the work, running every command, reading the screen and configuring it.",
@@ -1490,6 +1532,22 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.33": "A reader continues where it stopped: the first read asks for <code>?after=&lt;id&gt;</code> and on reconnect it resumes from the notice in the <code>Last-Event-ID</code> header. With neither, the channel starts at the next change, so opening the screen does not release the history.",
  "api.34": "The notice is read from the database, not from the server's memory: that is why a change requested from the terminal reaches the channel.",
  "api.35": "In the API listing, <code>parent_id</code> is the parent's internal number; the visible reference is composed by whoever renders, with the project prefix.",
+ "agente.2": "The Pi agent",
+ "agente.3": "With this Pi extension, you get the project board as agent tools. It is not part of the binary: it lives in <code>extensions/pi/</code> in the repository, is written in TypeScript and is loaded through Pi's configuration. The product does not install it.",
+ "agente.4": "The extension runs the product CLI and returns its JSON. It does not touch the database or reimplement rules: what the product rejects stays rejected.",
+ "agente.5": "The tools",
+ "agente.6": "The read tools, <code>tasks_board</code> and <code>tasks_show</code>, are implemented. The write tools are in the contract; do not assume they are implemented.",
+ "agente.7": "Tool",
+ "agente.8": "CLI command",
+ "agente.9": "Load the extension",
+ "agente.10": "To try it, run this command from the repository root:",
+ "agente.11": "To keep it loaded, add that path to the extensions list in Pi's configuration.",
+ "agente.12": "The context the agent receives",
+ "agente.13": "The board is a projection: reference, title, status, blocking status, priority, parent and tags. It includes no descriptions, notes or comments.",
+ "agente.14": "The tree is trimmed to 40 tasks, with a notice of how many are left out. The lists of tasks in progress and tasks you can start are trimmed to 8 each.",
+ "agente.15": "When you request a task's detail, you receive its full description and the 10 most recent comments. These limits belong to the extension: the CLI still returns everything.",
+ "agente.16": "What it does not do",
+ "agente.17": "The extension does not speak MCP or add a <code>ready</code> command or an importer. It is not a third product surface: it wraps the CLI.",
  "configuracion.2": "Configuration",
  "configuracion.3": "One file, four keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
  "configuracion.4": "Key",

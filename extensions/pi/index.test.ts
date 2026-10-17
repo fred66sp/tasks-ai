@@ -226,7 +226,7 @@ describe("la extensión", () => {
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
 	});
 
-	it("el estado se actualiza tras escribir y al comenzar un turno", async (t) => {
+	it("el estado y el bloque se actualizan tras escribir y al comenzar un turno", async (t) => {
 		let now = 0;
 		t.mock.method(Date, "now", () => now);
 		cli("create", "--title", "tarea\nactual");
@@ -234,13 +234,40 @@ describe("la extensión", () => {
 		const ctx = extension.context(project);
 		await extension.handlers.session_start({}, ctx);
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
 		await extension.registered.tasks_update.execute("id", { ref: "tk-1", status: "in_progress" }, undefined, undefined, ctx);
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · tarea actual"]);
-		cli("close", "tk-1", "--reason", "done");
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-1 · tarea actual"]);
+		cli("update", "tk-1", "--status", "open");
+		cli("update", "tk-1", "--status", "in_progress");
+		cli("create", "--title", "otra");
+		cli("update", "tk-2", "--status", "in_progress");
+		cli("update", "tk-1", "--status", "open");
 		// La siguiente lectura debe ver también cambios externos una vez caducada la caché.
 		now = 1000;
 		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-2 · otra"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-2 · otra"]);
+		cli("close", "tk-2", "--reason", "done");
+		now = 2000;
+		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
+	});
+
+	it("tasks_board refresca el bloque además de la línea de estado", async (t) => {
+		let now = 0;
+		t.mock.method(Date, "now", () => now);
+		cli("create", "--title", "primera");
+		const extension = harness(undefined, project);
+		const ctx = extension.context(project);
+		await extension.handlers.session_start({}, ctx);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
+		cli("update", "tk-1", "--status", "in_progress");
+		now = 1000;
+		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · primera"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-1 · primera"]);
 	});
 
 	it("añade al prompt un resumen corto, sin mensaje ni detalles privados", async () => {

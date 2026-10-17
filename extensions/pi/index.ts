@@ -144,6 +144,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		async execute(_toolCallId, _params, signal, _onUpdate, ctx) {
 			const board = await readBoard(ctx.cwd, signal);
 			setBoardStatus(ctx, board);
+			setBoardWidget(ctx, board);
 
 			return {
 				content: [{ type: "text", text: renderBoard(board) }],

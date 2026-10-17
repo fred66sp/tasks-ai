@@ -5,6 +5,14 @@ Changelog* y el versionado es semántico.
 
 ## [Sin publicar]
 
+### Modificado
+
+- **Las superficies del producto hablan inglés**: la ayuda de todos los comandos, los
+  mensajes de error del CLI, sus avisos por la salida de errores y el cuerpo `error` de
+  la API se emiten en inglés, con los mismos códigos de salida y de estado. La
+  documentación, los comentarios y el texto de la interfaz web siguen en español
+  (`ADR-011`).
+
 ### Añadido
 
 - **La interfaz lleva la identidad del producto**: el encabezado enseña el símbolo

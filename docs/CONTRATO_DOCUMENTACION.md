@@ -85,7 +85,7 @@ proyecto sigue la regla.
 | `docs/decisions/` | Por qué se decidió algo y qué se descartó | Un ADR por decisión: contexto, decisión, alternativas y consecuencias | Requisitos, cifras, estado |
 | Tablero `tk` | Qué se está haciendo | Tareas y partes de épica, relevo y evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, estado de Git ni del proceso de revisión |
 | `task-manager/tk/README.md`, `task-manager/tk/AGENTS.md` | Reglas y notas de esa carpeta | Lo específico de esa carpeta | Lo que ya cubre un documento de la raíz o `docs/` |
-| `docs/web/index.html` | Enseñar a manejar el producto de principio a fin: el recorrido completo, de la instalación al uso diario | El recorrido con las órdenes, sus opciones, sus ejemplos y sus respuestas; los ciclos, las recetas, la interfaz, la API, la configuración, los límites y los errores. La página está en español y en inglés, y cada ejemplo lleva su versión en los dos idiomas, datos incluidos; lo que el producto imprime —mensajes, avisos y el texto que devuelve— se reproduce tal cual, en español. Su identidad visual se toma de `docs/tasks-ai-brand/`: la paleta, las tipografías y el símbolo de la marca, dentro del propio archivo | Requisitos, decisiones, estado del trabajo ni cifras; tampoco es la fuente de verdad de lo que ya tiene dueño: reproduce lo justo para enseñar y se actualiza en el mismo cambio que toque una orden, una opción o un mensaje |
+| `docs/web/index.html` | Enseñar a manejar el producto de principio a fin: el recorrido completo, de la instalación al uso diario | El recorrido con las órdenes, sus opciones, sus ejemplos y sus respuestas; los ciclos, las recetas, la interfaz, la API, la configuración, los límites y los errores. La página está en español y en inglés, y cada ejemplo lleva su versión en los dos idiomas, datos incluidos; lo que el producto imprime —mensajes, avisos y el texto que devuelve— se reproduce tal cual, en el idioma en que lo imprime, que es el inglés de la ayuda y de los errores (`ADR-011`). Su identidad visual se toma de `docs/tasks-ai-brand/`: la paleta, las tipografías y el símbolo de la marca, dentro del propio archivo | Requisitos, decisiones, estado del trabajo ni cifras; tampoco es la fuente de verdad de lo que ya tiene dueño: reproduce lo justo para enseñar y se actualiza en el mismo cambio que toque una orden, una opción o un mensaje |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y cómo se usa | El símbolo aprobado y sus iconos, la paleta y las tipografías con sus tokens, y las normas de uso y fidelidad del arte | Arte nuevo o reinterpretado, requisitos del producto ni el contenido de la guía: la guía lo enlaza y reproduce la identidad dentro de su propio archivo |
 
 ## 6. Lo que no puede aparecer en un documento normativo
@@ -119,9 +119,10 @@ los definió: en su lugar se enuncia el hecho.
 
 ## 7. Cómo se escribe
 
-- **Idioma**: español de España en documentos, código, comentarios y mensajes de
-  la interfaz. Los mensajes de commit y las etiquetas anotadas van en inglés
-  (contrato de Git).
+- **Idioma**: español de España en documentos, código, comentarios y texto de la
+  interfaz web. La ayuda del CLI, los mensajes de error de las dos superficies y los
+  avisos que el producto escribe por la salida de errores van en inglés (`ADR-011`),
+  igual que los mensajes de commit y las etiquetas anotadas (contrato de Git).
 - **Forma**: frases cortas, tablas para lo enumerable, enlaces relativos dentro
   del repositorio.
 - **Cabecera**: cada documento declara su misión en su primera sección. Si no cabe

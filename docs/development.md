@@ -37,8 +37,9 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
   `ADR-009`).
 - Sin ORM y sin capas de indirección sin justificación; una capa nueva es una decisión,
   no una comodidad.
-- Los identificadores del código van en inglés; el texto que ve una persona, en
-  español.
+- Los identificadores del código van en inglés; la documentación, los comentarios y el
+  texto de la interfaz web, en español; la ayuda, los errores y los avisos del
+  producto, en inglés (`ADR-011`).
 - Los mensajes de commit van en inglés, con el formato del contrato de flujo.
 - Los identificadores de los registros son de solo añadir: requisitos en `PRD.md`,
   riesgos en `known-risks.md` y decisiones en sus documentos.

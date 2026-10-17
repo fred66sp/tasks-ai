@@ -59,6 +59,8 @@ lo único que cambia es el idioma de entrada y de salida.
 - Nada del producto vive fuera de su carpeta dentro del proyecto (`RF-03`).
 - El número interno aparece siempre que un dato cruza la frontera del núcleo
   (`RN-03`).
+- La ayuda, los errores y los avisos del producto se escriben en inglés; la
+  documentación, los comentarios y el texto de la interfaz web, en español (`ADR-011`).
 
 ## 5. Dónde vive el estado
 

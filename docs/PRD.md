@@ -128,6 +128,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RNF-01 | El acceso a datos se escribe directamente sobre SQLite: sin ORM ni capas de indirección sin justificación |
 | RNF-02 | Los datos y el servicio viven en la máquina de la persona: no hay servicio remoto |
 | RNF-03 | Varias sesiones o agentes pueden escribir sobre la misma base: la base ordena las escrituras y la interfaz recarga cuando los datos cambian desde fuera |
+| RNF-04 | La ayuda del CLI y los mensajes de error de las dos superficies se emiten en inglés; la documentación, los comentarios y el texto de la interfaz web, en español |
 
 ### Ajustes del proyecto
 

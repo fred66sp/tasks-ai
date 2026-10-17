@@ -132,7 +132,8 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix` y `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones—. No es repetible: un proyecto que ya tiene la base y las instrucciones lo rechaza, y lo que una intenta anterior dejó a medias se completa sin borrar nada.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
-  API responde con `400`—, y `1` en cualquier otro caso.
+  API responde con `400`—, y `1` en cualquier otro caso. El texto de `error`, como la
+  ayuda de los comandos, va en inglés (`ADR-011`).
 
 ## 3. API HTTP
 
@@ -165,7 +166,8 @@ Códigos de estado:
 | `500` | Fallo interno |
 
 El cuerpo de un error es `{"error": "..."}` con el código que corresponde, nunca un
-error dentro de una respuesta correcta.
+error dentro de una respuesta correcta. El mensaje va en inglés y es el mismo que el
+CLI escribe en su JSON de error: lo compone el núcleo, no cada superficie (`ADR-011`).
 
 ## 4. Eventos
 

@@ -131,6 +131,66 @@ func TestRun_completesAnInstallationThatLostItsInstructions(t *testing.T) {
 	}
 }
 
+func TestRun_completesAnInstallationOverABaseComposedWithAnotherPrefix(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	product := filepath.Join(dir, install.DirName)
+
+	if _, err := install.Run(t.Context(), dir, "px"); err != nil {
+		t.Fatalf("la primera instalación devolvió %v", err)
+	}
+
+	// La instalación queda incompleta y la base se queda con el prefijo con el
+	// que se compuso.
+	for _, name := range []string{settings.FileName, "AGENTS.md"} {
+		if err := os.Remove(filepath.Join(product, name)); err != nil {
+			t.Fatalf("quitando %s: %v", name, err)
+		}
+	}
+
+	result, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("completar la instalación devolvió %v", err)
+	}
+
+	if result.Prefix != settings.DefaultPrefix {
+		t.Errorf("la instalación quedó con el prefijo %q, se esperaba el de los ajustes", result.Prefix)
+	}
+
+	cfg, err := settings.Load(product)
+	if err != nil {
+		t.Fatalf("Load devolvió %v", err)
+	}
+
+	base, err := store.Open(t.Context(), settings.DatabasePath(product, cfg))
+	if err != nil {
+		t.Fatalf("abriendo la base instalada: %v", err)
+	}
+
+	t.Cleanup(func() { _ = base.Close() })
+
+	recorded, err := base.RecordedPrefix(t.Context())
+	if err != nil {
+		t.Fatalf("RecordedPrefix devolvió %v", err)
+	}
+
+	if recorded != "px" {
+		t.Errorf("la instalación reescribió el prefijo de la base, quedó en %q y debía seguir en px", recorded)
+	}
+
+	// El desajuste sigue siendo real después de completar: eso es lo que init
+	// tiene que avisar por la salida de errores.
+	note, err := core.New(base, cfg.Prefix).CheckPrefix(t.Context())
+	if err != nil {
+		t.Fatalf("CheckPrefix devolvió %v", err)
+	}
+
+	if note == "" {
+		t.Error("completar la instalación se cargó el desajuste de prefijo que había que avisar")
+	}
+}
+
 func TestRun_keepsTheSettingsThatAreAlreadyThere(t *testing.T) {
 	t.Parallel()
 

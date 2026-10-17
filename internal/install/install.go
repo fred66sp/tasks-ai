@@ -8,6 +8,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"tasks-ai/internal/core"
@@ -80,6 +81,11 @@ func Project(dir string) (string, error) {
 // is already there is left alone, so the settings keep the values the project
 // put in them: asking for another prefix is refused instead of overwritten.
 func Run(ctx context.Context, root, prefix string) (Result, error) {
+	return RunWithWarning(ctx, root, prefix, os.Stderr)
+}
+
+// RunWithWarning installs the product and writes any prefix warning to warning.
+func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer) (Result, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return Result{}, fmt.Errorf("resolving the path of project %s: %w", root, err)
@@ -112,8 +118,15 @@ func Run(ctx context.Context, root, prefix string) (Result, error) {
 
 	defer func() { _ = base.Close() }()
 
-	if _, err := core.New(base, cfg.Prefix).CheckPrefix(ctx); err != nil {
+	note, err := core.New(base, cfg.Prefix).CheckPrefix(ctx)
+	if err != nil {
 		return Result{}, err
+	}
+
+	// El aviso sale por la salida de errores igual que en los demás comandos: el
+	// prefijo distinto no invalida la instalación, que sigue completando.
+	if note != "" {
+		_, _ = fmt.Fprintf(warning, "warning: %s\n", note)
 	}
 
 	return Result{

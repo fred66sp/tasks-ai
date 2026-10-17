@@ -7,6 +7,11 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **`init` avisa al completar una instalación con prefijo distinto**: cuando la base ya
+  conserva referencias escritas con otro prefijo, completar `settings.json` e
+  instrucciones mantiene la instalación y comunica que esas referencias dejan de
+  resolver.
+
 - **La línea del tablero en el TUI lleva el símbolo de la marca**: el estado de la
   extensión empieza por el zorro, como el widget de otras extensiones empieza por el
   suyo, y cuando hay varias tareas en curso las nombra todas con su recuento en vez de

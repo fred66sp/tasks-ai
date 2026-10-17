@@ -222,6 +222,10 @@ func TestInitInstallsTheProduct(t *testing.T) {
 	var installed install.Result
 	decode(t, out, &installed)
 
+	if errOut != "" {
+		t.Errorf("una instalación con la base y los ajustes de acuerdo dejó algo en la salida de errores: %s", errOut)
+	}
+
 	if want := filepath.Join(project, install.DirName); installed.Dir != want {
 		t.Errorf("la instalación quedó en %q, se esperaba %q", installed.Dir, want)
 	}
@@ -1245,6 +1249,72 @@ func TestInitTwiceFails(t *testing.T) {
 
 	if message := errorJSON(t, errOut); !strings.Contains(message, "installed") {
 		t.Errorf("el mensaje no dice que el producto ya está instalado: %s", message)
+	}
+}
+
+// prefixWarning es el aviso exacto con el que init informa de una base escrita
+// con un prefijo distinto del que dicen los ajustes.
+const prefixWarning = `warning: the database was composed with prefix "px" and the settings say "tk": references written with the previous one no longer resolve`
+
+// TestInitCompletesAnInstallationOverABaseWithAnotherPrefix: una base compuesta
+// con px que se queda sin ajustes ni instrucciones se completa con init, y el
+// aviso del prefijo sale por la salida de errores sin romper nada fuera de la
+// carpeta del producto.
+func TestInitCompletesAnInstallationOverABaseWithAnotherPrefix(t *testing.T) {
+	t.Parallel()
+
+	project := t.TempDir()
+	product := filepath.Join(project, install.DirName)
+
+	if code, _, errOut := run(t, project, "init", "--prefix", "px"); code != 0 {
+		t.Fatalf("init --prefix px salió con %d: %s", code, errOut)
+	}
+
+	// La instalación queda incompleta: la base se queda con su prefijo px y los
+	// ajustes y las instrucciones desaparecen, así que init los vuelve a escribir
+	// con el prefijo por omisión.
+	for _, name := range []string{"settings.json", "AGENTS.md"} {
+		if err := os.Remove(filepath.Join(product, name)); err != nil {
+			t.Fatalf("quitando %s: %v", name, err)
+		}
+	}
+
+	code, out, errOut := run(t, project, "init")
+	if code != 0 {
+		t.Fatalf("init sobre la instalación incompleta salió con %d: %s", code, errOut)
+	}
+
+	if !strings.Contains(errOut, prefixWarning) {
+		t.Errorf("init no avisó del prefijo distinto por la salida de errores\nquería: %s\nobtuve: %s", prefixWarning, errOut)
+	}
+
+	var installed install.Result
+	decode(t, out, &installed)
+
+	if installed.Prefix != "tk" {
+		t.Errorf("la instalación quedó con el prefijo %q, se esperaba tk", installed.Prefix)
+	}
+
+	// La operación se conserva: init deja la carpeta otra vez completa.
+	for _, name := range []string{"tasks.db", "settings.json", "AGENTS.md"} {
+		if _, err := os.Stat(filepath.Join(product, name)); err != nil {
+			t.Errorf("init no dejó %s: %v", name, err)
+		}
+	}
+
+	// Y no escribe fuera de la carpeta del producto.
+	entries, err := os.ReadDir(project)
+	if err != nil {
+		t.Fatalf("leyendo el proyecto: %v", err)
+	}
+
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		names = append(names, entry.Name())
+	}
+
+	if len(names) != 1 || names[0] != install.DirName {
+		t.Errorf("init dejó %v en el proyecto, solo debía dejar %q", names, install.DirName)
 	}
 }
 

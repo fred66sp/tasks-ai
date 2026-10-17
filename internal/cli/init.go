@@ -34,7 +34,7 @@ func newInitCommand() *cobra.Command {
 				return err
 			}
 
-			result, err := install.Run(command.Context(), install.Root(dir), prefix)
+			result, err := install.RunWithWarning(command.Context(), install.Root(dir), prefix, command.ErrOrStderr())
 			if err != nil {
 				return err
 			}

@@ -3,7 +3,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { after, before, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
+import type { Detail } from "./board.ts";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import tasksExtension from "./index.ts";
@@ -12,6 +13,7 @@ const binary = path.resolve(import.meta.dirname, "../../bin/tasks-ai");
 
 interface Registered {
 	name: string;
+	parameters: { properties: Record<string, Record<string, unknown>>; required?: string[] };
 	execute: (
 		id: string,
 		params: Record<string, unknown>,
@@ -38,7 +40,7 @@ describe("la extensión", () => {
 	let project: string;
 	let tools: Record<string, Registered>;
 
-	before(() => {
+	beforeEach(() => {
 		process.env.TASKS_AI_BIN = binary;
 		project = mkdtempSync(path.join(tmpdir(), "tasks-ai-extension-"));
 		const init = spawnSync(binary, ["init"], { cwd: project, encoding: "utf8" });
@@ -46,12 +48,59 @@ describe("la extensión", () => {
 		tools = load();
 	});
 
-	after(() => {
+	afterEach(() => {
 		rmSync(project, { recursive: true, force: true });
 	});
 
-	it("registra las dos herramientas de lectura", () => {
-		assert.deepEqual(Object.keys(tools).sort(), ["tasks_board", "tasks_show"]);
+	function cli(...args: string[]) {
+		const result = spawnSync(binary, args, { cwd: project, encoding: "utf8" });
+		assert.equal(result.status, 0, result.stderr);
+		return JSON.parse(result.stdout);
+	}
+
+	async function execute(name: string, params: Record<string, unknown>) {
+		assert.ok(tools[name], `falta la herramienta ${name}`);
+		return tools[name].execute("id", params, undefined, undefined, { cwd: project });
+	}
+
+	async function write(name: string, params: Record<string, unknown>) {
+		const result = await execute(name, params);
+		const task = result.details as Detail;
+		assert.equal(result.content.length, 1);
+		assert.equal(result.content[0].type, "text");
+		assert.ok(result.content[0].text.startsWith(`${task.ref} · `));
+		assert.ok(result.content[0].text.includes(`[${task.status}]`));
+		assert.ok(result.content[0].text.length < 160);
+		assert.ok(!result.content[0].text.includes("\n"));
+		assert.deepEqual(result.details, (cli("list") as Detail[]).find((entry) => entry.ref === task.ref));
+		return task;
+	}
+
+	it("registra las dos herramientas de lectura y las siete de escritura", () => {
+		assert.deepEqual(Object.keys(tools).sort(), [
+			"tasks_block", "tasks_board", "tasks_close", "tasks_comment", "tasks_create",
+			"tasks_reopen", "tasks_show", "tasks_unblock", "tasks_update",
+		]);
+	});
+
+	it("los esquemas declaran los límites y enumerados del CLI sin valores por omisión", () => {
+		for (const name of ["tasks_create", "tasks_update"]) {
+			const fields = tools[name].parameters.properties;
+			assert.equal(fields.priority.type, "integer");
+			assert.equal(fields.priority.minimum, 0);
+			assert.equal(fields.priority.maximum, 3);
+			for (const field of Object.values(fields)) assert.equal(field.default, undefined);
+		}
+		assert.deepEqual(tools.tasks_create.parameters.required, ["title"]);
+		assert.deepEqual(tools.tasks_update.parameters.required, ["ref"]);
+		assert.equal(tools.tasks_create.parameters.properties.tags, undefined);
+		const reasons = tools.tasks_close.parameters.properties.reason.anyOf as { const: string }[];
+		assert.deepEqual(reasons.map((value) => value.const), ["done", "duplicate", "absorbed", "stale", "superseded"]);
+		const statuses = tools.tasks_update.parameters.properties.status.anyOf as { const: string }[];
+		assert.deepEqual(statuses.map((value) => value.const), ["open", "in_progress"]);
+		const body = tools.tasks_comment.parameters.properties.body;
+		assert.equal(body.minLength, 1);
+		assert.ok(!new RegExp(body.pattern as string).test(" \n\t"));
 	});
 
 	it("tasks_board devuelve el tablero del proyecto", async () => {
@@ -64,6 +113,7 @@ describe("la extensión", () => {
 	});
 
 	it("tasks_show devuelve la tarea y rechaza una referencia que no existe", async () => {
+		cli("create", "--title", "una tarea");
 		const shown = await tools.tasks_show.execute("id", { ref: "tk-1" }, undefined, undefined, { cwd: project });
 		assert.match(shown.content[0].text, /^tk-1 · una tarea/);
 
@@ -71,6 +121,106 @@ describe("la extensión", () => {
 			() => tools.tasks_show.execute("id", { ref: "tk-999" }, undefined, undefined, { cwd: project }),
 			/there is no task with reference "tk-999"/,
 		);
+	});
+
+	it("tasks_create crea una tarea y una subtarea visibles en el tablero", async () => {
+		const parent = await write("tasks_create", {
+			title: "padre\ncon detalle", description: "descripción privada", notes: "notas privadas",
+			assignee: "equipo", priority: 0,
+		});
+		const stored = cli("show", parent.ref);
+		assert.equal(stored.description, "descripción privada");
+		assert.equal(stored.notes, "notas privadas");
+		assert.equal(stored.assignee, "equipo");
+		assert.equal(stored.priority, 0);
+		const child = await write("tasks_create", { title: "hija", parent: " TK-1 " });
+		assert.equal(child.parent_id, parent.id);
+		const board = await execute("tasks_board", {});
+		assert.match(board.content[0].text, /tareas: 2 \(abiertas 2/);
+		assert.match(board.content[0].text, /  - tk-2 · hija/);
+		assert.doesNotMatch(board.content[0].text, /descripción privada|notas privadas/);
+	});
+
+	it("una entrada inválida devuelve el error exacto del CLI y no escribe nada", async () => {
+		cli("create", "--title", "existente");
+		const before = cli("list");
+		const rejected = spawnSync(binary, ["create", "--title", "inválida", "--priority", "4"], {
+			cwd: project, encoding: "utf8",
+		});
+		assert.equal(rejected.status, 2);
+		const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+		await assert.rejects(() => execute("tasks_create", { title: "inválida", priority: 4 }),
+			(error: Error) => error.message === message);
+		assert.deepEqual(cli("list"), before);
+	});
+
+	it("tasks_close conserva abierta una tarea con hijas abiertas y propaga el rechazo", async () => {
+		cli("create", "--title", "padre");
+		cli("create", "--title", "hija", "--parent", "tk-1");
+		const before = cli("list");
+		const rejected = spawnSync(binary, ["close", " TK-1 ", "--reason", "done"], {
+			cwd: project, encoding: "utf8",
+		});
+		assert.equal(rejected.status, 1);
+		const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+		await assert.rejects(() => execute("tasks_close", { ref: " TK-1 ", reason: "done" }),
+			(error: Error) => error.message === message);
+		assert.deepEqual(cli("list"), before);
+		assert.equal(cli("show", "tk-1").status, "open");
+	});
+
+	it("tasks_close cierra con motivo y tasks_reopen lo elimina", async () => {
+		cli("create", "--title", "una tarea");
+		const closed = await write("tasks_close", { ref: " TK-1 ", reason: "superseded" });
+		assert.equal(closed.status, "done");
+		assert.equal(cli("show", "tk-1").close_reason, "superseded");
+		const reopened = await write("tasks_reopen", { ref: " TK-1 " });
+		assert.equal(reopened.status, "open");
+		assert.equal(cli("show", "tk-1").close_reason, null);
+	});
+
+	it("tasks_update solo cambia los campos pedidos y pone o quita etiquetas", async () => {
+		cli("create", "--title", "original", "--description", "descripción", "--notes", "notas",
+			"--assignee", "equipo", "--priority", "0");
+		cli("tag", "create", "--name", "docs");
+		cli("update", "tk-1", "--status", "in_progress");
+		const before = cli("list")[0];
+		const renamed = await write("tasks_update", { ref: " TK-1 ", title: "renombrada" });
+		assert.deepEqual({ ...renamed, title: before.title, updated_at: before.updated_at }, before);
+		const tagged = await write("tasks_update", { ref: "tk-1", tags: ["docs"] });
+		assert.deepEqual(tagged.tags, ["docs"]);
+		const cleared = await write("tasks_update", {
+			ref: "tk-1", tags: [], description: "", notes: "", assignee: "", priority: 3,
+		});
+		assert.deepEqual(cleared.tags, []);
+		const stored = cli("show", "tk-1");
+		assert.equal(stored.description, null);
+		assert.equal(stored.notes, null);
+		assert.equal(stored.assignee, null);
+		assert.equal(stored.priority, 3);
+		const opened = await write("tasks_update", { ref: "tk-1", status: "open" });
+		assert.equal(opened.status, "open");
+	});
+
+	it("tasks_block bloquea y tasks_unblock retira el bloqueo", async () => {
+		cli("create", "--title", "dependiente");
+		cli("create", "--title", "bloqueante");
+		const blocked = await write("tasks_block", { ref: " TK-1 ", blocker: " TK-2 " });
+		assert.equal(blocked.blocked, true);
+		assert.equal(cli("show", "tk-1").blockers[0].ref, "tk-2");
+		const unblocked = await write("tasks_unblock", { ref: " TK-1 ", blocker: " TK-2 " });
+		assert.equal(unblocked.blocked, false);
+		assert.deepEqual(cli("show", "tk-1").blockers, []);
+	});
+
+	it("tasks_comment añade el comentario sin volcarlo en el texto", async () => {
+		cli("create", "--title", "una tarea");
+		const result = await execute("tasks_comment", { ref: " TK-1 ", body: "comentario privado\nsegunda línea" });
+		assert.deepEqual((cli("show", "tk-1") as Detail).comments.map((comment) => comment.body),
+			["comentario privado\nsegunda línea"]);
+		assert.deepEqual(result.details, cli("list")[0]);
+		assert.match(result.content[0].text, /^tk-1 · .*\[open\]/);
+		assert.doesNotMatch(result.content[0].text, /comentario privado|\n/);
 	});
 
 	it("sin tablero instalado la herramienta falla con el mensaje del producto", async () => {

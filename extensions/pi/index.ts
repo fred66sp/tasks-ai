@@ -1,11 +1,20 @@
 // Extensión del agente Pi: el tablero del proyecto como herramientas, sobre el CLI
-// del producto (ADR-012). Aquí solo entran las de lectura; las de escritura llegan
-// después y ejecutan los mismos comandos.
+// del producto (ADR-012). Las reglas y los rechazos siguen siendo del producto.
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { deriveBoard, renderBoard, renderDetail, type Detail, type Task } from "./board.ts";
 import { runCli } from "./cli.ts";
+
+const taskFields = {
+	title: Type.Optional(Type.String({ pattern: "\\S", description: "el título de la tarea" })),
+	description: Type.Optional(Type.String()),
+	notes: Type.Optional(Type.String()),
+	assignee: Type.Optional(Type.String()),
+	priority: Type.Optional(Type.Integer({ minimum: 0, maximum: 3 })),
+};
+
+const reference = Type.String({ description: "la referencia visible de la tarea, por ejemplo tk-18" });
 
 export default function tasksExtension(pi: ExtensionAPI) {
 	pi.registerTool({
@@ -47,4 +56,114 @@ export default function tasksExtension(pi: ExtensionAPI) {
 			};
 		},
 	});
+
+	pi.registerTool({
+		name: "tasks_create",
+		label: "Crear tarea",
+		description: "Crea una tarea; usa parent para crear una subtarea de una tarea existente.",
+		parameters: Type.Object({
+			...taskFields,
+			title: Type.String({ pattern: "\\S", description: "el título de la tarea" }),
+			parent: Type.Optional(reference),
+		}),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			const args = ["create"];
+			for (const field of ["title", "description", "notes", "assignee", "priority", "parent"] as const) {
+				if (params[field] !== undefined) args.push(`--${field}`, String(params[field]));
+			}
+			return writeTask(args, "creada", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_update",
+		label: "Actualizar tarea",
+		description: "Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas.",
+		parameters: Type.Object({
+			ref: reference,
+			...taskFields,
+			status: Type.Optional(Type.Union([Type.Literal("open"), Type.Literal("in_progress")])),
+			tags: Type.Optional(Type.Array(Type.String())),
+		}),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			const args = ["update", params.ref];
+			for (const field of ["title", "description", "notes", "assignee", "priority", "status", "tags"] as const) {
+				const value = params[field];
+				if (value !== undefined) args.push(`--${field}`, Array.isArray(value) ? value.join(",") : String(value));
+			}
+			return writeTask(args, "actualizada", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_close",
+		label: "Cerrar tarea",
+		description: "Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas.",
+		parameters: Type.Object({
+			ref: reference,
+			reason: Type.Union([
+				Type.Literal("done"), Type.Literal("duplicate"), Type.Literal("absorbed"),
+				Type.Literal("stale"), Type.Literal("superseded"),
+			]),
+		}),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["close", params.ref, "--reason", params.reason], "cerrada", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_reopen",
+		label: "Reabrir tarea",
+		description: "Reabre una tarea cerrada cuando vuelve a necesitar trabajo y retira su motivo de cierre.",
+		parameters: Type.Object({ ref: reference }),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["reopen", params.ref], "reabierta", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_block",
+		label: "Bloquear tarea",
+		description: "Añade una dependencia cuando una tarea debe esperar a otra; blocker es la tarea que la bloquea.",
+		parameters: Type.Object({ ref: reference, blocker: reference }),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["block", params.ref, params.blocker], "bloqueo añadido", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_unblock",
+		label: "Retirar bloqueo",
+		description: "Retira la dependencia de blocker cuando una tarea ya no debe esperar a esa otra tarea.",
+		parameters: Type.Object({ ref: reference, blocker: reference }),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["unblock", params.ref, params.blocker], "bloqueo retirado", ctx.cwd, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_comment",
+		label: "Comentar tarea",
+		description: "Añade un comentario para dejar avances o contexto en una tarea; no edita comentarios anteriores.",
+		parameters: Type.Object({
+			ref: reference,
+			body: Type.String({ minLength: 1, pattern: "\\S", description: "el texto no vacío del comentario" }),
+		}),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["comment", params.ref, "--body", params.body], "comentario añadido", ctx.cwd, signal);
+		},
+	});
+}
+
+/** Una línea para el modelo; la respuesta completa del producto queda en details. */
+async function writeTask(args: string[], action: string, cwd: string, signal?: AbortSignal) {
+	const outcome = await runCli(args, cwd, signal);
+	if (!outcome.ok) throw new Error(outcome.message);
+
+	const task = outcome.data as Task;
+	const title = task.title.replace(/\s+/g, " ").trim();
+	return {
+		content: [{ type: "text" as const, text: `${task.ref} · ${action} [${task.status}] ${title.length > 60 ? `${title.slice(0, 59)}…` : title}` }],
+		details: outcome.data,
+	};
 }

@@ -70,6 +70,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
 | `.task-ai/` | El tablero del proyecto; la base no se versiona |
+| `skills/` | Las skills del proyecto, copiadas del taller; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.
 - No se traduce la referencia funcional ni se copia su código.
@@ -88,19 +89,34 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 Y siempre, antes de cerrar el cambio, las comprobaciones del contrato de
 documentación.
 
-## Trabajo en Go
+## Trabajo en Go y en TypeScript
 
-Antes de escribir, revisar o depurar código Go, carga las skills del taller para esa
-petición:
+El proyecto lleva dentro las skills que necesita, copiadas del taller
+`workshop-golang`: su origen, sus licencias y cómo volver a copiarlas están en
+[`skills/README.md`](skills/README.md). Se leen por su ruta relativa al proyecto, así que
+no hace falta tener el taller al lado.
 
-```bash
-../../.strm/bin/strm -manifest ../../.strm/skills-manifest.json -prompt "<la petición>"
-```
+Antes de escribir, revisar o depurar código Go, lee `skills/golang-how-to/SKILL.md`, que
+es el orquestador: de la petición saca qué skills cargar y en qué combinación. Las que
+más se usan en este producto:
 
-Después lee `../../skills/golang-how-to/SKILL.md`, que es el orquestador, y las skills
-que señale para la tarea. Para este producto suelen ser `golang-project-layout`,
-`golang-cli`, `golang-database`, `golang-testing`, `golang-error-handling`,
-`golang-code-style`, `golang-lint` y `golang-naming`.
+| Skill | Cuándo |
+|---|---|
+| `skills/golang-project-layout/SKILL.md` | Dónde va un paquete, un comando o un archivo nuevo |
+| `skills/golang-cli/SKILL.md` | Comandos, banderas, ayuda y códigos de salida |
+| `skills/golang-database/SKILL.md` | Esquema, consultas, transacciones y filas anulables |
+| `skills/golang-testing/SKILL.md` | Pruebas de tabla, subtests, paralelas y cobertura |
+| `skills/golang-error-handling/SKILL.md` | Envolver errores, qué mensaje sale y qué cruza la frontera |
+| `skills/golang-code-style/SKILL.md` | Forma del código y de los comentarios |
+| `skills/golang-lint/SKILL.md` | `golangci-lint` y sus reglas |
+| `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
+| `skills/git-flow/SKILL.md` | Ramas, commits y revisión de documentación viva |
+| `skills/adr-skill/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
+| `skills/software-documentalist/SKILL.md` | Documentación rigurosa antes de cerrar un cambio |
+
+Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Las skills
+`prd-writing`, `prd-to-plan` y `prd-to-issue` están para escribir requisitos y partirlos
+en plan o en encargos.
 
 ## Idioma
 

@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="tasks-ai — guía de uso del gestor de tareas local: un binario en Go con línea de órdenes, API HTTP e interfaz web, sobre una base SQLite dentro del proyecto." data-content-en="tasks-ai — usage guide for the local task manager: a single Go binary with a command line, an HTTP API and a web interface, on a SQLite database inside the project.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,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">
+<title data-title-en="tasks-ai — usage guide">tasks-ai — guía de uso</title>
+<script>
+(function () {
+  try {
+    var p = JSON.parse(localStorage.getItem("tasks-ai:prefs") || "{}");
+    var t = p.theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.lang = "es";
+  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+})();
+</script>
+<style>
+  /* Identidad visual: docs/tasks-ai-brand (v3, design/tokens.css). La marca es
+     violeta #8B5CF6, azul #3882F6 y cian #06B6D4; donde el color lleva texto se
+     usa la variante oscurecida que mantiene el contraste AA sobre el fondo claro. */
+  :root {
+    --bg: #f8fafc;
+    --bg-elev: #ffffff;
+    --bg-soft: #f1f5f9;
+    --text: #0f172a;
+    --muted: #5f6b80;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --accent: #7c3aed;
+    --accent-2: #2563eb;
+    --accent-3: #06b6d4;
+    --accent-soft: rgba(124, 58, 237, .10);
+    --ok: #10b981;
+    --warn: #f59e0b;
+    --ok-text: #047857;
+    --warn-text: #b45309;
+    --error-text: #b91c1c;
+    --code-bg: #0a0f1c;
+    --code-text: #e5e7eb;
+    --code-border: #1f2937;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
+    --shadow-lg: 0 20px 60px -30px rgba(15, 23, 42, .35);
+    --radius: 16px;
+    --radius-sm: 10px;
+    /* Inter y JetBrains Mono no se redistribuyen con la marca: si no estan
+       instaladas, el navegador cae en la pila del sistema, sin descargas. */
+    --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0f1c;
+    --bg-elev: #111827;
+    --bg-soft: #1f2937;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --border: #334155;
+    --border-strong: #475569;
+    --accent: #a78bfa;
+    --accent-2: #60a5fa;
+    --accent-3: #06b6d4;
+    --accent-soft: rgba(167, 139, 250, .14);
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --ok-text: #34d399;
+    --warn-text: #fbbf24;
+    --error-text: #f87171;
+    --code-bg: #070b16;
+    --code-text: #e5e7eb;
+    --code-border: #1f2937;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
+    --shadow-lg: 0 24px 70px -34px rgba(0, 0, 0, .9);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  code, pre, kbd { font-family: var(--mono); }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px clamp(16px, 4vw, 40px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  /* El paquete de marca trae un icono por fondo: el claro sobre su cuadro claro
+     y el oscuro sobre el suyo. Se cambian con el tema, sin tocar el arte. */
+  .brand-mark {
+    display: block;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .brand-mark img { width: 100%; height: 100%; display: block; }
+  .brand-mark .brand-icon-dark { display: none; }
+  :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
+  :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
+  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
+  .brand-name small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .topbar-spacer { flex: 1; }
+
+  .lang-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-elev); }
+  .lang-switch button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: 0 12px;
+    height: 36px;
+    cursor: pointer;
+  }
+  .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-elev);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .icon-btn:hover { border-color: var(--border-strong); }
+  .icon-btn:active { transform: translateY(1px); }
+  .icon-btn svg { width: 16px; height: 16px; }
+  :root[data-theme="light"] .icon-sun { display: none; }
+  :root[data-theme="dark"] .icon-moon { display: none; }
+
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(48px, 9vw, 104px) clamp(16px, 4vw, 40px) clamp(40px, 6vw, 72px);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto -10%;
+    height: 420px;
+    background:
+      radial-gradient(60% 60% at 22% 30%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
+      radial-gradient(50% 50% at 70% 6%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 70%),
+      radial-gradient(42% 42% at 92% 26%, color-mix(in srgb, var(--accent-3) 20%, transparent), transparent 70%);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; max-width: 1080px; margin: 0 auto; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent); }
+  .hero h1 {
+    margin: 22px 0 0;
+    font-size: clamp(34px, 6vw, 62px);
+    line-height: 1.04;
+    letter-spacing: -.035em;
+    font-weight: 800;
+  }
+  .hero h1 .grad {
+    color: var(--accent);
+  }
+  .hero p.lead {
+    margin: 20px 0 0;
+    max-width: 660px;
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--muted);
+  }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 650;
+    font-size: 14.5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform .12s, box-shadow .2s, border-color .15s;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: var(--shadow); }
+  .btn-ghost { background: var(--bg-elev); border-color: var(--border-strong); color: var(--text); }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(32px, 5vw, 60px) clamp(16px, 4vw, 40px) 80px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  @media (min-width: 1020px) {
+    .layout { grid-template-columns: 214px minmax(0, 1fr); gap: 56px; }
+  }
+  .toc { display: none; }
+  @media (min-width: 1020px) {
+    .toc { display: block; position: sticky; top: 84px; align-self: start; }
+    .toc h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0 0 12px; }
+    .toc a {
+      display: block;
+      padding: 7px 12px;
+      border-left: 2px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 550;
+    }
+    .toc a:hover { color: var(--text); text-decoration: none; }
+    .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; }
+  }
+  main { min-width: 0; }
+  section { scroll-margin-top: 88px; }
+  section + section { margin-top: 64px; }
+  .section-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .section-num {
+    display: grid; place-items: center;
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  h2.title { margin: 0; font-size: clamp(22px, 3vw, 28px); letter-spacing: -.02em; }
+  .section > p.sub { margin: 6px 0 24px; color: var(--muted); max-width: 74ch; }
+  h3 { margin: 30px 0 10px; font-size: 17px; letter-spacing: -.01em; }
+
+  .grid { display: grid; gap: 16px; }
+  .limits-grid + .limits-grid, .limits-grid + .limits-note { margin-top: 30px; }
+  @media (min-width: 640px) { .grid.cols-2 { grid-template-columns: 1fr 1fr; } .grid.cols-3 { grid-template-columns: repeat(3, 1fr); } }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { margin: 0 0 6px; font-size: 15px; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card .card-ico {
+    display: grid; place-items: center;
+    width: 34px; height: 34px; margin-bottom: 12px;
+    border-radius: 9px;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .card .card-ico svg { width: 18px; height: 18px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--bg-soft);
+    color: var(--muted);
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
+  td code, th code { font-size: 12.8px; }
+  tbody td:first-child { white-space: nowrap; }
+  /* La tabla de errores lleva el mensaje en esa primera columna: ahí el
+     texto tiene que poder partirse, o la tabla arrastra una barra. */
+  .table-wrap.wrap-cells td:first-child { white-space: normal; }
+  .table-wrap.wrap-cells td code { overflow-wrap: anywhere; }
+
+  .sev {
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+  .sev-error { background: color-mix(in srgb, #ef4444 16%, transparent); color: var(--error-text); }
+  .sev-warn { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn-text); }
+  .sev-ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok-text); }
+
+  .code { position: relative; margin: 14px 0; }
+  .code pre {
+    margin: 0;
+    padding: 16px 52px 16px 18px;
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-size: 13.2px;
+    line-height: 1.6;
+    box-shadow: var(--shadow);
+  }
+  .code pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+  .code .copy {
+    position: absolute;
+    top: 9px; right: 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 9px;
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--code-bg) 60%, #ffffff 8%);
+    color: #c8d2e8;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, border-color .15s;
+  }
+  .code:hover .copy, .code .copy:focus-visible { opacity: 1; }
+  .code .copy:hover { border-color: #3b4c72; }
+  @media (hover: none) { .code .copy { opacity: 1; } }
+  .code .copy.copied { color: var(--ok); border-color: var(--ok); }
+  /* Cada ejemplo puede tener su versión en los dos idiomas: se oculta la
+     que no toca y el botón de copiar copia la que se ve. */
+  .code pre[hidden] { display: none; }
+  .code .copy svg { width: 13px; height: 13px; }
+  p code, li code, td code {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .08em .42em;
+    font-size: .88em;
+  }
+  .note {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-left: 1px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: var(--accent-soft);
+    font-size: 14px;
+    margin: 16px 0;
+  }
+  .note strong { color: var(--text); }
+  .note p { margin: 0; }
+
+  .status-strip {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 720px;
+    margin-top: 28px;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--ok) 42%, var(--border));
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--ok) 8%, var(--bg-elev));
+  }
+  .status-mark {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--ok) 18%, transparent);
+    color: var(--ok-text);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+  .status-strip strong { display: block; font-size: 14px; }
+  .status-strip span:not(.status-mark) { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
+  .status-strip--prep { border-color: color-mix(in srgb, var(--warn) 42%, var(--border)); background: color-mix(in srgb, var(--warn) 8%, var(--bg-elev)); }
+  .status-strip--prep .status-mark { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn-text); }
+
+  .flow { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .flow { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1020px) { .flow { grid-template-columns: repeat(3, 1fr); } }
+  .flow-step {
+    min-height: 142px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+  }
+  .flow-step code { color: var(--accent); font-weight: 700; }
+  .flow-step strong { display: block; margin-top: 10px; font-size: 15px; }
+  .flow-step p { margin: 5px 0 0; color: var(--muted); font-size: 13.5px; }
+
+  .role-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 24px; }
+  @media (min-width: 640px) { .role-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1020px) { .role-grid { grid-template-columns: repeat(2, 1fr); } }
+  .role-block {
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elev);
+  }
+  .role-label {
+    display: block;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .role-block h3 { margin: 10px 0 7px; font-size: 17px; }
+  .role-block p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .role-block ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .role-block li + li { margin-top: 5px; }
+
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 28px clamp(16px, 4vw, 40px);
+    color: var(--muted);
+    font-size: 13.5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .footer code { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+  .sev-info { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .qa { border-bottom: 1px solid var(--border); padding: 18px 0; }
+  .qa:last-child { border-bottom: 0; }
+  .qa h3 { margin: 0 0 6px; font-size: 15.5px; }
+  .qa p { margin: 0; color: var(--muted); font-size: 14px; }
+  .qa p + p { margin-top: 8px; }
+  ul.plain { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
+  ul.plain li + li { margin-top: 6px; }
+  .cmd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .cmd .sig { color: var(--muted); font-weight: 500; font-size: 13.5px; }
+</style>
+</head>
+<body>
+
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="data:image/png;base64,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" alt="" width="34" height="34"><img class="brand-icon-dark" src="data:image/png;base64,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" alt="" width="34" height="34"></span>
+    <span class="brand-name" data-i18n="header.1">tasks-ai<small>gestor de tareas local-first</small></span>
+  </a>
+  <span class="topbar-spacer"></span>
+  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" lang="en">EN</button></div><button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <span data-i18n="header.2">Tema</span>
+  </button>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <span class="pill" data-i18n="hero.14"><span class="dot" aria-hidden="true"></span>un binario · línea de órdenes y API · una base por proyecto</span>
+    <h1 data-i18n="hero.15">Aprende a manejar tasks-ai <span class="grad">de principio a fin</span></h1>
+    <p class="lead" data-i18n="hero.16">tasks-ai guarda las tareas de un proyecto en una base SQLite dentro del propio proyecto y las ofrece por línea de órdenes, en JSON, y por una interfaz web que sirve el mismo binario. Esta página recorre el producto entero: instalarlo, modelar el trabajo, manejar cada orden, leer la pantalla y configurarlo.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#empezar" data-i18n="hero.17">Empezar</a>
+      <a class="btn btn-ghost" href="#comandos" data-i18n="hero.18">Ver las órdenes</a>
+    </div>
+    <div class="status-strip" role="status">
+      <span class="status-mark" aria-hidden="true">OK</span>
+      <div><strong data-i18n="hero.20">Lo que se lee aquí se puede repetir</strong><span data-i18n="hero.21">Cada orden, cada opción, cada mensaje de error y cada respuesta de esta página se copiaron del binario real. Las respuestas largas aparecen recortadas a los campos que importan, y se dice cuándo lo están.</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="layout">
+  <nav class="toc" aria-label="Índice de la página" data-aria-en="Page contents">
+    <h2 data-i18n="hero.1">En esta página</h2>
+    <a href="#que-es" data-i18n="hero.2">1. Qué es tasks-ai</a>
+    <a href="#empezar" data-i18n="hero.3">2. Empezar en un proyecto</a>
+    <a href="#modelo" data-i18n="hero.4">3. El modelo de datos</a>
+    <a href="#comandos" data-i18n="hero.5">4. Las órdenes</a>
+    <a href="#ciclo" data-i18n="hero.6">5. El ciclo de vida</a>
+    <a href="#recetas" data-i18n="hero.7">6. Recetas</a>
+    <a href="#interfaz" data-i18n="hero.8">7. La interfaz web</a>
+    <a href="#api" data-i18n="hero.9">8. La API HTTP</a>
+    <a href="#configuracion" data-i18n="hero.10">9. La configuración</a>
+    <a href="#limites" data-i18n="hero.11">10. Lo que no hace</a>
+    <a href="#errores" data-i18n="hero.12">11. Errores y qué significan</a>
+    <a href="#preguntas" data-i18n="hero.13">12. Preguntas cortas</a>
+  </nav>
+
+  <main>
+    <section id="que-es">
+      <div class="section-head"><span class="section-num">1</span><h2 class="title" data-i18n="que-es.2">Qué es tasks-ai</h2></div>
+      <p class="sub" data-i18n="que-es.3">Un gestor de tareas para el proyecto en el que estás, no un servicio al que te conectas. No hay servidor que mantener ni cuenta que crear: hay un binario y una carpeta.</p>
+      <p data-i18n="que-es.4">Las tareas viven en <code>.task-ai/tasks.db</code>, dentro del propio proyecto, y se usan de dos maneras con el mismo binario: por línea de órdenes, siempre en JSON, y por una interfaz web que el binario sirve cuando se le pide con <code>serve</code>. Las dos superficies hacen exactamente las mismas operaciones sobre los mismos datos, así que mover el proyecto de carpeta o de máquina no se lleva nada por delante salvo que olvides la carpeta <code>.task-ai/</code>.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="que-es.5">Ruta</th><th data-i18n="que-es.6">Qué es</th></tr></thead>
+          <tbody>
+            <tr><td><code>.task-ai/tasks.db</code></td><td data-i18n="que-es.7">La base con las tareas, los bloqueos, los comentarios y las etiquetas.</td></tr>
+            <tr><td><code>.task-ai/settings.json</code></td><td data-i18n="que-es.8">El prefijo de las referencias, la base, la dirección y el puerto de la interfaz, y el nivel de registro.</td></tr>
+            <tr><td><code>.task-ai/AGENTS.md</code></td><td data-i18n="que-es.9">Las instrucciones para quien trabaja el proyecto, persona o agente.</td></tr>
+            <tr><td><code>tasks-ai</code></td><td data-i18n="que-es.10">El binario. No necesita nada más para funcionar: la interfaz web viaja dentro.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="que-es.11">El recorrido completo, en cuatro pasos</h3>
+      <div class="flow">
+        <div class="flow-step"><code>init</code><strong data-i18n="que-es.12">Instala</strong><p data-i18n="que-es.13">Deja la carpeta del producto con la base, los ajustes y las instrucciones, y un proyecto ya no lo acepta dos veces.</p></div>
+        <div class="flow-step"><code>create</code><strong data-i18n="que-es.14">Registra</strong><p data-i18n="que-es.15">Cada tarea entra con título obligatorio y, si quieres, descripción, prioridad, responsable, notas y padre.</p></div>
+        <div class="flow-step"><code>list</code><strong data-i18n="que-es.16">Consulta</strong><p data-i18n="que-es.17">El listado devuelve todas las tareas, también las cerradas, con su estado y si están bloqueadas.</p></div>
+        <div class="flow-step"><code>serve</code><strong data-i18n="que-es.18">Mira</strong><p data-i18n="que-es.19">La misma base, en el navegador, con árbol, filtros y avisos de los cambios hechos desde otra ventana.</p></div>
+      </div>
+      <div class="note"><p data-i18n="que-es.20"><strong>La regla mental.</strong> Una tarea es una fila con identidad estable; su referencia visible —<code>tk-1</code>— es lo que escribes y lo que se ve. La base es un archivo, y por eso no hay nada que arrancar antes de trabajar.</p></div>
+    </section>
+
+    <section id="empezar">
+      <div class="section-head"><span class="section-num">2</span><h2 class="title" data-i18n="empezar.2">Empezar en un proyecto</h2></div>
+      <p class="sub" data-i18n="empezar.3">Compilar es el único paso que necesita Go. A partir de ahí, todo lo hace el binario.</p>
+      <div class="code">
+        <pre data-lang="es"><code>go build ./cmd/tasks-ai      # deja el binario tasks-ai en la carpeta actual
+./tasks-ai init              # instala el producto en el proyecto en el que estés</code></pre>
+        <pre data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
+./tasks-ai init              # installs the product in the project you are in</code></pre>
+      </div>
+      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.task-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo y el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones.</p>
+      <div class="code">
+        <pre data-lang="es"><code>{
+  "dir": "/home/ana/informes/.task-ai",
+  "db": "/home/ana/informes/.task-ai/tasks.db",
+  "instructions": "/home/ana/informes/.task-ai/AGENTS.md",
+  "prefix": "tk",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.task-ai/AGENTS.md"
+}</code></pre>
+        <pre data-lang="en" hidden><code>{
+  "dir": "/home/ana/reports/.task-ai",
+  "db": "/home/ana/reports/.task-ai/tasks.db",
+  "instructions": "/home/ana/reports/.task-ai/AGENTS.md",
+  "prefix": "tk",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.task-ai/AGENTS.md"
+}</code></pre>
+      </div>
+      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin esa línea en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.task-ai/AGENTS.md</code>. Añádela donde tu proyecto ya recibe instrucciones.</p></div>
+      <h3 data-i18n="empezar.6">Qué deja escrito</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="empezar.7">Archivo</th><th data-i18n="empezar.8">Qué contiene</th></tr></thead>
+          <tbody>
+            <tr><td><code>tasks.db</code></td><td data-i18n="empezar.9">La base, con su esquema versionado y el prefijo con el que se compusieron las referencias.</td></tr>
+            <tr><td><code>settings.json</code></td><td data-i18n="empezar.10">Los ajustes del producto, con sus valores por omisión, listos para editarse a mano.</td></tr>
+            <tr><td><code>AGENTS.md</code></td><td data-i18n="empezar.11">Qué hay en la carpeta y cómo se usa. Es el documento que lee quien llega nuevo.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="empezar.12">Primera tarea</h3>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai create --title "Preparar el informe trimestral" \
+  --description "Reunir los datos de ventas y redactar el resumen." \
+  --priority 1 --assignee "Alfredo" \
+  --notes "Empieza por el capítulo de ventas."</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai create --title "Prepare the quarterly report" \
+  --description "Gather the sales figures and write the summary." \
+  --priority 1 --assignee "Alfredo" \
+  --notes "Start with the sales chapter."</code></pre>
+      </div>
+      <div class="code">
+        <pre data-lang="es"><code>{
+  "id": 1,
+  "ref": "tk-1",
+  "title": "Preparar el informe trimestral",
+  "description": "Reunir los datos de ventas y redactar el resumen.",
+  "status": "open",
+  "blocked": false,
+  "priority": 1,
+  "assignee": "Alfredo",
+  "parent_id": null,
+  "tags": [],
+  "created_at": "2026-10-17T08:30:31Z",
+  "updated_at": "2026-10-17T08:30:31Z",
+  "close_reason": null,
+  "notes": "Empieza por el capítulo de ventas."
+}</code></pre>
+        <pre data-lang="en" hidden><code>{
+  "id": 1,
+  "ref": "tk-1",
+  "title": "Prepare the quarterly report",
+  "description": "Gather the sales figures and write the summary.",
+  "status": "open",
+  "blocked": false,
+  "priority": 1,
+  "assignee": "Alfredo",
+  "parent_id": null,
+  "tags": [],
+  "created_at": "2026-10-17T09:50:35Z",
+  "updated_at": "2026-10-17T09:50:35Z",
+  "close_reason": null,
+  "notes": "Start with the sales chapter."
+}</code></pre>
+      </div>
+      <p data-i18n="empezar.13">La respuesta es la tarea entera, y es la misma forma que devuelven <code>show</code>, <code>update</code> y <code>close</code>. Si el título falta, no se crea nada:</p>
+      <div class="code">
+        <pre data-lang="es"><code>{ "error": "falta el título de la tarea: usa --title" }      # salida 2</code></pre>
+        <pre data-lang="en" hidden><code>{ "error": "falta el título de la tarea: usa --title" }      # exit 2</code></pre>
+      </div>
+    </section>
+
+    <section id="modelo">
+      <div class="section-head"><span class="section-num">3</span><h2 class="title" data-i18n="modelo.2">El modelo de datos</h2></div>
+      <p class="sub" data-i18n="modelo.3">Seis cosas: tareas, etiquetas, asignaciones de etiquetas, dependencias, comentarios y los ajustes de la base. Todo lo demás es presentación.</p>
+      <h3 data-i18n="modelo.4">La tarea</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="modelo.5">Campo</th><th data-i18n="modelo.6">Tipo</th><th data-i18n="modelo.7">Qué significa</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td data-i18n="modelo.8">entero</td><td data-i18n="modelo.9">Identidad interna. No se presenta: sirve para que renombrar o cambiar el prefijo no rompa nada.</td></tr>
+            <tr><td><code>ref</code></td><td data-i18n="modelo.10">texto</td><td data-i18n="modelo.11">La referencia visible, compuesta con el prefijo del proyecto: <code>tk-1</code>.</td></tr>
+            <tr><td><code>title</code></td><td data-i18n="modelo.12">texto</td><td data-i18n="modelo.13">Obligatorio.</td></tr>
+            <tr><td><code>description</code></td><td data-i18n="modelo.14">texto</td><td data-i18n="modelo.15">Opcional.</td></tr>
+            <tr><td><code>status</code></td><td data-i18n="modelo.16">enumerado</td><td data-i18n="modelo.17"><code>open</code>, <code>in_progress</code> o <code>done</code>.</td></tr>
+            <tr><td><code>blocked</code></td><td data-i18n="modelo.18">booleano</td><td data-i18n="modelo.19">Calculado: cierto mientras alguna bloqueante no esté cerrada. No se guarda.</td></tr>
+            <tr><td><code>priority</code></td><td data-i18n="modelo.20">entero</td><td data-i18n="modelo.21">De <code>0</code> a <code>3</code>, con <code>2</code> por omisión. Fuera de rango se rechaza.</td></tr>
+            <tr><td><code>assignee</code></td><td data-i18n="modelo.22">texto</td><td data-i18n="modelo.23">Opcional. Es texto libre, no un usuario del sistema.</td></tr>
+            <tr><td><code>parent_id</code></td><td data-i18n="modelo.24">entero</td><td data-i18n="modelo.25">El número interno del padre. La referencia del padre se compone con el prefijo.</td></tr>
+            <tr><td data-i18n="modelo.26"><code>created_at</code>, <code>updated_at</code></td><td data-i18n="modelo.27">fecha</td><td data-i18n="modelo.28">En UTC. Cambian solos.</td></tr>
+            <tr><td><code>close_reason</code></td><td data-i18n="modelo.29">enumerado</td><td data-i18n="modelo.30">El motivo del cierre, o nulo si la tarea no está cerrada.</td></tr>
+            <tr><td><code>notes</code></td><td data-i18n="modelo.31">texto</td><td data-i18n="modelo.32">Relevo de quien trabaja: es un solo texto y se sobrescribe.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><p data-i18n="modelo.33"><strong>La prioridad no tiene más significado que su orden.</strong> El producto valida el rango y nada más: no la ordena, no la interpreta y no cambia el comportamiento de ninguna orden. Lo que signifique <code>0</code> lo decides tú y lo escribes en las reglas del proyecto.</p></div>
+      <h3 data-i18n="modelo.34">La etiqueta</h3>
+      <p data-i18n="modelo.35">El catálogo es del proyecto, no de cada tarea: una etiqueta tiene nombre, color y descripción, y las tareas la llevan por su número interno. Por eso <strong>renombrar una etiqueta no toca ninguna tarea</strong>, y borrarla deja a sus tareas sin ella.</p>
+      <ul class="plain">
+        <li data-i18n="modelo.36">El nombre es único y se compara tal cual: <code>docs</code> y <code>Docs</code> son dos etiquetas distintas.</li>
+        <li data-i18n="modelo.37">El color es uno de la paleta y por omisión es <code>blue</code>.</li>
+        <li data-i18n="modelo.38">El uso de una etiqueta sale de las asignaciones, así que <code>tags</code> sabe cuántas tareas la llevan.</li>
+      </ul>
+      <h3 data-i18n="modelo.39">La dependencia</h3>
+      <p data-i18n="modelo.40">Una dependencia dice que una tarea espera a otra: mientras la segunda no esté cerrada, la primera aparece bloqueada. No hay estado «bloqueada» guardado, así que quitar el bloqueo devuelve la tarea a su estado real sin tocar nada más. Bloquear la misma pareja dos veces no cambia nada, y retirar un bloqueo que no está tampoco.</p>
+      <h3 data-i18n="modelo.41">El comentario</h3>
+      <p data-i18n="modelo.42">Un comentario es cuerpo y fecha, y <strong>solo se añade</strong>: no hay manera de editarlo ni de borrarlo, y se leen del primero al último. Es el sitio para las decisiones y las evidencias; las notas son el sitio para el relevo.</p>
+    </section>
+
+    <section id="comandos">
+      <div class="section-head"><span class="section-num">4</span><h2 class="title" data-i18n="comandos.2">Las órdenes</h2></div>
+      <p class="sub" data-i18n="comandos.3">Todas responden en JSON. Los errores también son JSON, con un objeto <code>error</code>, y la salida distingue dos casos: <code>2</code> cuando el uso o la entrada no son válidos, y <code>1</code> en cualquier otro rechazo.</p>
+
+      <h3 class="cmd" data-i18n="comandos.4"><code>init</code><span class="sig">— instala el producto en el proyecto</span></h3>
+      <p data-i18n="comandos.5">Deja <code>.task-ai/</code> y devuelve lo que dejó. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai init
+# { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
+
+./tasks-ai init      # segunda vez sobre el mismo proyecto
+# { "error": "el proyecto ya tiene el producto instalado en /home/ana/informes/.task-ai" }   salida 1</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai init
+# { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
+
+./tasks-ai init      # second time on the same project
+# { "error": "el proyecto ya tiene el producto instalado en /home/ana/reports/.task-ai" }   exit 1</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.6"><code>create</code><span class="sig">— crea una tarea o una subtarea</span></h3>
+      <p data-i18n="comandos.7">El título es obligatorio. Con <code>--parent</code> la tarea nace como subtarea de la que se le da.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="comandos.8">Opción</th><th data-i18n="comandos.9">Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><code>-t</code>, <code>--title</code></td><td data-i18n="comandos.11">Título. Obligatorio.</td></tr>
+            <tr><td><code>-d</code>, <code>--description</code></td><td data-i18n="comandos.13">Descripción.</td></tr>
+            <tr><td><code>--notes</code></td><td data-i18n="comandos.14">Notas del relevo.</td></tr>
+            <tr><td><code>--priority</code></td><td data-i18n="comandos.15">Entero de <code>0</code> a <code>3</code>. Por omisión <code>2</code>.</td></tr>
+            <tr><td><code>--assignee</code></td><td data-i18n="comandos.16">Persona responsable.</td></tr>
+            <tr><td><code>--parent</code></td><td data-i18n="comandos.17">Referencia del padre: la tarea nace como subtarea.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai create --title "Revisar el tono del resumen" --parent tk-1 --priority 3
+# devuelve la tarea con "parent_id": 1
+
+./tasks-ai create --title "Probar" --priority 9
+# { "error": "la prioridad 9 está fuera del rango 0-3" }   salida 2</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai create --title "Review the summary's tone" --parent tk-1 --priority 3
+# returns the task with "parent_id": 1
+
+./tasks-ai create --title "Test" --priority 9
+# { "error": "la prioridad 9 está fuera del rango 0-3" }   exit 2</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.18"><code>list</code><span class="sig">— todas las tareas del proyecto</span></h3>
+      <p data-i18n="comandos.19">Devuelve el listado entero, las cerradas incluidas, cada una con su referencia, su estado, su título y si está bloqueada. No hay filtros ni paginación: el listado es el proyecto.</p>
+      <div class="code">
+        <pre><code>./tasks-ai list
+# [ { "id": 1, "ref": "tk-1", "title": "...", "status": "open", "blocked": true, ... },
+#   { "id": 2, "ref": "tk-2", "title": "...", "status": "done", "blocked": false, ... } ]</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.20"><code>show</code><span class="sig">— una tarea con lo que la rodea</span></h3>
+      <p data-i18n="comandos.21">Es la única orden que trae el contexto: las hijas, las bloqueantes, los dependientes y los comentarios. Para saber por qué una tarea está bloqueada, o qué espera a qué, se mira aquí.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai show tk-1
+# { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
+#   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
+
+./tasks-ai show tk-99
+# { "error": "no hay ninguna tarea con la referencia \"tk-99\"" }   salida 1</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai show tk-1
+# { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
+#   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
+
+./tasks-ai show tk-99
+# { "error": "no hay ninguna tarea con la referencia \"tk-99\"" }   exit 1</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.22"><code>update</code><span class="sig">— cambia lo que se pide y nada más</span></h3>
+      <p data-i18n="comandos.23">Un campo que no se menciona no cambia; un texto que se da vacío deja ese campo sin valor. El estado va solo por aquí, y solo <code>open</code> o <code>in_progress</code>: cerrar tiene su propia orden, con su motivo.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="comandos.24">Opción</th><th data-i18n="comandos.25">Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><code>-t</code>, <code>--title</code></td><td data-i18n="comandos.27">Nuevo título.</td></tr>
+            <tr><td><code>-d</code>, <code>--description</code></td><td data-i18n="comandos.29">Nueva descripción; vacía la quita.</td></tr>
+            <tr><td><code>--notes</code></td><td data-i18n="comandos.30">Nuevas notas; vacías las quitan.</td></tr>
+            <tr><td><code>--priority</code></td><td data-i18n="comandos.31">Nueva prioridad, de <code>0</code> a <code>3</code>.</td></tr>
+            <tr><td><code>--assignee</code></td><td data-i18n="comandos.32">Nuevo responsable; vacío lo quita.</td></tr>
+            <tr><td><code>--tags</code></td><td data-i18n="comandos.33">La lista entera de etiquetas, separadas por comas; vacía las quita todas.</td></tr>
+            <tr><td><code>--status</code></td><td data-i18n="comandos.34"><code>in_progress</code> pone en curso y solo cabe desde <code>open</code>; <code>open</code> devuelve a pendiente.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai update --status in_progress tk-2      # en curso
+./tasks-ai update --tags "docs,urgente" tk-1     # toda la lista de etiquetas
+./tasks-ai update --assignee "" tk-2             # le quita el responsable
+
+./tasks-ai update --status done tk-1
+# { "error": "el estado \"done\" no se pone: cerrar va por close, con el motivo" }   salida 2</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai update --status in_progress tk-2      # in progress
+./tasks-ai update --tags "docs,urgent" tk-1      # the whole tag list
+./tasks-ai update --assignee "" tk-2             # clears the assignee
+
+./tasks-ai update --status done tk-1
+# { "error": "el estado \"done\" no se pone: cerrar va por close, con el motivo" }   exit 2</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.35"><code>close</code><span class="sig">— cierra con motivo</span></h3>
+      <p data-i18n="comandos.36">El motivo es obligatorio y es uno de los cinco conocidos; cerrar deja el estado en <code>done</code> y guarda el motivo.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="comandos.37">Motivo</th><th data-i18n="comandos.38">Cuándo</th></tr></thead>
+          <tbody>
+            <tr><td><code>done</code></td><td data-i18n="comandos.39">Se hizo lo que la tarea pedía.</td></tr>
+            <tr><td><code>duplicate</code></td><td data-i18n="comandos.40">Ya hay otra tarea que la cubre.</td></tr>
+            <tr><td><code>absorbed</code></td><td data-i18n="comandos.41">Su contenido pasó a otra tarea.</td></tr>
+            <tr><td><code>stale</code></td><td data-i18n="comandos.42">Dejó de tener sentido.</td></tr>
+            <tr><td><code>superseded</code></td><td data-i18n="comandos.43">Otra tarea la sustituye.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai close --reason done tk-2
+# { ..., "status": "done", "close_reason": "done" }
+
+./tasks-ai close tk-1
+# { "error": "falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded" }   salida 2</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-2
+# { ..., "status": "done", "close_reason": "done" }
+
+./tasks-ai close tk-1
+# { "error": "falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded" }   exit 2</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.44"><code>reopen</code><span class="sig">— devuelve una cerrada a pendiente</span></h3>
+      <p data-i18n="comandos.45">Quita el motivo de cierre y deja el estado en <code>open</code>. Reabrir algo que no está cerrado se rechaza, y no hay más vuelta atrás que volver a cerrarla.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai reopen tk-2
+./tasks-ai reopen tk-1
+# { "error": "no se puede reabrir la tarea \"tk-1\": no está cerrada" }   salida 1</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai reopen tk-2
+./tasks-ai reopen tk-1
+# { "error": "no se puede reabrir la tarea \"tk-1\": no está cerrada" }   exit 1</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.46"><code>block</code> y <code>unblock</code><span class="sig">— dependencias entre tareas</span></h3>
+      <p data-i18n="comandos.47"><code>block</code> deja la primera bloqueada por la segunda; <code>unblock</code> retira ese bloqueo. Las dos devuelven la primera tarea tal como queda. Una tarea no puede bloquearse por sí misma, y los ciclos se permiten: el producto no impide que A espere a B y B a A.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai block tk-1 tk-2      # tk-1 espera a tk-2
+./tasks-ai unblock tk-1 tk-2    # deja de esperar
+
+./tasks-ai block tk-1 tk-1
+# { "error": "la tarea \"tk-1\" no se puede bloquear por sí misma" }   salida 2</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai block tk-1 tk-2      # tk-1 waits for tk-2
+./tasks-ai unblock tk-1 tk-2    # stops waiting
+
+./tasks-ai block tk-1 tk-1
+# { "error": "la tarea \"tk-1\" no se puede bloquear por sí misma" }   exit 2</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.48"><code>comment</code><span class="sig">— añade un comentario</span></h3>
+      <p data-i18n="comandos.49">El cuerpo es obligatorio y el comentario no se puede editar ni borrar después. Devuelve la tarea tal como está, con su lista de comentarios al final del detalle.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai comment --body "Decidido: el informe se entrega el viernes." tk-1
+./tasks-ai show tk-1      # los comentarios salen al final, del primero al último</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai comment --body "Decided: the report ships on Friday." tk-1
+./tasks-ai show tk-1      # comments come last, first to last</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.50"><code>tags</code><span class="sig">— el catálogo con su uso</span></h3>
+      <p data-i18n="comandos.51">Devuelve todas las etiquetas ordenadas por nombre: identidad, nombre, color, descripción y número de tareas que la llevan.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai tags
+# [ { "id": 1, "name": "docs", "color": "blue",
+#     "description": "Trabajo sobre documentación", "uses": 1 } ]</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai tags
+# [ { "id": 1, "name": "docs", "color": "blue",
+#     "description": "Documentation work", "uses": 1 } ]</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.52"><code>tag create</code> <code>tag edit</code> <code>tag delete</code><span class="sig">— el catálogo se cambia por nombre</span></h3>
+      <p data-i18n="comandos.53">Las etiquetas viajan por su nombre y las tareas las guardan por su número interno. <code>tag edit</code> cambia solo lo que se pide, y renombrar no toca ninguna tarea.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="comandos.54">Orden</th><th data-i18n="comandos.55">Opciones</th></tr></thead>
+          <tbody>
+            <tr><td><code>tag create</code></td><td data-i18n="comandos.56"><code>--name</code> obligatorio; <code>--color</code> —<code>blue</code>, <code>purple</code>, <code>green</code>, <code>yellow</code>, <code>orange</code>, <code>red</code>—; <code>--description</code></td></tr>
+            <tr><td><code>tag edit &lt;nombre&gt;</code></td><td data-i18n="comandos.57"><code>--name</code>, <code>--color</code>, <code>--description</code>: solo lo que se pide</td></tr>
+            <tr><td><code>tag delete &lt;nombre&gt;</code></td><td data-i18n="comandos.58">Sin opciones: borra la etiqueta y sus asignaciones</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai tag create --name "docs" --color blue --description "Trabajo sobre documentación"
+./tasks-ai tag edit --color green docs
+./tasks-ai tag delete docs
+# aviso: la etiqueta "docs" la usaban las tareas tk-1; se han borrado sus asignaciones
+# { "id": 1, "name": "docs", "color": "green", "description": "..." }</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai tag create --name "docs" --color blue --description "Documentation work"
+./tasks-ai tag edit --color green docs
+./tasks-ai tag delete docs
+# aviso: la etiqueta "docs" la usaban las tareas tk-1; se han borrado sus asignaciones
+# { "id": 1, "name": "docs", "color": "green", "description": "..." }</code></pre>
+      </div>
+      <p data-i18n="comandos.59">El aviso de <code>tag delete</code> va por la salida de errores, no por el JSON: si algo dependía de esa etiqueta, se entera quien esté mirando la terminal. Una etiqueta sin uso se borra sin aviso.</p>
+
+      <h3 class="cmd" data-i18n="comandos.60"><code>serve</code><span class="sig">— la interfaz y la API del producto</span></h3>
+      <p data-i18n="comandos.61">Arranca la interfaz web y la API en la dirección y el puerto de los ajustes, y anuncia los cambios por un canal abierto para que dos sesiones se vean. Lo que escribe va por la salida de errores.</p>
+      <div class="code">
+        <pre><code>./tasks-ai serve
+# time=... level=INFO msg="escuchando en http://127.0.0.1:8890"</code></pre>
+      </div>
+      <p data-i18n="comandos.62">La raíz redirige a la interfaz y la API conserva sus rutas <code>/api/...</code>; el detalle está en la sección 7 y en la 8.</p>
+
+      <h3 class="cmd" data-i18n="comandos.63"><code>completion</code><span class="sig">— el autocompletado de la shell</span></h3>
+      <p data-i18n="comandos.64">La orden que añade pflag a cualquier binario: genera el guion de autocompletado para la shell que se le pida. No toca las tareas.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai completion bash      # también zsh, fish y powershell</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai completion bash      # also zsh, fish and powershell</code></pre>
+      </div>
+
+      <h3 data-i18n="comandos.65">Códigos de salida</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="comandos.66">Código</th><th data-i18n="comandos.67">Cuándo</th><th data-i18n="comandos.68">Qué llega por la salida</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sev sev-ok">0</span></td><td data-i18n="comandos.70">La operación se resolvió.</td><td data-i18n="comandos.71">El JSON del resultado.</td></tr>
+            <tr><td><span class="sev sev-info">1</span></td><td data-i18n="comandos.73">La regla lo impide o la referencia no existe: cerrar con subtareas abiertas, reabrir algo abierto, una etiqueta que ya existe.</td><td><code>{"error": "..."}</code></td></tr>
+            <tr><td><span class="sev sev-warn">2</span></td><td data-i18n="comandos.75">Uso o entrada inválidos: falta el título o el motivo, prioridad fuera de rango, color desconocido, estado que no se pone.</td><td><code>{"error": "..."}</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><p data-i18n="comandos.76"><strong>Ningún rechazo escribe.</strong> Una operación que termina con código distinto de cero deja la base como estaba: no hay tareas a medias ni motivos escritos por la mitad.</p></div>
+    </section>
+
+    <section id="ciclo">
+      <div class="section-head"><span class="section-num">5</span><h2 class="title" data-i18n="ciclo.2">El ciclo de vida</h2></div>
+      <p class="sub" data-i18n="ciclo.3">Tres estados y dos reglas que se derivan. Saber cuáles son las transiciones legales evita la mitad de los errores.</p>
+      <div class="flow">
+        <div class="flow-step"><code>open</code><strong data-i18n="ciclo.4">Pendiente</strong><p data-i18n="ciclo.5">Como nace una tarea. Es también donde vuelve <code>reopen</code>.</p></div>
+        <div class="flow-step"><code>in_progress</code><strong data-i18n="ciclo.6">En curso</strong><p data-i18n="ciclo.7">Se entra desde pendiente con <code>update --status in_progress</code>; se sale a pendiente con <code>--status open</code>.</p></div>
+        <div class="flow-step"><code>done</code><strong data-i18n="ciclo.8">Hecha</strong><p data-i18n="ciclo.9">Solo se llega con <code>close</code> y su motivo. No se pone con <code>update</code>.</p></div>
+      </div>
+      <h3 data-i18n="ciclo.10">Las transiciones, una a una</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="ciclo.11">Desde</th><th data-i18n="ciclo.12">Orden</th><th data-i18n="ciclo.13">Queda en</th><th data-i18n="ciclo.14">Qué pasa si no cabe</th></tr></thead>
+          <tbody>
+            <tr><td><code>open</code></td><td><code>update --status in_progress</code></td><td><code>in_progress</code></td><td>—</td></tr>
+            <tr><td><code>in_progress</code></td><td><code>update --status open</code></td><td><code>open</code></td><td>—</td></tr>
+            <tr><td data-i18n="ciclo.17">cualquiera salvo <code>done</code></td><td><code>close --reason ...</code></td><td><code>done</code></td><td data-i18n="ciclo.18">Salida 1 si tiene subtareas abiertas.</td></tr>
+            <tr><td><code>done</code></td><td><code>reopen</code></td><td data-i18n="ciclo.19"><code>open</code>, sin motivo</td><td data-i18n="ciclo.20">Salida 1 si no estaba cerrada.</td></tr>
+            <tr><td><code>done</code></td><td><code>update --status in_progress</code></td><td data-i18n="ciclo.21">Se rechaza</td><td data-i18n="ciclo.22">Salida 2: para volver hay que reabrir.</td></tr>
+            <tr><td data-i18n="ciclo.23">cualquiera</td><td><code>update --status done</code></td><td data-i18n="ciclo.24">Se rechaza</td><td data-i18n="ciclo.25">Salida 2: cerrar va por <code>close</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="ciclo.26">Las dos reglas que se calculan</h3>
+      <p data-i18n="ciclo.27"><strong>Bloqueada.</strong> Una tarea está bloqueada mientras tenga alguna bloqueante sin cerrar. No es un estado que se guarde: se calcula en cada lectura, y por eso quitar el bloqueo la devuelve a lo que era sin tocar la base.</p>
+      <p data-i18n="ciclo.28"><strong>El cierre en cascada no existe.</strong> Cerrar una subtarea no cierra a su padre, y cerrar un padre con subtareas abiertas se rechaza sin escribir nada. Quien cierra decide qué cierra.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai close --reason done tk-1
+# { "error": "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" }   salida 1</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
+# { "error": "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" }   exit 1</code></pre>
+      </div>
+      <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y sirve de relevo: qué falta y cuál es el siguiente paso. Los comentarios son append-only y sirven para lo que no debe perderse: la petición, la decisión y la evidencia.</p></div>
+    </section>
+
+    <section id="recetas">
+      <div class="section-head"><span class="section-num">6</span><h2 class="title" data-i18n="recetas.2">Recetas</h2></div>
+      <p class="sub" data-i18n="recetas.3">Cinco formas de trabajar que el producto hace bien, con las órdenes en su orden.</p>
+
+      <h3 data-i18n="recetas.4">Una épica con subtareas</h3>
+      <p data-i18n="recetas.5">La épica es una tarea normal; las subtareas se crean con <code>--parent</code>. El listado deja ver el padre en cada hija, y la interfaz las anida y muestra el progreso.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai create --title "Publicar la versión 2"                     # tk-3
+./tasks-ai create --title "Actualizar las capturas" --parent tk-3     # tk-4
+./tasks-ai create --title "Escribir las notas" --parent tk-3          # tk-5
+./tasks-ai show tk-3      # las hijas, con su estado y su progreso</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai create --title "Ship version 2"                        # tk-3
+./tasks-ai create --title "Update the screenshots" --parent tk-3     # tk-4
+./tasks-ai create --title "Write the release notes" --parent tk-3    # tk-5
+./tasks-ai show tk-3      # the children, with their status and progress</code></pre>
+      </div>
+
+      <h3 data-i18n="recetas.6">Encadenar trabajo con dependencias</h3>
+      <p data-i18n="recetas.7">Cuando una tarea no se puede empezar hasta que otra esté cerrada, se bloquea. El bloqueo se resuelve solo al cerrar la bloqueante, sin quitar nada a mano.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai block tk-5 tk-4        # escribir las notas espera a las capturas
+./tasks-ai list                   # tk-5 sale bloqueada mientras tk-4 siga abierta
+./tasks-ai close --reason done tk-4
+./tasks-ai list                   # tk-5 deja de estar bloqueada</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai block tk-5 tk-4        # writing the notes waits for the screenshots
+./tasks-ai list                   # tk-5 shows blocked while tk-4 is open
+./tasks-ai close --reason done tk-4
+./tasks-ai list                   # tk-5 is no longer blocked</code></pre>
+      </div>
+
+      <h3 data-i18n="recetas.8">Ordenar el trabajo con etiquetas</h3>
+      <p data-i18n="recetas.9">El catálogo se crea una vez y las tareas lo llevan por nombre. Una etiqueta con color y descripción se lee mejor en la pantalla, y renombrarla no rompe ninguna tarea.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai tag create --name "docs" --color blue --description "Documentación"
+./tasks-ai tag create --name "urgente" --color red
+./tasks-ai update --tags "docs,urgente" tk-1
+./tasks-ai tags                   # el uso de cada una</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai tag create --name "docs" --color blue --description "Documentation"
+./tasks-ai tag create --name "urgent" --color red
+./tasks-ai update --tags "docs,urgent" tk-1
+./tasks-ai tags                   # how many tasks carry each one</code></pre>
+      </div>
+
+      <h3 data-i18n="recetas.10">Dejar constancia de una decisión</h3>
+      <p data-i18n="recetas.11">Lo que hay que poder releer meses después va en un comentario; el relevo del día va en las notas, que se pueden sustituir sin miedo.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai comment --body "Se descarta el PDF: el informe se entrega en HTML." tk-1
+./tasks-ai update --notes "Falta la revisión de tono; sigue con tk-2." tk-1</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai comment --body "PDF is out: the report ships as HTML." tk-1
+./tasks-ai update --notes "Tone review still missing; continue with tk-2." tk-1</code></pre>
+      </div>
+
+      <h3 data-i18n="recetas.12">Trabajar con un agente</h3>
+      <p data-i18n="recetas.13">La carpeta del producto lleva sus propias instrucciones. El agente las encuentra si el proyecto las enlaza, y a partir de ahí usa las mismas órdenes que una persona: no hay una superficie distinta para él.</p>
+      <div class="code">
+        <pre data-lang="es"><code># en el archivo de instrucciones del proyecto
+@.task-ai/AGENTS.md
+
+# lo que el agente hace después, igual que una persona
+./tasks-ai list
+./tasks-ai update --status in_progress tk-2
+./tasks-ai comment --body "Prueba añadida y en verde." tk-2
+./tasks-ai close --reason done tk-2</code></pre>
+        <pre data-lang="en" hidden><code># in the project's instruction file
+@.task-ai/AGENTS.md
+
+# what the agent does next, same as a person
+./tasks-ai list
+./tasks-ai update --status in_progress tk-2
+./tasks-ai comment --body "Test added and green." tk-2
+./tasks-ai close --reason done tk-2</code></pre>
+      </div>
+      <div class="note"><p data-i18n="recetas.14"><strong>Una tarea deja de ser «del agente» en cuanto la escribe.</strong> El responsable es texto libre: si quieres distinguir quién hizo qué, escríbelo con <code>--assignee</code> o déjalo en los comentarios. El producto no guarda un autor por operación.</p></div>
+    </section>
+
+    <section id="interfaz">
+      <div class="section-head"><span class="section-num">7</span><h2 class="title" data-i18n="interfaz.2">La interfaz web</h2></div>
+      <p class="sub" data-i18n="interfaz.3">La misma base, en el navegador. No hay nada que construir ni que instalar: la interfaz viaja dentro del binario.</p>
+      <div class="code">
+        <pre><code>./tasks-ai serve
+# time=2026-10-17T10:30:49+02:00 level=INFO msg="escuchando en http://127.0.0.1:8891"</code></pre>
+      </div>
+      <p data-i18n="interfaz.4">La dirección y el puerto salen de <code>settings.json</code>. La raíz responde con una redirección a la interfaz —código <code>302</code>—, así que abrir <code>http://127.0.0.1:8890/</code> es suficiente.</p>
+      <div class="code">
+        <pre><code>curl -s -D - -o /dev/null http://127.0.0.1:8891/
+# HTTP/1.1 302 Found
+# Location: /task-manager/app-vue.html</code></pre>
+      </div>
+      <h3 data-i18n="interfaz.5">Qué se ve</h3>
+      <div class="grid cols-2">
+        <div class="card"><h3 data-i18n="interfaz.6">El árbol</h3><p data-i18n="interfaz.7">Las tareas anidadas por su padre, cada épica con el progreso de sus subtareas y el recuento del proyecto.</p></div>
+        <div class="card"><h3 data-i18n="interfaz.8">Las pestañas</h3><p data-i18n="interfaz.9">Pendientes, en curso y hechas, con el mismo estado que devuelve la API: lo que ves es lo que hay.</p></div>
+        <div class="card"><h3 data-i18n="interfaz.10">Los filtros</h3><p data-i18n="interfaz.11">Por estado, prioridad, etiqueta y texto. Se combinan, y el árbol se pliega y se despliega.</p></div>
+        <div class="card"><h3 data-i18n="interfaz.12">Los avisos de cambio</h3><p data-i18n="interfaz.13">Lo que cambia desde otra ventana o desde la terminal aparece solo, con su aviso, sin recargar.</p></div>
+      </div>
+      <h3 data-i18n="interfaz.14">Lo que conviene saber antes de fiarse de la pantalla</h3>
+      <ul class="plain">
+        <li data-i18n="interfaz.15">El plegado del árbol se guarda en el navegador. Con un filtro puesto, una tarea que encaja puede no verse porque su padre está plegado: despliega antes de dudar del dato, o compruébalo con <code>show</code>.</li>
+        <li data-i18n="interfaz.16">La ventana que hace un cambio no repite su propio aviso; las demás sí lo ven. El aviso no dice quién lo pidió, porque el estado y el aviso son los mismos venga de donde venga.</li>
+        <li data-i18n="interfaz.17">Al abrir o recargar la pantalla no aparece el historial de avisos anteriores: el canal cuenta lo que pasa mientras miras.</li>
+      </ul>
+      <div class="note"><p data-i18n="interfaz.18"><strong>Dos sesiones se ven porque el aviso se lee de la base.</strong> No hay memoria compartida entre procesos: un cambio pedido por la terminal llega al canal igual que uno pedido por la API.</p></div>
+    </section>
+
+    <section id="api">
+      <div class="section-head"><span class="section-num">8</span><h2 class="title" data-i18n="api.2">La API HTTP</h2></div>
+      <p class="sub" data-i18n="api.3">La misma superficie que la interfaz, en JSON y sobre HTTP. Sirve para integrar el gestor con otra herramienta o para automatizar sin shell.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="api.4">Método y ruta</th><th data-i18n="api.5">Para qué</th></tr></thead>
+          <tbody>
+            <tr><td><code>GET /api/tasks</code></td><td data-i18n="api.6">El listado de tareas.</td></tr>
+            <tr><td><code>GET /api/tasks/:ref</code></td><td data-i18n="api.7">El detalle con bloqueantes, dependientes, hijas y comentarios.</td></tr>
+            <tr><td><code>POST /api/tasks</code></td><td data-i18n="api.8">Crear una tarea o una subtarea.</td></tr>
+            <tr><td><code>PATCH /api/tasks/:ref</code></td><td data-i18n="api.9">Cambiar campos o el estado; el estado va solo en el cambio, sin otros campos.</td></tr>
+            <tr><td><code>POST /api/tasks/:ref/close</code></td><td data-i18n="api.10">Cerrar con su motivo.</td></tr>
+            <tr><td><code>POST /api/tasks/:ref/blockers</code></td><td data-i18n="api.11">Añadir un bloqueo.</td></tr>
+            <tr><td><code>DELETE /api/tasks/:ref/blockers/:blockerRef</code></td><td data-i18n="api.12">Retirar un bloqueo.</td></tr>
+            <tr><td><code>POST /api/tasks/:ref/comments</code></td><td data-i18n="api.13">Añadir un comentario.</td></tr>
+            <tr><td><code>GET /api/tags</code></td><td data-i18n="api.14">El catálogo de etiquetas con su uso.</td></tr>
+            <tr><td><code>POST /api/tags</code></td><td data-i18n="api.15">Crear una etiqueta.</td></tr>
+            <tr><td><code>PATCH /api/tags/:name</code></td><td data-i18n="api.16">Renombrar, recolorear o describir.</td></tr>
+            <tr><td><code>DELETE /api/tags/:name</code></td><td data-i18n="api.17">Borrar una etiqueta.</td></tr>
+            <tr><td><code>GET /api/events</code></td><td data-i18n="api.18">El canal de cambios.</td></tr>
+            <tr><td><code>GET /api/status</code></td><td data-i18n="api.19">Versión, esquema y prefijo en uso.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="api.20">Códigos de estado</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="api.21">Código</th><th data-i18n="api.22">Cuándo</th></tr></thead>
+          <tbody>
+            <tr><td><code>200</code></td><td data-i18n="api.23">La operación se resolvió.</td></tr>
+            <tr><td><code>201</code></td><td data-i18n="api.24">Se creó el recurso.</td></tr>
+            <tr><td><code>400</code></td><td data-i18n="api.25">Entrada inválida: prioridad fuera de rango, motivo desconocido, campos que faltan.</td></tr>
+            <tr><td><code>404</code></td><td data-i18n="api.26">La referencia no corresponde a ninguna tarea ni etiqueta.</td></tr>
+            <tr><td><code>409</code></td><td data-i18n="api.27">Una regla lo impide: cerrar una tarea con subtareas abiertas.</td></tr>
+            <tr><td><code>500</code></td><td data-i18n="api.28">Fallo interno.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p data-i18n="api.29">El cuerpo de un error es siempre <code>{"error": "..."}</code>, con el código que corresponde, y nunca un error dentro de una respuesta correcta. El estado del producto se consulta con una petición y responde la versión, la versión del esquema y el prefijo en uso:</p>
+      <div class="code">
+        <pre><code>curl -s http://127.0.0.1:8891/api/status
+# {"version":"0.1.0","schema":4,"prefix":"tk"}</code></pre>
+      </div>
+      <h3 data-i18n="api.30">El canal de cambios</h3>
+      <p data-i18n="api.31"><code>GET /api/events</code> mantiene un canal abierto y emite un evento por aviso, en el orden en que ocurrieron. Cada evento lleva el nombre <code>workspace.changed</code> y el aviso en JSON: el recurso que cambió, sin decir quién lo pidió.</p>
+      <div class="code">
+        <pre data-lang="es"><code>id: 11
+event: workspace.changed
+data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title":"Preparar el informe trimestral de ventas"}]}</code></pre>
+        <pre data-lang="en" hidden><code>id: 11
+event: workspace.changed
+data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title":"Prepare the quarterly report"}]}</code></pre>
+      </div>
+      <ul class="plain">
+        <li data-i18n="api.32"><code>changes</code> nombra la tarea con su referencia, lo que le pasó —<code>creada</code>, <code>cerrada</code> o <code>actualizada</code>— y su título. El aviso de una etiqueta no lo lleva.</li>
+        <li data-i18n="api.33">Quien lee continúa donde se quedó: la primera lectura pide <code>?after=&lt;id&gt;</code> y al reconectar se retoma del aviso de la cabecera <code>Last-Event-ID</code>. Sin ninguna de las dos, el canal empieza por el cambio siguiente, así que abrir la pantalla no suelta el historial.</li>
+        <li data-i18n="api.34">El aviso se lee de la base, no de la memoria del servidor: por eso un cambio pedido por la terminal llega al canal.</li>
+        <li data-i18n="api.35">En el listado de la API, <code>parent_id</code> es el número interno del padre; la referencia visible la compone quien pinta, con el prefijo del proyecto.</li>
+      </ul>
+    </section>
+
+    <section id="configuracion">
+      <div class="section-head"><span class="section-num">9</span><h2 class="title" data-i18n="configuracion.2">La configuración</h2></div>
+      <p class="sub" data-i18n="configuracion.3">Un archivo, cuatro claves, y la posibilidad de editarlo a mano. El producto lo escribe al instalar y no vuelve a tocarlo.</p>
+      <div class="code">
+        <pre><code>{
+  "prefix": "tk",
+  "db": "tasks.db",
+  "http": { "host": "127.0.0.1", "port": 8890 },
+  "log": { "level": "info" }
+}</code></pre>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="configuracion.4">Clave</th><th data-i18n="configuracion.5">Tipo</th><th data-i18n="configuracion.6">Por omisión</th><th data-i18n="configuracion.7">Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td><code>prefix</code></td><td data-i18n="configuracion.8">texto</td><td><code>tk</code></td><td data-i18n="configuracion.9">El prefijo de las referencias. Empieza por letra o número y sigue con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres.</td></tr>
+            <tr><td><code>db</code></td><td data-i18n="configuracion.10">ruta</td><td><code>tasks.db</code></td><td data-i18n="configuracion.11">La base, relativa a la carpeta del producto.</td></tr>
+            <tr><td><code>http.host</code></td><td data-i18n="configuracion.12">texto</td><td><code>127.0.0.1</code></td><td data-i18n="configuracion.13">La dirección en la que escucha <code>serve</code>.</td></tr>
+            <tr><td><code>http.port</code></td><td data-i18n="configuracion.14">entero</td><td><code>8890</code></td><td data-i18n="configuracion.15">El puerto de <code>serve</code>.</td></tr>
+            <tr><td><code>log.level</code></td><td data-i18n="configuracion.16">enumerado</td><td><code>info</code></td><td data-i18n="configuracion.17"><code>debug</code>, <code>info</code>, <code>warn</code> o <code>error</code>: cuánto escribe <code>serve</code> por la salida de errores.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="configuracion.18">Cambiar el prefijo</h3>
+      <p data-i18n="configuracion.19">El prefijo cambia lo que se escribe, no lo que se guarda: la base no se reescribe y las referencias del prefijo anterior dejan de resolver. El producto lo avisa al arrancar y sigue con el nuevo, así que el cambio se hace una vez y se deja.</p>
+      <div class="code">
+        <pre data-lang="es"><code># settings.json con "prefix": "inf"
+./tasks-ai create --title "Preparar el informe"      # devuelve "ref": "inf-6"
+./tasks-ai show tk-1                                 # ya no resuelve: la tarea es inf-1</code></pre>
+        <pre data-lang="en" hidden><code># settings.json with "prefix": "inf"
+./tasks-ai create --title "Prepare the report"      # returns "ref": "inf-6"
+./tasks-ai show tk-1                                # no longer resolves: the task is inf-1</code></pre>
+      </div>
+      <div class="note"><p data-i18n="configuracion.20"><strong>Un valor inválido detiene el arranque</strong> con un mensaje claro, en lugar de arrancar con una configuración a medias. Es lo que quieres: un prefijo mal escrito cambiaría todas las referencias.</p></div>
+    </section>
+
+    <section id="limites">
+      <div class="section-head"><span class="section-num">10</span><h2 class="title" data-i18n="limites.2">Lo que no hace</h2></div>
+      <p class="sub" data-i18n="limites.3">Tan importante como lo anterior: lo que el producto no promete, para no esperarlo.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-i18n="limites.4">No hace</th><th data-i18n="limites.5">Qué significa en la práctica</th></tr></thead>
+          <tbody>
+            <tr><td data-i18n="limites.6">Borrar tareas</td><td data-i18n="limites.7">No hay orden de borrado. Una tarea se cierra con su motivo y se queda: el histórico del proyecto no se pierde.</td></tr>
+            <tr><td data-i18n="limites.8">Editar o borrar comentarios</td><td data-i18n="limites.9">Solo se añaden. Si algo estaba mal, se corrige con otro comentario, no reescribiendo el anterior.</td></tr>
+            <tr><td data-i18n="limites.10">Guardar el estado «bloqueada»</td><td data-i18n="limites.11">Se calcula en cada lectura desde las dependencias; no es un estado que se pueda poner ni quitar a mano.</td></tr>
+            <tr><td data-i18n="limites.12">Impedir ciclos de dependencias</td><td data-i18n="limites.13">Se permiten: A puede esperar a B y B a A. Si pasa, las dos aparecen bloqueadas y hay que retirar un bloqueo.</td></tr>
+            <tr><td data-i18n="limites.14">Cerrar en cascada</td><td data-i18n="limites.15">Cerrar una subtarea no cierra al padre, y un padre con subtareas abiertas no se puede cerrar.</td></tr>
+            <tr><td data-i18n="limites.16">Interpretar la prioridad</td><td data-i18n="limites.17">Valida el rango y nada más: no ordena, no filtra por sí sola ni cambia el comportamiento de nada.</td></tr>
+            <tr><td data-i18n="limites.18">Tener usuarios ni permisos</td><td data-i18n="limites.19">No hay autenticación: el producto supone una persona en su máquina y escucha en <code>127.0.0.1</code> por omisión. Cambiar <code>http.host</code> expone la API a quien llegue a esa dirección, sin más protección.</td></tr>
+            <tr><td data-i18n="limites.20">Sincronizar entre máquinas</td><td data-i18n="limites.21">La base es un archivo local. Ni se sincroniza ni se comparte sola, y dos procesos escribiendo sobre la misma base no es una forma de trabajo soportada.</td></tr>
+            <tr><td data-i18n="limites.22">Versionar el proyecto</td><td data-i18n="limites.23">No sabe nada de Git ni de ramas: no registra commits, ni autores, ni estados de revisión.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><p data-i18n="limites.24"><strong>La carpeta del producto es el producto.</strong> Copiar <code>.task-ai/</code> a otro proyecto se lleva las tareas enteras; olvidarla al mover el proyecto se lleva la mitad de la historia.</p></div>
+    </section>
+
+    <section id="errores">
+      <div class="section-head"><span class="section-num">11</span><h2 class="title" data-i18n="errores.2">Errores y qué significan</h2></div>
+      <p class="sub" data-i18n="errores.3">Los mensajes reales, con lo que hay que hacer con cada uno. Todos son JSON con una clave <code>error</code> y ninguno escribe nada.</p>
+      <div class="table-wrap wrap-cells">
+        <table>
+          <thead><tr><th data-i18n="errores.4">Mensaje</th><th data-i18n="errores.5">Salida</th><th data-i18n="errores.6">Qué hacer</th></tr></thead>
+          <tbody>
+            <tr><td><code>falta el título de la tarea: usa --title</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.8">Añadir <code>--title</code>. Un título vacío es un título que falta.</td></tr>
+            <tr><td><code>la prioridad 9 está fuera del rango 0-3</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.10">Usar un entero de <code>0</code> a <code>3</code>.</td></tr>
+            <tr><td><code>falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.12">Añadir <code>--reason</code> con uno de los cinco.</td></tr>
+            <tr><td><code>el estado "done" no se pone: cerrar va por close, con el motivo</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.14">Usar <code>close --reason</code>.</td></tr>
+            <tr><td><code>el color "verde" no es válido: usa uno de blue, purple, green, yellow, orange, red</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.16">Escribir el color en inglés, tal como sale en la lista.</td></tr>
+            <tr><td><code>la tarea "tk-1" no se puede bloquear por sí misma</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.18">Bloquear contra otra tarea.</td></tr>
+            <tr><td><code>no hay ninguna tarea con la referencia "tk-99"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.20">Revisar la referencia con <code>list</code>. Si el prefijo cambió, la referencia vieja ya no resuelve.</td></tr>
+            <tr><td><code>no se puede cerrar la tarea "tk-1": tiene subtareas abiertas</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.22">Cerrar o mover las subtareas primero; el padre no cierra en cascada.</td></tr>
+            <tr><td><code>no se puede reabrir la tarea "tk-1": no está cerrada</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.24">Ya está pendiente o en curso: no hay nada que reabrir.</td></tr>
+            <tr><td><code>ya existe una etiqueta con el nombre "docs"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.26">Editar la que hay con <code>tag edit</code>, o usar otro nombre.</td></tr>
+            <tr><td><code>el proyecto ya tiene el producto instalado en .../.task-ai</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.28">No hace falta instalar otra vez: usa las órdenes directamente.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 data-i18n="errores.29">Cuando la orden no llega a ejecutarse</h3>
+      <p data-i18n="errores.30">Si el error no es JSON, el problema está antes del producto: el binario no se ejecuta. Un binario copiado sin permiso de ejecución responde <code>EACCES</code> desde la interfaz y <code>Permission denied</code> desde la terminal, y se arregla con un permiso, no con otra orden:</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai list
+# bash: ./tasks-ai: Permission denied          código 126
+
+chmod +x tasks-ai                              # y vuelve a probar</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai list
+# bash: ./tasks-ai: Permission denied          code 126
+
+chmod +x tasks-ai                              # then try again</code></pre>
+      </div>
+      <p data-i18n="errores.31">Si la orden llega pero no encuentra el proyecto, es que no hay carpeta <code>.task-ai/</code> en el camino: <code>init</code> la crea, y se ejecuta desde dentro del proyecto.</p>
+    </section>
+
+    <section id="preguntas">
+      <div class="section-head"><span class="section-num">12</span><h2 class="title" data-i18n="preguntas.2">Preguntas cortas</h2></div>
+      <p class="sub" data-i18n="preguntas.3">Para quien llega con una duda concreta y no quiere releer la página entera.</p>
+      <div class="qa"><h3 data-i18n="preguntas.4">¿Dónde están mis tareas?</h3><p data-i18n="preguntas.5">En <code>.task-ai/tasks.db</code>, dentro del proyecto. No hay nada fuera de esa carpeta: si la copias, te llevas las tareas; si la borras, no hay nada que recuperar.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.6">¿Puedo borrar una tarea?</h3><p data-i18n="preguntas.7">No. Se cierra con un motivo —<code>done</code>, <code>duplicate</code>, <code>absorbed</code>, <code>stale</code> o <code>superseded</code>— y se queda en el listado. Se puede reabrir después.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.8">¿Necesito Node o algo más para usar la interfaz?</h3><p data-i18n="preguntas.9">No. La interfaz viaja dentro del binario: <code>serve</code> es lo único que hace falta. Node solo entra si trabajas en el código de la interfaz, no para usarla.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.10">¿Por qué todo responde en JSON?</h3><p data-i18n="preguntas.11">Porque la línea de órdenes y los agentes son consumidores de primera clase: un JSON se lee, se filtra y se encadena sin analizar texto pensado para ojos humanos. La interfaz web usa la API, que devuelve las mismas formas.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.12">¿Puedo tener dos proyectos con el gestor?</h3><p data-i18n="preguntas.13">Sí: cada proyecto tiene su propia carpeta <code>.task-ai/</code> y su propia base. No se ven entre ellos y no hay un listado común.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.14">¿Dos personas pueden trabajar a la vez?</h3><p data-i18n="preguntas.15">No está pensado para eso. La base es un archivo local y no se sincroniza; dos procesos escribiendo sobre la misma base no es una forma de trabajo soportada.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.16">¿Cómo sabe un agente que las tareas están aquí?</h3><p data-i18n="preguntas.17">Porque el archivo de instrucciones del proyecto enlaza <code>.task-ai/AGENTS.md</code>. <code>init</code> devuelve la línea exacta en <code>pointer</code>; sin ella, el agente no tiene por qué enterarse.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.18">¿Qué pasa si cambio el prefijo?</h3><p data-i18n="preguntas.19">Que las referencias nuevas lo usan y las viejas dejan de resolver. La base no se reescribe: los números internos son los mismos, y el aviso al arrancar lo dice.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.20">¿La prioridad 0 es la más alta?</h3><p data-i18n="preguntas.21">El producto no lo decide: solo valida el rango de <code>0</code> a <code>3</code>. La convención que uses es tuya, y conviene escribirla en las reglas del proyecto.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.22">¿Puedo usar solo la API, sin la interfaz?</h3><p data-i18n="preguntas.23">Sí. La API es la misma superficie que usa la interfaz. Lo que no hay es un modo sin <code>serve</code>: la API vive en ese proceso.</p></div>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <span data-i18n="footer.1">tasks-ai · gestor de tareas local-first escrito en Go</span>
+  <span data-i18n="footer.2">Una carpeta por proyecto · línea de órdenes, API e interfaz · <code>.task-ai/</code></span>
+</footer>
+
+
+
+
+<script type="application/json" id="tasks-ai-en">
+{
+ "header.1": "tasks-ai<small>local-first task manager</small>",
+ "header.2": "Theme",
+ "hero.1": "On this page",
+ "hero.2": "1. What tasks-ai is",
+ "hero.3": "2. Starting in a project",
+ "hero.4": "3. The data model",
+ "hero.5": "4. The commands",
+ "hero.6": "5. The task lifecycle",
+ "hero.7": "6. Recipes",
+ "hero.8": "7. The web interface",
+ "hero.9": "8. The HTTP API",
+ "hero.10": "9. Configuration",
+ "hero.11": "10. What it does not do",
+ "hero.12": "11. Errors and what they mean",
+ "hero.13": "12. Short answers",
+ "hero.14": "<span class=\"dot\" aria-hidden=\"true\"></span>one binary · command line and API · one database per project",
+ "hero.15": "Learn to drive tasks-ai <span class=\"grad\">from end to end</span>",
+ "hero.16": "tasks-ai keeps a project's tasks in a SQLite database inside the project itself and offers them on the command line, as JSON, and through a web interface served by the same binary. This page walks the whole product: installing it, modelling the work, running every command, reading the screen and configuring it.",
+ "hero.17": "Get started",
+ "hero.18": "See the commands",
+ "hero.20": "Everything on this page can be repeated",
+ "hero.21": "Every command, every option, every error message and every response on this page was copied from the real binary. Long responses are trimmed to the fields that matter, and the page says when they are.",
+ "que-es.2": "What tasks-ai is",
+ "que-es.3": "A task manager for the project you are in, not a service you connect to. There is no server to maintain and no account to create: there is a binary and a folder.",
+ "que-es.4": "Tasks live in <code>.task-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.task-ai/</code> folder with it.",
+ "que-es.5": "Path",
+ "que-es.6": "What it is",
+ "que-es.7": "The database with tasks, blockers, comments and tags.",
+ "que-es.8": "The reference prefix, the database, the interface address and port, and the log level.",
+ "que-es.9": "The instructions for whoever works on the project, person or agent.",
+ "que-es.10": "The binary. It needs nothing else to run: the web interface travels inside it.",
+ "que-es.11": "The whole loop, in four steps",
+ "que-es.12": "Installs",
+ "que-es.13": "Leaves the product folder with the database, the settings and the instructions, and a project no longer accepts a second install.",
+ "que-es.14": "Records",
+ "que-es.15": "Every task comes in with a mandatory title and, if you want, a description, priority, assignee, notes and parent.",
+ "que-es.16": "Reads back",
+ "que-es.17": "The listing returns every task, closed ones included, with its status and whether it is blocked.",
+ "que-es.18": "Looks",
+ "que-es.19": "The same database, in the browser, with a tree, filters and notices for changes made from another window.",
+ "que-es.20": "<strong>The mental model.</strong> A task is a row with a stable identity; its visible reference —<code>tk-1</code>— is what you type and what you see. The database is a file, which is why there is nothing to start before you work.",
+ "empezar.2": "Starting in a project",
+ "empezar.3": "Compiling is the only step that needs Go. From there on, the binary does everything.",
+ "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.task-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, and the text to add outside so that people and agents find the instructions.",
+ "empezar.5": "<strong>The pointer is half the job.</strong> Without that line in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.task-ai/AGENTS.md</code>. Add it wherever your project already receives instructions.",
+ "empezar.6": "What it writes",
+ "empezar.7": "File",
+ "empezar.8": "What it holds",
+ "empezar.9": "The database, with its versioned schema and the prefix its references were composed with.",
+ "empezar.10": "The product settings, with their defaults, ready to be edited by hand.",
+ "empezar.11": "What the folder holds and how to use it. It is the document a newcomer reads.",
+ "empezar.12": "First task",
+ "empezar.13": "The response is the whole task, and it is the same shape returned by <code>show</code>, <code>update</code> and <code>close</code>. If the title is missing, nothing is created:",
+ "modelo.2": "The data model",
+ "modelo.3": "Six things: tasks, tags, tag assignments, dependencies, comments and the database settings. Everything else is presentation.",
+ "modelo.4": "The task",
+ "modelo.5": "Field",
+ "modelo.6": "Type",
+ "modelo.7": "What it means",
+ "modelo.8": "integer",
+ "modelo.9": "Internal identity. It is not shown: it is what keeps a rename or a prefix change from breaking anything.",
+ "modelo.10": "text",
+ "modelo.11": "The visible reference, composed with the project prefix: <code>tk-1</code>.",
+ "modelo.12": "text",
+ "modelo.13": "Mandatory.",
+ "modelo.14": "text",
+ "modelo.15": "Optional.",
+ "modelo.16": "enum",
+ "modelo.17": "<code>open</code>, <code>in_progress</code> or <code>done</code>.",
+ "modelo.18": "boolean",
+ "modelo.19": "Computed: true while any blocker is not closed. It is not stored.",
+ "modelo.20": "integer",
+ "modelo.21": "From <code>0</code> to <code>3</code>, defaulting to <code>2</code>. Out of range is rejected.",
+ "modelo.22": "text",
+ "modelo.23": "Optional. It is free text, not a system user.",
+ "modelo.24": "integer",
+ "modelo.25": "The parent's internal number. The parent's reference is composed with the prefix.",
+ "modelo.26": "<code>created_at</code>, <code>updated_at</code>",
+ "modelo.27": "timestamp",
+ "modelo.28": "In UTC. They change on their own.",
+ "modelo.29": "enum",
+ "modelo.30": "The close reason, or null if the task is not closed.",
+ "modelo.31": "text",
+ "modelo.32": "The working handover: it is a single text and it is overwritten.",
+ "modelo.33": "<strong>Priority means nothing beyond its order.</strong> The product validates the range and nothing else: it does not sort, does not interpret it and does not change how any command behaves. What <code>0</code> means is your call, and it belongs in the project rules.",
+ "modelo.34": "The tag",
+ "modelo.35": "The catalogue belongs to the project, not to each task: a tag has a name, a colour and a description, and tasks carry it by its internal number. That is why <strong>renaming a tag touches no task</strong>, and deleting it leaves its tasks without it.",
+ "modelo.36": "The name is unique and compared as written: <code>docs</code> and <code>Docs</code> are two different tags.",
+ "modelo.37": "The colour is one from the palette and defaults to <code>blue</code>.",
+ "modelo.38": "A tag's usage comes from the assignments, so <code>tags</code> knows how many tasks carry it.",
+ "modelo.39": "The dependency",
+ "modelo.40": "A dependency says one task waits for another: while the second is not closed, the first shows as blocked. There is no stored \"blocked\" status, so removing the blocker returns the task to its real state without touching anything else. Blocking the same pair twice changes nothing, and removing a blocker that is not there does nothing either.",
+ "modelo.41": "The comment",
+ "modelo.42": "A comment is a body and a timestamp, and it <strong>is only ever added</strong>: there is no way to edit or delete it, and they read from first to last. It is the place for decisions and evidence; notes are the place for the handover.",
+ "comandos.2": "The commands",
+ "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
+ "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
+ "comandos.5": "Leaves <code>.task-ai/</code> and returns what it left. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
+ "comandos.6": "<code>create</code><span class=\"sig\">— creates a task or a subtask</span>",
+ "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given.",
+ "comandos.8": "Option",
+ "comandos.9": "What it does",
+ "comandos.11": "Title. Mandatory.",
+ "comandos.13": "Description.",
+ "comandos.14": "Handover notes.",
+ "comandos.15": "Integer from <code>0</code> to <code>3</code>. Defaults to <code>2</code>.",
+ "comandos.16": "The person responsible.",
+ "comandos.17": "The parent reference: the task is born as a subtask.",
+ "comandos.18": "<code>list</code><span class=\"sig\">— every task in the project</span>",
+ "comandos.19": "Returns the whole listing, closed tasks included, each with its reference, its status, its title and whether it is blocked. There are no filters and no paging: the listing is the project.",
+ "comandos.20": "<code>show</code><span class=\"sig\">— one task with its surroundings</span>",
+ "comandos.21": "It is the only command that brings context: the children, the blockers, the dependents and the comments. To learn why a task is blocked, or what waits for what, this is where you look.",
+ "comandos.22": "<code>update</code><span class=\"sig\">— changes what is asked and nothing else</span>",
+ "comandos.23": "A field that is not mentioned does not change; a text given empty leaves that field with no value. Status only changes here, and only to <code>open</code> or <code>in_progress</code>: closing has its own command, with its reason.",
+ "comandos.24": "Option",
+ "comandos.25": "What it does",
+ "comandos.27": "New title.",
+ "comandos.29": "New description; empty removes it.",
+ "comandos.30": "New notes; empty removes them.",
+ "comandos.31": "New priority, from <code>0</code> to <code>3</code>.",
+ "comandos.32": "New assignee; empty removes it.",
+ "comandos.33": "The whole list of tags, comma separated; empty removes them all.",
+ "comandos.34": "<code>in_progress</code> starts the task and only fits from <code>open</code>; <code>open</code> sends it back to pending.",
+ "comandos.35": "<code>close</code><span class=\"sig\">— closes with a reason</span>",
+ "comandos.36": "The reason is mandatory and is one of the five known ones; closing sets the status to <code>done</code> and stores the reason.",
+ "comandos.37": "Reason",
+ "comandos.38": "When",
+ "comandos.39": "What the task asked for was done.",
+ "comandos.40": "Another task already covers it.",
+ "comandos.41": "Its content moved into another task.",
+ "comandos.42": "It stopped making sense.",
+ "comandos.43": "Another task replaces it.",
+ "comandos.44": "<code>reopen</code><span class=\"sig\">— sends a closed task back to pending</span>",
+ "comandos.45": "It removes the close reason and sets the status to <code>open</code>. Reopening something that is not closed is rejected, and the only way back is to close it again.",
+ "comandos.46": "<code>block</code> and <code>unblock</code><span class=\"sig\">— dependencies between tasks</span>",
+ "comandos.47": "<code>block</code> leaves the first task blocked by the second; <code>unblock</code> removes that blocker. Both return the first task as it ends up. A task cannot be blocked by itself, and cycles are allowed: the product does not stop A waiting for B and B waiting for A.",
+ "comandos.48": "<code>comment</code><span class=\"sig\">— adds a comment</span>",
+ "comandos.49": "The body is mandatory and the comment cannot be edited or deleted afterwards. It returns the task as it is, with its comment list at the end of the detail.",
+ "comandos.50": "<code>tags</code><span class=\"sig\">— the catalogue with its usage</span>",
+ "comandos.51": "Returns every tag sorted by name: identity, name, colour, description and the number of tasks that carry it.",
+ "comandos.52": "<code>tag create</code> <code>tag edit</code> <code>tag delete</code><span class=\"sig\">— the catalogue changes by name</span>",
+ "comandos.53": "Tags travel by their name and tasks store them by their internal number. <code>tag edit</code> changes only what is asked, and renaming touches no task.",
+ "comandos.54": "Command",
+ "comandos.55": "Options",
+ "comandos.56": "<code>--name</code> mandatory; <code>--color</code> —<code>blue</code>, <code>purple</code>, <code>green</code>, <code>yellow</code>, <code>orange</code>, <code>red</code>—; <code>--description</code>",
+ "comandos.57": "<code>--name</code>, <code>--color</code>, <code>--description</code>: only what is asked",
+ "comandos.58": "No options: deletes the tag and its assignments",
+ "comandos.59": "The <code>tag delete</code> notice goes to standard error, not into the JSON: if something depended on that tag, whoever is watching the terminal finds out. An unused tag is deleted without a notice.",
+ "comandos.60": "<code>serve</code><span class=\"sig\">— the interface and the product API</span>",
+ "comandos.61": "Starts the web interface and the API on the address and port from the settings, and announces changes on an open channel so two sessions see each other. What it writes goes to standard error.",
+ "comandos.62": "The root redirects to the interface and the API keeps its <code>/api/...</code> routes; the detail is in section 7 and section 8.",
+ "comandos.63": "<code>completion</code><span class=\"sig\">— shell completion</span>",
+ "comandos.64": "The command pflag adds to every binary: it generates the completion script for the shell it is asked for. It does not touch the tasks.",
+ "comandos.65": "Exit codes",
+ "comandos.66": "Code",
+ "comandos.67": "When",
+ "comandos.68": "What comes out",
+ "comandos.70": "The operation was resolved.",
+ "comandos.71": "The JSON of the result.",
+ "comandos.73": "A rule stops it or the reference does not exist: closing with open subtasks, reopening something open, a tag that already exists.",
+ "comandos.75": "Invalid usage or input: missing title or reason, priority out of range, unknown colour, a status that is not set that way.",
+ "comandos.76": "<strong>No rejection writes.</strong> An operation that ends with a non-zero code leaves the database as it was: no half-created tasks and no half-written reasons.",
+ "ciclo.2": "The lifecycle",
+ "ciclo.3": "Three statuses and two derived rules. Knowing which transitions are legal avoids half of the errors.",
+ "ciclo.4": "Pending",
+ "ciclo.5": "How a task is born. It is also where <code>reopen</code> sends it back.",
+ "ciclo.6": "In progress",
+ "ciclo.7": "You get in from pending with <code>update --status in_progress</code>; you get out to pending with <code>--status open</code>.",
+ "ciclo.8": "Done",
+ "ciclo.9": "Only <code>close</code> and its reason get you there. It is not set with <code>update</code>.",
+ "ciclo.10": "The transitions, one by one",
+ "ciclo.11": "From",
+ "ciclo.12": "Command",
+ "ciclo.13": "Ends in",
+ "ciclo.14": "What happens when it does not fit",
+ "ciclo.17": "anything except <code>done</code>",
+ "ciclo.18": "Exit 1 if it has open subtasks.",
+ "ciclo.19": "<code>open</code>, with no reason",
+ "ciclo.20": "Exit 1 if it was not closed.",
+ "ciclo.21": "Rejected",
+ "ciclo.22": "Exit 2: to go back you have to reopen it.",
+ "ciclo.23": "any status",
+ "ciclo.24": "Rejected",
+ "ciclo.25": "Exit 2: closing goes through <code>close</code>.",
+ "ciclo.26": "The two rules that are computed",
+ "ciclo.27": "<strong>Blocked.</strong> A task is blocked while it has any blocker that is not closed. It is not a stored status: it is computed on every read, which is why removing the blocker returns it to what it was without touching the database.",
+ "ciclo.28": "<strong>Cascading closes do not exist.</strong> Closing a subtask does not close its parent, and closing a parent with open subtasks is rejected without writing anything. Whoever closes decides what gets closed.",
+ "ciclo.29": "<strong>Notes and comments are not the same thing.</strong> <code>notes</code> is a single text that is overwritten and serves as the handover: what is missing and what comes next. Comments are append-only and are for what must not be lost: the request, the decision and the evidence.",
+ "recetas.2": "Recipes",
+ "recetas.3": "Five ways of working the product does well, with the commands in order.",
+ "recetas.4": "An epic with subtasks",
+ "recetas.5": "An epic is a normal task; subtasks are created with <code>--parent</code>. The listing shows the parent on each child, and the interface nests them and shows progress.",
+ "recetas.6": "Chaining work with dependencies",
+ "recetas.7": "When a task cannot start until another is closed, it is blocked. The block clears itself when the blocker closes, with nothing to remove by hand.",
+ "recetas.8": "Ordering work with tags",
+ "recetas.9": "The catalogue is created once and tasks carry it by name. A tag with a colour and a description reads better on screen, and renaming it breaks no task.",
+ "recetas.10": "Recording a decision",
+ "recetas.11": "What has to be readable months later goes in a comment; the day's handover goes in the notes, which can be replaced without fear.",
+ "recetas.12": "Working with an agent",
+ "recetas.13": "The product folder carries its own instructions. The agent finds them if the project links them, and from there it uses the same commands a person does: there is no separate surface for it.",
+ "recetas.14": "<strong>A task stops being \"the agent's\" the moment it writes one.</strong> The assignee is free text: if you want to tell who did what, write it with <code>--assignee</code> or leave it in the comments. The product does not store an author per operation.",
+ "interfaz.2": "The web interface",
+ "interfaz.3": "The same database, in the browser. There is nothing to build and nothing to install: the interface travels inside the binary.",
+ "interfaz.4": "The address and port come from <code>settings.json</code>. The root answers with a redirect to the interface —code <code>302</code>— so opening <code>http://127.0.0.1:8890/</code> is enough.",
+ "interfaz.5": "What you see",
+ "interfaz.6": "The tree",
+ "interfaz.7": "Tasks nested under their parent, each epic with the progress of its subtasks and the project count.",
+ "interfaz.8": "The tabs",
+ "interfaz.9": "Pending, in progress and done, with the same status the API returns: what you see is what is there.",
+ "interfaz.10": "The filters",
+ "interfaz.11": "By status, priority, tag and text. They combine, and the tree folds and unfolds.",
+ "interfaz.12": "The change notices",
+ "interfaz.13": "Whatever changes from another window or from the terminal shows up on its own, with its notice, without reloading.",
+ "interfaz.14": "What to know before trusting the screen",
+ "interfaz.15": "The tree's folded state is stored in the browser. With a filter applied, a matching task may not appear because its parent is folded: unfold before doubting the data, or check it with <code>show</code>.",
+ "interfaz.16": "The window that makes a change does not repeat its own notice; the others do see it. The notice does not say who asked for it, because the status and the notice are the same wherever it comes from.",
+ "interfaz.17": "Opening or reloading the screen does not replay earlier notices: the channel tells you what happens while you watch.",
+ "interfaz.18": "<strong>Two sessions see each other because the notice is read from the database.</strong> There is no memory shared between processes: a change requested from the terminal reaches the channel just like one requested from the API.",
+ "api.2": "The HTTP API",
+ "api.3": "The same surface as the interface, in JSON over HTTP. It is there to integrate the manager with another tool or to automate without a shell.",
+ "api.4": "Method and route",
+ "api.5": "What it is for",
+ "api.6": "The task listing.",
+ "api.7": "The detail with blockers, dependents, children and comments.",
+ "api.8": "Create a task or a subtask.",
+ "api.9": "Change fields or the status; the status goes alone in the change, with no other fields.",
+ "api.10": "Close with its reason.",
+ "api.11": "Add a blocker.",
+ "api.12": "Remove a blocker.",
+ "api.13": "Add a comment.",
+ "api.14": "The tag catalogue with its usage.",
+ "api.15": "Create a tag.",
+ "api.16": "Rename, recolour or describe.",
+ "api.17": "Delete a tag.",
+ "api.18": "The change channel.",
+ "api.19": "Version, schema and the prefix in use.",
+ "api.20": "Status codes",
+ "api.21": "Code",
+ "api.22": "When",
+ "api.23": "The operation was resolved.",
+ "api.24": "The resource was created.",
+ "api.25": "Invalid input: priority out of range, unknown reason, missing fields.",
+ "api.26": "The reference matches no task or tag.",
+ "api.27": "A rule stops it: closing a task with open subtasks.",
+ "api.28": "Internal failure.",
+ "api.29": "An error body is always <code>{\"error\": \"...\"}</code>, with the code that corresponds, and never an error inside a successful response. The product status is one request away and answers the version, the schema version and the prefix in use:",
+ "api.30": "The change channel",
+ "api.31": "<code>GET /api/events</code> keeps a channel open and emits one event per notice, in the order they happened. Each event carries the name <code>workspace.changed</code> and the notice as JSON: the resource that changed, without saying who asked for it.",
+ "api.32": "<code>changes</code> names the task with its reference, what happened to it —<code>creada</code>, <code>cerrada</code> or <code>actualizada</code>— and its title. A tag notice does not carry it.",
+ "api.33": "A reader continues where it stopped: the first read asks for <code>?after=&lt;id&gt;</code> and on reconnect it resumes from the notice in the <code>Last-Event-ID</code> header. With neither, the channel starts at the next change, so opening the screen does not release the history.",
+ "api.34": "The notice is read from the database, not from the server's memory: that is why a change requested from the terminal reaches the channel.",
+ "api.35": "In the API listing, <code>parent_id</code> is the parent's internal number; the visible reference is composed by whoever renders, with the project prefix.",
+ "configuracion.2": "Configuration",
+ "configuracion.3": "One file, four keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
+ "configuracion.4": "Key",
+ "configuracion.5": "Type",
+ "configuracion.6": "Default",
+ "configuracion.7": "What it does",
+ "configuracion.8": "text",
+ "configuracion.9": "The reference prefix. It starts with a letter or a digit and continues with letters, digits, hyphens or underscores, up to thirty-two characters.",
+ "configuracion.10": "path",
+ "configuracion.11": "The database, relative to the product folder.",
+ "configuracion.12": "text",
+ "configuracion.13": "The address <code>serve</code> listens on.",
+ "configuracion.14": "integer",
+ "configuracion.15": "The <code>serve</code> port.",
+ "configuracion.16": "enum",
+ "configuracion.17": "<code>debug</code>, <code>info</code>, <code>warn</code> or <code>error</code>: how much <code>serve</code> writes to standard error.",
+ "configuracion.18": "Changing the prefix",
+ "configuracion.19": "The prefix changes what you type, not what is stored: the database is not rewritten and references with the previous prefix stop resolving. The product warns on start and continues with the new one, so you change it once and leave it.",
+ "configuracion.20": "<strong>An invalid value stops the start</strong> with a clear message, instead of starting with a half-configured product. That is what you want: a mistyped prefix would change every reference.",
+ "limites.2": "What it does not do",
+ "limites.3": "As important as everything above: what the product does not promise, so you do not expect it.",
+ "limites.4": "It does not",
+ "limites.5": "What that means in practice",
+ "limites.6": "Delete tasks",
+ "limites.7": "There is no delete command. A task is closed with its reason and stays: the project's history is not lost.",
+ "limites.8": "Edit or delete comments",
+ "limites.9": "They are only added. If something was wrong, it is corrected with another comment, not by rewriting the previous one.",
+ "limites.10": "Store a \"blocked\" status",
+ "limites.11": "It is computed on every read from the dependencies; it is not a status you can set or clear by hand.",
+ "limites.12": "Prevent dependency cycles",
+ "limites.13": "They are allowed: A can wait for B and B for A. If it happens, both show as blocked and you have to remove one blocker.",
+ "limites.14": "Close in cascade",
+ "limites.15": "Closing a subtask does not close the parent, and a parent with open subtasks cannot be closed.",
+ "limites.16": "Interpret priority",
+ "limites.17": "It validates the range and nothing else: it does not sort, does not filter on its own and changes no behaviour.",
+ "limites.18": "Have users or permissions",
+ "limites.19": "There is no authentication: the product assumes one person on their machine and listens on <code>127.0.0.1</code> by default. Changing <code>http.host</code> exposes the API to anyone who reaches that address, with no further protection.",
+ "limites.20": "Synchronise across machines",
+ "limites.21": "The database is a local file. It neither syncs nor shares itself, and two processes writing to the same database is not a supported way of working.",
+ "limites.22": "Version the project",
+ "limites.23": "It knows nothing about Git or branches: it records no commits, no authors and no review states.",
+ "limites.24": "<strong>The product folder is the product.</strong> Copying <code>.task-ai/</code> into another project takes the tasks with it; forgetting it when moving the project takes half the story.",
+ "errores.2": "Errors and what they mean",
+ "errores.3": "The real messages, with what to do about each one. They are all JSON with an <code>error</code> key and none of them writes anything.",
+ "errores.4": "Message",
+ "errores.5": "Exit",
+ "errores.6": "What to do",
+ "errores.8": "Add <code>--title</code>. An empty title is a missing title.",
+ "errores.10": "Use an integer from <code>0</code> to <code>3</code>.",
+ "errores.12": "Add <code>--reason</code> with one of the five.",
+ "errores.14": "Use <code>close --reason</code>.",
+ "errores.16": "Write the colour in English, exactly as it appears in the list.",
+ "errores.18": "Block it against another task.",
+ "errores.20": "Check the reference with <code>list</code>. If the prefix changed, the old reference no longer resolves.",
+ "errores.22": "Close or move the subtasks first; the parent does not close in cascade.",
+ "errores.24": "It is already pending or in progress: there is nothing to reopen.",
+ "errores.26": "Edit the existing one with <code>tag edit</code>, or use another name.",
+ "errores.28": "There is no need to install again: use the commands directly.",
+ "errores.29": "When the command never runs",
+ "errores.30": "If the error is not JSON, the problem comes before the product: the binary does not run. A binary copied without execute permission answers <code>EACCES</code> from the interface and <code>Permission denied</code> from the terminal, and a permission fixes it, not another command:",
+ "errores.31": "If the command runs but does not find the project, there is no <code>.task-ai/</code> folder in the path: <code>init</code> creates it, and it runs from inside the project.",
+ "preguntas.2": "Short answers",
+ "preguntas.3": "For whoever arrives with one specific doubt and does not want to re-read the whole page.",
+ "preguntas.4": "Where are my tasks?",
+ "preguntas.5": "In <code>.task-ai/tasks.db</code>, inside the project. Nothing lives outside that folder: copy it and the tasks come along; delete it and there is nothing to recover.",
+ "preguntas.6": "Can I delete a task?",
+ "preguntas.7": "No. It is closed with a reason —<code>done</code>, <code>duplicate</code>, <code>absorbed</code>, <code>stale</code> or <code>superseded</code>— and stays in the listing. It can be reopened later.",
+ "preguntas.8": "Do I need Node or anything else for the interface?",
+ "preguntas.9": "No. The interface travels inside the binary: <code>serve</code> is all it takes. Node only comes into play if you work on the interface's code, not to use it.",
+ "preguntas.10": "Why does everything answer in JSON?",
+ "preguntas.11": "Because the command line and agents are first-class consumers: JSON can be read, filtered and chained without parsing text meant for human eyes. The web interface uses the API, which returns the same shapes.",
+ "preguntas.12": "Can I have two projects with the manager?",
+ "preguntas.13": "Yes: each project has its own <code>.task-ai/</code> folder and its own database. They do not see each other and there is no shared listing.",
+ "preguntas.14": "Can two people work at the same time?",
+ "preguntas.15": "It is not designed for that. The database is a local file and does not sync; two processes writing to the same database is not a supported way of working.",
+ "preguntas.16": "How does an agent know the tasks are here?",
+ "preguntas.17": "Because the project's instruction file links <code>.task-ai/AGENTS.md</code>. <code>init</code> returns the exact line in <code>pointer</code>; without it, the agent has no reason to find out.",
+ "preguntas.18": "What happens if I change the prefix?",
+ "preguntas.19": "New references use it and old ones stop resolving. The database is not rewritten: the internal numbers stay the same, and the warning on start says so.",
+ "preguntas.20": "Is priority 0 the highest?",
+ "preguntas.21": "The product does not decide that: it only validates the range from <code>0</code> to <code>3</code>. The convention you use is yours, and it belongs in the project rules.",
+ "preguntas.22": "Can I use only the API, without the interface?",
+ "preguntas.23": "Yes. The API is the same surface the interface uses. What does not exist is a mode without <code>serve</code>: the API lives in that process.",
+ "footer.1": "tasks-ai · local-first task manager written in Go",
+ "footer.2": "One folder per project · command line, API and interface · <code>.task-ai/</code>"
+}
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "tasks-ai:prefs";
+  var root = document.documentElement;
+  var EN = JSON.parse(document.getElementById("tasks-ai-en").textContent);
+
+  var COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  var CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  // El texto original de cada nodo se guarda una vez: cambiar de idioma es
+  // devolverlo tal cual, no volver a traducir al español.
+  var originals = [];
+  document.querySelectorAll("[data-i18n]").forEach(function (el) {
+    originals.push({ el: el, key: el.getAttribute("data-i18n"), html: el.innerHTML });
+  });
+
+  function copyLabel(lang) { return lang === "en" ? "Copy" : "Copiar"; }
+  function copiedLabel(lang) { return lang === "en" ? "Copied" : "Copiado"; }
+
+  function refreshCopyButtons(lang) {
+    document.querySelectorAll(".code .copy").forEach(function (btn) {
+      if (btn.classList.contains("copied")) { return; }
+      btn.innerHTML = COPY_ICON + "<span>" + copyLabel(lang) + "</span>";
+      btn.setAttribute("aria-label", copyLabel(lang));
+    });
+  }
+
+  function updateThemeLabel(lang) {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) { return; }
+    var dark = root.getAttribute("data-theme") === "dark";
+    var label;
+    if (lang === "en") { label = dark ? "Switch to light theme" : "Switch to dark theme"; }
+    else { label = dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"; }
+    btn.setAttribute("aria-label", label);
+  }
+
+  // Las etiquetas de accesibilidad también cambian de idioma: quien usa un
+  // lector de pantalla no debería oír el índice en español dentro de la
+  // versión inglesa.
+  var ariaNodes = [];
+  document.querySelectorAll("[data-aria-en]").forEach(function (el) {
+    ariaNodes.push({ el: el, es: el.getAttribute("aria-label"), en: el.getAttribute("data-aria-en") });
+  });
+
+  var titleNode = document.querySelector("title[data-title-en]");
+  var descriptionNode = document.querySelector("meta[data-content-en]");
+  var titleEs = titleNode ? titleNode.textContent : "";
+  var descriptionEs = descriptionNode ? descriptionNode.getAttribute("content") : "";
+
+  function applyLang(lang) {
+    if (lang !== "en") { lang = "es"; }
+    root.lang = lang;
+    if (titleNode) { titleNode.textContent = lang === "en" ? titleNode.getAttribute("data-title-en") : titleEs; }
+    if (descriptionNode) { descriptionNode.setAttribute("content", lang === "en" ? descriptionNode.getAttribute("data-content-en") : descriptionEs); }
+    ariaNodes.forEach(function (item) {
+      item.el.setAttribute("aria-label", lang === "en" ? item.en : item.es);
+    });
+    originals.forEach(function (item) {
+      var translated = lang === "en" ? EN[item.key] : null;
+      item.el.innerHTML = translated == null ? item.html : translated;
+    });
+    document.querySelectorAll("[data-lang]").forEach(function (btn) {
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-lang") === lang ? "true" : "false");
+    });
+    // Los ejemplos llevan su versión en cada idioma: se enseña una y se oculta
+    // la otra, y el bloque que solo tiene una se queda como está.
+    document.querySelectorAll(".code").forEach(function (block) {
+      var shown = null;
+      block.querySelectorAll("pre[data-lang]").forEach(function (pre) {
+        var mine = pre.getAttribute("data-lang") === lang;
+        pre.hidden = !mine;
+        if (mine) { shown = pre; }
+      });
+      var only = block.querySelector("pre:not([data-lang])");
+      if (only && shown) { only.hidden = true; }
+    });
+    refreshCopyButtons(lang);
+    updateThemeLabel(lang);
+  }
+
+  function applyTheme(theme) {
+    if (theme !== "dark" && theme !== "light") { theme = "light"; }
+    root.setAttribute("data-theme", theme);
+    updateThemeLabel(root.lang === "en" ? "en" : "es");
+  }
+
+  var prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { prefs = {}; }
+
+  var initialTheme = prefs.theme;
+  if (initialTheme !== "dark" && initialTheme !== "light") {
+    initialTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  var initialLang = prefs.lang === "en" ? "en" : "es";
+
+  applyTheme(initialTheme);
+  applyLang(initialLang);
+
+  function savePrefs() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+
+  document.querySelectorAll("[data-lang]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      prefs.lang = btn.getAttribute("data-lang");
+      applyLang(prefs.lang);
+      savePrefs();
+    });
+  });
+
+  var themeBtn = document.getElementById("theme-toggle");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      prefs.theme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      applyTheme(prefs.theme);
+      savePrefs();
+    });
+  }
+
+  // El botón de copiar no se escribe en el marcado: se crea aquí para que
+  // añadir un bloque de código no obligue a recordar su botón.
+  document.querySelectorAll(".code").forEach(function (block) {
+    if (block.querySelector(".copy")) { return; }
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    block.appendChild(btn);
+
+    btn.addEventListener("click", function () {
+      var visible = block.querySelector("pre:not([hidden])") || block.querySelector("pre");
+      var code = (visible && (visible.querySelector("code") || visible)) || null;
+      if (!code) { return; }
+      var lang = root.lang === "en" ? "en" : "es";
+      var done = function () {
+        btn.classList.add("copied");
+        btn.innerHTML = CHECK_ICON + "<span>" + copiedLabel(lang) + "</span>";
+        btn.setAttribute("aria-label", copiedLabel(lang));
+        setTimeout(function () {
+          btn.classList.remove("copied");
+          btn.innerHTML = COPY_ICON + "<span>" + copyLabel(lang) + "</span>";
+          btn.setAttribute("aria-label", copyLabel(lang));
+        }, 1600);
+      };
+      var text = code.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+
+  refreshCopyButtons(root.lang === "en" ? "en" : "es");
+
+  if ("IntersectionObserver" in window) {
+    var links = {};
+    document.querySelectorAll(".toc a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          Object.keys(links).forEach(function (id) { links[id].classList.remove("active"); });
+          if (links[entry.target.id]) { links[entry.target.id].classList.add("active"); }
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px", threshold: 0 });
+    document.querySelectorAll("main section").forEach(function (s) { observer.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

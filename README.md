@@ -16,6 +16,8 @@ configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 |---|---|
 | `docs/` | La documentación del producto |
 | `docs/decisions/` | Una decisión durable por documento |
+| `docs/tasks-ai-brand/` | La identidad visual aprobada: el símbolo, los iconos, los tokens de color y tipografía, y sus normas de uso |
+| `docs/web/` | La guía de uso del producto, en una página web |
 | `cmd/` | El binario del producto |
 | `internal/` | Su núcleo y sus superficies |
 | `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |

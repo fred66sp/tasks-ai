@@ -7,6 +7,14 @@ Changelog* y el versionado es semántico.
 
 ### Documentación
 
+- La guía de uso del producto en una página web: `docs/web/index.html` recorre el producto
+  entero —instalarlo, modelar el trabajo, cada orden con sus opciones y la respuesta que
+  devuelve, el ciclo de vida, las recetas, la interfaz, la API, la configuración, los
+  límites y los errores— y sirve para aprender a manejarlo sin abrir otra fuente. Está en
+  español y en inglés, con cada ejemplo en los dos idiomas y la respuesta del binario
+  debajo, y viste la identidad aprobada, que llega con este cambio en `docs/tasks-ai-brand/`.
+  El contrato de documentación le da su misión y su frontera, y el mapa del `README.md`
+  nombra las dos carpetas.
 - `docs/contracts.md` describe lo que la API responde de verdad: `parent_id` viaja como
   el número interno del que el cliente deriva la referencia del padre, el cambio de
   tarea con `status` junto a otro campo se rechaza, y el nivel de registro enumera sus

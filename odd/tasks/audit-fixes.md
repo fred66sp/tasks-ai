@@ -20,7 +20,7 @@ Rama: `fix/audit-findings`.
 
 ## Tasks
 
-- T1 — `tk-90`, S3, inline, commit pendiente: conservar el aviso de prefijo durante `init`.
+- T1 — `tk-90`, S3, inline, commit `915dad5`: conservar el aviso de prefijo durante `init`.
 - T2 — `tk-91`, S4, inline, commit pendiente: corregir descripciones de eventos SSE.
 - T3 — `tk-92`, S5, inline, commit pendiente: rechazar JSON con contenido posterior.
 - T4 — `tk-93`, S6, inline, commit pendiente: alinear `parent_id` de la API con el contrato.

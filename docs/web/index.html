@@ -645,8 +645,8 @@
       </div>
       <p data-i18n="empezar.13">La respuesta es la tarea entera, y es la misma forma que devuelven <code>show</code>, <code>update</code> y <code>close</code>. Si el título falta, no se crea nada:</p>
       <div class="code">
-        <pre data-lang="es"><code>{ "error": "falta el título de la tarea: usa --title" }      # salida 2</code></pre>
-        <pre data-lang="en" hidden><code>{ "error": "falta el título de la tarea: usa --title" }      # exit 2</code></pre>
+        <pre data-lang="es"><code>{ "error": "the task title is missing: use --title" }      # salida 2</code></pre>
+        <pre data-lang="en" hidden><code>{ "error": "the task title is missing: use --title" }      # exit 2</code></pre>
       </div>
     </section>
 
@@ -698,12 +698,12 @@
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
 
 ./tasks-ai init      # segunda vez sobre el mismo proyecto
-# { "error": "el proyecto ya tiene el producto instalado en /home/ana/informes/.task-ai" }   salida 1</code></pre>
+# { "error": "the project already has the product installed in /home/ana/informes/.task-ai" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
 
 ./tasks-ai init      # second time on the same project
-# { "error": "el proyecto ya tiene el producto instalado en /home/ana/reports/.task-ai" }   exit 1</code></pre>
+# { "error": "the project already has the product installed in /home/ana/reports/.task-ai" }   exit 1</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.6"><code>create</code><span class="sig">— crea una tarea o una subtarea</span></h3>
@@ -726,12 +726,12 @@
 # devuelve la tarea con "parent_id": 1
 
 ./tasks-ai create --title "Probar" --priority 9
-# { "error": "la prioridad 9 está fuera del rango 0-3" }   salida 2</code></pre>
+# { "error": "priority 9 is outside the range 0-3" }   salida 2</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai create --title "Review the summary's tone" --parent tk-1 --priority 3
 # returns the task with "parent_id": 1
 
 ./tasks-ai create --title "Test" --priority 9
-# { "error": "la prioridad 9 está fuera del rango 0-3" }   exit 2</code></pre>
+# { "error": "priority 9 is outside the range 0-3" }   exit 2</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.18"><code>list</code><span class="sig">— todas las tareas del proyecto</span></h3>
@@ -750,13 +750,13 @@
 #   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
 
 ./tasks-ai show tk-99
-# { "error": "no hay ninguna tarea con la referencia \"tk-99\"" }   salida 1</code></pre>
+# { "error": "there is no task with reference \"tk-99\"" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai show tk-1
 # { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
 #   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
 
 ./tasks-ai show tk-99
-# { "error": "no hay ninguna tarea con la referencia \"tk-99\"" }   exit 1</code></pre>
+# { "error": "there is no task with reference \"tk-99\"" }   exit 1</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.22"><code>update</code><span class="sig">— cambia lo que se pide y nada más</span></h3>
@@ -781,13 +781,13 @@
 ./tasks-ai update --assignee "" tk-2             # le quita el responsable
 
 ./tasks-ai update --status done tk-1
-# { "error": "el estado \"done\" no se pone: cerrar va por close, con el motivo" }   salida 2</code></pre>
+# { "error": "status \"done\" is not set here: closing goes through close, with its reason" }   salida 2</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai update --status in_progress tk-2      # in progress
 ./tasks-ai update --tags "docs,urgent" tk-1      # the whole tag list
 ./tasks-ai update --assignee "" tk-2             # clears the assignee
 
 ./tasks-ai update --status done tk-1
-# { "error": "el estado \"done\" no se pone: cerrar va por close, con el motivo" }   exit 2</code></pre>
+# { "error": "status \"done\" is not set here: closing goes through close, with its reason" }   exit 2</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.35"><code>close</code><span class="sig">— cierra con motivo</span></h3>
@@ -809,12 +809,12 @@
 # { ..., "status": "done", "close_reason": "done" }
 
 ./tasks-ai close tk-1
-# { "error": "falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded" }   salida 2</code></pre>
+# { "error": "the close reason is missing: use --reason with one of done, duplicate, absorbed, stale, superseded" }   salida 2</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-2
 # { ..., "status": "done", "close_reason": "done" }
 
 ./tasks-ai close tk-1
-# { "error": "falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded" }   exit 2</code></pre>
+# { "error": "the close reason is missing: use --reason with one of done, duplicate, absorbed, stale, superseded" }   exit 2</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.44"><code>reopen</code><span class="sig">— devuelve una cerrada a pendiente</span></h3>
@@ -822,10 +822,10 @@
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai reopen tk-2
 ./tasks-ai reopen tk-1
-# { "error": "no se puede reabrir la tarea \"tk-1\": no está cerrada" }   salida 1</code></pre>
+# { "error": "cannot reopen task \"tk-1\": it is not closed" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai reopen tk-2
 ./tasks-ai reopen tk-1
-# { "error": "no se puede reabrir la tarea \"tk-1\": no está cerrada" }   exit 1</code></pre>
+# { "error": "cannot reopen task \"tk-1\": it is not closed" }   exit 1</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.46"><code>block</code> y <code>unblock</code><span class="sig">— dependencias entre tareas</span></h3>
@@ -835,12 +835,12 @@
 ./tasks-ai unblock tk-1 tk-2    # deja de esperar
 
 ./tasks-ai block tk-1 tk-1
-# { "error": "la tarea \"tk-1\" no se puede bloquear por sí misma" }   salida 2</code></pre>
+# { "error": "task \"tk-1\" cannot be blocked by itself" }   salida 2</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai block tk-1 tk-2      # tk-1 waits for tk-2
 ./tasks-ai unblock tk-1 tk-2    # stops waiting
 
 ./tasks-ai block tk-1 tk-1
-# { "error": "la tarea \"tk-1\" no se puede bloquear por sí misma" }   exit 2</code></pre>
+# { "error": "task \"tk-1\" cannot be blocked by itself" }   exit 2</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.48"><code>comment</code><span class="sig">— añade un comentario</span></h3>
@@ -879,12 +879,12 @@
         <pre data-lang="es"><code>./tasks-ai tag create --name "docs" --color blue --description "Trabajo sobre documentación"
 ./tasks-ai tag edit --color green docs
 ./tasks-ai tag delete docs
-# aviso: la etiqueta "docs" la usaban las tareas tk-1; se han borrado sus asignaciones
+# warning: the tag "docs" was used by the tasks tk-1; their assignments have been deleted
 # { "id": 1, "name": "docs", "color": "green", "description": "..." }</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai tag create --name "docs" --color blue --description "Documentation work"
 ./tasks-ai tag edit --color green docs
 ./tasks-ai tag delete docs
-# aviso: la etiqueta "docs" la usaban las tareas tk-1; se han borrado sus asignaciones
+# warning: the tag "docs" was used by the tasks tk-1; their assignments have been deleted
 # { "id": 1, "name": "docs", "color": "green", "description": "..." }</code></pre>
       </div>
       <p data-i18n="comandos.59">El aviso de <code>tag delete</code> va por la salida de errores, no por el JSON: si algo dependía de esa etiqueta, se entera quien esté mirando la terminal. Una etiqueta sin uso se borra sin aviso.</p>
@@ -893,7 +893,7 @@
       <p data-i18n="comandos.61">Arranca la interfaz web y la API en la dirección y el puerto de los ajustes, y anuncia los cambios por un canal abierto para que dos sesiones se vean. Lo que escribe va por la salida de errores.</p>
       <div class="code">
         <pre><code>./tasks-ai serve
-# time=... level=INFO msg="escuchando en http://127.0.0.1:8890"</code></pre>
+# time=... level=INFO msg="listening on http://127.0.0.1:8890"</code></pre>
       </div>
       <p data-i18n="comandos.62">La raíz redirige a la interfaz y la API conserva sus rutas <code>/api/...</code>; el detalle está en la sección 7 y en la 8.</p>
 
@@ -945,9 +945,9 @@
       <p data-i18n="ciclo.28"><strong>El cierre en cascada no existe.</strong> Cerrar una subtarea no cierra a su padre, y cerrar un padre con subtareas abiertas se rechaza sin escribir nada. Quien cierra decide qué cierra.</p>
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai close --reason done tk-1
-# { "error": "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" }   salida 1</code></pre>
+# { "error": "cannot close task \"tk-1\": it has open subtasks" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
-# { "error": "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" }   exit 1</code></pre>
+# { "error": "cannot close task \"tk-1\": it has open subtasks" }   exit 1</code></pre>
       </div>
       <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y sirve de relevo: qué falta y cuál es el siguiente paso. Los comentarios son append-only y sirven para lo que no debe perderse: la petición, la decisión y la evidencia.</p></div>
     </section>
@@ -1032,7 +1032,7 @@
       <p class="sub" data-i18n="interfaz.3">La misma base, en el navegador. No hay nada que construir ni que instalar: la interfaz viaja dentro del binario.</p>
       <div class="code">
         <pre><code>./tasks-ai serve
-# time=2026-10-17T10:30:49+02:00 level=INFO msg="escuchando en http://127.0.0.1:8891"</code></pre>
+# time=2026-10-17T10:30:49+02:00 level=INFO msg="listening on http://127.0.0.1:8891"</code></pre>
       </div>
       <p data-i18n="interfaz.4">La dirección y el puerto salen de <code>settings.json</code>. La raíz responde con una redirección a la interfaz —código <code>302</code>—, así que abrir <code>http://127.0.0.1:8890/</code> es suficiente.</p>
       <div class="code">
@@ -1182,17 +1182,17 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
         <table>
           <thead><tr><th data-i18n="errores.4">Mensaje</th><th data-i18n="errores.5">Salida</th><th data-i18n="errores.6">Qué hacer</th></tr></thead>
           <tbody>
-            <tr><td><code>falta el título de la tarea: usa --title</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.8">Añadir <code>--title</code>. Un título vacío es un título que falta.</td></tr>
-            <tr><td><code>la prioridad 9 está fuera del rango 0-3</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.10">Usar un entero de <code>0</code> a <code>3</code>.</td></tr>
-            <tr><td><code>falta el motivo de cierre: usa --reason con uno de done, duplicate, absorbed, stale, superseded</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.12">Añadir <code>--reason</code> con uno de los cinco.</td></tr>
-            <tr><td><code>el estado "done" no se pone: cerrar va por close, con el motivo</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.14">Usar <code>close --reason</code>.</td></tr>
-            <tr><td><code>el color "verde" no es válido: usa uno de blue, purple, green, yellow, orange, red</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.16">Escribir el color en inglés, tal como sale en la lista.</td></tr>
-            <tr><td><code>la tarea "tk-1" no se puede bloquear por sí misma</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.18">Bloquear contra otra tarea.</td></tr>
-            <tr><td><code>no hay ninguna tarea con la referencia "tk-99"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.20">Revisar la referencia con <code>list</code>. Si el prefijo cambió, la referencia vieja ya no resuelve.</td></tr>
-            <tr><td><code>no se puede cerrar la tarea "tk-1": tiene subtareas abiertas</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.22">Cerrar o mover las subtareas primero; el padre no cierra en cascada.</td></tr>
-            <tr><td><code>no se puede reabrir la tarea "tk-1": no está cerrada</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.24">Ya está pendiente o en curso: no hay nada que reabrir.</td></tr>
-            <tr><td><code>ya existe una etiqueta con el nombre "docs"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.26">Editar la que hay con <code>tag edit</code>, o usar otro nombre.</td></tr>
-            <tr><td><code>el proyecto ya tiene el producto instalado en .../.task-ai</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.28">No hace falta instalar otra vez: usa las órdenes directamente.</td></tr>
+            <tr><td><code>the task title is missing: use --title</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.8">Añadir <code>--title</code>. Un título vacío es un título que falta.</td></tr>
+            <tr><td><code>priority 9 is outside the range 0-3</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.10">Usar un entero de <code>0</code> a <code>3</code>.</td></tr>
+            <tr><td><code>the close reason is missing: use --reason with one of done, duplicate, absorbed, stale, superseded</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.12">Añadir <code>--reason</code> con uno de los cinco.</td></tr>
+            <tr><td><code>status "done" is not set here: closing goes through close, with its reason</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.14">Usar <code>close --reason</code>.</td></tr>
+            <tr><td><code>color "verde" is not valid: use one of blue, purple, green, yellow, orange, red</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.16">Escribir el color en inglés, tal como sale en la lista.</td></tr>
+            <tr><td><code>task "tk-1" cannot be blocked by itself</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.18">Bloquear contra otra tarea.</td></tr>
+            <tr><td><code>there is no task with reference "tk-99"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.20">Revisar la referencia con <code>list</code>. Si el prefijo cambió, la referencia vieja ya no resuelve.</td></tr>
+            <tr><td><code>cannot close task "tk-1": it has open subtasks</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.22">Cerrar o mover las subtareas primero; el padre no cierra en cascada.</td></tr>
+            <tr><td><code>cannot reopen task "tk-1": it is not closed</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.24">Ya está pendiente o en curso: no hay nada que reabrir.</td></tr>
+            <tr><td><code>a tag with the name "docs" already exists</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.26">Editar la que hay con <code>tag edit</code>, o usar otro nombre.</td></tr>
+            <tr><td><code>the project already has the product installed in .../.task-ai</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.28">No hace falta instalar otra vez: usa las órdenes directamente.</td></tr>
           </tbody>
         </table>
       </div>

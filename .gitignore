@@ -39,6 +39,11 @@ task-manager/tk/.tacks/
 task-manager/data/*.db
 task-manager/data/*.db-*
 
+# El binario de la herramienta de desarrollo se instala aparte —lo dice su README,
+# con la descarga y con cargo— y no viaja en el repositorio
+task-manager/tk/tk
+task-manager/tk/tk.exe
+
 # Salidas generadas
 bin/
 coverage/

@@ -19,6 +19,9 @@ al PRD, a la documentación estable ni a Engram.
 | Catálogo de etiquetas | `data/task-manager.db` — no se versiona |
 | Vista | `npm run server`, en el puerto 8890 |
 
+Los binarios tampoco se versionan: son de terceros y se instalan aparte en esas dos rutas.
+Su `README.md` trae la descarga y `cargo install tacks`.
+
 Las consultas y escrituras pasan por la guardia `odd:tk`, que conserva `--json` y
 `--db` explícito y rechaza estado de Git en textos de tk:
 

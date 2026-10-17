@@ -1,0 +1,32 @@
+:root {
+  --tai-brand-primary: #8B5CF6;
+  --tai-brand-secondary: #3882F6;
+  --tai-brand-accent: #06B6D4;
+  --tai-brand-success: #10B981;
+  --tai-brand-warning: #F59E0B;
+  --tai-brand-error: #EF4444;
+  --tai-dark-background: #0A0F1C;
+  --tai-dark-surface: #111827;
+  --tai-dark-elevated: #1F2937;
+  --tai-dark-border: #334155;
+  --tai-dark-muted: #94A3B8;
+  --tai-dark-text: #E5E7EB;
+  --tai-font-ui: Inter, system-ui, sans-serif;
+  --tai-font-code: "JetBrains Mono", monospace;
+}
+[data-theme="light"] {
+  --tai-background: #F8FAFC;
+  --tai-surface: #FFFFFF;
+  --tai-elevated: #F1F5F9;
+  --tai-border: #E2E8F0;
+  --tai-muted: #64748B;
+  --tai-text: #0F172A;
+}
+[data-theme="dark"] {
+  --tai-background: #0A0F1C;
+  --tai-surface: #111827;
+  --tai-elevated: #1F2937;
+  --tai-border: #334155;
+  --tai-muted: #94A3B8;
+  --tai-text: #E5E7EB;
+}

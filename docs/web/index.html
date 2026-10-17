@@ -1123,7 +1123,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
       <p class="sub" data-i18n="agente.3">Con esta extensión de Pi, tienes el tablero del proyecto como herramientas del agente. No forma parte del binario: vive en <code>extensions/pi/</code> del repositorio, está escrita en TypeScript y se carga desde la configuración de Pi. El producto no la instala.</p>
       <p data-i18n="agente.4">La extensión ejecuta el CLI del producto y devuelve su JSON. No toca la base ni reimplementa reglas: lo que el producto rechaza, llega rechazado.</p>
       <h3 data-i18n="agente.5">Las herramientas</h3>
-      <p data-i18n="agente.6">Las herramientas de lectura, <code>tasks_board</code> y <code>tasks_show</code>, están hechas. Las de escritura están en el contrato; no las des por implementadas.</p>
+      <p data-i18n="agente.6">Las nueve herramientas de la tabla están hechas y probadas, tanto las de lectura como las de escritura.</p>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -1143,6 +1143,9 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
           </tbody>
         </table>
       </div>
+      <h3 data-i18n="agente.18">El tablero en cada turno</h3>
+      <p data-i18n="agente.19">El agente recibe el tablero al empezar cada turno: contadores, la tarea en curso, unas pocas de las que se pueden empezar y las reglas de uso. Va en las instrucciones del turno, no como mensaje en la conversación.</p>
+      <p data-i18n="agente.20">Mientras la extensión está cargada, la herramienta <code>todo</code> del arnés no está disponible: el tablero es el único sitio donde se anota el trabajo. Al descargar la extensión, <code>todo</code> vuelve. El resumen y <code>tasks_board</code> comparten una sola lectura del tablero: si acabas de leerlo, no se vuelve a ejecutar el CLI; una escritura obliga a leer de nuevo.</p>
       <h3 data-i18n="agente.9">Cargar la extensión</h3>
       <p data-i18n="agente.10">Para probarla, ejecuta esta orden desde la raíz del repositorio:</p>
       <div class="code">
@@ -1536,7 +1539,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "agente.3": "With this Pi extension, you get the project board as agent tools. It is not part of the binary: it lives in <code>extensions/pi/</code> in the repository, is written in TypeScript and is loaded through Pi's configuration. The product does not install it.",
  "agente.4": "The extension runs the product CLI and returns its JSON. It does not touch the database or reimplement rules: what the product rejects stays rejected.",
  "agente.5": "The tools",
- "agente.6": "The read tools, <code>tasks_board</code> and <code>tasks_show</code>, are implemented. The write tools are in the contract; do not assume they are implemented.",
+ "agente.6": "All nine tools in the table are implemented and tested, both read and write tools.",
  "agente.7": "Tool",
  "agente.8": "CLI command",
  "agente.9": "Load the extension",
@@ -1548,6 +1551,9 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "agente.15": "When you request a task's detail, you receive its full description and the 10 most recent comments. These limits belong to the extension: the CLI still returns everything.",
  "agente.16": "What it does not do",
  "agente.17": "The extension does not speak MCP or add a <code>ready</code> command or an importer. It is not a third product surface: it wraps the CLI.",
+ "agente.18": "The board on every turn",
+ "agente.19": "The agent receives the board at the start of every turn: counters, the current task, a few tasks that can be started, and the usage rules. It goes in the turn instructions, not as a message in the conversation.",
+ "agente.20": "While the extension is loaded, the harness's <code>todo</code> tool is unavailable: the board is the only place to track work. Unloading the extension brings <code>todo</code> back. The summary and <code>tasks_board</code> share a single board read: if you have just read it, the CLI does not run again; a write forces a fresh read.",
  "configuracion.2": "Configuration",
  "configuracion.3": "One file, four keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
  "configuracion.4": "Key",

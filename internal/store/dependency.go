@@ -82,6 +82,45 @@ func (s *Store) HasOpenBlocker(ctx context.Context, id int64) (bool, error) {
 	return blocked, nil
 }
 
+// OpenBlockers dice qué tareas de la lista tienen algún bloqueante que no está
+// cerrado: una consulta para todas, no una por tarea. El estado bloqueado se
+// calcula de las filas y no se guarda.
+func (s *Store) OpenBlockers(ctx context.Context, ids []int64) (map[int64]bool, error) {
+	blocked := make(map[int64]bool, len(ids))
+	if len(ids) == 0 {
+		return blocked, nil
+	}
+
+	args := append(int64Args(ids), statusDone)
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT DISTINCT d.task_id
+		FROM dependencies d
+		JOIN tasks t ON t.id = d.blocker_id
+		WHERE d.task_id IN (`+inPlaceholders(len(ids))+`) AND t.status <> ?`, args...)
+	if err != nil {
+		return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var taskID int64
+
+		if err := rows.Scan(&taskID); err != nil {
+			return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+		}
+
+		blocked[taskID] = true
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+	}
+
+	return blocked, nil
+}
+
 // Blockers are the tasks that block the one asked for, by their identity.
 func (s *Store) Blockers(ctx context.Context, id int64) ([]Task, error) {
 	return s.queryTasks(ctx, `

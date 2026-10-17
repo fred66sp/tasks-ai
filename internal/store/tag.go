@@ -317,6 +317,52 @@ func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error
 	return names, nil
 }
 
+// TasksTagNames devuelve, para cada tarea de la lista, los nombres de las
+// etiquetas que lleva, ordenados por nombre: una consulta para todas las
+// tareas, no una por tarea ni una por etiqueta. Una tarea sin etiquetas sale
+// con la lista vacía.
+func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][]string, error) {
+	names := make(map[int64][]string, len(taskIDs))
+	for _, id := range taskIDs {
+		names[id] = []string{}
+	}
+
+	if len(taskIDs) == 0 {
+		return names, nil
+	}
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT tt.task_id, t.name
+		FROM task_tags tt
+		JOIN tags t ON t.id = tt.tag_id
+		WHERE tt.task_id IN (`+inPlaceholders(len(taskIDs))+`)
+		ORDER BY t.name`, int64Args(taskIDs)...)
+	if err != nil {
+		return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var (
+			taskID int64
+			name   string
+		)
+
+		if err := rows.Scan(&taskID, &name); err != nil {
+			return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+		}
+
+		names[taskID] = append(names[taskID], name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+	}
+
+	return names, nil
+}
+
 // replaceTaskTags leaves the task with exactly the tags the list of names
 // names, inside the transaction that holds the write lock. A name that is not
 // in the catalogue refuses the whole change and nothing is written.

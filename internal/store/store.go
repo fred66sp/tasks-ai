@@ -405,6 +405,21 @@ func recordChange(ctx context.Context, within changeWriter, origin, resource str
 	return nil
 }
 
+// inPlaceholders deja la lista de ? de una cláusula IN para n valores.
+func inPlaceholders(n int) string {
+	return strings.TrimSuffix(strings.Repeat("?,", n), ",")
+}
+
+// int64Args puts the numbers in the argument list a clause IN asks for.
+func int64Args(ids []int64) []any {
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	return args
+}
+
 // migrate applies the migrations the database still owes, each one in its own
 // transaction and recording the version it reached. The version is re-read
 // inside each transaction: with the write lock already taken, whoever arrives

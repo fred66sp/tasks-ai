@@ -579,21 +579,11 @@ func (c *Core) CheckPrefix(ctx context.Context) (string, error) {
 	}
 }
 
-// task puts a stored task in the shape that crosses the boundary, with the
-// blocked state computed from the dependencies: it is true when the task has a
+// shaped puts one stored task in the shape that crosses the boundary, with the
+// blocked state and the tag names already resolved: it is blocked when it has a
 // blocker that is not done.
-func (c *Core) task(ctx context.Context, stored store.Task) (Task, error) {
-	blocked, err := c.store.HasOpenBlocker(ctx, stored.ID)
-	if err != nil {
-		return Task{}, err
-	}
-
-	names, err := c.store.TaskTagNames(ctx, stored.ID)
-	if err != nil {
-		return Task{}, err
-	}
-
-	shaped := Task{
+func (c *Core) shaped(stored store.Task, blocked bool, names []string) Task {
+	task := Task{
 		ID:          stored.ID,
 		Ref:         Ref(c.prefix, stored.ID),
 		Title:       stored.Title,
@@ -609,23 +599,49 @@ func (c *Core) task(ctx context.Context, stored store.Task) (Task, error) {
 		Notes:       stored.Notes,
 	}
 
-	shaped.Blocked = blocked
+	task.Blocked = blocked
 
-	return shaped, nil
+	return task
+}
+
+// task puts a stored task in the shape that crosses the boundary, resolving its
+// blocked state and its tags with their own queries.
+func (c *Core) task(ctx context.Context, stored store.Task) (Task, error) {
+	blocked, err := c.store.HasOpenBlocker(ctx, stored.ID)
+	if err != nil {
+		return Task{}, err
+	}
+
+	names, err := c.store.TaskTagNames(ctx, stored.ID)
+	if err != nil {
+		return Task{}, err
+	}
+
+	return c.shaped(stored, blocked, names), nil
 }
 
 // tasks puts the stored tasks in the shape that crosses the boundary, in the
-// order they were read.
+// order they were read: los bloqueos y las etiquetas se resuelven para todas
+// las tareas de una vez, con una consulta cada uno, no tarea a tarea.
 func (c *Core) tasks(ctx context.Context, stored []store.Task) ([]Task, error) {
-	shaped := make([]Task, 0, len(stored))
-
+	ids := make([]int64, len(stored))
 	for i := range stored {
-		task, err := c.task(ctx, stored[i])
-		if err != nil {
-			return nil, err
-		}
+		ids[i] = stored[i].ID
+	}
 
-		shaped = append(shaped, task)
+	blocked, err := c.store.OpenBlockers(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	names, err := c.store.TasksTagNames(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	shaped := make([]Task, 0, len(stored))
+	for i := range stored {
+		shaped = append(shaped, c.shaped(stored[i], blocked[stored[i].ID], names[stored[i].ID]))
 	}
 
 	return shaped, nil

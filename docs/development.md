@@ -17,7 +17,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
-| `task-manager/` | La herramienta con la que se desarrolla el proyecto, con su tablero |
+| `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 
 ## Fronteras del código
 

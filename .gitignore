@@ -33,16 +33,10 @@ npm-debug.log*
 .env.*.local
 
 # Bases de datos locales: nunca se versionan
-#   task-manager/tk/.tacks/  las tareas, y pertenecen al binario
-#   task-manager/data/*.db   el catálogo de etiquetas de esa instalación
-task-manager/tk/.tacks/
-task-manager/data/*.db
-task-manager/data/*.db-*
-
-# El binario de la herramienta de desarrollo se instala aparte —lo dice su README,
-# con la descarga y con cargo— y no viaja en el repositorio
-task-manager/tk/tk
-task-manager/tk/tk.exe
+#   .task-ai/tasks.db  las tareas del proyecto; la base no viaja
+.task-ai/tasks.db
+.task-ai/tasks.db-wal
+.task-ai/tasks.db-shm
 
 # Salidas generadas
 bin/

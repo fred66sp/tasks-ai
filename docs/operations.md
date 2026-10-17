@@ -18,14 +18,18 @@ La interfaz viaja incrustada en el binario: si se cambia su código, hay que
 construirla antes de compilar el binario. Los comandos de su construcción están en
 `README.md`, y la decisión, en `ADR-010`.
 
-## La herramienta de desarrollo
+## El tablero del trabajo
+
+El trabajo del proyecto vive en `.task-ai/`, y se opera con el mismo binario:
 
 ```bash
-cd task-manager
-npm ci                     # instala la herramienta
-npm run odd:tk -- stats    # estado del trabajo
-npm run server             # interfaz de la herramienta
+./bin/tasks-ai list        # todas las tareas, con su estado y si están bloqueadas
+./bin/tasks-ai show tk-1   # la tarea con sus hijas, sus bloqueos y sus comentarios
+./bin/tasks-ai serve       # la interfaz web y su API
 ```
+
+La herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró, y su
+histórico se importó en este tablero (`ADR-005`).
 
 ## Comprobaciones antes de cerrar un cambio
 

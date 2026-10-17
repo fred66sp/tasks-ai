@@ -21,7 +21,7 @@ configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 | `cmd/` | El binario del producto |
 | `internal/` | Su núcleo y sus superficies |
 | `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |
-| `task-manager/` | La herramienta con la que se desarrolla el proyecto, con su tablero |
+| `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 
 El contrato de documentación dice qué contiene cada documento de `docs/`.
 
@@ -72,13 +72,7 @@ cd web && npm run watch  # la reconstruye al cambiar
 
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 
-Su servidor no trae dependencias: se arranca directo. El binario de `tk`, en cambio, es de
-terceros —[tacks](https://github.com/srmccray/tacks)—, se instala aparte dejándolo en
-`task-manager/tk/` y no viaja en el repositorio; su propio `README.md` trae la descarga y
-`cargo install tacks`.
-
-```bash
-cd task-manager
-npm run odd:tk -- stats  # estado del trabajo
-npm run server         # interfaz de la herramienta
-```
+Se retiró del repositorio al pasar el trabajo a `.task-ai/`. Era un servidor en Node sobre
+el binario de terceros [tacks](https://github.com/srmccray/tacks) —`tk`—, con un catálogo
+de etiquetas propio. Su histórico de tareas se importó en el tablero del producto, y las
+decisiones que la describen viven en `ADR-005` y `ADR-010`. No queda nada que arrancar.

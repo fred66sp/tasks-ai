@@ -39,7 +39,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 
 | Dato | Dueño | Cómo se consulta |
 |---|---|---|
-| Estado del trabajo: qué se hace, relevo, evidencias | Tablero `tk` | `npm run odd:tk -- ...` sobre `tk/.tacks/tacks.db` |
+| Estado del trabajo: qué se hace, relevo, evidencias | Tablero del proyecto (`.task-ai/`) | `./bin/tasks-ai list`, `show` y `serve` sobre `.task-ai/tasks.db` |
 | Historia de la entrega: qué se entregó y cuándo | Git y `CHANGELOG.md` | `git log`, `CHANGELOG.md` |
 | Requisitos, alcance y criterios de aceptación | `PRD.md` | `PRD.md` |
 | Decisiones durables: contexto, alternativas, consecuencias | `docs/decisions/` (un ADR por decisión) | `docs/decisions/` |
@@ -49,7 +49,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 | Estructura de ficheros y convenciones de trabajo | `docs/development.md` | `docs/development.md` |
 | Riesgos, deuda y su cobertura de pruebas | `docs/known-risks.md` | `docs/known-risks.md` |
 | Flujo de Git, CHANGELOG y versionado | `CONTRATO_FLUJO_GIT_VERSIONADO.md` | ese contrato |
-| Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `task-manager/tk/AGENTS.md` |
+| Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `.task-ai/AGENTS.md` |
 | Presentación del producto y puesta en marcha | `README.md` | `README.md` |
 | Contenido de los artefactos generados | El build | `npm run build` y los ficheros versionados |
 | Guía de uso del producto para quien aprende a manejarlo | `docs/web/index.html` | esa página |
@@ -83,8 +83,7 @@ proyecto sigue la regla.
 | `docs/development.md` | Cómo trabajar en el código | Estructura, convenciones, flujo de trabajo, mapa de ficheros vigente | Historia de la extracción, cifras de la suite, estado |
 | `docs/known-risks.md` | Qué riesgo y qué deuda existen y cómo se cubren | Riesgos vivos con su cobertura, los resueltos y su lección, deuda aceptada | Requisitos, planes, estado del trabajo |
 | `docs/decisions/` | Por qué se decidió algo y qué se descartó | Un ADR por decisión: contexto, decisión, alternativas y consecuencias | Requisitos, cifras, estado |
-| Tablero `tk` | Qué se está haciendo | Tareas y partes de épica, relevo y evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, estado de Git ni del proceso de revisión |
-| `task-manager/tk/README.md`, `task-manager/tk/AGENTS.md` | Reglas y notas de esa carpeta | Lo específico de esa carpeta | Lo que ya cubre un documento de la raíz o `docs/` |
+| Tablero del proyecto (`.task-ai/`) | Qué se está haciendo | Tareas y partes de épica, relevo y evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, estado de Git ni del proceso de revisión |
 | `docs/web/index.html` | Enseñar a manejar el producto de principio a fin: el recorrido completo, de la instalación al uso diario | El recorrido con las órdenes, sus opciones, sus ejemplos y sus respuestas; los ciclos, las recetas, la interfaz, la API, la configuración, los límites y los errores. La página está en español y en inglés, y cada ejemplo lleva su versión en los dos idiomas, datos incluidos; lo que el producto imprime —mensajes, avisos y el texto que devuelve— se reproduce tal cual, en el idioma en que lo imprime, que es el inglés de la ayuda y de los errores (`ADR-011`). Su identidad visual se toma de `docs/tasks-ai-brand/`: la paleta, las tipografías y el símbolo de la marca, dentro del propio archivo | Requisitos, decisiones, estado del trabajo ni cifras; tampoco es la fuente de verdad de lo que ya tiene dueño: reproduce lo justo para enseñar y se actualiza en el mismo cambio que toque una orden, una opción o un mensaje |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y cómo se usa | El símbolo aprobado y sus iconos, la paleta y las tipografías con sus tokens, y las normas de uso y fidelidad del arte | Arte nuevo o reinterpretado, requisitos del producto ni el contenido de la guía: la guía lo enlaza y reproduce la identidad dentro de su propio archivo |
 

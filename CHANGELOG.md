@@ -102,8 +102,11 @@ Changelog* y el versionado es semántico.
   recibir el aviso de la otra, sea el CLI o la propia API. Quien abre o recarga la
   pantalla empieza en el cambio siguiente: no recibe el historial de lo que ya estaba
   antes de abrirla.
-- **Herramienta de desarrollo** instalada en `task-manager/`, con su tablero y su
-  catálogo de etiquetas.
+- **El tablero del proyecto es el producto**: el trabajo se registra en `.task-ai/`, la
+  carpeta que instala el propio binario, y se opera con `./bin/tasks-ai` y `serve`. La
+  herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró del
+  repositorio, y sus 58 tareas se importaron en este tablero con sus descripciones,
+  etiquetas, comentarios y dependencias.
 - **Interfaz web en el binario** (`tk-4d8f.10`, primera rebanada): la interfaz de
   partida del proyecto de referencia vive ahora en `web/`, con su capa de peticiones
   ajustada a la API de este producto —identidad por referencia, cierre con motivo,

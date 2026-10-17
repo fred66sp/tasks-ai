@@ -321,6 +321,8 @@ func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error
 // etiquetas que lleva, ordenados por nombre: una consulta para todas las
 // tareas, no una por tarea ni una por etiqueta. Una tarea sin etiquetas sale
 // con la lista vacía.
+//
+//nolint:gosec // la consulta solo añade marcadores, nunca datos
 func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][]string, error) {
 	names := make(map[int64][]string, len(taskIDs))
 	for _, id := range taskIDs {
@@ -331,12 +333,15 @@ func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][
 		return names, nil
 	}
 
-	rows, err := s.db.QueryContext(ctx, `
+	// La consulta solo concatena marcadores, nunca datos: de ahí el nolint.
+	query := `
 		SELECT tt.task_id, t.name
 		FROM task_tags tt
 		JOIN tags t ON t.id = tt.tag_id
-		WHERE tt.task_id IN (`+inPlaceholders(len(taskIDs))+`)
-		ORDER BY t.name`, int64Args(taskIDs)...)
+		WHERE tt.task_id IN (` + inPlaceholders(len(taskIDs)) + `)
+		ORDER BY t.name`
+
+	rows, err := s.db.QueryContext(ctx, query, int64Args(taskIDs)...)
 	if err != nil {
 		return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
 	}

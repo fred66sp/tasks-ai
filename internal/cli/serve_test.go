@@ -225,7 +225,7 @@ func startServer(t *testing.T, dir, binary string) (string, *exec.Cmd) {
 	// Con un archivo, esperar al proceso es esperar solo al proceso.
 	logPath := filepath.Join(t.TempDir(), "serve.stderr")
 
-	logFile, err := os.Create(logPath)
+	logFile, err := os.Create(logPath) //nolint:gosec // la ruta la compone el propio test con t.TempDir
 	if err != nil {
 		t.Fatalf("preparando la salida de errores del servidor: %v", err)
 	}
@@ -299,7 +299,7 @@ func waitReady(t *testing.T, address, logPath string) {
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	raw, _ := os.ReadFile(logPath)
+	raw, _ := os.ReadFile(logPath) //nolint:gosec // la ruta la compone el propio test con t.TempDir
 
 	t.Fatalf("el servidor no llegó a responder en %s:\n%s", address, raw)
 }

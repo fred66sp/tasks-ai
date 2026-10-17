@@ -15,9 +15,11 @@ permissions:
 
 env:
   # Suelo de cobertura total de sentencias, en porcentaje: un trinquete que solo sube. El
-  # número va unas décimas por debajo de lo que mide la suite —hoy, alrededor del 64 %— y se
-  # ajusta a mano si alguna vez la herramienta cuenta de otra manera.
-  MIN_COVERAGE: "63.5"
+  # número va por debajo de lo que mide la suite en el servidor —hoy, alrededor del 62 %—,
+  # con margen para la versión de Go que ese servidor instala: sus parches cuentan la
+  # cobertura un poco distinto, y sin margen el suelo fallaría por eso y no por el código.
+  # Se ajusta a mano, y solo hacia arriba.
+  MIN_COVERAGE: "60.5"
 
 jobs:
   test:

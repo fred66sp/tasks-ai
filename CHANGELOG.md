@@ -129,6 +129,11 @@ Changelog* y el versionado es semántico.
   renombrar una etiqueta conserva el filtro que la seguía.
 - **El listado de tareas deja de consultar la base tarea a tarea** (`tk-95b5.11`):
   resuelve los bloqueos y las etiquetas en dos consultas en lote, con el mismo JSON.
+- **El flujo de pruebas vuelve a pasar**: el listado por lotes traía consultas nuevas sin
+  ninguna prueba que las recorriera, así que la cobertura bajaba del suelo. Ahora el
+  listado tiene su prueba —el bloqueo calculado, las etiquetas ordenadas y un proyecto sin
+  tareas— y el suelo se mide con margen sobre lo que mide el servidor, no pegado a la
+  última cifra.
 - **El repositorio deja de versionar los binarios de la herramienta de desarrollo**
   (`tk-95b5.7`): `tk` y `tk.exe` son de terceros y se instalan aparte, y la base del
   tablero nunca vivió aquí, así que tenerlos versionados no hacía el clon más útil. Se

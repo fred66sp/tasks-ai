@@ -3,6 +3,7 @@ package core_test
 import (
 	"errors"
 	"path/filepath"
+	"slices"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/store"
 	"testing"
@@ -486,4 +487,137 @@ func openStore(t *testing.T) *store.Store {
 	t.Cleanup(func() { _ = base.Close() })
 
 	return base
+}
+
+// TestTasks_resolvesTheBlockedStateAndTheTagsOfEveryTask recorre la regla del
+// listado: el estado bloqueado —que se calcula de las dependencias y no se
+// guarda— y las etiquetas de cada tarea, resueltos para todas a la vez. Un
+// proyecto sin tareas no pregunta nada a la base.
+func TestTasks_resolvesTheBlockedStateAndTheTagsOfEveryTask(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	if empty := listedTasks(t, apply); len(empty) != 0 {
+		t.Errorf("un proyecto sin tareas lista %d, se esperaba ninguna", len(empty))
+	}
+
+	newTag(t, apply, "urgente")
+	newTag(t, apply, "docs")
+
+	blocked := newTask(t, apply, "Bloqueada")
+	blocker := newTask(t, apply, "Bloqueante")
+	plain := newTask(t, apply, "Suelta")
+
+	tags := []string{"urgente", "docs"}
+
+	if _, err := apply.UpdateTask(t.Context(), blocked.Ref, core.Changes{Tags: &tags}); err != nil {
+		t.Fatalf("poniendo las etiquetas: %v", err)
+	}
+
+	if _, err := apply.BlockTask(t.Context(), blocked.Ref, blocker.Ref); err != nil {
+		t.Fatalf("bloqueando la tarea: %v", err)
+	}
+
+	listed := listedTasks(t, apply)
+
+	if len(listed) != 3 {
+		t.Fatalf("el listado devolvió %d tareas, se esperaban 3", len(listed))
+	}
+
+	blockedListed := listedTask(t, listed, blocked.Ref)
+
+	if !blockedListed.Blocked {
+		t.Errorf("la tarea bloqueada sale sin estarlo: %+v", blockedListed)
+	}
+
+	// Las etiquetas salen ordenadas por nombre, no por el orden en que se pidieron.
+	if want := []string{"docs", "urgente"}; !slices.Equal(blockedListed.Tags, want) {
+		t.Errorf("las etiquetas de %q salen como %v, se esperaban %v", blocked.Ref, blockedListed.Tags, want)
+	}
+
+	if listedTask(t, listed, blocker.Ref).Blocked {
+		t.Error("la tarea que bloquea sale bloqueada ella misma")
+	}
+
+	if plainListed := listedTask(t, listed, plain.Ref); plainListed.Blocked || len(plainListed.Tags) != 0 {
+		t.Errorf("la tarea suelta sale con bloqueo %v y etiquetas %v, se esperaba ninguna de las dos cosas",
+			plainListed.Blocked, plainListed.Tags)
+	}
+}
+
+// TestTasks_recomputesTheBlockedStateInsteadOfStoringIt comprueba la otra mitad
+// de la regla: el bloqueo se calcula de las dependencias, así que cerrar la
+// bloqueante deja de bloquear a la bloqueada sin escribir nada más.
+func TestTasks_recomputesTheBlockedStateInsteadOfStoringIt(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	blocked := newTask(t, apply, "Bloqueada")
+	blocker := newTask(t, apply, "Bloqueante")
+
+	if _, err := apply.BlockTask(t.Context(), blocked.Ref, blocker.Ref); err != nil {
+		t.Fatalf("bloqueando la tarea: %v", err)
+	}
+
+	if !listedTask(t, listedTasks(t, apply), blocked.Ref).Blocked {
+		t.Fatal("la tarea bloqueada no sale bloqueada teniendo su bloqueante abierto")
+	}
+
+	if _, err := apply.CloseTask(t.Context(), blocker.Ref, core.CloseReasonDone); err != nil {
+		t.Fatalf("cerrando la bloqueante: %v", err)
+	}
+
+	if listedTask(t, listedTasks(t, apply), blocked.Ref).Blocked {
+		t.Error("cerrar la bloqueante no dejó de bloquear a la bloqueada")
+	}
+}
+
+// listedTasks devuelve el listado del proyecto.
+func listedTasks(t *testing.T, apply *core.Core) []core.Task {
+	t.Helper()
+
+	listed, err := apply.Tasks(t.Context())
+	if err != nil {
+		t.Fatalf("Tasks devolvió %v", err)
+	}
+
+	return listed
+}
+
+// newTag crea una etiqueta con ese nombre en el núcleo que se le pasa.
+func newTag(t *testing.T, apply *core.Core, name string) {
+	t.Helper()
+
+	if _, err := apply.CreateTag(t.Context(), name, "", ""); err != nil {
+		t.Fatalf("creando la etiqueta %q: %v", name, err)
+	}
+}
+
+// listedTask devuelve la tarea que el listado trae con esa referencia.
+func listedTask(t *testing.T, listed []core.Task, ref string) core.Task {
+	t.Helper()
+
+	for _, task := range listed {
+		if task.Ref == ref {
+			return task
+		}
+	}
+
+	t.Fatalf("el listado no trae la tarea %q", ref)
+
+	return core.Task{}
+}
+
+// newTask crea una tarea con ese título en el núcleo que se le pasa.
+func newTask(t *testing.T, apply *core.Core, title string) core.Task {
+	t.Helper()
+
+	task, err := apply.CreateTask(t.Context(), core.NewTask{Title: title})
+	if err != nil {
+		t.Fatalf("creando la tarea %q: %v", title, err)
+	}
+
+	return task
 }

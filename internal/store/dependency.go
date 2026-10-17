@@ -85,6 +85,8 @@ func (s *Store) HasOpenBlocker(ctx context.Context, id int64) (bool, error) {
 // OpenBlockers dice qué tareas de la lista tienen algún bloqueante que no está
 // cerrado: una consulta para todas, no una por tarea. El estado bloqueado se
 // calcula de las filas y no se guarda.
+//
+//nolint:gosec // la consulta solo añade marcadores, nunca datos
 func (s *Store) OpenBlockers(ctx context.Context, ids []int64) (map[int64]bool, error) {
 	blocked := make(map[int64]bool, len(ids))
 	if len(ids) == 0 {
@@ -93,11 +95,14 @@ func (s *Store) OpenBlockers(ctx context.Context, ids []int64) (map[int64]bool, 
 
 	args := append(int64Args(ids), statusDone)
 
-	rows, err := s.db.QueryContext(ctx, `
+	// La consulta solo concatena marcadores, nunca datos: de ahí el nolint.
+	query := `
 		SELECT DISTINCT d.task_id
 		FROM dependencies d
 		JOIN tasks t ON t.id = d.blocker_id
-		WHERE d.task_id IN (`+inPlaceholders(len(ids))+`) AND t.status <> ?`, args...)
+		WHERE d.task_id IN (` + inPlaceholders(len(ids)) + `) AND t.status <> ?`
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
 	}

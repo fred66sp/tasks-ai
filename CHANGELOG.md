@@ -135,6 +135,11 @@ Changelog* y el versionado es semántico.
 
 ### Corregido
 
+- **La extensión no deja al agente sin sitio donde anotar**: en un proyecto sin tablero
+  ya no retira la herramienta `todo` del arnés; la deja en su sitio y el resumen lo dice
+  en una línea. Con tablero, `todo` sigue fuera mientras la extensión está cargada, y
+  vuelve al descargarla.
+
 - **El aviso de un cambio ya no depende de quién lo pidió** (`tk-4962.21`): el aviso
   del canal `GET /api/events` no lleva la superficie que pidió el cambio —la interfaz
   enviaba una identidad de sesión (`?clientId=`, `x-client-id`) que el servidor ni

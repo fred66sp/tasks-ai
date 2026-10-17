@@ -23,7 +23,8 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	let statusUI: ExtensionContext["ui"] | undefined;
 
 	pi.on("session_start", async (_event, ctx) => {
-		if (previousTools === undefined) {
+		// Sin tablero, el todo del arnés es el único sitio donde anotar: no se retira.
+		if (previousTools === undefined && ctx.cwd !== undefined && findProjectRoot(ctx.cwd) !== null) {
 			previousTools = [...pi.getActiveTools()];
 			pi.setActiveTools(previousTools.filter((name) => name !== "todo"));
 		}
@@ -85,7 +86,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	});
 
 	pi.on("before_agent_start", async (event, ctx) => {
-		let summary = "Tablero: no hay tablero instalado en este proyecto.";
+		let summary = "Tablero: no hay tablero instalado en este proyecto; la herramienta todo sigue disponible para anotar el trabajo.";
 		if (findProjectRoot(ctx.cwd) !== null) {
 			const board = await readBoard(ctx.cwd, ctx.signal);
 			summary = renderSummary(board);

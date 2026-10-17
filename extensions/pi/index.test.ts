@@ -23,7 +23,7 @@ interface Registered {
 	) => Promise<{ content: { type: string; text: string }[]; details: unknown }>;
 }
 
-function harness(executeCli = runCli) {
+function harness(executeCli = runCli, cwd?: string) {
 	const commands: Record<string, { handler: (args: string, ctx: any) => Promise<void> }> = {};
 	const notifications: string[] = [];
 	const statuses = new Map<string, string>();
@@ -60,13 +60,13 @@ function harness(executeCli = runCli) {
 
 	tasksExtension(pi, executeCli);
 	const previous = [...active];
-	const start = (ctx: any = {}) => handlers.session_start?.({ type: "session_start", reason: "startup" }, ctx);
+	const start = (ctx: any = cwd === undefined ? {} : { cwd }) => handlers.session_start?.({ type: "session_start", reason: "startup" }, ctx);
 	start();
 	return { registered, commands, notifications, statuses, context, handlers, previous, changes, start, active: () => [...active] };
 }
 
-function load(): Record<string, Registered> {
-	return harness().registered;
+function load(cwd?: string): Record<string, Registered> {
+	return harness(undefined, cwd).registered;
 }
 
 describe("la extensión", () => {
@@ -79,7 +79,7 @@ describe("la extensión", () => {
 		project = mkdtempSync(path.join(tmpdir(), "tasks-ai-extension-"));
 		const init = spawnSync(binary, ["init"], { cwd: project, encoding: "utf8" });
 		assert.equal(init.status, 0, init.stderr);
-		tools = load();
+		tools = load(project);
 	});
 
 	afterEach(() => {
@@ -238,7 +238,7 @@ describe("la extensión", () => {
 	});
 
 	it("retira solo todo al iniciar y restaura exactamente una vez al descargar", async () => {
-		const extension = harness();
+		const extension = harness(undefined, project);
 		assert.deepEqual(extension.active(), extension.previous.filter((name) => name !== "todo"));
 		extension.start();
 		assert.ok(extension.handlers.session_shutdown, "falta session_shutdown");
@@ -247,6 +247,16 @@ describe("la extensión", () => {
 		const changes = extension.changes.length;
 		await extension.handlers.session_shutdown({}, {});
 		assert.equal(extension.changes.length, changes);
+	});
+
+	it("sin tablero deja el todo del arnés y lo dice en el resumen", async () => {
+		const root = path.parse(project).root;
+		const extension = harness(async () => { throw new Error("no debe ejecutarse"); }, root);
+		assert.deepEqual(extension.active(), extension.previous, "todo sigue disponible");
+		const sections: Record<string, string> = {};
+		await extension.handlers.before_agent_start({ systemPromptOptions: { sections } }, extension.context(root));
+		assert.equal(sections.tasks_board.split("\n").length, 1);
+		assert.match(sections.tasks_board, /todo/);
 	});
 
 	it("comparte list entre el resumen y tasks_board e invalida tras escribir", async () => {

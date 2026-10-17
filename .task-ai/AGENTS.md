@@ -58,3 +58,38 @@ devuelve JSON, habla por la salida de error y se detiene con Ctrl+C o con SIGTER
 Cada tarea tiene un número interno, que es su identidad, que es único en el proyecto y
 que no se reutiliza. La referencia visible se compone con el prefijo del proyecto y ese
 número: `tk-1`. Se escribe sin distinguir mayúsculas y admite espacios alrededor.
+
+## El trabajo del proyecto
+
+Lo que sigue lo escribe el proyecto, no la instalación: `init` no vuelve a escribir
+este archivo, así que aquí se corrige lo que haga falta.
+
+### Qué es una tarea
+
+- Una **épica** es una tarea de nivel superior con la etiqueta `epic`: un frente visible
+  del proyecto, no una unidad de trabajo.
+- Una **subtarea** es una tarea con padre y la etiqueta `task`: una unidad de trabajo que
+  puede atravesar sesiones.
+- Cada tarea lleva además un único tipo principal: `docs`, `feat`, `fix`, `test`,
+  `chore`, `refactor`, `style` o `improvement`. El trabajo del registro ODD lleva `ODD`.
+- Toda tarea declara en su descripción **el resultado que la cierra** y **el criterio con
+  el que se comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
+  empieza: se escribe primero.
+
+### El ciclo
+
+1. Antes de crear, se lee el tablero: crear sin mirar deja duplicados que no se pueden
+   borrar, solo cerrar.
+2. La tarea existe y está en curso antes de tocar archivos.
+3. Las **notas** son el relevo: qué falta y cuál es el siguiente paso. Se sobrescriben.
+4. Los **comentarios** son decisiones, hallazgos y evidencias. Solo se añaden: no se
+   editan ni se borran, así que se escribe lo que se querrá leer después.
+5. Se cierra con su motivo cuando el resultado y sus comprobaciones se han observado, y
+   no antes. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
+
+### Lo que no se escribe en el tablero
+
+- El estado de Git: ramas, hashes, commits pendientes. Se consulta con Git.
+- El proceso de revisión. Cada cosa vive donde vive.
+- Métricas, listas de archivos ni resúmenes de la documentación: la documentación tiene
+  su sitio, y el tablero solo dice qué se está haciendo.

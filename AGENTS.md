@@ -23,8 +23,13 @@ Toda llamada va por el binario del producto y responde en JSON:
 
 - La base de tareas vive en `.task-ai/tasks.db`. No se edita con SQL: solo por el CLI
   del producto.
-- Ciclo: crear o seleccionar la tarea antes de tocar archivos, marcarla en curso,
-  mantener las notas y los comentarios al día y cerrarla tras verificar.
+- Un frente visible es una tarea de nivel superior con la etiqueta `epic`; una unidad de
+  trabajo es una subtarea con padre y la etiqueta `task`. El trabajo del registro ODD
+  lleva `ODD`, y cada tarea un tipo principal: `docs`, `feat`, `fix`, `test`, `chore`,
+  `refactor`, `style` o `improvement`.
+- Ciclo: leer el tablero antes de crear, crear o seleccionar la tarea antes de tocar
+  archivos, marcarla en curso, mantener las notas y los comentarios al día y cerrarla con
+  su motivo tras verificar.
 - Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
   arreglo, una decisión, una duda— se anota como tarea antes de tocarlo.

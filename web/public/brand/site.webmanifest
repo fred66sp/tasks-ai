@@ -1,0 +1,16 @@
+{
+  "name": "tasks-ai",
+  "short_name": "tasks-ai",
+  "start_url": "/task-manager/app-vue.html",
+  "display": "standalone",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0a0f1c",
+  "icons": [
+    {
+      "src": "android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

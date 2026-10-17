@@ -13,7 +13,8 @@ export const AppShell = {
   <div class="workspace-app">
     <header class="workspace-header">
       <div class="workspace-header__brand">
-        <div class="brand-mark">G</div>
+        <!-- El símbolo aprobado vive en web/public/brand/, copiado del paquete de marca de docs/tasks-ai-brand. -->
+        <div class="brand-mark"><img src="../brand/tasks-ai-icon-96.png" alt="" width="38" height="38" /></div>
         <div><strong>Gestor de tareas</strong><span>Local</span></div>
       </div>
       <div class="workspace-header__actions">

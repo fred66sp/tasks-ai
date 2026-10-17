@@ -307,15 +307,15 @@
       }
       .task-type-icon--epic {
         background: var(--tk-color-purple-soft);
-        color: var(--tk-color-purple);
+        color: var(--tk-color-text-primary);
       }
       .task-type-icon--task {
         background: var(--tk-color-accent-soft);
-        color: var(--tk-color-accent);
+        color: var(--tk-color-text-primary);
       }
       .task-type-icon--subtask {
         background: var(--tk-color-success-soft);
-        color: var(--tk-color-success);
+        color: var(--tk-color-text-primary);
       }
       .task-row__copy {
         min-width: 0;
@@ -907,8 +907,8 @@
       .task-inspector__actions > .tk-badge {
         min-height: 26px;
         border: 0;
-        border-radius: 4px;
-        color: #fff;
+        border-radius: var(--tk-radius-sm);
+        color: var(--tk-color-text-inverse);
       }
       .task-inspector__actions > .tk-badge--success {
         background: var(--tk-color-success);

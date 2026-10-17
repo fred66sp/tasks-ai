@@ -62,17 +62,19 @@ textarea:focus-visible {
   align-items: center;
   gap: var(--tk-space-3);
 }
+/* El símbolo de la marca lleva su propio cuadro, así que aquí solo se le da
+   el hueco: sin borde, sin fondo y sin la letra provisional. */
 .brand-mark {
-  display: grid;
+  display: block;
   width: 38px;
   height: 38px;
-  place-items: center;
-  border: 1px solid rgba(98, 167, 255, 0.34);
+  overflow: hidden;
   border-radius: var(--tk-radius-md);
-  background: var(--tk-color-accent-soft);
-  color: var(--tk-color-accent);
-  font-weight: 850;
-  letter-spacing: -0.04em;
+}
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .workspace-header__brand strong {
   display: block;

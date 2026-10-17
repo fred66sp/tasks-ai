@@ -5,6 +5,15 @@ Changelog* y el versionado es semántico.
 
 ## [Sin publicar]
 
+### Añadido
+
+- **La interfaz lleva la identidad del producto**: el encabezado enseña el símbolo
+  aprobado en lugar de la letra provisional, la paleta y las tipografías son las de la
+  marca, y la pestaña del navegador y el manifiesto del sitio traen sus iconos. Los
+  estados de la tarea se leen por encima del contraste AA, sin depender solo del color.
+  Nada de lo que la interfaz hace cambia: las mismas acciones, los mismos avisos y los
+  mismos datos.
+
 ### Documentación
 
 - La guía de uso del producto en una página web: `docs/web/index.html` recorre el producto

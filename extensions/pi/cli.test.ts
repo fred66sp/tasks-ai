@@ -5,13 +5,13 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { runCli } from "./cli.ts";
-
-const binary = path.resolve(import.meta.dirname, "../../bin/tasks-ai");
+import { binary, ensureBinary } from "./test-binary.ts";
 
 describe("runCli", () => {
 	let project: string;
 
 	before(() => {
+		ensureBinary();
 		process.env.TASKS_AI_BIN = binary;
 		project = mkdtempSync(path.join(tmpdir(), "tasks-ai-cli-"));
 	});

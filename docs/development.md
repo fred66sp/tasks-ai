@@ -20,6 +20,10 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 
+Las pruebas de la extensión se ejecutan con `cd extensions/pi && npm test`, que usa el runner
+de Node y construye el binario si falta. Ninguna prueba escribe en el tablero del
+repositorio: cada una monta su proyecto temporal y lo borra al terminar.
+
 ## Fronteras del código
 
 - El núcleo contiene las reglas y el acceso a datos; no conoce comandos ni rutas.

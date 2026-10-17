@@ -9,8 +9,7 @@ import { runCli } from "./cli.ts";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 import tasksExtension from "./index.ts";
-
-const binary = path.resolve(import.meta.dirname, "../../bin/tasks-ai");
+import { binary, ensureBinary } from "./test-binary.ts";
 
 interface Registered {
 	name: string;
@@ -75,6 +74,7 @@ describe("la extensión", () => {
 	let tools: Record<string, Registered>;
 
 	beforeEach(() => {
+		ensureBinary();
 		process.env.TASKS_AI_BIN = binary;
 		project = mkdtempSync(path.join(tmpdir(), "tasks-ai-extension-"));
 		const init = spawnSync(binary, ["init"], { cwd: project, encoding: "utf8" });

@@ -138,13 +138,18 @@ func TestServe_aSessionReadingTheEventsDoesNotHoldTheShutdown(t *testing.T) {
 
 	go func() { gone <- server.Wait() }()
 
+	// El presupuesto de esta prueba tiene que sobrevivir al techo que el propio
+	// servidor se da para apagarse —cinco segundos—: con menos, el temporizador
+	// le gana la carrera a un apagado lento legítimo y el fallo no dice de quién es.
+	const shutdownBudget = 10 * time.Second
+
 	select {
 	case err := <-gone:
 		if err != nil {
 			t.Errorf("el servidor se apagó con error: %v", err)
 		}
-	case <-time.After(4 * time.Second):
-		t.Error("el servidor no se apagó en cuatro segundos con una sesión leyendo el canal")
+	case <-time.After(shutdownBudget):
+		t.Errorf("el servidor no se apagó en %s con una sesión leyendo el canal", shutdownBudget)
 	}
 }
 
@@ -214,23 +219,33 @@ func startServer(t *testing.T, dir, binary string) (string, *exec.Cmd) {
 		t.Fatalf("escribiendo el settings del servidor: %v", err)
 	}
 
+	// Lo que el servidor escribe va a un archivo y no a un tubo: con un tubo, el
+	// arranque deja una goroutine copiando lo que el proceso escriba, y esperar al
+	// proceso pasa a ser esperar también a esa goroutine, que puede sobrevivirle.
+	// Con un archivo, esperar al proceso es esperar solo al proceso.
+	logPath := filepath.Join(t.TempDir(), "serve.stderr")
+
+	logFile, err := os.Create(logPath)
+	if err != nil {
+		t.Fatalf("preparando la salida de errores del servidor: %v", err)
+	}
+
 	server := exec.CommandContext(t.Context(), binary, "serve")
 	server.Dir = dir
-
-	var stderr strings.Builder
-
-	server.Stderr = &stderr
+	server.Stderr = logFile
 
 	if err := server.Start(); err != nil {
 		t.Fatalf("arrancando el servidor: %v", err)
 	}
+
+	t.Cleanup(func() { _ = logFile.Close() })
 
 	// Solo se mata: quien quiera esperar a que salga lo hace una vez, porque
 	// esperar dos veces al mismo proceso deja colgada a la segunda.
 	t.Cleanup(func() { _ = server.Process.Kill() })
 
 	address := fmt.Sprintf("127.0.0.1:%d", port)
-	waitReady(t, address, &stderr)
+	waitReady(t, address, logPath)
 
 	return address, server
 }
@@ -262,7 +277,7 @@ func freePort(t *testing.T) int {
 // cuenta y no con el ayudante de las peticiones: mientras el servidor no
 // escucha, la conexión se rechaza, y eso no es un fallo de la prueba sino algo
 // que hay que esperar antes de que llegue el momento de exigir.
-func waitReady(t *testing.T, address string, stderr *strings.Builder) {
+func waitReady(t *testing.T, address, logPath string) {
 	t.Helper()
 
 	deadline := time.Now().Add(10 * time.Second)
@@ -284,7 +299,9 @@ func waitReady(t *testing.T, address string, stderr *strings.Builder) {
 		time.Sleep(50 * time.Millisecond)
 	}
 
-	t.Fatalf("el servidor no llegó a responder en %s:\n%s", address, stderr.String())
+	raw, _ := os.ReadFile(logPath)
+
+	t.Fatalf("el servidor no llegó a responder en %s:\n%s", address, raw)
 }
 
 func do(t *testing.T, method, address, body string) (int, string) {

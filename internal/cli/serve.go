@@ -16,8 +16,13 @@ import (
 )
 
 // shutdownWait is how long the server keeps answering to the requests it
-// already took before it goes away.
-const shutdownWait = 5 * time.Second
+// already took before it goes away. Corto a propósito: lo que puede quedar en
+// curso son peticiones de un proyecto local, que se resuelven en milisegundos.
+// Una conexión que todavía no ha pedido nada —el cliente abre más de las que
+// usa y las deja esperando— retiene el apagado ordenado hasta los cinco
+// segundos que Go le concede antes de darla por ociosa, así que esperar más es
+// quedarse colgado por quien no ha pedido nada.
+const shutdownWait = time.Second
 
 // newServeCommand starts the product's web surface.
 func newServeCommand() *cobra.Command {
@@ -94,7 +99,12 @@ func serve(command *cobra.Command) error {
 		defer cancel()
 
 		if err := server.Shutdown(shutdown); err != nil {
-			return fmt.Errorf("cerrando el servidor: %w", err)
+			// Venció el plazo y lo que retiene el apagado es una conexión sin nada
+			// en curso: se cierra a la fuerza y el servidor se va sin quejarse, que
+			// quien la abrió no ha pedido nada que terminar.
+			if closeErr := server.Close(); closeErr != nil {
+				return fmt.Errorf("cerrando el servidor: %w", err)
+			}
 		}
 	}
 

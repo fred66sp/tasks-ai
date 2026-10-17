@@ -7,6 +7,11 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **La línea del tablero en el TUI lleva el símbolo de la marca**: el estado de la
+  extensión empieza por el zorro, como el widget de otras extensiones empieza por el
+  suyo, y conserva el formato y el recorte de siempre. Cambia solo lo que se ve: la tarea
+  en curso, el aviso de que no hay ninguna y el de que no hay tablero se leen igual.
+
 - **Las superficies del producto hablan inglés**: la ayuda de todos los comandos, los
   mensajes de error del CLI, sus avisos por la salida de errores y el cuerpo `error` de
   la API se emiten en inglés, con los mismos códigos de salida y de estado. La

@@ -59,7 +59,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		const text = current ? `${current.ref} · ${current.title.replace(/\s+/g, " ").trim()}`
 			: board ? "sin tarea en curso" : message;
 		statusUI = ctx.ui;
-		ctx.ui.setStatus("tasks_board", `tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
+		ctx.ui.setStatus("tasks_board", `🦊 tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
 	}
 
 	async function refreshUI(ctx: ExtensionContext) {

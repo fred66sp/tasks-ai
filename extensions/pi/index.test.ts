@@ -140,7 +140,7 @@ describe("la extensión", () => {
 		cli("update", "tk-1", "--status", "in_progress");
 		const extension = harness();
 		await extension.handlers.session_start({}, extension.context(project));
-		assert.deepEqual([...extension.statuses.values()], ["tablero: tk-1 · 09 comando /board"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · 09 comando /board"]);
 		await extension.handlers.session_shutdown({}, extension.context(project));
 		assert.equal(extension.statuses.size, 0);
 	});
@@ -158,7 +158,7 @@ describe("la extensión", () => {
 		await extension.commands.board.handler("", ctx);
 		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
 		assert.equal(lists, 1);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
 	});
 
 	it("/board en print y json no usa UI ni lee el CLI", async () => {
@@ -179,10 +179,10 @@ describe("la extensión", () => {
 		const ctx = extension.context(project);
 		await extension.commands.board.handler("", ctx);
 		assert.match(extension.notifications[0], /Tablero no disponible: fallo de lectura/);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: no disponible"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: no disponible"]);
 		await extension.commands.board.handler("", ctx);
 		assert.equal(calls, 2);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
 	});
 
 	it("el estado se actualiza tras escribir y al comenzar un turno", async (t) => {
@@ -192,14 +192,14 @@ describe("la extensión", () => {
 		const extension = harness();
 		const ctx = extension.context(project);
 		await extension.handlers.session_start({}, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
 		await extension.registered.tasks_update.execute("id", { ref: "tk-1", status: "in_progress" }, undefined, undefined, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: tk-1 · tarea actual"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · tarea actual"]);
 		cli("close", "tk-1", "--reason", "done");
 		// La siguiente lectura debe ver también cambios externos una vez caducada la caché.
 		now = 1000;
 		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
 	});
 
 	it("añade al prompt un resumen corto, sin mensaje ni detalles privados", async () => {

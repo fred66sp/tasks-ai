@@ -78,12 +78,12 @@ func Load(dir string) (Settings, error) {
 			return Default(), nil
 		}
 
-		return Settings{}, fmt.Errorf("leyendo %s: %w", path, err)
+		return Settings{}, fmt.Errorf("reading %s: %w", path, err)
 	}
 
 	cfg := Default()
 	if err := json.Unmarshal(raw, &cfg); err != nil {
-		return Settings{}, fmt.Errorf("%s no es un archivo de ajustes válido: %w", FileName, err)
+		return Settings{}, fmt.Errorf("%s is not a valid settings file: %w", FileName, err)
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -101,12 +101,12 @@ func Save(dir string, cfg Settings) error {
 
 	raw, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
-		return fmt.Errorf("preparando %s: %w", FileName, err)
+		return fmt.Errorf("preparing %s: %w", FileName, err)
 	}
 
 	path := filepath.Join(dir, FileName)
 	if err := os.WriteFile(path, append(raw, '\n'), 0o644); err != nil { //nolint:gosec // los ajustes se escriben con los permisos de lectura del proyecto
-		return fmt.Errorf("escribiendo %s: %w", path, err)
+		return fmt.Errorf("writing %s: %w", path, err)
 	}
 
 	return nil
@@ -124,26 +124,26 @@ func Exists(dir string) bool {
 func (cfg Settings) validate() error {
 	if !prefixPattern.MatchString(cfg.Prefix) {
 		return fmt.Errorf(
-			"%s: el prefijo %q debe empezar por letra o número y seguir con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres",
+			"%s: the prefix %q must start with a letter or a digit and go on with letters, digits, hyphens or underscores, up to thirty-two characters",
 			FileName,
 			cfg.Prefix,
 		)
 	}
 
 	if !filepath.IsLocal(cfg.DB) {
-		return fmt.Errorf("%s: la base %q debe ser un archivo dentro de la carpeta del producto", FileName, cfg.DB)
+		return fmt.Errorf("%s: the database %q must be a file inside the product folder", FileName, cfg.DB)
 	}
 
 	if cfg.HTTP.Port < 1 || cfg.HTTP.Port > 65535 {
-		return fmt.Errorf("%s: el puerto %d está fuera del rango de puertos", FileName, cfg.HTTP.Port)
+		return fmt.Errorf("%s: port %d is outside the port range", FileName, cfg.HTTP.Port)
 	}
 
 	if cfg.HTTP.Host == "" {
-		return fmt.Errorf("%s: la dirección de la interfaz no puede quedar vacía", FileName)
+		return fmt.Errorf("%s: the interface address cannot be left empty", FileName)
 	}
 
 	if !slices.Contains(logLevels, cfg.Log.Level) {
-		return fmt.Errorf("%s: el nivel de registro %q no es uno de %s", FileName, cfg.Log.Level, strings.Join(logLevels, ", "))
+		return fmt.Errorf("%s: the log level %q is not one of %s", FileName, cfg.Log.Level, strings.Join(logLevels, ", "))
 	}
 
 	return nil

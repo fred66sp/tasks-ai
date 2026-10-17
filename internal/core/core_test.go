@@ -170,7 +170,7 @@ func TestCloseTask_saysWithItsSentinelWhenARuleRefusesIt(t *testing.T) {
 		t.Errorf("cerrar con subtareas abiertas devolvió %v, se esperaba el centinela de regla que lo impide", err)
 	}
 
-	if err == nil || err.Error() != "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas" {
+	if err == nil || err.Error() != "cannot close task \"tk-1\": it has open subtasks" {
 		t.Errorf("el mensaje del cierre rechazado es %q", err)
 	}
 }
@@ -195,7 +195,7 @@ func TestCloseTask_saysWithItsSentinelWhenTheTaskIsAlreadyClosed(t *testing.T) {
 		t.Errorf("cerrar dos veces devolvió %v, se esperaba el centinela de regla que lo impide", err)
 	}
 
-	if err == nil || err.Error() != "no se puede cerrar la tarea \"tk-1\": ya está cerrada" {
+	if err == nil || err.Error() != "cannot close task \"tk-1\": it is already closed" {
 		t.Errorf("el mensaje del segundo cierre es %q", err)
 	}
 }
@@ -287,14 +287,14 @@ func TestUpdateTask_refusesTheStatusChangesTheRulesRefuse(t *testing.T) {
 			prepare:  closedRef,
 			status:   "in_progress",
 			sentinel: core.ErrConflict,
-			message:  "solo una tarea pendiente se puede poner en curso",
+			message:  "only an open task can be put in progress",
 		},
 		{
 			name:     "cerrar no va por el cambio, va por close con su motivo",
 			prepare:  pendingRef,
 			status:   "done",
 			sentinel: core.ErrInvalid,
-			message:  "el estado \"done\" no se pone: cerrar va por close, con el motivo",
+			message:  "status \"done\" is not set here: closing goes through close, with its reason",
 		},
 	}
 
@@ -350,7 +350,7 @@ func TestCreateTag_saysWithItsSentinelWhenARuleRefusesIt(t *testing.T) {
 		t.Errorf("crear una etiqueta repetida devolvió %v, se esperaba el centinela de regla que lo impide", err)
 	}
 
-	if err == nil || err.Error() != "ya existe una etiqueta con el nombre \"docs\"" {
+	if err == nil || err.Error() != "a tag with the name \"docs\" already exists" {
 		t.Errorf("el mensaje de la etiqueta repetida es %q", err)
 	}
 }

@@ -52,7 +52,7 @@ func openProject(ctx context.Context, dir string, warn io.Writer, origin string)
 	}
 
 	if note != "" {
-		_, _ = fmt.Fprintf(warn, "aviso: %s\n", note)
+		_, _ = fmt.Fprintf(warn, "warning: %s\n", note)
 	}
 
 	return &project{core: apply, base: base, cfg: cfg}, nil
@@ -86,7 +86,7 @@ func withProject(command *cobra.Command, run func(*project) error) error {
 func workingDir() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
-		return "", fmt.Errorf("no se pudo leer la carpeta desde la que se llamó: %w", err)
+		return "", fmt.Errorf("could not read the folder the product was called from: %w", err)
 	}
 
 	return dir, nil

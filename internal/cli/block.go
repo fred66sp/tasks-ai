@@ -10,11 +10,11 @@ import (
 // newBlockCommand leaves a task blocked by another.
 func newBlockCommand() *cobra.Command {
 	return newPairCommand(
-		"block <referencia> <referencia-bloqueante>",
-		"Deja una tarea bloqueada por otra",
-		"Deja la primera tarea bloqueada por la segunda: mientras la bloqueante no esté\n"+
-			"done, la primera aparece bloqueada. Una referencia que no resuelve se rechaza y\n"+
-			"una tarea no puede bloquearse por sí misma.",
+		"block <reference> <blocker-reference>",
+		"Leaves a task blocked by another",
+		"Leaves the first task blocked by the second: while the blocker is not\n"+
+			"done, the first one shows as blocked. A reference that does not resolve is refused\n"+
+			"and a task cannot be blocked by itself.",
 		(*core.Core).BlockTask,
 	)
 }
@@ -22,11 +22,11 @@ func newBlockCommand() *cobra.Command {
 // newUnblockCommand removes the block between two tasks.
 func newUnblockCommand() *cobra.Command {
 	return newPairCommand(
-		"unblock <referencia> <referencia-bloqueante>",
-		"Retira el bloqueo entre dos tareas",
-		"Retira el bloqueo que deja la primera tarea bloqueada por la segunda y devuelve en\n"+
-			"JSON la tarea tal como queda, que deja de aparecer bloqueada si no le quedaban\n"+
-			"más bloqueantes.",
+		"unblock <reference> <blocker-reference>",
+		"Removes the block between two tasks",
+		"Removes the block that leaves the first task blocked by the second and returns in\n"+
+			"JSON the task as it is left, which stops showing as blocked if it had no other\n"+
+			"blockers left.",
 		(*core.Core).UnblockTask,
 	)
 }

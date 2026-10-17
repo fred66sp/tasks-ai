@@ -42,10 +42,10 @@ type errorBody struct {
 func New(out, errOut io.Writer) *cobra.Command {
 	root := &cobra.Command{
 		Use:   Name,
-		Short: "Gestor de tareas local del proyecto",
-		Long: "Gestor de tareas local del proyecto.\n\n" +
-			"Trabaja sobre la carpeta " + install.DirName + " del proyecto en el que estés, la encuentre donde la encuentre.\n" +
-			"Toda operación responde en JSON por la salida estándar.",
+		Short: "Local task manager for the project",
+		Long: "Local task manager for the project.\n\n" +
+			"Works on the " + install.DirName + " folder of the project you are in, wherever it is found.\n" +
+			"Every operation answers in JSON on the standard output.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
@@ -106,7 +106,7 @@ func usage(check cobra.PositionalArgs) cobra.PositionalArgs {
 func writeJSON(out io.Writer, value any) error {
 	raw, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
-		_, err = fmt.Fprintf(out, "{\"error\": \"no se pudo preparar la respuesta: %v\"}\n", err)
+		_, err = fmt.Fprintf(out, "{\"error\": \"could not prepare the answer: %v\"}\n", err)
 
 		return err
 	}

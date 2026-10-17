@@ -10,12 +10,12 @@ import (
 // newCloseCommand closes a task with a reason.
 func newCloseCommand() *cobra.Command {
 	return newFlagRefCommand(
-		"close <referencia>",
-		"Cierra una tarea con un motivo",
-		"Cierra una tarea: deja su estado en done, guarda el motivo y devuelve en JSON la\n"+
-			"tarea tal como queda. El motivo es obligatorio y debe ser uno de los conocidos.",
+		"close <reference>",
+		"Closes a task with a reason",
+		"Closes a task: it leaves its status in done, records the reason and returns the\n"+
+			"task as it is left in JSON. The reason is required and must be one of the known ones.",
 		"reason",
-		"motivo del cierre: done, duplicate, absorbed, stale o superseded (obligatorio)",
+		"close reason: done, duplicate, absorbed, stale or superseded (required)",
 		(*core.Core).CloseTask,
 	)
 }

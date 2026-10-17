@@ -10,11 +10,11 @@ import (
 // newShowCommand reads one task by its reference, with everything around it.
 func newShowCommand() *cobra.Command {
 	return newRefCommand(
-		"show <referencia>",
-		"Devuelve una tarea con lo que la rodea",
-		"Devuelve en JSON la tarea a la que apunta la referencia, con su identidad interna\n"+
-			"y su referencia visible, sus hijas, sus bloqueantes, sus dependientes y sus\n"+
-			"comentarios.",
+		"show <reference>",
+		"Returns a task with what surrounds it",
+		"Returns in JSON the task the reference points at, with its internal identity\n"+
+			"and its visible reference, its children, its blockers, its dependents and its\n"+
+			"comments.",
 		(*core.Core).TaskDetail,
 	)
 }

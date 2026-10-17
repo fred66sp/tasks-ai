@@ -38,7 +38,7 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Task{}, fmt.Errorf("abriendo la transacción de la creación: %w", err)
+		return Task{}, fmt.Errorf("opening the creation transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -58,12 +58,12 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 		task.Notes,
 	)
 	if err != nil {
-		return Task{}, fmt.Errorf("guardando la tarea: %w", err)
+		return Task{}, fmt.Errorf("saving the task: %w", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return Task{}, fmt.Errorf("leyendo la identidad de la tarea guardada: %w", err)
+		return Task{}, fmt.Errorf("reading the identity of the stored task: %w", err)
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
@@ -71,7 +71,7 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Task{}, fmt.Errorf("cerrando la transacción de la creación: %w", err)
+		return Task{}, fmt.Errorf("closing the creation transaction: %w", err)
 	}
 
 	task.ID = id
@@ -104,7 +104,7 @@ func readTask(ctx context.Context, from rowQuerier, id int64) (Task, error) {
 	case errors.Is(err, sql.ErrNoRows):
 		return Task{}, ErrNotFound
 	case err != nil:
-		return Task{}, fmt.Errorf("leyendo la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("reading task %d: %w", id, err)
 	}
 
 	return task, nil
@@ -114,7 +114,7 @@ func readTask(ctx context.Context, from rowQuerier, id int64) (Task, error) {
 func (s *Store) queryTasks(ctx context.Context, query string, args ...any) ([]Task, error) {
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo tareas: %w", err)
+		return nil, fmt.Errorf("reading tasks: %w", err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -124,14 +124,14 @@ func (s *Store) queryTasks(ctx context.Context, query string, args ...any) ([]Ta
 	for rows.Next() {
 		task, err := scanTask(rows.Scan)
 		if err != nil {
-			return nil, fmt.Errorf("leyendo tareas: %w", err)
+			return nil, fmt.Errorf("reading tasks: %w", err)
 		}
 
 		tasks = append(tasks, task)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("leyendo tareas: %w", err)
+		return nil, fmt.Errorf("reading tasks: %w", err)
 	}
 
 	return tasks, nil
@@ -153,11 +153,11 @@ func scanTask(scan func(dest ...any) error) (Task, error) {
 	}
 
 	if task.CreatedAt, err = time.Parse(timeLayout, createdAt); err != nil {
-		return Task{}, fmt.Errorf("la fecha de creación de la tarea %d no se entiende: %w", task.ID, err)
+		return Task{}, fmt.Errorf("the creation date of task %d cannot be read: %w", task.ID, err)
 	}
 
 	if task.UpdatedAt, err = time.Parse(timeLayout, updated); err != nil {
-		return Task{}, fmt.Errorf("la fecha de cambio de la tarea %d no se entiende: %w", task.ID, err)
+		return Task{}, fmt.Errorf("the change date of task %d cannot be read: %w", task.ID, err)
 	}
 
 	return task, nil
@@ -172,7 +172,7 @@ func scanTask(scan func(dest ...any) error) (Task, error) {
 func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Task, error), tags []string) (Task, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Task{}, fmt.Errorf("abriendo la transacción del cambio: %w", err)
+		return Task{}, fmt.Errorf("opening the change transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -210,7 +210,7 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		id,
 	)
 	if err != nil {
-		return Task{}, fmt.Errorf("guardando el cambio de la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("saving the change of task %d: %w", id, err)
 	}
 
 	if tags != nil {
@@ -224,7 +224,7 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Task{}, fmt.Errorf("cerrando la transacción del cambio de la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("closing the change transaction of task %d: %w", id, err)
 	}
 
 	return changed, nil
@@ -239,7 +239,7 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Task{}, fmt.Errorf("abriendo la transacción del cierre: %w", err)
+		return Task{}, fmt.Errorf("opening the close transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -259,7 +259,7 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 		`SELECT count(*) FROM tasks WHERE parent_id = ? AND status <> ?`, id, statusDone,
 	).Scan(&open)
 	if err != nil {
-		return Task{}, fmt.Errorf("mirando las subtareas de la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("looking at the subtasks of task %d: %w", id, err)
 	}
 
 	if open > 0 {
@@ -278,7 +278,7 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 		id,
 	)
 	if err != nil {
-		return Task{}, fmt.Errorf("guardando el cierre de la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("saving the close of task %d: %w", id, err)
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
@@ -286,7 +286,7 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Task{}, fmt.Errorf("cerrando la transacción del cierre de la tarea %d: %w", id, err)
+		return Task{}, fmt.Errorf("closing the close transaction of task %d: %w", id, err)
 	}
 
 	stored.Status = statusDone

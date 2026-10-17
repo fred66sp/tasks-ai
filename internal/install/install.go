@@ -67,7 +67,7 @@ func Project(dir string) (string, error) {
 
 		parent := filepath.Dir(current)
 		if parent == current {
-			return "", fmt.Errorf("no hay ningún proyecto con el producto instalado en %s ni en las carpetas que lo contienen", dir)
+			return "", fmt.Errorf("there is no project with the product installed in %s or in the folders that contain it", dir)
 		}
 
 		current = parent
@@ -80,7 +80,7 @@ func Project(dir string) (string, error) {
 func Run(ctx context.Context, root string) (Result, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
-		return Result{}, fmt.Errorf("resolviendo la ruta del proyecto %s: %w", root, err)
+		return Result{}, fmt.Errorf("resolving the path of project %s: %w", root, err)
 	}
 
 	dir := filepath.Join(root, DirName)
@@ -94,7 +94,7 @@ func Run(ctx context.Context, root string) (Result, error) {
 	instructions := filepath.Join(dir, instructionsName)
 
 	if exists(dbPath) && exists(instructions) {
-		return Result{}, fmt.Errorf("el proyecto ya tiene el producto instalado en %s", dir)
+		return Result{}, fmt.Errorf("the project already has the product installed in %s", dir)
 	}
 
 	// Las instrucciones van antes que la base: si algo falla a mitad, lo que ya
@@ -134,7 +134,7 @@ func exists(path string) bool {
 // touching the one the project may have written itself.
 func prepare(dir string) (settings.Settings, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
-		return settings.Settings{}, fmt.Errorf("creando la carpeta %s: %w", dir, err)
+		return settings.Settings{}, fmt.Errorf("creating the folder %s: %w", dir, err)
 	}
 
 	if !settings.Exists(dir) {
@@ -156,7 +156,7 @@ func writeInstructions(dir string) error {
 	}
 
 	if err := os.WriteFile(path, instructions, 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto
-		return fmt.Errorf("escribiendo %s: %w", path, err)
+		return fmt.Errorf("writing %s: %w", path, err)
 	}
 
 	return nil

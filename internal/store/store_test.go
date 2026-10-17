@@ -198,7 +198,7 @@ func TestOpen_saysSoWhenTheFolderOfTheBaseCannotBeCreated(t *testing.T) {
 		t.Fatal("abriendo la base con una carpeta imposible: no falló")
 	}
 
-	if !strings.Contains(err.Error(), "creando la carpeta de la base") {
+	if !strings.Contains(err.Error(), "creating the folder of the database") {
 		t.Errorf("el error no dice que la carpeta no pudo crearse: %v", err)
 	}
 
@@ -245,7 +245,7 @@ func TestOpen_saysSoWhenTheRecordedSchemaVersionIsNotANumber(t *testing.T) {
 		t.Fatal("abriendo una base con una versión del esquema sin sentido: no falló")
 	}
 
-	if !strings.Contains(err.Error(), `"próximamente"`) || !strings.Contains(err.Error(), "no es un número") {
+	if !strings.Contains(err.Error(), `"próximamente"`) || !strings.Contains(err.Error(), "is not a number") {
 		t.Errorf("el error no señala la versión guardada: %v", err)
 	}
 }
@@ -323,8 +323,8 @@ func TestTask_saysSoWhenTheStoredDatesCannotBeRead(t *testing.T) {
 		updatedAt string
 		fragment  string
 	}{
-		{name: "la fecha de creación", createdAt: "ayer", updatedAt: today, fragment: "la fecha de creación de la tarea 1"},
-		{name: "la fecha de cambio", createdAt: today, updatedAt: "el martes pasado", fragment: "la fecha de cambio de la tarea 1"},
+		{name: "la fecha de creación", createdAt: "ayer", updatedAt: today, fragment: "the creation date of task 1"},
+		{name: "la fecha de cambio", createdAt: today, updatedAt: "el martes pasado", fragment: "the change date of task 1"},
 	} {
 		t.Run(caso.name, func(t *testing.T) {
 			t.Parallel()

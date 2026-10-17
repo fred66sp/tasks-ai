@@ -18,7 +18,7 @@ import (
 )
 
 // ErrNotFound dice que no hay nada guardado con la clave que se pidió.
-var ErrNotFound = errors.New("no hay nada guardado con esa clave")
+var ErrNotFound = errors.New("nothing is stored under that key")
 
 // Las superficies que abren la base y los recursos de los que un cambio puede
 // hablar. Viajan dentro de las filas de cambio, así que sus valores son datos,
@@ -36,11 +36,11 @@ const (
 )
 
 // ErrClosed dice que la tarea que se quiso cerrar ya está cerrada.
-var ErrClosed = errors.New("la tarea ya está cerrada")
+var ErrClosed = errors.New("the task is already closed")
 
 // ErrOpenSubtasks dice que la tarea que se quiso cerrar tiene subtareas que no
 // lo están.
-var ErrOpenSubtasks = errors.New("la tarea tiene subtareas abiertas")
+var ErrOpenSubtasks = errors.New("the task has open subtasks")
 
 // driverName is the engine this package registers with database/sql.
 const driverName = "sqlite"
@@ -155,7 +155,7 @@ func OpenAs(ctx context.Context, path, origin string) (*Store, error) {
 	// Los ajustes aceptan rutas en subcarpetas del proyecto y nadie más crea
 	// esa carpeta: sin esto, abrir falla porque SQLite no la crea por su cuenta.
 	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-		return nil, fmt.Errorf("creando la carpeta de la base %s: %w", path, err)
+		return nil, fmt.Errorf("creating the folder of the database %s: %w", path, err)
 	}
 
 	limit := time.Now().Add(bootstrapWait)
@@ -176,7 +176,7 @@ func OpenAs(ctx context.Context, path, origin string) (*Store, error) {
 
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("abriendo la base %s: %w", path, ctx.Err())
+			return nil, fmt.Errorf("opening the database %s: %w", path, ctx.Err())
 		case <-time.After(time.Duration(attempt) * 25 * time.Millisecond):
 		}
 	}
@@ -187,13 +187,13 @@ func OpenAs(ctx context.Context, path, origin string) (*Store, error) {
 func openOnce(ctx context.Context, path, origin string) (*Store, error) {
 	db, err := sql.Open(driverName, dataSourceName(path))
 	if err != nil {
-		return nil, fmt.Errorf("abriendo la base %s: %w", path, err)
+		return nil, fmt.Errorf("opening the database %s: %w", path, err)
 	}
 
 	if err := db.PingContext(ctx); err != nil {
 		_ = db.Close()
 
-		return nil, fmt.Errorf("abriendo la base %s: %w", path, err)
+		return nil, fmt.Errorf("opening the database %s: %w", path, err)
 	}
 
 	instance := &Store{db: db, origin: origin}
@@ -224,7 +224,7 @@ func isBusy(err error) bool {
 // Close lets the database go.
 func (s *Store) Close() error {
 	if err := s.db.Close(); err != nil {
-		return fmt.Errorf("cerrando la base: %w", err)
+		return fmt.Errorf("closing the database: %w", err)
 	}
 
 	return nil
@@ -269,7 +269,7 @@ func schemaVersion(ctx context.Context, q rowQuerier) (int, error) {
 		`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'meta'`,
 	).Scan(&tables)
 	if err != nil {
-		return 0, fmt.Errorf("mirando el esquema de la base: %w", err)
+		return 0, fmt.Errorf("looking at the schema of the database: %w", err)
 	}
 
 	if tables == 0 {
@@ -284,12 +284,12 @@ func schemaVersion(ctx context.Context, q rowQuerier) (int, error) {
 	}
 
 	if err != nil {
-		return 0, fmt.Errorf("leyendo la versión del esquema: %w", err)
+		return 0, fmt.Errorf("reading the schema version: %w", err)
 	}
 
 	version, err := strconv.Atoi(value)
 	if err != nil {
-		return 0, fmt.Errorf("la versión del esquema guardada (%q) no es un número: %w", value, err)
+		return 0, fmt.Errorf("the stored schema version (%q) is not a number: %w", value, err)
 	}
 
 	return version, nil
@@ -306,7 +306,7 @@ func (s *Store) RecordedPrefix(ctx context.Context) (string, error) {
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("leyendo el prefijo de la base: %w", err)
+		return "", fmt.Errorf("reading the prefix of the database: %w", err)
 	}
 
 	return value, nil
@@ -318,7 +318,7 @@ func (s *Store) SetPrefix(ctx context.Context, prefix string) error {
 		INSERT INTO meta (key, value) VALUES ('prefix', ?)
 		ON CONFLICT (key) DO UPDATE SET value = excluded.value`, prefix)
 	if err != nil {
-		return fmt.Errorf("anotando el prefijo %q: %w", prefix, err)
+		return fmt.Errorf("recording the prefix %q: %w", prefix, err)
 	}
 
 	return nil
@@ -340,7 +340,7 @@ func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
 	rows, err := s.db.QueryContext(ctx,
 		`SELECT id, resource, resource_id, origin, happened_at FROM changes WHERE id > ? ORDER BY id`, after)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo los cambios: %w", err)
+		return nil, fmt.Errorf("reading the changes: %w", err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -354,18 +354,18 @@ func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
 		)
 
 		if err := rows.Scan(&change.ID, &change.Resource, &change.ResourceID, &change.Origin, &happenedAt); err != nil {
-			return nil, fmt.Errorf("leyendo los cambios: %w", err)
+			return nil, fmt.Errorf("reading the changes: %w", err)
 		}
 
 		if change.HappenedAt, err = time.Parse(timeLayout, happenedAt); err != nil {
-			return nil, fmt.Errorf("la fecha del cambio %d no se entiende: %w", change.ID, err)
+			return nil, fmt.Errorf("the date of change %d cannot be read: %w", change.ID, err)
 		}
 
 		changes = append(changes, change)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("leyendo los cambios: %w", err)
+		return nil, fmt.Errorf("reading the changes: %w", err)
 	}
 
 	return changes, nil
@@ -378,7 +378,7 @@ func (s *Store) LastChangeID(ctx context.Context) (int64, error) {
 	var last int64
 
 	if err := s.db.QueryRowContext(ctx, `SELECT COALESCE(MAX(id), 0) FROM changes`).Scan(&last); err != nil {
-		return 0, fmt.Errorf("leyendo el último cambio: %w", err)
+		return 0, fmt.Errorf("reading the latest change: %w", err)
 	}
 
 	return last, nil
@@ -399,7 +399,7 @@ func recordChange(ctx context.Context, within changeWriter, origin, resource str
 	if _, err := within.ExecContext(ctx,
 		`INSERT INTO changes (resource, resource_id, origin, happened_at) VALUES (?, ?, ?, ?)`,
 		resource, resourceID, origin, now.Format(timeLayout)); err != nil {
-		return fmt.Errorf("anotando el cambio de %s %d: %w", resource, resourceID, err)
+		return fmt.Errorf("recording the change of %s %d: %w", resource, resourceID, err)
 	}
 
 	return nil
@@ -440,14 +440,14 @@ func (s *Store) migrate(ctx context.Context) error {
 func (s *Store) apply(ctx context.Context, change migration) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("abriendo la transacción del esquema: %w", err)
+		return fmt.Errorf("opening the schema transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
 
 	version, err := schemaVersion(ctx, tx)
 	if err != nil {
-		return fmt.Errorf("aplicando el esquema %d: %w", change.version, err)
+		return fmt.Errorf("applying schema %d: %w", change.version, err)
 	}
 
 	if change.version <= version {
@@ -456,7 +456,7 @@ func (s *Store) apply(ctx context.Context, change migration) error {
 
 	for _, statement := range change.statements {
 		if _, err := tx.ExecContext(ctx, statement); err != nil {
-			return fmt.Errorf("aplicando el esquema %d: %w", change.version, err)
+			return fmt.Errorf("applying schema %d: %w", change.version, err)
 		}
 	}
 
@@ -464,11 +464,11 @@ func (s *Store) apply(ctx context.Context, change migration) error {
 		INSERT INTO meta (key, value) VALUES ('schema_version', ?)
 		ON CONFLICT (key) DO UPDATE SET value = excluded.value`, strconv.Itoa(change.version))
 	if err != nil {
-		return fmt.Errorf("anotando el esquema %d: %w", change.version, err)
+		return fmt.Errorf("recording schema %d: %w", change.version, err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("cerrando la transacción del esquema: %w", err)
+		return fmt.Errorf("closing the schema transaction: %w", err)
 	}
 
 	return nil

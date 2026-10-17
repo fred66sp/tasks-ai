@@ -9,17 +9,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"slices"
 	"strings"
+	"tasks-ai/internal/cli"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
 	"testing"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 // binPath es donde quedó construido el binario, compartido por todos los escenarios.
@@ -160,6 +165,45 @@ func TestHelpListsTheCommands(t *testing.T) {
 			t.Errorf("--help no menciona %q:\n%s", name, out)
 		}
 	}
+}
+
+// spanishText finds the marks of Spanish in a help page: the letters the
+// language has and English does not, and the short words that only it uses.
+var spanishText = regexp.MustCompile(`(?i)[áéíóúñ¿¡]|\b(de|del|la|las|el|los|una|un|que|para|por|con|sin|usa|falta)\b`)
+
+// TestHelpOfEveryCommandIsInEnglish: la ayuda de todos los comandos del
+// producto, subcomandos incluidos, se lee en inglés.
+func TestHelpOfEveryCommandIsInEnglish(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	for _, path := range commandPaths(cli.New(io.Discard, io.Discard)) {
+		args := append(slices.Clone(path), "--help")
+
+		code, out, errOut := run(t, dir, args...)
+
+		if code != 0 {
+			t.Fatalf("%v salió con %d: %s", args, code, errOut)
+		}
+
+		if found := spanishText.FindString(out); found != "" {
+			t.Errorf("la ayuda de %v no está en inglés: encontré %q en\n%s", args, found, out)
+		}
+	}
+}
+
+// commandPaths lists every command of the tree by the arguments that reach it.
+func commandPaths(command *cobra.Command) [][]string {
+	paths := [][]string{nil}
+
+	for _, child := range command.Commands() {
+		for _, below := range commandPaths(child) {
+			paths = append(paths, append([]string{child.Name()}, below...))
+		}
+	}
+
+	return paths
 }
 
 // TestInitInstallsTheProduct: instalar nombra su carpeta y el prefijo, y no
@@ -434,7 +478,7 @@ func TestUpdateWithoutAnythingToChangeIsMisuse(t *testing.T) {
 		t.Errorf("update sin campos escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "cambiar") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "nothing to change") {
 		t.Errorf("el mensaje no dice que no hay nada que cambiar: %s", message)
 	}
 }
@@ -458,7 +502,7 @@ func TestCreateRefusesAPriorityOutOfRange(t *testing.T) {
 			t.Errorf("create con la prioridad %s escribió en la salida estándar: %s", priority, out)
 		}
 
-		if message := errorJSON(t, errOut); !strings.Contains(message, "rango") {
+		if message := errorJSON(t, errOut); !strings.Contains(message, "range") {
 			t.Errorf("el mensaje de la prioridad %s no explica el rango: %s", priority, message)
 		}
 	}
@@ -505,7 +549,7 @@ func TestUpdateRefusesAPriorityOutOfRangeAndLeavesTheTaskAsItWas(t *testing.T) {
 			t.Errorf("update con la prioridad %s escribió en la salida estándar: %s", priority, out)
 		}
 
-		if message := errorJSON(t, errOut); !strings.Contains(message, "rango") {
+		if message := errorJSON(t, errOut); !strings.Contains(message, "range") {
 			t.Errorf("el mensaje de la prioridad %s no explica el rango: %s", priority, message)
 		}
 	}
@@ -592,7 +636,7 @@ func TestCloseRefusesATaskWithOpenSubtasksAndLeavesItAsItWas(t *testing.T) {
 		t.Errorf("el cierre rechazado escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "subtareas abiertas") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "open subtasks") {
 		t.Errorf("el mensaje no dice que hay subtareas abiertas: %s", message)
 	}
 
@@ -653,7 +697,7 @@ func TestCloseRefusesAnUnknownOrMissingReason(t *testing.T) {
 		t.Errorf("close sin motivo escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "motivo") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "reason") {
 		t.Errorf("el mensaje de close sin motivo no habla del motivo: %s", message)
 	}
 
@@ -667,7 +711,7 @@ func TestCloseRefusesAnUnknownOrMissingReason(t *testing.T) {
 		t.Errorf("close con un motivo desconocido escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "motivo") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "reason") {
 		t.Errorf("el mensaje del motivo desconocido no habla del motivo: %s", message)
 	}
 
@@ -777,7 +821,7 @@ func TestCloseTwiceAndReopenAnOpenTaskAreRefused(t *testing.T) {
 		t.Errorf("el segundo close escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "ya está cerrada") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "already closed") {
 		t.Errorf("el mensaje no dice que la tarea ya está cerrada: %s", message)
 	}
 
@@ -800,7 +844,7 @@ func TestCloseTwiceAndReopenAnOpenTaskAreRefused(t *testing.T) {
 		t.Errorf("el segundo reopen escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "no está cerrada") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "not closed") {
 		t.Errorf("el mensaje no dice que la tarea no está cerrada: %s", message)
 	}
 }
@@ -1128,7 +1172,7 @@ func TestCommentAppendsAndRefusesAnEmptyBody(t *testing.T) {
 			t.Errorf("comment con el cuerpo %q escribió en la salida estándar: %s", body, out)
 		}
 
-		if message := errorJSON(t, errOut); !strings.Contains(message, "cuerpo") {
+		if message := errorJSON(t, errOut); !strings.Contains(message, "body") {
 			t.Errorf("el mensaje de comment con el cuerpo %q no habla del cuerpo: %s", body, message)
 		}
 	}
@@ -1199,7 +1243,7 @@ func TestInitTwiceFails(t *testing.T) {
 		t.Errorf("el segundo init escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "instalado") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "installed") {
 		t.Errorf("el mensaje no dice que el producto ya está instalado: %s", message)
 	}
 }
@@ -1503,7 +1547,7 @@ func TestTagCreateGivesTheDefaultColourAndRefusesBadEntry(t *testing.T) {
 			t.Errorf("%v escribió en la salida estándar: %s", args, out)
 		}
 
-		if message := errorJSON(t, errOut); !strings.Contains(message, "color") && !strings.Contains(message, "nombre") {
+		if message := errorJSON(t, errOut); !strings.Contains(message, "color") && !strings.Contains(message, "name") {
 			t.Errorf("el mensaje de %v no habla del color o del nombre: %s", args, message)
 		}
 	}
@@ -1545,7 +1589,7 @@ func TestTagCreateRefusesADuplicateNameAndLeavesTheCatalogueAsItWas(t *testing.T
 		t.Errorf("el mensaje enseña el error del motor de la base: %s", message)
 	}
 
-	if count := strings.Count(message, "ya existe"); count != 1 {
+	if count := strings.Count(message, "already exists"); count != 1 {
 		t.Errorf("el mensaje dice lo mismo %d veces: %s", count, message)
 	}
 
@@ -1597,7 +1641,7 @@ func TestTagEditChangesOnlyWhatItIsGiven(t *testing.T) {
 		t.Errorf("tag edit sin campos escribió en la salida estándar: %s", out)
 	}
 
-	if message := errorJSON(t, errOut); !strings.Contains(message, "cambiar") {
+	if message := errorJSON(t, errOut); !strings.Contains(message, "nothing to change") {
 		t.Errorf("el mensaje no dice que no hay nada que cambiar: %s", message)
 	}
 }

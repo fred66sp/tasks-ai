@@ -234,7 +234,7 @@ func TestRun_updateRejectsClosingThroughTheStatus(t *testing.T) {
 	}
 
 	message := errorText(t, errOut)
-	if !strings.Contains(message, "close") || !strings.Contains(message, "motivo") {
+	if !strings.Contains(message, "close") || !strings.Contains(message, "reason") {
 		t.Errorf("el mensaje del rechazo (%q) debe mandar a close con su motivo", message)
 	}
 }

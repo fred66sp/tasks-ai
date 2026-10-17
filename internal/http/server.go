@@ -20,7 +20,7 @@ import (
 
 // errBadEntry marks an entry of a request that cannot be read or cannot be
 // served as asked: no llega al núcleo porque no hay nada que llevarle.
-var errBadEntry = errors.New("entrada ilegible")
+var errBadEntry = errors.New("unreadable entry")
 
 // badEntryError is an entry the API cannot serve. Lleva su mensaje y responde
 // al centinela, igual que los errores del núcleo responden a los suyos.
@@ -210,7 +210,7 @@ func (s *Server) logOperations(next nethttp.Handler) nethttp.Handler {
 
 		next.ServeHTTP(watched, r)
 
-		s.log.Debug("operación servida", "method", r.Method, "path", r.URL.Path, "status", watched.status)
+		s.log.Debug("operation served", "method", r.Method, "path", r.URL.Path, "status", watched.status)
 	})
 }
 
@@ -357,13 +357,13 @@ func (s *Server) patchTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 func (s *Server) changeStatus(w nethttp.ResponseWriter, r *nethttp.Request, ref string, entry taskPatch) {
 	if entry.Title != nil || entry.Description != nil || entry.Notes != nil ||
 		entry.Assignee != nil || entry.Priority != nil || entry.Tags != nil {
-		s.writeError(w, badEntry("el estado va solo en el cambio"))
+		s.writeError(w, badEntry("the status goes alone in the change"))
 
 		return
 	}
 
 	if *entry.Status != statusOpen && *entry.Status != statusInProgress {
-		s.writeError(w, badEntry("el estado %q no se puede poner: para cerrar usa su ruta con el motivo", *entry.Status))
+		s.writeError(w, badEntry("status %q cannot be set: to close use its route with the reason", *entry.Status))
 
 		return
 	}
@@ -387,7 +387,7 @@ type closeEntry struct {
 func (s *Server) closeTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 	writeTaskFromEntry(s, w, r,
 		func(entry closeEntry) string { return entry.Reason },
-		badEntry("falta el motivo de cierre"),
+		badEntry("the close reason is missing"),
 		(*core.Core).CloseTask,
 	)
 }
@@ -401,7 +401,7 @@ type blockerEntry struct {
 func (s *Server) addBlocker(w nethttp.ResponseWriter, r *nethttp.Request) {
 	writeTaskFromEntry(s, w, r,
 		func(entry blockerEntry) string { return entry.Blocker },
-		badEntry("falta la referencia de la tarea bloqueante"),
+		badEntry("the reference of the blocker task is missing"),
 		(*core.Core).BlockTask,
 	)
 }
@@ -427,7 +427,7 @@ type commentEntry struct {
 func (s *Server) addComment(w nethttp.ResponseWriter, r *nethttp.Request) {
 	writeTaskFromEntry(s, w, r,
 		func(entry commentEntry) string { return entry.Body },
-		badEntry("falta el cuerpo del comentario"),
+		badEntry("the comment body is missing"),
 		(*core.Core).AddComment,
 	)
 }
@@ -563,7 +563,7 @@ func (s *Server) status(w nethttp.ResponseWriter, r *nethttp.Request) {
 func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 	flusher, canFlush := w.(nethttp.Flusher)
 	if !canFlush {
-		s.writeError(w, badEntry("quien lee no admite un canal abierto"))
+		s.writeError(w, badEntry("whoever reads does not admit an open channel"))
 
 		return
 	}
@@ -584,7 +584,7 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 	// lote con cambios no podría decir qué tarea cambió ni cómo.
 	previous, err := s.core.Tasks(r.Context())
 	if err != nil {
-		s.log.Warn("leyendo las tareas para el canal", "error", err.Error())
+		s.log.Warn("reading the tasks for the channel", "error", err.Error())
 
 		previous = nil
 	}
@@ -592,7 +592,7 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 	for {
 		events, err := s.core.Events(r.Context(), after)
 		if err != nil {
-			s.log.Warn("leyendo los avisos para el canal", "error", err.Error())
+			s.log.Warn("reading the notices for the channel", "error", err.Error())
 
 			return
 		}
@@ -604,7 +604,7 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 		for _, event := range events {
 			payload, err := json.Marshal(noticeOf(event, described))
 			if err != nil {
-				s.log.Warn("preparando el aviso del canal", "error", err.Error())
+				s.log.Warn("preparing the notice of the channel", "error", err.Error())
 
 				return
 			}
@@ -639,7 +639,7 @@ func (s *Server) describeBatch(r *nethttp.Request, previous []core.Task, events 
 
 	current, err := s.core.Tasks(r.Context())
 	if err != nil {
-		s.log.Warn("leyendo las tareas para el canal", "error", err.Error())
+		s.log.Warn("reading the tasks for the channel", "error", err.Error())
 
 		return nil, previous
 	}
@@ -675,7 +675,7 @@ func lastSeen(r *nethttp.Request) (int64, bool, error) {
 
 		id, err := strconv.ParseInt(seen, 10, 64)
 		if err != nil || id < 0 {
-			return 0, false, badEntry("la identidad desde la que continuar no es un número")
+			return 0, false, badEntry("the identity to continue from is not a number")
 		}
 
 		return id, true, nil
@@ -690,7 +690,7 @@ func decode[T any](r *nethttp.Request) (T, error) {
 	var entry T
 
 	if err := json.NewDecoder(r.Body).Decode(&entry); err != nil {
-		return entry, badEntry("el cuerpo de la petición no es un JSON válido")
+		return entry, badEntry("the body of the request is not valid JSON")
 	}
 
 	return entry, nil

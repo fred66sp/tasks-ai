@@ -20,7 +20,7 @@ func interfaceFiles() nethttp.Handler {
 	if err != nil {
 		// El patrón va incrustado en el binario: si no está, el binario está
 		// roto y no hay nada que servir.
-		panic("la interfaz no viaja en el binario: " + err.Error())
+		panic("the interface does not travel in the binary: " + err.Error())
 	}
 
 	return noStore(nethttp.FileServerFS(files))

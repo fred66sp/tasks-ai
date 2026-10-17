@@ -350,7 +350,7 @@ func TestServer_putsATaskInProgressThroughThePatch(t *testing.T) {
 	}
 
 	status, body = do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "done"}`)
-	expect(t, status, body, http.StatusBadRequest, `el estado "done" no se puede poner: para cerrar usa su ruta con el motivo`)
+	expect(t, status, body, http.StatusBadRequest, `status "done" cannot be set: to close use its route with the reason`)
 }
 
 // errorTranslation nombra una negativa de la API con los pasos que la provocan.
@@ -368,7 +368,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, "POST", "/api/tasks", `{`)
-				expect(t, status, body, http.StatusBadRequest, "el cuerpo de la petición no es un JSON válido")
+				expect(t, status, body, http.StatusBadRequest, "the body of the request is not valid JSON")
 			},
 		},
 		{
@@ -377,7 +377,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, "POST", "/api/tasks", `{"title": "Fuera de rango", "priority": 9}`)
-				expect(t, status, body, http.StatusBadRequest, "la prioridad 9 está fuera del rango 0-3")
+				expect(t, status, body, http.StatusBadRequest, "priority 9 is outside the range 0-3")
 			},
 		},
 		{
@@ -386,7 +386,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, "POST", "/api/tasks", `{"title": "   "}`)
-				expect(t, status, body, http.StatusBadRequest, "la tarea necesita un título")
+				expect(t, status, body, http.StatusBadRequest, "the task needs a title")
 			},
 		},
 		{
@@ -395,17 +395,17 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, "PATCH", "/api/tasks/tk-1", `{}`)
-				expect(t, status, body, http.StatusBadRequest, "no hay nada que cambiar: indica al menos un campo")
+				expect(t, status, body, http.StatusBadRequest, "there is nothing to change: name at least one field")
 			},
 		},
 		{
-			name: "falta el motivo de cierre",
+			name: "the close reason is missing",
 			steps: func(t *testing.T, server string) {
 				t.Helper()
 
 				do(t, server, "POST", "/api/tasks", `{"title": "Sin motivo"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{}`)
-				expect(t, status, body, http.StatusBadRequest, "falta el motivo de cierre")
+				expect(t, status, body, http.StatusBadRequest, "the close reason is missing")
 			},
 		},
 		{
@@ -415,17 +415,17 @@ func errorTranslations() []errorTranslation {
 
 				do(t, server, "POST", "/api/tasks", `{"title": "Sin bloqueante"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/blockers", `{}`)
-				expect(t, status, body, http.StatusBadRequest, "falta la referencia de la tarea bloqueante")
+				expect(t, status, body, http.StatusBadRequest, "the reference of the blocker task is missing")
 			},
 		},
 		{
-			name: "falta el cuerpo del comentario",
+			name: "the comment body is missing",
 			steps: func(t *testing.T, server string) {
 				t.Helper()
 
 				do(t, server, "POST", "/api/tasks", `{"title": "Sin comentario"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/comments", `{"body": "  "}`)
-				expect(t, status, body, http.StatusBadRequest, "falta el cuerpo del comentario")
+				expect(t, status, body, http.StatusBadRequest, "the comment body is missing")
 			},
 		},
 		{
@@ -434,7 +434,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, http.MethodGet, "/api/tasks/tk-404", "")
-				expect(t, status, body, http.StatusNotFound, "no hay ninguna tarea con la referencia \"tk-404\"")
+				expect(t, status, body, http.StatusNotFound, "there is no task with reference \"tk-404\"")
 			},
 		},
 		{
@@ -443,7 +443,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, http.MethodGet, "/api/tasks/luego", "")
-				expect(t, status, body, http.StatusNotFound, "la referencia \"luego\" no es válida: se espera tk-<número>")
+				expect(t, status, body, http.StatusNotFound, "reference \"luego\" is not valid: tk-<number> is expected")
 			},
 		},
 		{
@@ -452,7 +452,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				status, body := do(t, server, "DELETE", "/api/tags/nope", "")
-				expect(t, status, body, http.StatusNotFound, "no hay ninguna etiqueta con el nombre \"nope\"")
+				expect(t, status, body, http.StatusNotFound, "there is no tag with the name \"nope\"")
 			},
 		},
 		{
@@ -463,7 +463,7 @@ func errorTranslations() []errorTranslation {
 				do(t, server, "POST", "/api/tasks", `{"title": "Padre"}`)
 				do(t, server, "POST", "/api/tasks", `{"title": "Hija", "parent": "tk-1"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
-				expect(t, status, body, http.StatusConflict, "no se puede cerrar la tarea \"tk-1\": tiene subtareas abiertas")
+				expect(t, status, body, http.StatusConflict, "cannot close task \"tk-1\": it has open subtasks")
 			},
 		},
 		{
@@ -474,7 +474,7 @@ func errorTranslations() []errorTranslation {
 				do(t, server, "POST", "/api/tasks", `{"title": "Dos cierres"}`)
 				do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
-				expect(t, status, body, http.StatusConflict, "no se puede cerrar la tarea \"tk-1\": ya está cerrada")
+				expect(t, status, body, http.StatusConflict, "cannot close task \"tk-1\": it is already closed")
 			},
 		},
 		{
@@ -484,7 +484,7 @@ func errorTranslations() []errorTranslation {
 
 				do(t, server, "POST", "/api/tags", `{"name": "docs"}`)
 				status, body := do(t, server, "POST", "/api/tags", `{"name": "docs"}`)
-				expect(t, status, body, http.StatusConflict, "ya existe una etiqueta con el nombre \"docs\"")
+				expect(t, status, body, http.StatusConflict, "a tag with the name \"docs\" already exists")
 			},
 		},
 	}

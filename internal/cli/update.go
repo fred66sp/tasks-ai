@@ -21,13 +21,13 @@ func newUpdateCommand() *cobra.Command {
 	)
 
 	command := &cobra.Command{
-		Use:   "update <referencia>",
-		Short: "Cambia los campos de una tarea",
-		Long: "Cambia los campos de una tarea y devuelve en JSON la tarea tal como queda.\n" +
-			"Solo se toca lo que se pide: un campo que no se menciona no cambia, y un texto\n" +
-			"dado vacío deja ese campo sin valor.\n" +
-			"Con --status se cambia el estado: open (pendiente) o in_progress (en curso).\n" +
-			"Cerrar no va por aquí: usa close, con su motivo.",
+		Use:   "update <reference>",
+		Short: "Changes the fields of a task",
+		Long: "Changes the fields of a task and returns the task as it is left in JSON.\n" +
+			"Only what is asked for is touched: a field that is not named does not change, and\n" +
+			"an empty text leaves that field without a value.\n" +
+			"With --status the status changes: open or in_progress.\n" +
+			"Closing does not go through here: use close, with its reason.",
 		Args: usage(cobra.ExactArgs(1)),
 		RunE: func(command *cobra.Command, args []string) error {
 			changes := core.Changes{}
@@ -82,13 +82,13 @@ func newUpdateCommand() *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVarP(&title, "title", "t", "", "nuevo título de la tarea")
-	command.Flags().StringVarP(&description, "description", "d", "", "nueva descripción, vacía la quita")
-	command.Flags().StringVar(&notes, "notes", "", "nuevas notas, vacías las quitan")
-	command.Flags().StringVar(&assignee, "assignee", "", "nueva persona responsable, vacía la quita")
-	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "nueva prioridad, de 0 a 3")
-	command.Flags().StringVar(&tags, "tags", "", "nuevas etiquetas de la tarea, separadas por comas; una lista vacía las quita todas")
-	command.Flags().StringVar(&status, "status", "", "nuevo estado de la tarea: open (pendiente) o in_progress (en curso); para cerrar usa close, con su motivo")
+	command.Flags().StringVarP(&title, "title", "t", "", "new task title")
+	command.Flags().StringVarP(&description, "description", "d", "", "new description, empty removes it")
+	command.Flags().StringVar(&notes, "notes", "", "new notes, empty removes them")
+	command.Flags().StringVar(&assignee, "assignee", "", "new person responsible, empty removes it")
+	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "new priority, from 0 to 3")
+	command.Flags().StringVar(&tags, "tags", "", "new task tags, separated by commas; an empty list removes all of them")
+	command.Flags().StringVar(&status, "status", "", "new task status: open or in_progress; to close use close, with its reason")
 
 	return command
 }

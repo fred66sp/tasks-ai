@@ -13,7 +13,7 @@ func (s *Store) AddBlock(ctx context.Context, taskID, blockerID int64) error {
 	return s.changeBlock(ctx, taskID, blockerID, `
 		INSERT INTO dependencies (task_id, blocker_id) VALUES (?, ?)
 		ON CONFLICT (task_id, blocker_id) DO NOTHING`,
-		"bloqueando la tarea %d por la tarea %d")
+		"blocking task %d by task %d")
 }
 
 // RemoveBlock drops the row of the pair. Nothing is there to drop when the pair
@@ -21,7 +21,7 @@ func (s *Store) AddBlock(ctx context.Context, taskID, blockerID int64) error {
 func (s *Store) RemoveBlock(ctx context.Context, taskID, blockerID int64) error {
 	return s.changeBlock(ctx, taskID, blockerID,
 		`DELETE FROM dependencies WHERE task_id = ? AND blocker_id = ?`,
-		"retirando el bloqueo de la tarea %d por la tarea %d")
+		"removing the block of task %d by task %d")
 }
 
 // changeBlock abre la transacción del bloqueo, ejecuta la instrucción que lo
@@ -30,7 +30,7 @@ func (s *Store) RemoveBlock(ctx context.Context, taskID, blockerID int64) error 
 func (s *Store) changeBlock(ctx context.Context, taskID, blockerID int64, statement, failure string) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("abriendo la transacción del bloqueo: %w", err)
+		return fmt.Errorf("opening the block transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -53,7 +53,7 @@ func (s *Store) changeBlock(ctx context.Context, taskID, blockerID int64, statem
 func recordWhenWritten(ctx context.Context, tx *sql.Tx, origin string, result sql.Result, taskID int64) error {
 	written, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("mirando lo que escribió el bloqueo: %w", err)
+		return fmt.Errorf("looking at what the block wrote: %w", err)
 	}
 
 	if written == 0 {
@@ -76,7 +76,7 @@ func (s *Store) HasOpenBlocker(ctx context.Context, id int64) (bool, error) {
 			WHERE d.task_id = ? AND t.status <> ?
 		)`, id, statusDone).Scan(&blocked)
 	if err != nil {
-		return false, fmt.Errorf("mirando los bloqueos de la tarea %d: %w", id, err)
+		return false, fmt.Errorf("looking at the blocks of task %d: %w", id, err)
 	}
 
 	return blocked, nil
@@ -104,7 +104,7 @@ func (s *Store) OpenBlockers(ctx context.Context, ids []int64) (map[int64]bool, 
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+		return nil, fmt.Errorf("looking at the blocks of %d tasks: %w", len(ids), err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -113,14 +113,14 @@ func (s *Store) OpenBlockers(ctx context.Context, ids []int64) (map[int64]bool, 
 		var taskID int64
 
 		if err := rows.Scan(&taskID); err != nil {
-			return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+			return nil, fmt.Errorf("looking at the blocks of %d tasks: %w", len(ids), err)
 		}
 
 		blocked[taskID] = true
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("mirando los bloqueos de %d tareas: %w", len(ids), err)
+		return nil, fmt.Errorf("looking at the blocks of %d tasks: %w", len(ids), err)
 	}
 
 	return blocked, nil

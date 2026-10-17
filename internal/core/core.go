@@ -21,15 +21,15 @@ const (
 
 // ErrInvalid marks an entry that breaks a rule: the command line treats it as
 // misuse of the command line, and the API will answer that the entry is invalid.
-var ErrInvalid = errors.New("entrada inválida")
+var ErrInvalid = errors.New("invalid entry")
 
 // ErrNotFound marks a reference that resolves to nothing stored: the API
 // answers it with 404, and the command line with its generic error code.
-var ErrNotFound = errors.New("no hay ninguna tarea ni etiqueta con esa referencia")
+var ErrNotFound = errors.New("there is no task or tag with that reference")
 
 // ErrConflict marks an operation a rule of the product refuses: the API answers
 // it with 409, and the command line with its generic error code.
-var ErrConflict = errors.New("la regla del producto lo impide")
+var ErrConflict = errors.New("the product rule does not allow it")
 
 // Version is the version of the whole product, the same for both surfaces:
 // they travel together in one binary and the API answers with it.
@@ -117,7 +117,7 @@ var closeReasons = []string{
 }
 
 // errStillOpen marks a reopen the rules refuse because the task is not closed.
-var errStillOpen = errors.New("la tarea no está cerrada")
+var errStillOpen = errors.New("the task is not closed")
 
 // Core applies the product's rules over one project.
 type Core struct {
@@ -235,7 +235,7 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		ParentID:    storedParent,
 	})
 	if err != nil {
-		return Task{}, fmt.Errorf("guardando la tarea: %w", err)
+		return Task{}, fmt.Errorf("saving the task: %w", err)
 	}
 
 	return c.task(ctx, stored)
@@ -246,7 +246,7 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 func (c *Core) Tasks(ctx context.Context) ([]Task, error) {
 	stored, err := c.store.Tasks(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo las tareas: %w", err)
+		return nil, fmt.Errorf("reading the tasks: %w", err)
 	}
 
 	return c.tasks(ctx, stored)
@@ -268,7 +268,7 @@ type Event struct {
 func (c *Core) LastEventID(ctx context.Context) (int64, error) {
 	last, err := c.store.LastChangeID(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("leyendo el último aviso: %w", err)
+		return 0, fmt.Errorf("reading the latest notice: %w", err)
 	}
 
 	return last, nil
@@ -280,7 +280,7 @@ func (c *Core) LastEventID(ctx context.Context) (int64, error) {
 func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 	changes, err := c.store.Changes(ctx, after)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo los avisos de cambio: %w", err)
+		return nil, fmt.Errorf("reading the change notices: %w", err)
 	}
 
 	events := make([]Event, 0, len(changes))
@@ -317,12 +317,12 @@ func (c *Core) referenceOf(ctx context.Context, change store.Change) (string, er
 		}
 
 		if err != nil {
-			return "", fmt.Errorf("componiendo el aviso de la etiqueta %d: %w", change.ResourceID, err)
+			return "", fmt.Errorf("composing the notice of tag %d: %w", change.ResourceID, err)
 		}
 
 		return name, nil
 	default:
-		return "", fmt.Errorf("el aviso %d habla del recurso %q, que no se entiende", change.ID, change.Resource)
+		return "", fmt.Errorf("notice %d speaks of resource %q, which cannot be read", change.ID, change.Resource)
 	}
 }
 
@@ -362,7 +362,7 @@ type Changes struct {
 // UpdateTask changes what the update asks for and returns the task as it is left.
 func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Task, error) {
 	if changes.empty() {
-		return Task{}, invalid("no hay nada que cambiar: indica al menos un campo")
+		return Task{}, invalid("there is nothing to change: name at least one field")
 	}
 
 	id, err := ParseRef(c.prefix, ref)
@@ -389,7 +389,7 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 			// cual, sin la envoltura de la operación.
 			return Task{}, err
 		default:
-			return Task{}, fmt.Errorf("cambiando la tarea: %w", err)
+			return Task{}, fmt.Errorf("changing the task: %w", err)
 		}
 	}
 
@@ -449,14 +449,14 @@ func applyStatus(task *store.Task, status string) error {
 		task.CloseReason = nil
 	case statusInProgress:
 		if task.Status != statusOpen {
-			return forbidden("solo una tarea pendiente se puede poner en curso")
+			return forbidden("only an open task can be put in progress")
 		}
 
 		task.Status = statusInProgress
 	case statusDone:
-		return invalid("el estado %q no se pone: cerrar va por close, con el motivo", statusDone)
+		return invalid("status %q is not set here: closing goes through close, with its reason", statusDone)
 	default:
-		return invalid("el estado %q no se entiende: usa %s o %s", status, statusOpen, statusInProgress)
+		return invalid("status %q is not understood: use %s or %s", status, statusOpen, statusInProgress)
 	}
 
 	return nil
@@ -494,11 +494,11 @@ func (c *Core) CloseTask(ctx context.Context, ref, reason string) (Task, error) 
 		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
 		case errors.Is(err, store.ErrClosed):
-			return Task{}, forbidden("no se puede cerrar la tarea %q: ya está cerrada", ref)
+			return Task{}, forbidden("cannot close task %q: it is already closed", ref)
 		case errors.Is(err, store.ErrOpenSubtasks):
-			return Task{}, forbidden("no se puede cerrar la tarea %q: tiene subtareas abiertas", ref)
+			return Task{}, forbidden("cannot close task %q: it has open subtasks", ref)
 		default:
-			return Task{}, fmt.Errorf("cerrando la tarea: %w", err)
+			return Task{}, fmt.Errorf("closing the task: %w", err)
 		}
 	}
 
@@ -519,9 +519,9 @@ func (c *Core) ReopenTask(ctx context.Context, ref string) (Task, error) {
 		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
 		case errors.Is(err, errStillOpen):
-			return Task{}, forbidden("no se puede reabrir la tarea %q: no está cerrada", ref)
+			return Task{}, forbidden("cannot reopen task %q: it is not closed", ref)
 		default:
-			return Task{}, fmt.Errorf("reabriendo la tarea: %w", err)
+			return Task{}, fmt.Errorf("reopening the task: %w", err)
 		}
 	}
 
@@ -572,7 +572,7 @@ func (c *Core) CheckPrefix(ctx context.Context) (string, error) {
 		return "", nil
 	default:
 		return fmt.Sprintf(
-			"la base se compuso con el prefijo %q y los ajustes dicen %q: las referencias escritas con el anterior ya no resuelven",
+			"the database was composed with prefix %q and the settings say %q: references written with the previous one no longer resolve",
 			recorded,
 			c.prefix,
 		), nil
@@ -666,22 +666,22 @@ func (c *Core) TaskDetail(ctx context.Context, ref string) (Detail, error) {
 
 	children, err := c.store.Children(ctx, id)
 	if err != nil {
-		return Detail{}, fmt.Errorf("buscando las hijas de la tarea %q: %w", ref, err)
+		return Detail{}, fmt.Errorf("looking up the children of task %q: %w", ref, err)
 	}
 
 	blockers, err := c.store.Blockers(ctx, id)
 	if err != nil {
-		return Detail{}, fmt.Errorf("buscando los bloqueantes de la tarea %q: %w", ref, err)
+		return Detail{}, fmt.Errorf("looking up the blockers of task %q: %w", ref, err)
 	}
 
 	dependents, err := c.store.Dependents(ctx, id)
 	if err != nil {
-		return Detail{}, fmt.Errorf("buscando los dependientes de la tarea %q: %w", ref, err)
+		return Detail{}, fmt.Errorf("looking up the dependents of task %q: %w", ref, err)
 	}
 
 	comments, err := c.store.Comments(ctx, id)
 	if err != nil {
-		return Detail{}, fmt.Errorf("buscando los comentarios de la tarea %q: %w", ref, err)
+		return Detail{}, fmt.Errorf("looking up the comments of task %q: %w", ref, err)
 	}
 
 	task, err := c.task(ctx, stored)
@@ -738,7 +738,7 @@ func (c *Core) BlockTask(ctx context.Context, ref, blockerRef string) (Task, err
 	}
 
 	if err := c.store.AddBlock(ctx, taskID, blockerID); err != nil {
-		return Task{}, fmt.Errorf("bloqueando la tarea %q: %w", ref, err)
+		return Task{}, fmt.Errorf("blocking task %q: %w", ref, err)
 	}
 
 	return c.Task(ctx, ref)
@@ -754,7 +754,7 @@ func (c *Core) UnblockTask(ctx context.Context, ref, blockerRef string) (Task, e
 	}
 
 	if err := c.store.RemoveBlock(ctx, taskID, blockerID); err != nil {
-		return Task{}, fmt.Errorf("retirando el bloqueo de la tarea %q: %w", ref, err)
+		return Task{}, fmt.Errorf("removing the block of task %q: %w", ref, err)
 	}
 
 	return c.Task(ctx, ref)
@@ -765,7 +765,7 @@ func (c *Core) UnblockTask(ctx context.Context, ref, blockerRef string) (Task, e
 func (c *Core) AddComment(ctx context.Context, ref, body string) (Task, error) {
 	text := strings.TrimSpace(body)
 	if text == "" {
-		return Task{}, invalid("falta el cuerpo del comentario: usa --body")
+		return Task{}, invalid("the comment body is missing: use --body")
 	}
 
 	id, err := c.taskID(ctx, ref)
@@ -774,7 +774,7 @@ func (c *Core) AddComment(ctx context.Context, ref, body string) (Task, error) {
 	}
 
 	if _, err := c.store.AddComment(ctx, id, text); err != nil {
-		return Task{}, fmt.Errorf("añadiendo el comentario a la tarea %q: %w", ref, err)
+		return Task{}, fmt.Errorf("adding the comment to task %q: %w", ref, err)
 	}
 
 	return c.Task(ctx, ref)
@@ -794,7 +794,7 @@ func (c *Core) pair(ctx context.Context, ref, blockerRef string) (int64, int64, 
 	}
 
 	if taskID == blockerID {
-		return 0, 0, invalid("la tarea %q no se puede bloquear por sí misma", ref)
+		return 0, 0, invalid("task %q cannot be blocked by itself", ref)
 	}
 
 	return taskID, blockerID, nil
@@ -813,7 +813,7 @@ func (c *Core) taskID(ctx context.Context, ref string) (int64, error) {
 			return 0, c.missing(ref)
 		}
 
-		return 0, fmt.Errorf("buscando la tarea %q: %w", ref, err)
+		return 0, fmt.Errorf("looking up task %q: %w", ref, err)
 	}
 
 	return id, nil
@@ -821,14 +821,14 @@ func (c *Core) taskID(ctx context.Context, ref string) (int64, error) {
 
 // missing is the error of a reference that points at no task.
 func (c *Core) missing(ref string) error {
-	return notFound("no hay ninguna tarea con la referencia %q", strings.TrimSpace(ref))
+	return notFound("there is no task with reference %q", strings.TrimSpace(ref))
 }
 
 // checkTitle refuses an empty title and returns it trimmed.
 func checkTitle(text string) (string, error) {
 	title := strings.TrimSpace(text)
 	if title == "" {
-		return "", invalid("la tarea necesita un título")
+		return "", invalid("the task needs a title")
 	}
 
 	return title, nil
@@ -837,7 +837,7 @@ func checkTitle(text string) (string, error) {
 // checkPriority refuses a priority outside its range.
 func checkPriority(priority int) error {
 	if priority < MinPriority || priority > MaxPriority {
-		return invalid("la prioridad %d está fuera del rango %d-%d", priority, MinPriority, MaxPriority)
+		return invalid("priority %d is outside the range %d-%d", priority, MinPriority, MaxPriority)
 	}
 
 	return nil
@@ -856,12 +856,12 @@ func optional(text string) *string {
 // checkCloseReason refuses an absent or unknown close reason.
 func checkCloseReason(reason string) error {
 	if strings.TrimSpace(reason) == "" {
-		return invalid("falta el motivo de cierre: usa --reason con uno de %s", strings.Join(closeReasons, ", "))
+		return invalid("the close reason is missing: use --reason with one of %s", strings.Join(closeReasons, ", "))
 	}
 
 	if slices.Contains(closeReasons, reason) {
 		return nil
 	}
 
-	return invalid("el motivo de cierre %q no es válido: usa uno de %s", reason, strings.Join(closeReasons, ", "))
+	return invalid("close reason %q is not valid: use one of %s", reason, strings.Join(closeReasons, ", "))
 }

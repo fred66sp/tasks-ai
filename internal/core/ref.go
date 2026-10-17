@@ -21,12 +21,12 @@ func ParseRef(prefix, ref string) (int64, error) {
 	written := strings.TrimSpace(ref)
 
 	if len(written) <= len(head) || !strings.EqualFold(written[:len(head)], head) {
-		return 0, notFound("la referencia %q no es válida: se espera %s<número>", ref, head)
+		return 0, notFound("reference %q is not valid: %s<number> is expected", ref, head)
 	}
 
 	id, err := strconv.ParseInt(written[len(head):], 10, 64)
 	if err != nil {
-		return 0, notFound("la referencia %q no es válida: se espera %s<número>", ref, head)
+		return 0, notFound("reference %q is not valid: %s<number> is expected", ref, head)
 	}
 
 	return id, nil

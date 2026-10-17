@@ -9,10 +9,10 @@ import (
 // newReopenCommand returns a closed task to open.
 func newReopenCommand() *cobra.Command {
 	return newRefCommand(
-		"reopen <referencia>",
-		"Reabre una tarea cerrada",
-		"Reabre una tarea cerrada: devuelve su estado a open, le quita el motivo de cierre\n"+
-			"y devuelve en JSON la tarea tal como queda.",
+		"reopen <reference>",
+		"Reopens a closed task",
+		"Reopens a closed task: it returns its status to open, clears the close reason\n"+
+			"and returns the task as it is left in JSON.",
 		(*core.Core).ReopenTask,
 	)
 }

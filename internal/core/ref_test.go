@@ -14,7 +14,7 @@ func TestParseRef_marksAMalformedReferenceAsUnresolved(t *testing.T) {
 		t.Errorf("ParseRef devolvió %v, se esperaba el centinela de referencia sin resolución", err)
 	}
 
-	if err == nil || err.Error() != `la referencia "tk-luego" no es válida: se espera tk-<número>` {
+	if err == nil || err.Error() != `reference "tk-luego" is not valid: tk-<number> is expected` {
 		t.Errorf("el mensaje de la referencia mal escrita es %v", err)
 	}
 }

@@ -28,12 +28,12 @@ const shutdownWait = time.Second
 func newServeCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
-		Short: "Arranca la superficie web del producto",
-		Long: "Sirve la API del producto y su interfaz en la dirección y el puerto del\n" +
-			"settings: la interfaz responde en la raíz y la API conserva sus rutas\n" +
-			"/api/... Los cambios se anuncian por un canal abierto, de modo que dos\n" +
-			"sesiones se ven. Lo que escribe va por la salida de errores, según el nivel\n" +
-			"de registro del settings.",
+		Short: "Starts the web surface of the product",
+		Long: "Serves the product API and its interface at the address and port of the\n" +
+			"settings: the interface answers at the root and the API keeps its\n" +
+			"/api/... routes. Changes are announced on an open channel, so two\n" +
+			"sessions see each other. What it writes goes to the error output, at the log\n" +
+			"level of the settings.",
 		Args: usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			return serve(command)
@@ -87,12 +87,12 @@ func serve(command *cobra.Command) error {
 		serving <- server.ListenAndServe()
 	}()
 
-	log.Info("escuchando en http://" + server.Addr)
+	log.Info("listening on http://" + server.Addr)
 
 	select {
 	case err := <-serving:
 		if err != nil {
-			return fmt.Errorf("sirviendo la API: %w", err)
+			return fmt.Errorf("serving the API: %w", err)
 		}
 	case <-ctx.Done():
 		shutdown, cancel := context.WithTimeout(context.Background(), shutdownWait)
@@ -103,7 +103,7 @@ func serve(command *cobra.Command) error {
 			// en curso: se cierra a la fuerza y el servidor se va sin quejarse, que
 			// quien la abrió no ha pedido nada que terminar.
 			if closeErr := server.Close(); closeErr != nil {
-				return fmt.Errorf("cerrando el servidor: %w", err)
+				return fmt.Errorf("closing the server: %w", err)
 			}
 		}
 	}

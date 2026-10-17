@@ -10,9 +10,9 @@ import (
 func newInitCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
-		Short: "Instala el producto en el proyecto",
-		Long: "Instala el producto en el proyecto: deja su carpeta con la base, los ajustes y las\n" +
-			"instrucciones, y devuelve el texto que hay que añadir fuera para apuntar a ellas.",
+		Short: "Installs the product in the project",
+		Long: "Installs the product in the project: it leaves its folder with the database, the\n" +
+			"settings and the instructions, and returns the text to add outside to point at them.",
 		Args: usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			dir, err := workingDir()

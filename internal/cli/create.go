@@ -22,12 +22,12 @@ func newCreateCommand() *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "create",
-		Short: "Crea una tarea",
-		Long:  "Crea una tarea en el proyecto y devuelve su JSON, con su identidad interna y su referencia.",
+		Short: "Creates a task",
+		Long:  "Creates a task in the project and returns its JSON, with its internal identity and its reference.",
 		Args:  usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			if strings.TrimSpace(title) == "" {
-				return &usageError{err: errors.New("falta el título de la tarea: usa --title")}
+				return &usageError{err: errors.New("the task title is missing: use --title")}
 			}
 
 			newTask := core.NewTask{
@@ -66,12 +66,12 @@ func newCreateCommand() *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVarP(&title, "title", "t", "", "título de la tarea (obligatorio)")
-	command.Flags().StringVarP(&description, "description", "d", "", "descripción de la tarea")
-	command.Flags().StringVar(&assignee, "assignee", "", "persona responsable de la tarea")
-	command.Flags().StringVar(&notes, "notes", "", "notas sueltas de la tarea")
-	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "prioridad de la tarea, de 0 a 3")
-	command.Flags().StringVar(&parent, "parent", "", "referencia de la tarea padre, para crear una subtarea")
+	command.Flags().StringVarP(&title, "title", "t", "", "task title (required)")
+	command.Flags().StringVarP(&description, "description", "d", "", "task description")
+	command.Flags().StringVar(&assignee, "assignee", "", "person responsible for the task")
+	command.Flags().StringVar(&notes, "notes", "", "loose notes of the task")
+	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "task priority, from 0 to 3")
+	command.Flags().StringVar(&parent, "parent", "", "reference of the parent task, to create a subtask")
 
 	return command
 }

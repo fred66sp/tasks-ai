@@ -11,11 +11,11 @@ import (
 )
 
 // ErrTagExists dice que ya hay una etiqueta guardada con ese nombre.
-var ErrTagExists = errors.New("ya existe una etiqueta con ese nombre")
+var ErrTagExists = errors.New("a tag with that name already exists")
 
 // ErrUnknownTag dice que una de las etiquetas que se quisieron asignar no está
 // en el catálogo.
-var ErrUnknownTag = errors.New("etiqueta desconocida")
+var ErrUnknownTag = errors.New("unknown tag")
 
 // Tag es una etiqueta tal como se guarda.
 type Tag struct {
@@ -37,7 +37,7 @@ type TagUse struct {
 func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Tag{}, fmt.Errorf("abriendo la transacción de la etiqueta: %w", err)
+		return Tag{}, fmt.Errorf("opening the tag transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -50,12 +50,12 @@ func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 			return Tag{}, ErrTagExists
 		}
 
-		return Tag{}, fmt.Errorf("guardando la etiqueta %q: %w", tag.Name, err)
+		return Tag{}, fmt.Errorf("saving tag %q: %w", tag.Name, err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return Tag{}, fmt.Errorf("leyendo la identidad de la etiqueta guardada: %w", err)
+		return Tag{}, fmt.Errorf("reading the identity of the stored tag: %w", err)
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTag, id); err != nil {
@@ -63,7 +63,7 @@ func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Tag{}, fmt.Errorf("cerrando la transacción de la etiqueta: %w", err)
+		return Tag{}, fmt.Errorf("closing the tag transaction: %w", err)
 	}
 
 	tag.ID = id
@@ -81,7 +81,7 @@ func (s *Store) Tags(ctx context.Context) ([]TagUse, error) {
 		GROUP BY t.id
 		ORDER BY t.name`)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo el catálogo de etiquetas: %w", err)
+		return nil, fmt.Errorf("reading the tag catalogue: %w", err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -92,14 +92,14 @@ func (s *Store) Tags(ctx context.Context) ([]TagUse, error) {
 		var entry TagUse
 
 		if err := rows.Scan(&entry.ID, &entry.Name, &entry.Color, &entry.Description, &entry.Uses); err != nil {
-			return nil, fmt.Errorf("leyendo el catálogo de etiquetas: %w", err)
+			return nil, fmt.Errorf("reading the tag catalogue: %w", err)
 		}
 
 		catalogue = append(catalogue, entry)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("leyendo el catálogo de etiquetas: %w", err)
+		return nil, fmt.Errorf("reading the tag catalogue: %w", err)
 	}
 
 	return catalogue, nil
@@ -121,7 +121,7 @@ func readTag(ctx context.Context, from rowQuerier, name string) (Tag, error) {
 	case errors.Is(err, sql.ErrNoRows):
 		return Tag{}, ErrNotFound
 	case err != nil:
-		return Tag{}, fmt.Errorf("leyendo la etiqueta %q: %w", name, err)
+		return Tag{}, fmt.Errorf("reading tag %q: %w", name, err)
 	}
 
 	return tag, nil
@@ -135,7 +135,7 @@ func readTag(ctx context.Context, from rowQuerier, name string) (Tag, error) {
 func (s *Store) UpdateTag(ctx context.Context, name string, change func(Tag) (Tag, error)) (Tag, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Tag{}, fmt.Errorf("abriendo la transacción del cambio de etiqueta: %w", err)
+		return Tag{}, fmt.Errorf("opening the tag change transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -160,7 +160,7 @@ func (s *Store) UpdateTag(ctx context.Context, name string, change func(Tag) (Ta
 		`UPDATE tags SET name = ?, color = ?, description = ? WHERE id = ?`,
 		changed.Name, changed.Color, changed.Description, stored.ID)
 	if err != nil {
-		return Tag{}, fmt.Errorf("guardando el cambio de la etiqueta %q: %w", name, err)
+		return Tag{}, fmt.Errorf("saving the change of tag %q: %w", name, err)
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID); err != nil {
@@ -168,7 +168,7 @@ func (s *Store) UpdateTag(ctx context.Context, name string, change func(Tag) (Ta
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Tag{}, fmt.Errorf("cerrando la transacción del cambio de la etiqueta %q: %w", name, err)
+		return Tag{}, fmt.Errorf("closing the tag change transaction of %q: %w", name, err)
 	}
 
 	return changed, nil
@@ -186,7 +186,7 @@ func checkTagName(ctx context.Context, within *sql.Tx, name string, own int64) e
 	case errors.Is(err, sql.ErrNoRows):
 		return nil
 	case err != nil:
-		return fmt.Errorf("mirando el nombre %q del catálogo: %w", name, err)
+		return fmt.Errorf("looking up the name %q of the catalogue: %w", name, err)
 	}
 
 	if found != own {
@@ -203,7 +203,7 @@ func checkTagName(ctx context.Context, within *sql.Tx, name string, own int64) e
 func (s *Store) DeleteTag(ctx context.Context, name string) (Tag, []int64, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return Tag{}, nil, fmt.Errorf("abriendo la transacción del borrado de etiqueta: %w", err)
+		return Tag{}, nil, fmt.Errorf("opening the tag deletion transaction: %w", err)
 	}
 
 	defer func() { _ = tx.Rollback() }()
@@ -223,7 +223,7 @@ func (s *Store) DeleteTag(ctx context.Context, name string) (Tag, []int64, error
 		`DELETE FROM tags WHERE id = ?`,
 	} {
 		if _, err := tx.ExecContext(ctx, statement, stored.ID); err != nil {
-			return Tag{}, nil, fmt.Errorf("borrando la etiqueta %q: %w", name, err)
+			return Tag{}, nil, fmt.Errorf("deleting tag %q: %w", name, err)
 		}
 	}
 
@@ -232,7 +232,7 @@ func (s *Store) DeleteTag(ctx context.Context, name string) (Tag, []int64, error
 	}
 
 	if err := tx.Commit(); err != nil {
-		return Tag{}, nil, fmt.Errorf("cerrando la transacción del borrado de la etiqueta %q: %w", name, err)
+		return Tag{}, nil, fmt.Errorf("closing the tag deletion transaction of %q: %w", name, err)
 	}
 
 	return stored, users, nil
@@ -243,7 +243,7 @@ func readTagUsers(ctx context.Context, within *sql.Tx, tagID int64) ([]int64, er
 	rows, err := within.QueryContext(ctx,
 		`SELECT task_id FROM task_tags WHERE tag_id = ?`, tagID)
 	if err != nil {
-		return nil, fmt.Errorf("buscando las tareas de la etiqueta %d: %w", tagID, err)
+		return nil, fmt.Errorf("looking up the tasks of tag %d: %w", tagID, err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -254,14 +254,14 @@ func readTagUsers(ctx context.Context, within *sql.Tx, tagID int64) ([]int64, er
 		var taskID int64
 
 		if err := rows.Scan(&taskID); err != nil {
-			return nil, fmt.Errorf("buscando las tareas de la etiqueta %d: %w", tagID, err)
+			return nil, fmt.Errorf("looking up the tasks of tag %d: %w", tagID, err)
 		}
 
 		users = append(users, taskID)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("buscando las tareas de la etiqueta %d: %w", tagID, err)
+		return nil, fmt.Errorf("looking up the tasks of tag %d: %w", tagID, err)
 	}
 
 	return users, nil
@@ -278,7 +278,7 @@ func (s *Store) TagName(ctx context.Context, id int64) (string, error) {
 	case errors.Is(err, sql.ErrNoRows):
 		return "", ErrNotFound
 	case err != nil:
-		return "", fmt.Errorf("leyendo el nombre de la etiqueta %d: %w", id, err)
+		return "", fmt.Errorf("reading the name of tag %d: %w", id, err)
 	}
 
 	return name, nil
@@ -293,7 +293,7 @@ func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error
 		WHERE tt.task_id = ?
 		ORDER BY t.name`, taskID)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo las etiquetas de la tarea %d: %w", taskID, err)
+		return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -304,14 +304,14 @@ func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error
 		var name string
 
 		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("leyendo las etiquetas de la tarea %d: %w", taskID, err)
+			return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
 		}
 
 		names = append(names, name)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("leyendo las etiquetas de la tarea %d: %w", taskID, err)
+		return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
 	}
 
 	return names, nil
@@ -343,7 +343,7 @@ func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][
 
 	rows, err := s.db.QueryContext(ctx, query, int64Args(taskIDs)...)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+		return nil, fmt.Errorf("reading the tags of %d tasks: %w", len(taskIDs), err)
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -355,14 +355,14 @@ func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][
 		)
 
 		if err := rows.Scan(&taskID, &name); err != nil {
-			return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+			return nil, fmt.Errorf("reading the tags of %d tasks: %w", len(taskIDs), err)
 		}
 
 		names[taskID] = append(names[taskID], name)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("leyendo las etiquetas de %d tareas: %w", len(taskIDs), err)
+		return nil, fmt.Errorf("reading the tags of %d tasks: %w", len(taskIDs), err)
 	}
 
 	return names, nil
@@ -373,7 +373,7 @@ func (s *Store) TasksTagNames(ctx context.Context, taskIDs []int64) (map[int64][
 // in the catalogue refuses the whole change and nothing is written.
 func replaceTaskTags(ctx context.Context, within *sql.Tx, taskID int64, names []string) error {
 	if _, err := within.ExecContext(ctx, `DELETE FROM task_tags WHERE task_id = ?`, taskID); err != nil {
-		return fmt.Errorf("quitando las etiquetas de la tarea %d: %w", taskID, err)
+		return fmt.Errorf("removing the tags of task %d: %w", taskID, err)
 	}
 
 	assigned := []string{}
@@ -392,12 +392,12 @@ func replaceTaskTags(ctx context.Context, within *sql.Tx, taskID int64, names []
 		}
 
 		if err != nil {
-			return fmt.Errorf("buscando la etiqueta %q: %w", name, err)
+			return fmt.Errorf("looking up tag %q: %w", name, err)
 		}
 
 		if _, err := within.ExecContext(ctx,
 			`INSERT INTO task_tags (task_id, tag_id) VALUES (?, ?)`, taskID, tagID); err != nil {
-			return fmt.Errorf("asignando la etiqueta %q a la tarea %d: %w", name, taskID, err)
+			return fmt.Errorf("assigning tag %q to task %d: %w", name, taskID, err)
 		}
 
 		assigned = append(assigned, name)

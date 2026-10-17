@@ -8,9 +8,9 @@ import (
 func newListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-		Short: "Devuelve todas las tareas del proyecto",
-		Long: "Devuelve en JSON todas las tareas del proyecto, cada una con su referencia\n" +
-			"visible, su estado (pendiente, en curso o hecha), su título y si está bloqueada.",
+		Short: "Returns every task of the project",
+		Long: "Returns in JSON every task of the project, each one with its visible reference,\n" +
+			"its status (open, in progress or done), its title and whether it is blocked.",
 		Args: usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			return withProject(command, func(project *project) error {

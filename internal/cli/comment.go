@@ -9,12 +9,12 @@ import (
 // newCommentCommand appends a comment to a task.
 func newCommentCommand() *cobra.Command {
 	return newFlagRefCommand(
-		"comment <referencia>",
-		"Añade un comentario a una tarea",
-		"Añade un comentario a la tarea y devuelve en JSON la tarea tal como está. Los\n"+
-			"comentarios solo se añaden: no hay manera de editar ni de borrar uno.",
+		"comment <reference>",
+		"Adds a comment to a task",
+		"Adds a comment to the task and returns the task as it is in JSON. Comments are\n"+
+			"only added: there is no way to edit or delete one.",
 		"body",
-		"cuerpo del comentario (obligatorio)",
+		"comment body (required)",
 		(*core.Core).AddComment,
 	)
 }

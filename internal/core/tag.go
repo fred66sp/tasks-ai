@@ -50,7 +50,7 @@ func (changes TagChanges) empty() bool {
 func (c *Core) Tags(ctx context.Context) ([]TagWithUses, error) {
 	stored, err := c.store.Tags(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("leyendo el catálogo de etiquetas: %w", err)
+		return nil, fmt.Errorf("reading the tag catalogue: %w", err)
 	}
 
 	catalogue := make([]TagWithUses, 0, len(stored))
@@ -83,9 +83,9 @@ func (c *Core) CreateTag(ctx context.Context, name, color, description string) (
 	})
 	switch {
 	case errors.Is(err, store.ErrTagExists):
-		return Tag{}, forbidden("ya existe una etiqueta con el nombre %q", label)
+		return Tag{}, forbidden("a tag with the name %q already exists", label)
 	case err != nil:
-		return Tag{}, fmt.Errorf("creando la etiqueta %q: %w", label, err)
+		return Tag{}, fmt.Errorf("creating tag %q: %w", label, err)
 	}
 
 	return tag(stored), nil
@@ -96,7 +96,7 @@ func (c *Core) CreateTag(ctx context.Context, name, color, description string) (
 // que ya lleva otra etiqueta lo rechaza la regla que lo impone.
 func (c *Core) EditTag(ctx context.Context, name string, changes TagChanges) (Tag, error) {
 	if changes.empty() {
-		return Tag{}, invalid("no hay nada que cambiar: indica al menos un campo")
+		return Tag{}, invalid("there is nothing to change: name at least one field")
 	}
 
 	var (
@@ -142,9 +142,9 @@ func (c *Core) EditTag(ctx context.Context, name string, changes TagChanges) (Ta
 	case errors.Is(err, store.ErrNotFound):
 		return Tag{}, c.missingTag(name)
 	case errors.Is(err, store.ErrTagExists):
-		return Tag{}, forbidden("ya existe una etiqueta con el nombre %q", newName)
+		return Tag{}, forbidden("a tag with the name %q already exists", newName)
 	case err != nil:
-		return Tag{}, fmt.Errorf("cambiando la etiqueta %q: %w", name, err)
+		return Tag{}, fmt.Errorf("changing tag %q: %w", name, err)
 	}
 
 	return tag(stored), nil
@@ -160,7 +160,7 @@ func (c *Core) DeleteTag(ctx context.Context, name string) (Tag, []string, error
 	case errors.Is(err, store.ErrNotFound):
 		return Tag{}, nil, c.missingTag(name)
 	case err != nil:
-		return Tag{}, nil, fmt.Errorf("borrando la etiqueta %q: %w", name, err)
+		return Tag{}, nil, fmt.Errorf("deleting tag %q: %w", name, err)
 	}
 
 	refs := make([]string, 0, len(users))
@@ -176,7 +176,7 @@ func (c *Core) DeleteTag(ctx context.Context, name string) (Tag, []string, error
 func tagName(text string) (string, error) {
 	name := strings.TrimSpace(text)
 	if name == "" {
-		return "", invalid("la etiqueta necesita un nombre")
+		return "", invalid("the tag needs a name")
 	}
 
 	return name, nil
@@ -193,12 +193,12 @@ func tagColor(color string) (string, error) {
 		return color, nil
 	}
 
-	return "", invalid("el color %q no es válido: usa uno de %s", color, strings.Join(TagColors, ", "))
+	return "", invalid("color %q is not valid: use one of %s", color, strings.Join(TagColors, ", "))
 }
 
 // missingTag is the error of a tag name that points at no tag in the catalogue.
 func (c *Core) missingTag(name string) error {
-	return notFound("no hay ninguna etiqueta con el nombre %q", strings.TrimSpace(name))
+	return notFound("there is no tag with the name %q", strings.TrimSpace(name))
 }
 
 // tag puts a stored tag in the shape that crosses the boundary.

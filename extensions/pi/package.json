@@ -1,0 +1,12 @@
+{
+  "name": "tasks-ai-pi-extension",
+  "private": true,
+  "type": "module",
+  "description": "Extension del agente Pi que envuelve el CLI de tasks-ai",
+  "dependencies": {
+    "typebox": "1.3.27"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

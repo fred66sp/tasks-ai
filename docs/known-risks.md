@@ -7,47 +7,70 @@ registro: puede citar hechos con su fecha.
 
 ### RX-1 El diseño va por delante del código
 
-Los requisitos, la arquitectura y los contratos están escritos antes de que exista
-código que los cumpla. Lo que se documentó puede separarse de lo que acabe
-implementándose.
+Los requisitos, la arquitectura y los contratos se escriben antes que el código que los
+cumple, así que lo documentado puede separarse de lo implementado.
 
-**Cobertura:** el plan por fases contrasta el diseño con el código en cada fase y
-corrige el documento en la misma fase, no después.
+**Cobertura:** el requisito que cambia se corrige en el mismo cambio que lo cambia, y el
+cambio se cierra con las comprobaciones del contrato de documentación y su entrada en el
+registro de verificaciones de [`operations.md`](operations.md).
 
 ### RX-2 Nada comprueba lo escrito
 
-No hay compilación ni pruebas que cubran los documentos ni, todavía, el producto. La
-coherencia del conjunto documental se apoya en revisiones manuales.
+Ninguna herramienta comprueba la coherencia de los documentos: no se compilan ni se
+prueban, y su conjunto se sostiene en revisiones manuales. El código no entra en este
+riesgo: su suite y sus flujos de comprobación corren solos en cada envío de trabajo, con
+un suelo de cobertura que impide bajarla.
 
 **Cobertura:** las comprobaciones del contrato de documentación, hechas a mano, con su
-entrada en el registro de verificaciones de `operations.md`. Cuando exista suite, esas
-comprobaciones pasan a ejecutarse solas.
+entrada en el registro de verificaciones de [`operations.md`](operations.md).
 
 ### RX-3 La auditoría de la interfaz de partida es de segunda mano
 
-El análisis de la interfaz se hizo leyendo el código de otro repositorio, y se verificó
-por muestreo. Puede haber capacidades o acoplamientos que no se vieran.
+El análisis de la interfaz se hizo leyendo el código de otro repositorio y se verificó por
+muestreo. Puede haber capacidades o acoplamientos que no se vieran.
 
-**Cobertura:** al integrar la interfaz, contrastar contra su código y sus pruebas antes
-de dar por buena cualquier conclusión del análisis.
+**Cobertura:** al integrarla, sus rutas y su ciclo se compararon con el código del que
+venía y se ejercitaron contra el binario real, con su entrada en el registro de
+verificaciones. Sus pruebas propias no viven en este repositorio, así que no corren con
+las nuestras.
 
-### RX-4 Los contratos adoptados apuntan fuera del repositorio
+### RX-4 El contrato de flujo cita un perfil que no existe aquí
 
-Los contratos de documentación y de flujo se adoptaron tal cual. Citan una suite
-documental, un perfil de confirmación y rutas que en este repositorio no existen.
+El contrato de flujo nombra `strict_confirmation`, un valor de un perfil de confirmación
+que este repositorio no tiene, y la skill `commit-preparation`, que tampoco vive aquí. El
+contrato de documentación no cita nada de fuera.
 
-**Cobertura:** deuda aceptada. Se revisan al primer uso y, si estorban, se decide si se
-adaptan o se retiran, con su documento de decisión.
+**Cobertura:** deuda aceptada. Se revisa al usarlo y, si estorba, se decide si se adapta o
+se retira, con su documento de decisión.
 
-### RX-5 El catálogo de etiquetas se reimplementa sin pruebas heredadas
+## Resueltos
 
-El catálogo con color, descripción y aviso de uso vivía en el servidor anterior, y su
-cascada al renombrar o borrar no tiene pruebas nuestras.
+### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas
 
-**Cobertura:** pruebas del núcleo en la fase que implemente el catálogo.
+El catálogo con color, descripción y aviso de uso vivía en el servidor anterior, y se
+dudaba de su cascada al renombrar o borrar, que no tenía pruebas nuestras.
+
+**Qué resultó:** la fase que lo implementó escribió sus pruebas, y la duda quedó
+respondida por ellas: renombrar una etiqueta no toca ninguna tarea, borrar una avisa de
+las tareas que la usaban, y cambiar las etiquetas de una tarea no toca las de otra.
+
+**Lección:** una cobertura que se promete para una fase futura hay que releerla cuando esa
+fase llega, o el registro sigue anunciando un hueco que ya no existe.
+
+### RX-6 El trabajo vivía sólo en esta máquina
+
+El registro aceptaba como deuda que el repositorio no estaba en ningún remoto y que el
+trabajo vivía sólo en local.
+
+**Qué resultó:** dejó de ser cierto cuando el proyecto pasó a tener su remoto y el trabajo
+a vivir allí.
+
+**Lección:** la entrada dejó de ser cierta y nadie la corrigió, así que el registro mintió
+hasta que se volvió a leer entero. Lo que deja de ser cierto se corrige en el mismo
+cambio que lo dejó obsoleto, o se retira.
 
 ## Deuda aceptada
 
-- La interfaz de partida trae piezas sin uso, como un componente de aviso que nadie
-  importa, y endpoints que no consume. Se decide qué se hace con ellas al adaptarla.
-- El repositorio no está versionado en ningún remoto: el trabajo vive solo en local.
+- La interfaz de partida trae piezas sin uso: `web/src/task-manager/components/toast.js` no
+  lo importa nadie, y la interfaz no consume `GET /api/status`. Siguen ahí, y todavía no se
+  ha decidido si se retiran o se usan.

@@ -32,6 +32,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	});
 	pi.on("session_shutdown", () => {
 		statusUI?.setStatus("tasks_board", undefined);
+		statusUI?.setWidget("tasks_board", undefined);
 		statusUI = undefined;
 		if (previousTools !== undefined) pi.setActiveTools(previousTools);
 		previousTools = undefined;
@@ -64,17 +65,34 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		ctx.ui.setStatus("tasks_board", `🦊 tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
 	}
 
+	/** El tablero como bloque junto al editor: el título y una línea por tarea en curso. */
+	function setBoardWidget(ctx: ExtensionContext, board?: Board) {
+		if (ctx.mode !== "tui" || !ctx.hasUI) return;
+		if (!board) {
+			ctx.ui.setWidget("tasks_board", undefined);
+			return;
+		}
+		const lines = ["🦊 Tasks-ai tablero:"];
+		if (board.inProgress.length === 0) lines.push("  ○ sin tarea en curso");
+		for (const task of board.inProgress) lines.push(`  ○ ${task.ref} · ${task.title.replace(/\s+/g, " ").trim()}`);
+		statusUI = ctx.ui;
+		ctx.ui.setWidget("tasks_board", lines, { placement: "belowEditor" });
+	}
+
 	async function refreshUI(ctx: ExtensionContext) {
 		if (findProjectRoot(ctx.cwd) === null) {
 			setBoardStatus(ctx);
+			setBoardWidget(ctx, undefined);
 			return "Tablero: no hay tablero instalado en este proyecto.";
 		}
 		try {
 			const board = await readBoard(ctx.cwd, ctx.signal);
 			setBoardStatus(ctx, board);
+			setBoardWidget(ctx, board);
 			return renderBoard(board);
 		} catch (error) {
 			setBoardStatus(ctx, undefined, "no disponible");
+			setBoardWidget(ctx, undefined);
 			return `Tablero no disponible: ${error instanceof Error ? error.message : String(error)}`;
 		}
 	}
@@ -93,8 +111,10 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 			const board = await readBoard(ctx.cwd, ctx.signal);
 			summary = renderSummary(board);
 			setBoardStatus(ctx, board);
+			setBoardWidget(ctx, board);
 		} else {
 			setBoardStatus(ctx);
+			setBoardWidget(ctx, undefined);
 		}
 		event.systemPromptOptions.sections.tasks_board = summary;
 	});

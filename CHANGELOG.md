@@ -11,7 +11,8 @@ Changelog* y el versionado es semántico.
   extensión empieza por el zorro, como el widget de otras extensiones empieza por el
   suyo, y cuando hay varias tareas en curso las nombra todas con su recuento en vez de
   enseñar solo la primera. El recorte sigue en 100 caracteres, y con una sola tarea el
-  texto no cambia.
+  texto no cambia. Además, junto al editor se ve el tablero como bloque: el título del
+  producto y una línea por tarea en curso, sin recortar.
 
 - **Las superficies del producto hablan inglés**: la ayuda de todos los comandos, los
   mensajes de error del CLI, sus avisos por la salida de errores y el cuerpo `error` de

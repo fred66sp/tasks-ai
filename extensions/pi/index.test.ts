@@ -27,11 +27,16 @@ function harness(executeCli = runCli, cwd?: string) {
 	const commands: Record<string, { handler: (args: string, ctx: any) => Promise<void> }> = {};
 	const notifications: string[] = [];
 	const statuses = new Map<string, string>();
+	const widgets = new Map<string, string[]>();
 	const ui = {
 		notify(text: string) { notifications.push(text); },
 		setStatus(key: string, text: string | undefined) {
 			if (text === undefined) statuses.delete(key);
 			else statuses.set(key, text);
+		},
+		setWidget(key: string, lines: string[] | undefined) {
+			if (lines === undefined) widgets.delete(key);
+			else widgets.set(key, lines);
 		},
 	};
 	const context = (cwd: string, mode = "tui") => ({ cwd, mode, hasUI: mode === "tui", ui });
@@ -62,7 +67,7 @@ function harness(executeCli = runCli, cwd?: string) {
 	const previous = [...active];
 	const start = (ctx: any = cwd === undefined ? {} : { cwd }) => handlers.session_start?.({ type: "session_start", reason: "startup" }, ctx);
 	start();
-	return { registered, commands, notifications, statuses, context, handlers, previous, changes, start, active: () => [...active] };
+	return { registered, commands, notifications, statuses, widgets, context, handlers, previous, changes, start, active: () => [...active] };
 }
 
 function load(cwd?: string): Record<string, Registered> {
@@ -153,6 +158,32 @@ describe("la extensión", () => {
 		const extension = harness();
 		await extension.handlers.session_start({}, extension.context(project));
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: 2 en curso · tk-1 · primera en curso, tk-2 · segunda en curso"]);
+	});
+
+	it("el tablero se ve como bloque con una línea por tarea en curso", async () => {
+		cli("create", "--title", "primera en curso");
+		cli("create", "--title", "segunda en curso");
+		cli("update", "tk-1", "--status", "in_progress");
+		cli("update", "tk-2", "--status", "in_progress");
+		const extension = harness(undefined, project);
+		await extension.handlers.session_start({}, extension.context(project));
+		assert.deepEqual(extension.widgets.get("tasks_board"), [
+			"🦊 Tasks-ai tablero:",
+			"  ○ tk-1 · primera en curso",
+			"  ○ tk-2 · segunda en curso",
+		]);
+	});
+
+	it("el bloque dice que no hay nada en curso y se retira sin tablero o al descargar", async () => {
+		cli("create", "--title", "pendiente");
+		const extension = harness(undefined, project);
+		await extension.handlers.session_start({}, extension.context(project));
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
+		await extension.handlers.session_start({}, extension.context(path.parse(project).root));
+		assert.equal(extension.widgets.has("tasks_board"), false, "sin tablero el bloque se retira");
+		await extension.handlers.session_start({}, extension.context(project));
+		await extension.handlers.session_shutdown({}, {});
+		assert.equal(extension.widgets.has("tasks_board"), false, "al descargar el bloque se retira");
 	});
 
 	it("/board comparte list con el resumen, la herramienta y llamadas consecutivas", async () => {

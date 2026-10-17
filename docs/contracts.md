@@ -177,15 +177,14 @@ mensaje que la interfaz escucha:
 ```
 id: 3
 event: workspace.changed
-data: {"resource":"tasks","source":"external","changes":[{"id":"tk-3","action":"creada","title":"Preparar el análisis"}]}
+data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Preparar el análisis"}]}
 ```
 
 - `id` es el número del aviso y `data` es el aviso en JSON: el recurso que cambió
-  con el nombre en plural que la interfaz compara (`tasks` o `tags`) y la superficie
-  que pidió el cambio: `external` cuando lo pidió otra superficie —la línea de
-  comandos— y `http` cuando lo pidió una sesión de la API. Con `external` la interfaz
-  avisa de que el cambio no lo hizo ella; con `http` recarga sin avisar, porque el
-  cambio viene de una sesión que ya sabe lo que pidió.
+  con el nombre en plural que la interfaz compara (`tasks` o `tags`). El aviso no
+  dice quién pidió el cambio: el estado y el aviso son los mismos venga de donde
+  venga, y la ventana que hizo el cambio no repite el suyo, lo evita con su propio
+  estado local.
 - Cuando el cambio toca una tarea, `changes` nombra a esa tarea como la imprime el
   aviso de la interfaz: su referencia visible (`id`), lo que le pasó (`creada`,
   `cerrada` o `actualizada`) y su título. El servidor lo dice comparando el listado
@@ -200,7 +199,9 @@ data: {"resource":"tasks","source":"external","changes":[{"id":"tk-3","action":"
   mientras mira.
 - El aviso se lee de la base, no de la memoria del servidor: un cambio pedido por el
   CLI llega al canal igual que uno pedido por la API, y eso es lo que hace que dos
-  sesiones se vean. La interfaz recarga lo suyo y avisa cuando el origen es externo.
+  sesiones se vean. La interfaz recarga lo suyo y avisa de cualquier cambio de
+  tarea; la ventana que lo pidió no se lo repite, porque lo evita con su propio
+  estado local.
 - El listado de tareas de la sección 3 entrega cada `parent_id` resuelto a la
   referencia visible del padre, con la propia lista: la interfaz enlaza su árbol por
   la referencia, y con ella el árbol anida y cada épica muestra el progreso de sus

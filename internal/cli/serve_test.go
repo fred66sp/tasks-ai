@@ -78,7 +78,7 @@ func TestServe_theSameOperationAskedByTheAPIAndByTheCommandLineLeavesTheDataTheS
 // TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes recorre la segunda
 // regla del criterio: una sesión deja el canal abierto y ve el aviso del cambio
 // que otra sesión pide, sea el CLI o la propia API, y el aviso viaja con el
-// nombre que la interfaz escucha y con su origen dentro.
+// nombre que la interfaz escucha, sin decir quién lo pidió.
 //
 //nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
@@ -99,8 +99,8 @@ func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
 		t.Errorf("el aviso del cambio del CLI no lleva el nombre que la interfaz escucha: %q", notice)
 	}
 
-	if change := noticeOf(t, notice); change.Resource != "tasks" || change.Source != "external" {
-		t.Errorf("el aviso del cambio del CLI dice %+v, se esperaba la tarea como recurso y un cambio externo", change)
+	if change := noticeOf(t, notice); change.Resource != "tasks" {
+		t.Errorf("el aviso del cambio del CLI dice %+v, se esperaba la tarea como recurso", change)
 	}
 
 	// Y también el cambio que otra sesión de la API pide.
@@ -109,8 +109,8 @@ func TestServe_aSessionReadingTheEventsSeesTheChangeAnotherMakes(t *testing.T) {
 		t.Fatalf("crear por la API respondió %d: %s", status, body)
 	}
 
-	if change := noticeOf(t, readNotice(t, events)); change.Resource != "tasks" || change.Source != "http" {
-		t.Errorf("el aviso del cambio del servidor dice %+v, se esperaba la tarea como recurso y un cambio por la API", change)
+	if change := noticeOf(t, readNotice(t, events)); change.Resource != "tasks" {
+		t.Errorf("el aviso del cambio del servidor dice %+v, se esperaba la tarea como recurso", change)
 	}
 }
 
@@ -339,7 +339,6 @@ func openEvents(t *testing.T, address string) io.Reader {
 // notice is the body of a named notice, in the shape the interface reads.
 type notice struct {
 	Resource string `json:"resource"`
-	Source   string `json:"source"`
 }
 
 // readNotice lee el bloque completo del siguiente aviso del canal, con sus
@@ -371,7 +370,7 @@ func readNotice(t *testing.T, events io.Reader) string {
 }
 
 // noticeOf lee la carga del aviso que viaja por el canal, tal como la lee la
-// interfaz: el recurso cambiado y la superficie que pidió el cambio.
+// interfaz: el recurso que cambió.
 func noticeOf(t *testing.T, raw string) notice {
 	t.Helper()
 

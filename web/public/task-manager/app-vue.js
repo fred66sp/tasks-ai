@@ -1,66 +1,4 @@
 (() => {
-  // src/task-manager/api/tk-client.js
-  var clientId = "";
-  function setClientId(value) {
-    clientId = String(value || "");
-  }
-  var ApiError = class extends Error {
-    /**
-     * @param {string} message Mensaje seguro para presentar al usuario.
-     * @param {boolean} unavailable El servidor no responde en este anfitrion.
-     */
-    constructor(message, unavailable = false) {
-      super(message);
-      this.name = "ApiError";
-      this.unavailable = unavailable;
-    }
-  };
-  async function apiRequest(path, options = {}) {
-    let response;
-    const requestOptions = { ...options };
-    if (clientId) {
-      requestOptions.headers = { ...options.headers || {}, "x-client-id": clientId };
-    }
-    try {
-      response = await fetch(path, requestOptions);
-    } catch (error) {
-      throw new ApiError(error?.message || "No se pudo conectar con el servidor.", true);
-    }
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new ApiError("El servidor devolvi\xF3 una respuesta no v\xE1lida.");
-    }
-    if (!response.ok || data?.error) {
-      throw new ApiError(data?.error || `La operaci\xF3n fall\xF3 (${response.status}).`);
-    }
-    return data;
-  }
-  function jsonRequest(path, method, body) {
-    return apiRequest(path, {
-      method,
-      headers: body === void 0 ? void 0 : { "content-type": "application/json" },
-      body: body === void 0 ? void 0 : JSON.stringify(body)
-    });
-  }
-  async function listTasks() {
-    const tasks = await apiRequest("/api/tasks");
-    const refOf = new Map(tasks.map((task) => [task.id, task.ref]));
-    return tasks.map((task) => task.parent_id == null || !refOf.has(task.parent_id) ? task : { ...task, parent_id: refOf.get(task.parent_id) });
-  }
-  var listTags = () => apiRequest("/api/tags");
-  var showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
-  var createTask = (task) => jsonRequest("/api/tasks", "POST", task);
-  var updateTask = (ref, changes) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}`, "PATCH", changes);
-  var closeTask = (ref) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/close`, "POST", { reason: "done" });
-  var addTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers`, "POST", { blocker });
-  var removeTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers/${encodeURIComponent(blocker)}`, "DELETE");
-  var addTaskComment = (ref, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments`, "POST", { body });
-  var createTag = (tag) => jsonRequest("/api/tags", "POST", tag);
-  var updateTag = (name, tag) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "PATCH", tag);
-  var deleteTag = (name) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "DELETE");
-
   // src/task-manager/state/inspector.js
   var inspectorState = {
     computed: {
@@ -136,6 +74,60 @@
       }
     }
   };
+
+  // src/task-manager/api/tk-client.js
+  var ApiError = class extends Error {
+    /**
+     * @param {string} message Mensaje seguro para presentar al usuario.
+     * @param {boolean} unavailable El servidor no responde en este anfitrion.
+     */
+    constructor(message, unavailable = false) {
+      super(message);
+      this.name = "ApiError";
+      this.unavailable = unavailable;
+    }
+  };
+  async function apiRequest(path, options = {}) {
+    let response;
+    try {
+      response = await fetch(path, options);
+    } catch (error) {
+      throw new ApiError(error?.message || "No se pudo conectar con el servidor.", true);
+    }
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new ApiError("El servidor devolvi\xF3 una respuesta no v\xE1lida.");
+    }
+    if (!response.ok || data?.error) {
+      throw new ApiError(data?.error || `La operaci\xF3n fall\xF3 (${response.status}).`);
+    }
+    return data;
+  }
+  function jsonRequest(path, method, body) {
+    return apiRequest(path, {
+      method,
+      headers: body === void 0 ? void 0 : { "content-type": "application/json" },
+      body: body === void 0 ? void 0 : JSON.stringify(body)
+    });
+  }
+  async function listTasks() {
+    const tasks = await apiRequest("/api/tasks");
+    const refOf = new Map(tasks.map((task) => [task.id, task.ref]));
+    return tasks.map((task) => task.parent_id == null || !refOf.has(task.parent_id) ? task : { ...task, parent_id: refOf.get(task.parent_id) });
+  }
+  var listTags = () => apiRequest("/api/tags");
+  var showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
+  var createTask = (task) => jsonRequest("/api/tasks", "POST", task);
+  var updateTask = (ref, changes) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}`, "PATCH", changes);
+  var closeTask = (ref) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/close`, "POST", { reason: "done" });
+  var addTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers`, "POST", { blocker });
+  var removeTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers/${encodeURIComponent(blocker)}`, "DELETE");
+  var addTaskComment = (ref, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments`, "POST", { body });
+  var createTag = (tag) => jsonRequest("/api/tags", "POST", tag);
+  var updateTag = (name, tag) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "PATCH", tag);
+  var deleteTag = (name) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "DELETE");
 
   // public/vendor/toast-anchor.mjs
   if (typeof document < "u" && !document.getElementById("__tk_css")) {
@@ -778,6 +770,10 @@
         this.errorMessage = "";
         try {
           const result = await request();
+          if (result?.ref) {
+            this.lastTaskWriteRef = result.ref;
+            this.lastTaskWriteAt = Date.now();
+          }
           const nextId = options.useResultId && (result?.ref || result?.id) ? result.ref || result.id : preferredId;
           const reloaded = await this.reloadWorkspace(nextId);
           if ((reloaded === true || reloaded === null) && !this.errorMessage && !this.unavailable) {
@@ -1074,10 +1070,6 @@
   };
 
   // src/task-manager/state/workspace-data.js
-  function createClientId() {
-    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-    return `tm-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-  }
   var COLORS = [
     { id: "blue", hex: "#62a7ff" },
     { id: "purple", hex: "#b58bff" },
@@ -1143,7 +1135,6 @@
   var workspaceData = {
     data() {
       return {
-        clientId: createClientId(),
         tasks: [],
         tags: [],
         detail: null,
@@ -1184,6 +1175,11 @@
         tagFormError: "",
         detailRequestSequence: 0,
         reloadRequestSequence: 0,
+        // La última tarea que esta ventana escribió, con el momento en que se
+        // confirmó: con ella la ventana evita repetirse el aviso de su propio
+        // cambio, sin identidad viajando al servidor.
+        lastTaskWriteRef: "",
+        lastTaskWriteAt: 0,
         uiPreferencesPersistTimer: null,
         workspaceEventSource: null
       };
@@ -1274,7 +1270,7 @@
       },
       showWorkspaceChangeToast(changes = []) {
         if (!Array.isArray(changes) || !changes.length) {
-          notifyInfo("Cambios externos detectados. No se pudo identificar la tarea. La lista se ha recargado.");
+          notifyInfo("Cambios detectados. No se pudo identificar la tarea. La lista se ha recargado.");
           return;
         }
         changes.forEach((change) => {
@@ -1319,6 +1315,7 @@
   };
 
   // src/task-manager/state/workspace.js
+  var OWN_WRITE_MARGIN_MS = 2e3;
   var workspaceOptions = {
     name: "AppShell",
     mixins: [
@@ -1370,7 +1367,6 @@
     mounted() {
       window.addEventListener("keydown", this.handleEscape);
       this.restoreUiPreferences();
-      setClientId(this.clientId);
       this.connectWorkspaceEvents();
       this.reloadWorkspace();
     },
@@ -1383,7 +1379,7 @@
       connectWorkspaceEvents() {
         if (typeof EventSource === "undefined") return;
         this.disconnectWorkspaceEvents();
-        const source = new EventSource(`/api/events?clientId=${encodeURIComponent(this.clientId)}`);
+        const source = new EventSource("/api/events");
         source.addEventListener("workspace.changed", (event) => {
           let change;
           try {
@@ -1392,9 +1388,7 @@
             return;
           }
           this.reloadWorkspace();
-          const isExternal = change.resource === "tasks" && change.source === "external";
-          const isRemoteHttp = change.resource === "tasks" && change.source === "http" && change.originClientId && change.originClientId !== this.clientId;
-          if (isExternal || isRemoteHttp) {
+          if (change.resource === "tasks" && !this.suppressOwnWriteNotice(change.changes)) {
             this.showWorkspaceChangeToast?.(change.changes || []);
           }
         });
@@ -1403,6 +1397,22 @@
       disconnectWorkspaceEvents() {
         this.workspaceEventSource?.close();
         this.workspaceEventSource = null;
+      },
+      /**
+       * Decide si un aviso del canal es el eco del cambio que esta ventana acaba
+       * de escribir: si nombra la última tarea escrita dentro del margen, se
+       * calla una vez y se consume, para que un cambio posterior sí avise.
+       *
+       * @param {Array<{id?: string}>} [changes]
+       * @returns {boolean}
+       */
+      suppressOwnWriteNotice(changes) {
+        if (!this.lastTaskWriteRef) return false;
+        if (Date.now() - this.lastTaskWriteAt > OWN_WRITE_MARGIN_MS) return false;
+        if (!Array.isArray(changes) || !changes.some((change) => change?.id === this.lastTaskWriteRef)) return false;
+        this.lastTaskWriteRef = "";
+        this.lastTaskWriteAt = 0;
+        return true;
       }
     }
   };

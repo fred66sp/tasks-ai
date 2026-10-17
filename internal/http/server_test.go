@@ -61,6 +61,10 @@ func TestServer_createsAndReadsTasksThroughTheCore(t *testing.T) {
 // proyecto: las pruebas la comparan con lo que el servidor devuelve.
 const firstRef = "tk-1"
 
+// taskResource es el recurso en plural que la interfaz compara en los avisos de
+// cambio de tarea.
+const taskResource = "tasks"
+
 // como se pidió: su referencia, su estado y su prioridad por omisión.
 func createsATaskThroughTheAPI(t *testing.T, server string) core.Task {
 	t.Helper()
@@ -564,10 +568,65 @@ func TestServer_theEventsChannelKeepsOpenAndAnnouncesTheChange(t *testing.T) {
 	}
 }
 
+// TestServer_aChangeOfATaskAnnouncesTheSameWhateverSurfaceAskedIt recorre la
+// regla del aviso: un cambio pedido por la línea de comandos y uno pedido por
+// la API producen el mismo aviso —la tarea como recurso y nombrada—, y el
+// aviso no dice quién lo pidió: lo sabe quien lo hizo, y la interfaz evita
+// repetirse con su propio estado, sin identidad viajando al servidor.
+func TestServer_aChangeOfATaskAnnouncesTheSameWhateverSurfaceAskedIt(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	served, err := store.OpenAs(t.Context(), path, store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base del servidor: %v", err)
+	}
+
+	t.Cleanup(func() { _ = served.Close() })
+
+	server := newTestServer(t, core.New(served, "tk"), slog.New(slog.DiscardHandler))
+
+	commandLine, err := store.OpenAs(t.Context(), path, store.OriginCLI)
+	if err != nil {
+		t.Fatalf("abriendo la base como la línea de comandos: %v", err)
+	}
+
+	t.Cleanup(func() { _ = commandLine.Close() })
+
+	outer := core.New(commandLine, "tk")
+
+	events := openEvents(t, server+"/api/events")
+
+	if _, err := outer.CreateTask(t.Context(), core.NewTask{Title: "Del CLI"}); err != nil {
+		t.Fatalf("creando la tarea por la línea de comandos: %v", err)
+	}
+
+	cliNotice := readRawEvent(t, events)
+
+	if change := readNotice(t, cliNotice); change.Resource != taskResource || len(change.Changes) != 1 || change.Changes[0].ID != firstRef {
+		t.Errorf("el aviso del cambio del CLI dice %+v, se esperaba %s como recurso y nombrada", change, firstRef)
+	}
+
+	if status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title": "De la API"}`); status != http.StatusCreated {
+		t.Fatalf("crear por la API respondió %d: %s", status, body)
+	}
+
+	apiNotice := readRawEvent(t, events)
+
+	if change := readNotice(t, apiNotice); change.Resource != taskResource || len(change.Changes) != 1 {
+		t.Errorf("el aviso del cambio por la API dice %+v, se esperaba la tarea como recurso y nombrada", change)
+	}
+
+	if strings.Contains(cliNotice, `"source"`) || strings.Contains(apiNotice, `"source"`) {
+		t.Errorf("el aviso dice quién pidió el cambio, y ya no lo lleva: %q / %q", cliNotice, apiNotice)
+	}
+}
+
 // TestServer_aChangeAskedOutsideTheServerArrivesAsExternal recorre el aviso de
 // un cambio pedido por otra superficie: la línea de comandos abre su base en su
-// nombre, y el canal lo declara externo para que la interfaz avise de que no lo
-// hizo ella.
+// nombre, y el canal lo anuncia igual que cualquier otro, con la tarea como
+// recurso.
 func TestServer_aChangeAskedOutsideTheServerArrivesAsExternal(t *testing.T) {
 	t.Parallel()
 
@@ -597,14 +656,14 @@ func TestServer_aChangeAskedOutsideTheServerArrivesAsExternal(t *testing.T) {
 		t.Fatalf("creando la tarea por la línea de comandos: %v", err)
 	}
 
-	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" || change.Source != "external" {
-		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso y un cambio externo", change)
+	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" {
+		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso", change)
 	}
 }
 
 // TestServer_aChangeAskedThroughTheAPIArrivesAsHTTP recorre el aviso de un
-// cambio pedido por una sesión de la API: viaja como http, que no es externo,
-// y así ninguna sesión avisa de sus propios cambios.
+// cambio pedido por una sesión de la API: llega por el canal igual que el que
+// pidió la línea de comandos, con la tarea como recurso.
 func TestServer_aChangeAskedThroughTheAPIArrivesAsHTTP(t *testing.T) {
 	t.Parallel()
 
@@ -616,8 +675,8 @@ func TestServer_aChangeAskedThroughTheAPIArrivesAsHTTP(t *testing.T) {
 		t.Fatalf("crear por la API respondió %d: %s", status, body)
 	}
 
-	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" || change.Source != "http" {
-		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso y un cambio por la API", change)
+	if change := readNotice(t, readRawEvent(t, events)); change.Resource != "tasks" {
+		t.Errorf("el aviso dice %+v, se esperaba la tarea como recurso", change)
 	}
 }
 
@@ -856,7 +915,6 @@ const workspaceEventName = "workspace.changed"
 // notice is the body of a named notice, in the shape the interface reads.
 type notice struct {
 	Resource string       `json:"resource"`
-	Source   string       `json:"source"`
 	Changes  []taskChange `json:"changes"`
 }
 
@@ -869,7 +927,7 @@ type taskChange struct {
 }
 
 // readNotice lee la carga del aviso que viaja por el canal, tal como la lee la
-// interfaz: el recurso cambiado y la superficie que pidió el cambio.
+// interfaz: el recurso que cambió y, si toca una tarea, la tarea nombrada.
 func readNotice(t *testing.T, raw string) notice {
 	t.Helper()
 

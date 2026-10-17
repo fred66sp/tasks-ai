@@ -49,14 +49,12 @@ const pollInterval = 500 * time.Millisecond
 const workspaceEventName = "workspace.changed"
 
 // notice is the body of a named notice, in the shape the interface reads: the
-// changed resource, in the plural que ella compara, the surface that asked for
-// the change and, cuando el cambio toca una tarea, la tarea tocada. Lo pedido
-// fuera del servidor —el CLI— es externo, y lo pedido por una sesión de la API
-// es http; con eso la interfaz recarga y avisa de lo que no hizo ella, nombrando
-// la tarea cuando el aviso puede describirla.
+// changed resource, in the plural que ella compara and, cuando el cambio toca
+// una tarea, la tarea tocada. El aviso no dice quién pidió el cambio: el
+// estado y el aviso son los mismos venga de donde venga, y quien lo hizo se
+// evita repetirse con su propio estado local.
 type notice struct {
 	Resource string       `json:"resource"`
-	Source   string       `json:"source"`
 	Changes  []taskChange `json:"changes,omitempty"`
 }
 
@@ -86,12 +84,7 @@ func noticeOf(event core.Event, described map[string]taskChange) notice {
 		resource = "tasks"
 	}
 
-	source := "http"
-	if event.Origin == store.OriginCLI {
-		source = "external"
-	}
-
-	result := notice{Resource: resource, Source: source}
+	result := notice{Resource: resource}
 
 	if event.Resource == store.ResourceTask {
 		if change, ok := described[event.Ref]; ok {

@@ -1,9 +1,3 @@
-let clientId = '';
-
-export function setClientId(value) {
-  clientId = String(value || '');
-}
-
 /** Error normalizado que permite distinguir un fallo de transporte. */
 export class ApiError extends Error {
   /**
@@ -28,12 +22,8 @@ export class ApiError extends Error {
  */
 async function apiRequest(path, options = {}) {
   let response;
-  const requestOptions = { ...options };
-  if (clientId) {
-    requestOptions.headers = { ...(options.headers || {}), 'x-client-id': clientId };
-  }
   try {
-    response = await fetch(path, requestOptions);
+    response = await fetch(path, options);
   } catch (error) {
     throw new ApiError(error?.message || 'No se pudo conectar con el servidor.', true);
   }

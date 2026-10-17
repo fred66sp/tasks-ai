@@ -1,8 +1,3 @@
-function createClientId() {
-  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
-  return `tm-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-}
-
 const COLORS = [
   { id: 'blue', hex: '#62a7ff' },
   { id: 'purple', hex: '#b58bff' },
@@ -74,7 +69,6 @@ function normalizePreferences(value) {
 export const workspaceData = {
   data() {
     return {
-      clientId: createClientId(),
       tasks: [],
       tags: [],
       detail: null,
@@ -115,6 +109,11 @@ export const workspaceData = {
       tagFormError: '',
       detailRequestSequence: 0,
       reloadRequestSequence: 0,
+      // La última tarea que esta ventana escribió, con el momento en que se
+      // confirmó: con ella la ventana evita repetirse el aviso de su propio
+      // cambio, sin identidad viajando al servidor.
+      lastTaskWriteRef: '',
+      lastTaskWriteAt: 0,
       uiPreferencesPersistTimer: null,
       workspaceEventSource: null
     };

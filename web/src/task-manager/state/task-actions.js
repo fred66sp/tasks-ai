@@ -102,6 +102,12 @@ export const taskActions = {
       this.errorMessage = '';
       try {
         const result = await request();
+        // La escritura quedó confirmada: se recuerda qué tarea tocó y cuándo,
+        // para no repetir el aviso cuando el canal nombre la misma tarea.
+        if (result?.ref) {
+          this.lastTaskWriteRef = result.ref;
+          this.lastTaskWriteAt = Date.now();
+        }
         // La identidad que la API responde es la referencia visible.
         const nextId = options.useResultId && (result?.ref || result?.id) ? (result.ref || result.id) : preferredId;
         const reloaded = await this.reloadWorkspace(nextId);

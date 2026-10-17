@@ -29,7 +29,7 @@ export const workspaceUi = {
     },
     showWorkspaceChangeToast(changes = []) {
       if (!Array.isArray(changes) || !changes.length) {
-        notifyInfo('Cambios externos detectados. No se pudo identificar la tarea. La lista se ha recargado.');
+        notifyInfo('Cambios detectados. No se pudo identificar la tarea. La lista se ha recargado.');
         return;
       }
       changes.forEach((change) => {

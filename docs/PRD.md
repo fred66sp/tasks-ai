@@ -81,13 +81,14 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Preferencias | Recordar en el navegador lo último que miró la persona |
 | Avisos | Avisar cuando los datos cambian desde fuera de la interfaz |
 | Doble superficie | Ofrecer cada capacidad por CLI con JSON y por la interfaz |
+| Integración con el agente | El tablero como herramientas del agente de Pi: ver el estado del proyecto y crear, mover, cerrar, reabrir, bloquear y comentar tareas |
 
 ### No objetivos
 
 | ID | No objetivo |
 |---|---|
 | NO-01 | Conservar la compatibilidad con Tacks: es referencia funcional, no una obligación de compatibilidad ni una traducción de Rust |
-| NO-02 | Sustituir o modificar el gestor de tareas con el que se desarrolla: son herramientas distintas |
+| NO-02 | Sustituir o modificar el gestor con el que se desarrolló el producto: fue la herramienta de partida y son herramientas distintas. El tablero del proyecto es el propio producto, y la integración con el agente vive fuera del binario |
 | NO-03 | Atender varios proyectos a la vez y mantener una configuración global: el producto tiene un único proyecto y un único ámbito de configuración |
 | NO-04 | Construir una interfaz nueva: se reutiliza la existente y solo se ajusta lo necesario |
 
@@ -107,6 +108,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-08 | La carpeta incluye instrucciones para personas y agentes, y el texto que hay que añadir fuera para apuntar a ellas |
 | RF-09 | Los errores de la API se comunican con el código de estado que corresponde, no dentro de una respuesta correcta |
 | RF-10 | El CLI y el servidor son el mismo programa: un solo binario, que levanta el servidor de la interfaz con un comando |
+| RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio y fuera del binario, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
 
 ### Reglas de negocio
 
@@ -150,3 +152,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-09 | La interfaz conserva las preferencias de la persona y avisa cuando los datos cambian desde fuera |
 | CA-10 | La interfaz de partida se reutiliza, con los ajustes que exijan el núcleo nuevo y las capacidades nuevas, sin reescribirla |
 | CA-11 | El servidor de la interfaz se arranca desde el propio CLI, sin instalar nada aparte |
+| CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |

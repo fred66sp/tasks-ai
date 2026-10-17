@@ -76,7 +76,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		if (board.inProgress.length === 0) lines.push("  ○ sin tarea en curso");
 		for (const task of board.inProgress) lines.push(`  ○ ${task.ref} · ${task.title.replace(/\s+/g, " ").trim()}`);
 		statusUI = ctx.ui;
-		ctx.ui.setWidget("tasks_board", lines, { placement: "belowEditor" });
+		ctx.ui.setWidget("tasks_board", lines, { placement: "aboveEditor" });
 	}
 
 	async function refreshUI(ctx: ExtensionContext) {

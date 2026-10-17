@@ -145,6 +145,16 @@ describe("la extensión", () => {
 		assert.equal(extension.statuses.size, 0);
 	});
 
+	it("el estado nombra todas las tareas en curso", async () => {
+		cli("create", "--title", "primera en curso");
+		cli("create", "--title", "segunda en curso");
+		cli("update", "tk-1", "--status", "in_progress");
+		cli("update", "tk-2", "--status", "in_progress");
+		const extension = harness();
+		await extension.handlers.session_start({}, extension.context(project));
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: 2 en curso · tk-1 · primera en curso, tk-2 · segunda en curso"]);
+	});
+
 	it("/board comparte list con el resumen, la herramienta y llamadas consecutivas", async () => {
 		let lists = 0;
 		const extension = harness(async (...args) => {

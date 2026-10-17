@@ -55,9 +55,11 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 
 	function setBoardStatus(ctx: ExtensionContext, board?: Board, message = "no hay tablero instalado en este proyecto") {
 		if (ctx.mode !== "tui" || !ctx.hasUI) return;
-		const current = board?.inProgress[0];
-		const text = current ? `${current.ref} · ${current.title.replace(/\s+/g, " ").trim()}`
-			: board ? "sin tarea en curso" : message;
+		const running = (board?.inProgress ?? []).map((task) => `${task.ref} · ${task.title.replace(/\s+/g, " ").trim()}`);
+		const text = !board ? message
+			: running.length === 0 ? "sin tarea en curso"
+				: running.length === 1 ? running[0]
+					: `${running.length} en curso · ${running.join(", ")}`;
 		statusUI = ctx.ui;
 		ctx.ui.setStatus("tasks_board", `🦊 tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
 	}

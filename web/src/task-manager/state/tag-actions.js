@@ -12,7 +12,7 @@ export const tagActions = {
     },
     visibleTags() {
       const query = this.normalizeSearchText(this.tagSearchQuery);
-      return this.tagCatalog.filter((tag) => !query || this.normalizeSearchText(`${tag.name} ${tag.description}`).includes(query));
+      return this.tagCatalog.filter((tag) => !query || this.normalizeSearchText(`${tag.name} ${tag.description || ''}`).includes(query));
     },
   },
   methods: {
@@ -53,13 +53,22 @@ export const tagActions = {
         description: this.tagDraft.description.trim(),
         color: this.tagDraft.color
       };
+      const renombrada = Boolean(original) && original !== name;
+      // El renombrado se aplica a los filtros antes de escribir: la recarga de
+      // `mutate` reconcilia las preferencias contra el catálogo nuevo y, si el
+      // cambio llegara después, el filtro quedaría vacío en vez de apuntar a
+      // la etiqueta renombrada.
+      const filtros = { advancedTags: this.advancedTags, quickTagFilter: this.quickTagFilter };
+      if (renombrada) {
+        this.advancedTags = this.advancedTags.map((item) => item === original ? name : item);
+        if (this.quickTagFilter === original) this.quickTagFilter = name;
+      }
       const result = await this.mutate(key, () => original ? requestTagUpdate(original, tag) : requestTagCreate(tag), original ? 'Etiqueta actualizada.' : 'Etiqueta creada.');
       if (result) {
-        if (original && original !== name) {
-          this.advancedTags = this.advancedTags.map((tag) => tag === original ? name : tag);
-          if (this.quickTagFilter === original) this.quickTagFilter = name;
-        }
         this.closeTagForm();
+      } else if (renombrada) {
+        this.advancedTags = filtros.advancedTags;
+        this.quickTagFilter = filtros.quickTagFilter;
       }
     },
     async requestDeleteTag(tag) {

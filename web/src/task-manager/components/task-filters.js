@@ -20,6 +20,11 @@ export const TaskFilters = {
     tagColor: { type: Function, required: true }
   },
   emits: ['refresh', 'dismiss-error', 'update-search', 'toggle-filters', 'close-filters', 'clear-filters', 'update-statuses', 'update-priorities', 'update-tags', 'update-quick-filter', 'update-active-filter', 'update-current-period', 'toggle-chips', 'toggle-list-menu', 'set-expanded'],
+  watch: {
+    listMenuOpen(value) {
+      if (value) this.$nextTick(() => this.$refs.listMenu?.focus());
+    }
+  },
   methods: {
     toggleValue(values, value, checked, eventName) {
       this.$emit(eventName, checked ? [...values, value] : values.filter((item) => item !== value));
@@ -44,9 +49,9 @@ export const TaskFilters = {
     <div class="menu-anchor"><button class="tk-icon-button" type="button" aria-label="Opciones del listado"
         title="Opciones del listado" aria-haspopup="menu" :aria-expanded="listMenuOpen" @click.stop="$emit('toggle-list-menu')"><span
           class="tk-icon">⋮</span></button>
-      <div v-show="listMenuOpen" class="tk-dropdown tk-dropdown--anchored is-open" role="menu" @click.stop><button
-          class="tk-dropdown__item" type="button" title="Expandir todas las tareas" @click="$emit('set-expanded', true)">Expandir todo</button><button
-          class="tk-dropdown__item" type="button" title="Plegar todas las tareas" @click="$emit('set-expanded', false)">Plegar todo</button></div>
+      <div v-show="listMenuOpen" ref="listMenu" tabindex="-1" class="tk-dropdown tk-dropdown--anchored is-open" role="menu" @click.stop><button
+          class="tk-dropdown__item" type="button" role="menuitem" title="Expandir todas las tareas" @click="$emit('set-expanded', true)">Expandir todo</button><button
+          class="tk-dropdown__item" type="button" role="menuitem" title="Plegar todas las tareas" @click="$emit('set-expanded', false)">Plegar todo</button></div>
     </div>
   </div>
   <section v-show="advancedFiltersOpen" class="task-filter-popover" aria-label="Filtros avanzados" @click.stop>
@@ -79,7 +84,7 @@ export const TaskFilters = {
   </section>
   <nav class="tk-tabs task-filter-tabs" aria-label="Filtros rápidos"><button
       v-for="item in [['all', 'Todas'], ['current', 'Actuales'], ['open', 'Pendientes'], ['in_progress', 'En curso'], ['blocked', 'Bloqueadas'], ['done', 'Hechas']]"
-      :key="item[0]" class="tk-tab" type="button" :title="item[1]" :aria-selected="activeTaskFilter === item[0]"
+      :key="item[0]" class="tk-tab" type="button" :title="item[1]" :aria-pressed="activeTaskFilter === item[0]"
       @click="$emit('update-active-filter', item[0])">{{ item[1] }}</button></nav>
   <nav v-show="activeTaskFilter === 'current'" class="tk-tabs current-period-tabs" aria-label="Periodo de tareas actuales"><button
       v-for="item in [['today', 'Hoy'], ['week', 'Semana'], ['month', 'Mes'], ['year', 'Año']]"

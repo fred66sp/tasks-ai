@@ -65,7 +65,7 @@ export const taskTree = {
       const query = this.normalizeSearchText(this.taskSearchQuery);
       return new Set(this.mappedTasks.filter((task) =>
         (this.activeTaskFilter === 'all' ||
-          (this.activeTaskFilter === 'current' && taskInCurrentPeriod(task, this.currentPeriod, this.currentPeriodNow || new Date())) ||
+          (this.activeTaskFilter === 'current' && taskInCurrentPeriod(task, this.currentPeriod, new Date())) ||
           (this.activeTaskFilter !== 'current' && task.status === this.activeTaskFilter)) &&
         (!this.advancedStatuses.length || this.advancedStatuses.includes(task.status)) &&
         (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) &&

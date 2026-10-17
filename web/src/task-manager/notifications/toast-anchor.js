@@ -37,23 +37,47 @@ const DARK_STUDIO = {
 
 toast.configure(DARK_STUDIO);
 
+// El vendor inserta título y mensaje con innerHTML: todo lo que viene del
+// servidor (títulos de tarea, nombres de etiqueta, mensajes de error) se
+// escapa aquí para que se muestre tal cual y no ejecute HTML.
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Confirmaciones modales abiertas: mientras haya una, el Escape global del
+// workspace no debe cerrar el cajón ni el formulario que quedan debajo; el
+// propio diálogo de confirmación ya gestiona Escape.
+let openConfirms = 0;
+
+export function isConfirmOpen() {
+  return openConfirms > 0;
+}
+
 export function notifySuccess(message) {
-  return toast.success(message);
+  return toast.success(escapeHtml(message));
 }
 
 export function notifyError(message) {
-  return toast.error(message);
+  return toast.error(escapeHtml(message));
 }
 
 export function notifyInfo(message) {
-  return toast.info(message);
+  return toast.info(escapeHtml(message));
 }
 
 export function confirmAction(title, message, options = {}) {
-  return toast.modal(title, message, {
+  openConfirms += 1;
+  return toast.modal(escapeHtml(title), escapeHtml(message), {
     confirmLabel: 'Eliminar',
     cancelLabel: 'Cancelar',
     confirmVariant: 'danger',
     ...options
+  }).finally(() => {
+    openConfirms -= 1;
   });
 }

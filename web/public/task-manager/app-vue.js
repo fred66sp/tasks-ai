@@ -484,7 +484,7 @@
         h.style.opacity = "1", M.style.transform = "scale(1) translateY(0)";
       });
       let w = (v) => {
-        h.style.opacity = "0", M.style.transform = "scale(0.9) translateY(16px)", setTimeout(() => {
+        document.removeEventListener("keydown", B), h.style.opacity = "0", M.style.transform = "scale(0.9) translateY(16px)", setTimeout(() => {
           h.remove(), o(v);
         }, 280);
       };
@@ -536,21 +536,31 @@
     }
   };
   ao.configure(DARK_STUDIO);
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  var openConfirms = 0;
+  function isConfirmOpen() {
+    return openConfirms > 0;
+  }
   function notifySuccess(message) {
-    return ao.success(message);
+    return ao.success(escapeHtml(message));
   }
   function notifyError(message) {
-    return ao.error(message);
+    return ao.error(escapeHtml(message));
   }
   function notifyInfo(message) {
-    return ao.info(message);
+    return ao.info(escapeHtml(message));
   }
   function confirmAction(title, message, options = {}) {
-    return ao.modal(title, message, {
+    openConfirms += 1;
+    return ao.modal(escapeHtml(title), escapeHtml(message), {
       confirmLabel: "Eliminar",
       cancelLabel: "Cancelar",
       confirmVariant: "danger",
       ...options
+    }).finally(() => {
+      openConfirms -= 1;
     });
   }
 
@@ -562,7 +572,7 @@
       },
       visibleTags() {
         const query = this.normalizeSearchText(this.tagSearchQuery);
-        return this.tagCatalog.filter((tag) => !query || this.normalizeSearchText(`${tag.name} ${tag.description}`).includes(query));
+        return this.tagCatalog.filter((tag) => !query || this.normalizeSearchText(`${tag.name} ${tag.description || ""}`).includes(query));
       }
     },
     methods: {
@@ -603,13 +613,18 @@
           description: this.tagDraft.description.trim(),
           color: this.tagDraft.color
         };
+        const renombrada = Boolean(original) && original !== name;
+        const filtros = { advancedTags: this.advancedTags, quickTagFilter: this.quickTagFilter };
+        if (renombrada) {
+          this.advancedTags = this.advancedTags.map((item) => item === original ? name : item);
+          if (this.quickTagFilter === original) this.quickTagFilter = name;
+        }
         const result = await this.mutate(key, () => original ? updateTag(original, tag) : createTag(tag), original ? "Etiqueta actualizada." : "Etiqueta creada.");
         if (result) {
-          if (original && original !== name) {
-            this.advancedTags = this.advancedTags.map((tag2) => tag2 === original ? name : tag2);
-            if (this.quickTagFilter === original) this.quickTagFilter = name;
-          }
           this.closeTagForm();
+        } else if (renombrada) {
+          this.advancedTags = filtros.advancedTags;
+          this.quickTagFilter = filtros.quickTagFilter;
         }
       },
       async requestDeleteTag(tag) {
@@ -984,7 +999,7 @@
       filteredTaskIds() {
         const query = this.normalizeSearchText(this.taskSearchQuery);
         return new Set(this.mappedTasks.filter(
-          (task) => (this.activeTaskFilter === "all" || this.activeTaskFilter === "current" && taskInCurrentPeriod(task, this.currentPeriod, this.currentPeriodNow || /* @__PURE__ */ new Date()) || this.activeTaskFilter !== "current" && task.status === this.activeTaskFilter) && (!this.advancedStatuses.length || this.advancedStatuses.includes(task.status)) && (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) && (!this.advancedTags.length || task.chips.some((tag) => this.advancedTags.includes(tag))) && (!this.quickTagFilter || task.chips.includes(this.quickTagFilter)) && (!query || this.normalizeSearchText(`${task.id} ${task.title} ${task.chips.join(" ")}`).includes(query))
+          (task) => (this.activeTaskFilter === "all" || this.activeTaskFilter === "current" && taskInCurrentPeriod(task, this.currentPeriod, /* @__PURE__ */ new Date()) || this.activeTaskFilter !== "current" && task.status === this.activeTaskFilter) && (!this.advancedStatuses.length || this.advancedStatuses.includes(task.status)) && (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) && (!this.advancedTags.length || task.chips.some((tag) => this.advancedTags.includes(tag))) && (!this.quickTagFilter || task.chips.includes(this.quickTagFilter)) && (!query || this.normalizeSearchText(`${task.id} ${task.title} ${task.chips.join(" ")}`).includes(query))
         ).map((task) => task.id));
       },
       visibleTasks() {
@@ -1167,7 +1182,6 @@
         activeInspectorTab: "detail",
         activeTaskFilter: "all",
         currentPeriod: "today",
-        currentPeriodNow: null,
         taskSearchQuery: "",
         quickTagFilter: "",
         advancedStatuses: [],
@@ -1327,6 +1341,7 @@
       },
       handleEscape(event) {
         if (event.key !== "Escape") return;
+        if (isConfirmOpen()) return;
         this.isListMenuOpen = false;
         this.openTaskMenuId = "";
         this.isInspectorMenuOpen = false;
@@ -1761,6 +1776,11 @@
       tagColor: { type: Function, required: true }
     },
     emits: ["refresh", "dismiss-error", "update-search", "toggle-filters", "close-filters", "clear-filters", "update-statuses", "update-priorities", "update-tags", "update-quick-filter", "update-active-filter", "update-current-period", "toggle-chips", "toggle-list-menu", "set-expanded"],
+    watch: {
+      listMenuOpen(value) {
+        if (value) this.$nextTick(() => this.$refs.listMenu?.focus());
+      }
+    },
     methods: {
       toggleValue(values, value, checked, eventName) {
         this.$emit(eventName, checked ? [...values, value] : values.filter((item) => item !== value));
@@ -1785,9 +1805,9 @@
     <div class="menu-anchor"><button class="tk-icon-button" type="button" aria-label="Opciones del listado"
         title="Opciones del listado" aria-haspopup="menu" :aria-expanded="listMenuOpen" @click.stop="$emit('toggle-list-menu')"><span
           class="tk-icon">\u22EE</span></button>
-      <div v-show="listMenuOpen" class="tk-dropdown tk-dropdown--anchored is-open" role="menu" @click.stop><button
-          class="tk-dropdown__item" type="button" title="Expandir todas las tareas" @click="$emit('set-expanded', true)">Expandir todo</button><button
-          class="tk-dropdown__item" type="button" title="Plegar todas las tareas" @click="$emit('set-expanded', false)">Plegar todo</button></div>
+      <div v-show="listMenuOpen" ref="listMenu" tabindex="-1" class="tk-dropdown tk-dropdown--anchored is-open" role="menu" @click.stop><button
+          class="tk-dropdown__item" type="button" role="menuitem" title="Expandir todas las tareas" @click="$emit('set-expanded', true)">Expandir todo</button><button
+          class="tk-dropdown__item" type="button" role="menuitem" title="Plegar todas las tareas" @click="$emit('set-expanded', false)">Plegar todo</button></div>
     </div>
   </div>
   <section v-show="advancedFiltersOpen" class="task-filter-popover" aria-label="Filtros avanzados" @click.stop>
@@ -1820,7 +1840,7 @@
   </section>
   <nav class="tk-tabs task-filter-tabs" aria-label="Filtros r\xE1pidos"><button
       v-for="item in [['all', 'Todas'], ['current', 'Actuales'], ['open', 'Pendientes'], ['in_progress', 'En curso'], ['blocked', 'Bloqueadas'], ['done', 'Hechas']]"
-      :key="item[0]" class="tk-tab" type="button" :title="item[1]" :aria-selected="activeTaskFilter === item[0]"
+      :key="item[0]" class="tk-tab" type="button" :title="item[1]" :aria-pressed="activeTaskFilter === item[0]"
       @click="$emit('update-active-filter', item[0])">{{ item[1] }}</button></nav>
   <nav v-show="activeTaskFilter === 'current'" class="tk-tabs current-period-tabs" aria-label="Periodo de tareas actuales"><button
       v-for="item in [['today', 'Hoy'], ['week', 'Semana'], ['month', 'Mes'], ['year', 'A\xF1o']]"
@@ -1847,14 +1867,19 @@
       compact: { type: Boolean, default: true }
     },
     emits: ["toggle", "select"],
+    watch: {
+      open(value) {
+        if (value) this.$nextTick(() => this.$refs.menu?.focus());
+      }
+    },
     template: `
     <div class="menu-anchor">
   <button :class="['tk-icon-button', { 'tk-icon-button--compact': compact }]" type="button" :aria-label="label"
     aria-haspopup="menu" :aria-expanded="open" @click.stop="$emit('toggle')">\u22EE</button>
-  <div v-show="open" :class="['tk-dropdown', menuClass, 'is-open']" role="menu" @click.stop>
+  <div v-show="open" ref="menu" tabindex="-1" :class="['tk-dropdown', menuClass, 'is-open']" role="menu" @click.stop>
     <template v-for="item in items" :key="item.id">
       <div v-if="item.separatorBefore" class="tk-dropdown__separator"></div>
-      <button :class="['tk-dropdown__item', { 'tk-dropdown__item--danger': item.danger }]" type="button"
+      <button :class="['tk-dropdown__item', { 'tk-dropdown__item--danger': item.danger }]" type="button" role="menuitem"
         :disabled="item.disabled" @click="$emit('select', item.id)">{{ item.label }}</button>
     </template>
   </div>
@@ -2106,7 +2131,7 @@
     </header>
     <nav class="tk-tabs task-inspector__tabs" aria-label="Detalles de la tarea"><button
         v-for="item in [['detail', 'Detalle'], ['edit', 'Editar'], ['subtasks', 'Subtareas'], ['dependencies', 'Dependencias'], ['comments', 'Comentarios']]"
-        :key="item[0]" class="tk-tab" type="button" :aria-selected="activeTab === item[0]"
+        :key="item[0]" class="tk-tab" type="button" :aria-pressed="activeTab === item[0]"
         @click="selectTab(item[0])">{{ item[1] }}</button></nav>
     <div class="task-inspector__scroll">
       <div v-show="activeTab === 'detail'" class="tk-panel-stack">

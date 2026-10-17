@@ -105,7 +105,7 @@ export const TaskInspector = {
     </header>
     <nav class="tk-tabs task-inspector__tabs" aria-label="Detalles de la tarea"><button
         v-for="item in [['detail', 'Detalle'], ['edit', 'Editar'], ['subtasks', 'Subtareas'], ['dependencies', 'Dependencias'], ['comments', 'Comentarios']]"
-        :key="item[0]" class="tk-tab" type="button" :aria-selected="activeTab === item[0]"
+        :key="item[0]" class="tk-tab" type="button" :aria-pressed="activeTab === item[0]"
         @click="selectTab(item[0])">{{ item[1] }}</button></nav>
     <div class="task-inspector__scroll">
       <div v-show="activeTab === 'detail'" class="tk-panel-stack">

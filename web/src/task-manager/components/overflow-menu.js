@@ -8,14 +8,19 @@ export const OverflowMenu = {
     compact: { type: Boolean, default: true }
   },
   emits: ['toggle', 'select'],
+  watch: {
+    open(value) {
+      if (value) this.$nextTick(() => this.$refs.menu?.focus());
+    }
+  },
   template: `
     <div class="menu-anchor">
   <button :class="['tk-icon-button', { 'tk-icon-button--compact': compact }]" type="button" :aria-label="label"
     aria-haspopup="menu" :aria-expanded="open" @click.stop="$emit('toggle')">⋮</button>
-  <div v-show="open" :class="['tk-dropdown', menuClass, 'is-open']" role="menu" @click.stop>
+  <div v-show="open" ref="menu" tabindex="-1" :class="['tk-dropdown', menuClass, 'is-open']" role="menu" @click.stop>
     <template v-for="item in items" :key="item.id">
       <div v-if="item.separatorBefore" class="tk-dropdown__separator"></div>
-      <button :class="['tk-dropdown__item', { 'tk-dropdown__item--danger': item.danger }]" type="button"
+      <button :class="['tk-dropdown__item', { 'tk-dropdown__item--danger': item.danger }]" type="button" role="menuitem"
         :disabled="item.disabled" @click="$emit('select', item.id)">{{ item.label }}</button>
     </template>
   </div>

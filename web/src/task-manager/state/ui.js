@@ -1,5 +1,5 @@
 import { priorityLabel, statusBadgeClass, statusLabel } from '../../shared/tasks/task-model.js';
-import { notifyError, notifyInfo, notifySuccess } from '../notifications/toast-anchor.js';
+import { isConfirmOpen, notifyError, notifyInfo, notifySuccess } from '../notifications/toast-anchor.js';
 
 export const workspaceUi = {
   methods: {
@@ -63,6 +63,9 @@ export const workspaceUi = {
     },
     handleEscape(event) {
       if (event.key !== 'Escape') return;
+      // Con un diálogo de confirmación abierto, el propio diálogo gestiona
+      // Escape: aquí no se cierra nada de lo que queda debajo.
+      if (isConfirmOpen()) return;
       this.isListMenuOpen = false;
       this.openTaskMenuId = '';
       this.isInspectorMenuOpen = false;

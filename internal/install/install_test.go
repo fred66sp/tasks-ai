@@ -3,6 +3,8 @@ package install_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
+	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
 	"tasks-ai/internal/settings"
 	"tasks-ai/internal/store"
@@ -67,7 +69,7 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 
 	dir := t.TempDir()
 
-	result, err := install.Run(t.Context(), dir)
+	result, err := install.Run(t.Context(), dir, "")
 	if err != nil {
 		t.Fatalf("Run devolvió %v", err)
 	}
@@ -97,11 +99,11 @@ func TestRun_refusesToInstallOverAnInstallation(t *testing.T) {
 
 	dir := t.TempDir()
 
-	if _, err := install.Run(t.Context(), dir); err != nil {
+	if _, err := install.Run(t.Context(), dir, ""); err != nil {
 		t.Fatalf("la primera instalación devolvió %v", err)
 	}
 
-	if _, err := install.Run(t.Context(), dir); err == nil {
+	if _, err := install.Run(t.Context(), dir, ""); err == nil {
 		t.Error("Run volvió a instalar sobre un proyecto que ya lo tenía")
 	}
 }
@@ -111,7 +113,7 @@ func TestRun_completesAnInstallationThatLostItsInstructions(t *testing.T) {
 
 	dir := t.TempDir()
 
-	if _, err := install.Run(t.Context(), dir); err != nil {
+	if _, err := install.Run(t.Context(), dir, ""); err != nil {
 		t.Fatalf("la primera instalación devolvió %v", err)
 	}
 
@@ -120,7 +122,7 @@ func TestRun_completesAnInstallationThatLostItsInstructions(t *testing.T) {
 		t.Fatalf("quitando las instrucciones: %v", err)
 	}
 
-	if _, err := install.Run(t.Context(), dir); err != nil {
+	if _, err := install.Run(t.Context(), dir, ""); err != nil {
 		t.Fatalf("volver a instalar sobre una instalación incompleta devolvió %v", err)
 	}
 
@@ -143,7 +145,7 @@ func TestRun_keepsTheSettingsThatAreAlreadyThere(t *testing.T) {
 		t.Fatalf("preparando los ajustes del proyecto: %v", err)
 	}
 
-	result, err := install.Run(t.Context(), dir)
+	result, err := install.Run(t.Context(), dir, "")
 	if err != nil {
 		t.Fatalf("Run devolvió %v", err)
 	}
@@ -175,6 +177,94 @@ func TestRun_keepsTheSettingsThatAreAlreadyThere(t *testing.T) {
 
 	if recorded != "px" {
 		t.Errorf("la base se anotó con el prefijo %q, se esperaba el de los ajustes", recorded)
+	}
+}
+
+func TestRun_installsWithThePrefixTheProjectAsks(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result, err := install.Run(t.Context(), dir, "tai")
+	if err != nil {
+		t.Fatalf("Run devolvió %v", err)
+	}
+
+	if result.Prefix != "tai" {
+		t.Errorf("la instalación devolvió el prefijo %q, se esperaba tai", result.Prefix)
+	}
+
+	product := filepath.Join(dir, install.DirName)
+
+	cfg, err := settings.Load(product)
+	if err != nil {
+		t.Fatalf("Load devolvió %v", err)
+	}
+
+	if cfg.Prefix != "tai" {
+		t.Errorf("los ajustes guardan el prefijo %q, se esperaba tai", cfg.Prefix)
+	}
+
+	written, err := os.ReadFile(result.Instructions)
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones: %v", err)
+	}
+
+	if !strings.Contains(string(written), "tai-1") || strings.Contains(string(written), "tk-") {
+		t.Errorf("las instrucciones no componen sus ejemplos con el prefijo del proyecto")
+	}
+
+	base, err := store.Open(t.Context(), settings.DatabasePath(product, cfg))
+	if err != nil {
+		t.Fatalf("abriendo la base instalada: %v", err)
+	}
+
+	t.Cleanup(func() { _ = base.Close() })
+
+	recorded, err := base.RecordedPrefix(t.Context())
+	if err != nil {
+		t.Fatalf("RecordedPrefix devolvió %v", err)
+	}
+
+	if recorded != "tai" {
+		t.Errorf("la base se anotó con el prefijo %q, se esperaba tai", recorded)
+	}
+
+	note, err := core.New(base, cfg.Prefix).CheckPrefix(t.Context())
+	if err != nil {
+		t.Fatalf("CheckPrefix devolvió %v", err)
+	}
+
+	if note != "" {
+		t.Errorf("la instalación dejó un aviso para los comandos siguientes: %q", note)
+	}
+}
+
+func TestRun_refusesAPrefixThatTheProjectSettingsDoNotHave(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	product := filepath.Join(dir, install.DirName)
+	mkdir(t, product)
+
+	cfg := settings.Default()
+	cfg.Prefix = "px"
+
+	if err := settings.Save(product, cfg); err != nil {
+		t.Fatalf("preparando los ajustes del proyecto: %v", err)
+	}
+
+	if _, err := install.Run(t.Context(), dir, "tai"); err == nil {
+		t.Error("Run aceptó un prefijo distinto del que el proyecto ya tenía en sus ajustes")
+	}
+
+	result, err := install.Run(t.Context(), dir, "px")
+	if err != nil {
+		t.Fatalf("Run rechazó el prefijo que el proyecto ya tenía: %v", err)
+	}
+
+	if result.Prefix != "px" {
+		t.Errorf("la instalación devolvió el prefijo %q, se esperaba px", result.Prefix)
 	}
 }
 

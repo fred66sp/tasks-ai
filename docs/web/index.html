@@ -570,7 +570,7 @@
         <pre data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
 ./tasks-ai init              # installs the product in the project you are in</code></pre>
       </div>
-      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.task-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo y el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones.</p>
+      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.task-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo y el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
       <div class="code">
         <pre data-lang="es"><code>{
   "dir": "/home/ana/informes/.task-ai",
@@ -693,15 +693,21 @@
       <p class="sub" data-i18n="comandos.3">Todas responden en JSON. Los errores también son JSON, con un objeto <code>error</code>, y la salida distingue dos casos: <code>2</code> cuando el uso o la entrada no son válidos, y <code>1</code> en cualquier otro rechazo.</p>
 
       <h3 class="cmd" data-i18n="comandos.4"><code>init</code><span class="sig">— instala el producto en el proyecto</span></h3>
-      <p data-i18n="comandos.5">Deja <code>.task-ai/</code> y devuelve lo que dejó. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada.</p>
+      <p data-i18n="comandos.5">Deja <code>.task-ai/</code> y devuelve lo que dejó. Con <code>--prefix</code> el prefijo de las referencias se fija al instalar, y pedir uno distinto del que ya tienen los ajustes se rechaza. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada.</p>
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
+
+./tasks-ai init --prefix tai   # fija el prefijo de las referencias al instalar
+# { "dir": "...", "db": "...", "instructions": "...", "prefix": "tai", "pointer": "..." }
 
 ./tasks-ai init      # segunda vez sobre el mismo proyecto
 # { "error": "the project already has the product installed in /home/ana/informes/.task-ai" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
+
+./tasks-ai init --prefix tai   # fixes the prefix of the references at install time
+# { "dir": "...", "db": "...", "instructions": "...", "prefix": "tai", "pointer": "..." }
 
 ./tasks-ai init      # second time on the same project
 # { "error": "the project already has the product installed in /home/ana/reports/.task-ai" }   exit 1</code></pre>
@@ -1188,7 +1194,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
         </table>
       </div>
       <h3 data-i18n="configuracion.18">Cambiar el prefijo</h3>
-      <p data-i18n="configuracion.19">El prefijo cambia lo que se escribe, no lo que se guarda: la base no se reescribe y las referencias del prefijo anterior dejan de resolver. El producto lo avisa al arrancar y sigue con el nuevo, así que el cambio se hace una vez y se deja.</p>
+      <p data-i18n="configuracion.19">El prefijo cambia lo que se escribe, no lo que se guarda: la base no se reescribe y las referencias del prefijo anterior dejan de resolver. El producto lo avisa al arrancar y sigue con el nuevo, así que el cambio se hace una vez y se deja. Fijarlo al instalar con <code>init --prefix</code> evita el cambio.</p>
       <div class="code">
         <pre data-lang="es"><code># settings.json con "prefix": "inf"
 ./tasks-ai create --title "Preparar el informe"      # devuelve "ref": "inf-6"
@@ -1329,7 +1335,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.20": "<strong>The mental model.</strong> A task is a row with a stable identity; its visible reference —<code>tk-1</code>— is what you type and what you see. The database is a file, which is why there is nothing to start before you work.",
  "empezar.2": "Starting in a project",
  "empezar.3": "Compiling is the only step that needs Go. From there on, the binary does everything.",
- "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.task-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, and the text to add outside so that people and agents find the instructions.",
+ "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.task-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, and the text to add outside so that people and agents find the instructions. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
  "empezar.5": "<strong>The pointer is half the job.</strong> Without that line in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.task-ai/AGENTS.md</code>. Add it wherever your project already receives instructions.",
  "empezar.6": "What it writes",
  "empezar.7": "File",
@@ -1383,7 +1389,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
- "comandos.5": "Leaves <code>.task-ai/</code> and returns what it left. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
+ "comandos.5": "Leaves <code>.task-ai/</code> and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
  "comandos.6": "<code>create</code><span class=\"sig\">— creates a task or a subtask</span>",
  "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given.",
  "comandos.8": "Option",
@@ -1577,7 +1583,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "configuracion.16": "enum",
  "configuracion.17": "<code>debug</code>, <code>info</code>, <code>warn</code> or <code>error</code>: how much <code>serve</code> writes to standard error.",
  "configuracion.18": "Changing the prefix",
- "configuracion.19": "The prefix changes what you type, not what is stored: the database is not rewritten and references with the previous prefix stop resolving. The product warns on start and continues with the new one, so you change it once and leave it.",
+ "configuracion.19": "The prefix changes what you type, not what is stored: the database is not rewritten and references with the previous prefix stop resolving. The product warns on start and continues with the new one, so you change it once and leave it. Fixing it at install time with <code>init --prefix</code> avoids the change.",
  "configuracion.20": "<strong>An invalid value stops the start</strong> with a clear message, instead of starting with a half-configured product. That is what you want: a mistyped prefix would change every reference.",
  "limites.2": "What it does not do",
  "limites.3": "As important as everything above: what the product does not promise, so you do not expect it.",

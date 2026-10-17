@@ -22,6 +22,13 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **`init` fija el prefijo del proyecto**: `./tasks-ai init --prefix tai` compone las
+  referencias con ese prefijo en vez de `tk`, lo graba en la base que crea y escribe las
+  instrucciones con él en sus ejemplos, así que el proyecto no arrastra el aviso de que
+  la base se compuso con otro. Sin la bandera la instalación nace con `tk` como antes, y
+  pedir un prefijo distinto del que ya tienen los ajustes del proyecto se rechaza en vez
+  de sobrescribirlo.
+
 - **La extensión se instala como paquete de Pi**: `extensions/pi` declara su manifiesto y
   se instala en el proyecto con `pi install -l ./extensions/pi`, que deja la ruta relativa
   en `.pi/settings.json` sin copiar el fuente fuera del repositorio; `pi remove -l

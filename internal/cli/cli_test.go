@@ -13,6 +13,80 @@ import (
 	"testing"
 )
 
+// TestRun_initFixesThePrefixAndTheInstructionsUseIt recorre el criterio de tk-14:
+// instalar con un prefijo propio deja referencias y ejemplos con ese prefijo, y los
+// comandos siguientes no avisan de que la base y los ajustes no coinciden.
+func TestRun_initFixesThePrefixAndTheInstructionsUseIt(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	code, out, errOut := run(t, "init", "--prefix", "tai")
+	if code != 0 {
+		t.Fatalf("init --prefix tai salió con %d: %s", code, errOut)
+	}
+
+	var installed install.Result
+	decode(t, out, &installed)
+
+	if installed.Prefix != "tai" {
+		t.Errorf("el prefijo instalado es %q, se esperaba tai", installed.Prefix)
+	}
+
+	written, err := os.ReadFile(installed.Instructions)
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones: %v", err)
+	}
+
+	if !strings.Contains(string(written), "tai-1") {
+		t.Error("las instrucciones no citan tai-1 como referencia de ejemplo")
+	}
+
+	code, out, errOut = run(t, "create", "--title", "Con prefijo propio")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	if created.Ref != "tai-1" {
+		t.Errorf("la tarea nació como %q, se esperaba tai-1", created.Ref)
+	}
+
+	if errOut != "" {
+		t.Errorf("create avisó después de instalar con prefijo propio: %s", errOut)
+	}
+
+	code, _, errOut = run(t, "show", created.Ref)
+	if code != 0 {
+		t.Fatalf("show salió con %d: %s", code, errOut)
+	}
+
+	if errOut != "" {
+		t.Errorf("show avisó después de instalar con prefijo propio: %s", errOut)
+	}
+}
+
+// TestRun_initRejectsAPrefixTheReferencesCannotCarry comprueba que un prefijo
+// imposible se rechaza como uso incorrecto y sin dejar nada escrito.
+func TestRun_initRejectsAPrefixTheReferencesCannotCarry(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	code, _, errOut := run(t, "init", "--prefix", "1 x")
+	if code != 2 {
+		t.Fatalf("init con un prefijo imposible salió con %d, se esperaba 2: %s", code, errOut)
+	}
+
+	if text := errorText(t, errOut); !strings.Contains(text, "prefix") {
+		t.Errorf("el error no dice qué se rechazó: %q", text)
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, install.DirName)); err == nil {
+		t.Error("un prefijo rechazado dejó la carpeta del producto escrita")
+	}
+}
+
 // El criterio de la fase: en un proyecto vacío, instalar el producto, guardar una
 // tarea y leerla con la referencia formada por el prefijo configurado.
 //

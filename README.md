@@ -41,6 +41,7 @@ Del producto:
 go build ./cmd/tasks-ai  # compila el binario
 
 ./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones; no es repetible, un proyecto ya instalado lo rechaza
+./tasks-ai init --prefix tai     # instala con tai como prefijo de las referencias en vez de tk, y escribe las instrucciones con él
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
 ./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada

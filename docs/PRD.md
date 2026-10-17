@@ -153,3 +153,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-10 | La interfaz de partida se reutiliza, con los ajustes que exijan el núcleo nuevo y las capacidades nuevas, sin reescribirla |
 | CA-11 | El servidor de la interfaz se arranca desde el propio CLI, sin instalar nada aparte |
 | CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |
+| CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |

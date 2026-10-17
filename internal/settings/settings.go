@@ -119,15 +119,24 @@ func Exists(dir string) bool {
 	return err == nil
 }
 
+// ValidatePrefix refuses a prefix that the references could not carry, with a
+// message that says what to fix.
+func ValidatePrefix(prefix string) error {
+	if prefixPattern.MatchString(prefix) {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"the prefix %q must start with a letter or a digit and go on with letters, digits, hyphens or underscores, up to thirty-two characters",
+		prefix,
+	)
+}
+
 // validate refuses a settings file that would leave the product unusable, with
 // a message that says what to fix.
 func (cfg Settings) validate() error {
-	if !prefixPattern.MatchString(cfg.Prefix) {
-		return fmt.Errorf(
-			"%s: the prefix %q must start with a letter or a digit and go on with letters, digits, hyphens or underscores, up to thirty-two characters",
-			FileName,
-			cfg.Prefix,
-		)
+	if err := ValidatePrefix(cfg.Prefix); err != nil {
+		return fmt.Errorf("%s: %w", FileName, err)
 	}
 
 	if !filepath.IsLocal(cfg.DB) {

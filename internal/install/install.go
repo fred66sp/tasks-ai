@@ -4,6 +4,7 @@
 package install
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
@@ -74,10 +75,11 @@ func Project(dir string) (string, error) {
 	}
 }
 
-// Run installs the product in the project rooted at root, completing what a
-// previous attempt left half done. What is already there is left alone, so the
-// settings keep the values the project put in them.
-func Run(ctx context.Context, root string) (Result, error) {
+// Run installs the product in the project rooted at root, with the prefix the
+// project asks for and completing what a previous attempt left half done. What
+// is already there is left alone, so the settings keep the values the project
+// put in them: asking for another prefix is refused instead of overwritten.
+func Run(ctx context.Context, root, prefix string) (Result, error) {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return Result{}, fmt.Errorf("resolving the path of project %s: %w", root, err)
@@ -85,7 +87,7 @@ func Run(ctx context.Context, root string) (Result, error) {
 
 	dir := filepath.Join(root, DirName)
 
-	cfg, err := prepare(dir)
+	cfg, err := prepare(dir, prefix)
 	if err != nil {
 		return Result{}, err
 	}
@@ -99,7 +101,7 @@ func Run(ctx context.Context, root string) (Result, error) {
 
 	// Las instrucciones van antes que la base: si algo falla a mitad, lo que ya
 	// está hecho se puede volver a completar sin borrar nada.
-	if err := writeInstructions(dir); err != nil {
+	if err := writeInstructions(dir, cfg.Prefix); err != nil {
 		return Result{}, err
 	}
 
@@ -130,32 +132,54 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// prepare creates the product folder and leaves a settings file in it, without
-// touching the one the project may have written itself.
-func prepare(dir string) (settings.Settings, error) {
+// prepare creates the product folder and leaves a settings file in it with the
+// prefix asked for, without touching the one the project may have written
+// itself.
+func prepare(dir, prefix string) (settings.Settings, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
 		return settings.Settings{}, fmt.Errorf("creating the folder %s: %w", dir, err)
 	}
 
 	if !settings.Exists(dir) {
-		if err := settings.Save(dir, settings.Default()); err != nil {
+		cfg := settings.Default()
+		if prefix != "" {
+			cfg.Prefix = prefix
+		}
+
+		if err := settings.Save(dir, cfg); err != nil {
 			return settings.Settings{}, err
 		}
 	}
 
-	return settings.Load(dir)
+	cfg, err := settings.Load(dir)
+	if err != nil {
+		return settings.Settings{}, err
+	}
+
+	if prefix != "" && cfg.Prefix != prefix {
+		return settings.Settings{}, fmt.Errorf(
+			"the project already has its own settings in %s with prefix %q: edit that file to change it",
+			filepath.Join(dir, settings.FileName),
+			cfg.Prefix,
+		)
+	}
+
+	return cfg, nil
 }
 
-// writeInstructions leaves the instructions in the product folder, without
-// treading on the ones that are already there.
-func writeInstructions(dir string) error {
+// writeInstructions leaves the instructions in the product folder, with the
+// prefix of the project in its examples, without treading on the ones that are
+// already there.
+func writeInstructions(dir, prefix string) error {
 	path := filepath.Join(dir, instructionsName)
 
 	if exists(path) {
 		return nil
 	}
 
-	if err := os.WriteFile(path, instructions, 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto
+	text := bytes.ReplaceAll(instructions, []byte(settings.DefaultPrefix+"-"), []byte(prefix+"-"))
+
+	if err := os.WriteFile(path, text, 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
 

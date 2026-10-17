@@ -131,13 +131,8 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 
 ### Ajustes del proyecto
 
-| Ajuste | Para qué |
-|---|---|
-| `prefix` | El prefijo de las referencias visibles |
-| `db` | Ruta de la base; por omisión, dentro de `.task-ai/` |
-| `http.host` | Dirección a la que se ata la interfaz; por omisión, solo la máquina local |
-| `http.port` | Puerto de la interfaz |
-| `log` | Dónde escribe el registro y con cuánto detalle |
+Los ajustes que reconoce el producto, sus tipos y sus valores por omisión están en
+[`docs/contracts.md`](contracts.md), que es su dueño: este documento no los repite.
 
 ## 5. Criterios de aceptación
 

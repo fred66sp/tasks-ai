@@ -10,7 +10,7 @@ formas de datos y de API están en `contracts.md`.
 | `go build ./cmd/...` | Compila el binario del producto |
 | `go test ./...` | Ejecuta las pruebas |
 | `go vet ./...` | Comprobaciones estáticas |
-| `./tasks-ai init` | Instala el producto en el proyecto: crea `.task-ai/` con la base, el settings y las instrucciones |
+| `./tasks-ai init` | Instala el producto en el proyecto: crea `.task-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. No es repetible: un proyecto ya instalado lo rechaza |
 | `./tasks-ai serve` | Arranca la API y la interfaz web en la dirección y el puerto del settings: la interfaz responde en la raíz del servidor y la API en sus rutas `/api/...` |
 | `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
 
@@ -29,9 +29,8 @@ npm run server             # interfaz de la herramienta
 
 ## Comprobaciones antes de cerrar un cambio
 
-- Las pruebas del proyecto, cuando existan.
-- Las comprobaciones del contrato de documentación, que se ejecutan a mano hasta que
-  haya una suite que las haga suyas.
+- Las pruebas del proyecto (`go test ./...`).
+- Las comprobaciones del contrato de documentación, que se ejecutan a mano: ninguna herramienta las automatiza.
 - `make check-web`: que la interfaz construida coincida con su fuente.
 
 ## Registro de verificaciones

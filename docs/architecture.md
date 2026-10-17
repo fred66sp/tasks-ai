@@ -68,7 +68,7 @@ Dentro de `.task-ai/`, en la raíz del proyecto:
 |---|---|
 | `tasks.db` | Tareas, dependencias, comentarios y el catálogo de etiquetas con color y descripción |
 | `settings.json` | Prefijo, ruta de la base, dirección y puerto de la interfaz, y registro |
-| `AGENTS.md` y sus skills | Instrucciones para las personas y los agentes que trabajan en el proyecto |
+| `AGENTS.md` | Instrucciones para las personas y los agentes que trabajan en el proyecto |
 
 Fuera de esa carpeta el producto no escribe: solo ofrece el texto que el usuario pueda
 querer añadir en sus propios archivos.

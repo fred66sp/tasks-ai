@@ -37,7 +37,7 @@ Del producto:
 ```bash
 go build ./cmd/tasks-ai  # compila el binario
 
-./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones
+./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones; no es repetible, un proyecto ya instalado lo rechaza
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
 ./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada
@@ -68,11 +68,15 @@ cd web && npm run build  # construye la interfaz: deja el artefacto en web/publi
 cd web && npm run watch  # la reconstruye al cambiar
 ```
 
-De la herramienta de desarrollo:
+De la herramienta de desarrollo —la de partida, que el producto sustituye—:
+
+Su servidor no trae dependencias: se arranca directo. El binario de `tk`, en cambio, es de
+terceros —[tacks](https://github.com/srmccray/tacks)—, se instala aparte dejándolo en
+`task-manager/tk/` y no viaja en el repositorio; su propio `README.md` trae la descarga y
+`cargo install tacks`.
 
 ```bash
 cd task-manager
-npm ci                 # instala la herramienta
 npm run odd:tk -- stats  # estado del trabajo
 npm run server         # interfaz de la herramienta
 ```

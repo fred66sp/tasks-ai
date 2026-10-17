@@ -49,7 +49,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 | Estructura de ficheros y convenciones de trabajo | `docs/development.md` | `docs/development.md` |
 | Riesgos, deuda y su cobertura de pruebas | `docs/known-risks.md` | `docs/known-risks.md` |
 | Flujo de Git, CHANGELOG y versionado | `CONTRATO_FLUJO_GIT_VERSIONADO.md` | ese contrato |
-| Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `tk/AGENTS.md` |
+| Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `task-manager/tk/AGENTS.md` |
 | Presentación del producto y puesta en marcha | `README.md` | `README.md` |
 | Contenido de los artefactos generados | El build | `npm run build` y los ficheros versionados |
 
@@ -77,7 +77,7 @@ enuncia o se enlaza.
 | `docs/known-risks.md` | Qué riesgo y qué deuda existen y cómo se cubren | Riesgos vivos con su cobertura, los resueltos y su lección, deuda aceptada | Requisitos, planes, estado del trabajo |
 | `docs/decisions/` | Por qué se decidió algo y qué se descartó | Un ADR por decisión: contexto, decisión, alternativas y consecuencias | Requisitos, cifras, estado |
 | Tablero `tk` | Qué se está haciendo | Tareas y partes de épica, relevo y evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, estado de Git ni del proceso de revisión |
-| `src/task-manager/README.md`, `tk/AGENTS.md` | Reglas y notas de esa carpeta | Lo específico de esa carpeta | Lo que ya cubre un documento de la raíz o `docs/` |
+| `task-manager/tk/README.md`, `task-manager/tk/AGENTS.md` | Reglas y notas de esa carpeta | Lo específico de esa carpeta | Lo que ya cubre un documento de la raíz o `docs/` |
 
 ## 6. Lo que no puede aparecer en un documento normativo
 
@@ -147,10 +147,10 @@ registro de un hecho pasado (`CHANGELOG.md`, el registro de verificaciones de
 o se retira.
 
 Las comprobaciones **mecánicas** —cifras, medidas, hashes, fechas, tablas de
-progreso e identificadores sin dueño— corren dentro de `npm test`, en
-[`tests/project/documentation.test.js`](tests/project/documentation.test.js), y
-también solas con `npm run docs:check`. Los comandos de abajo sirven para revisar a
-mano lo que un patrón no distingue.
+progreso e identificadores sin dueño— no corren solas: ninguna herramienta del
+repositorio las automatiza, así que se ejecutan a mano y su sostén son las
+revisiones, igual que las de abajo, que sirven para revisar lo que un patrón no
+distingue.
 
 ```bash
 # Recuentos que cambian con el código.

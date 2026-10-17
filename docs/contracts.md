@@ -20,7 +20,7 @@ código, en inglés.
 | `blocked` | booleano | Se calcula desde las dependencias y no se almacena: cierto cuando la tarea tiene algún bloqueante que no está en `done` |
 | `priority` | entero | Rango de `0` a `3`, por omisión `2` |
 | `assignee` | texto | Opcional |
-| `parent_id` | entero | Tarea padre, opcional |
+| `parent_id` | entero | Número interno de la tarea padre, opcional: es la identidad que cruza la frontera, y de él el cliente deriva la referencia visible del padre |
 | `created_at` | fecha y hora | En UTC |
 | `updated_at` | fecha y hora | En UTC |
 | `close_reason` | enumerado | `done`, `duplicate`, `absorbed`, `stale`, `superseded` |
@@ -129,6 +129,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   como está. Los comentarios solo se añaden: la herramienta no ofrece ninguna manera
   de editar o de borrar uno, y cada uno muestra su cuerpo y el momento en que se
   añadió.
+- `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix` y `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones—. No es repetible: un proyecto que ya tiene la base y las instrucciones lo rechaza, y lo que una intenta anterior dejó a medias se completa sin borrar nada.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
   API responde con `400`—, y `1` en cualquier otro caso.
@@ -140,7 +141,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `GET /api/tasks` | Lista de tareas |
 | `GET /api/tasks/:ref` | Detalle con bloqueantes, dependientes, hijas y comentarios |
 | `POST /api/tasks` | Crear tarea o subtarea |
-| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad o estado —`open` o `in_progress`—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo |
+| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad o estado —`open` o `in_progress`—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
 | `POST /api/tasks/:ref/close` | Cerrar con motivo |
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
 | `DELETE /api/tasks/:ref/blockers/:blockerRef` | Retirar un bloqueo |
@@ -226,7 +227,9 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 | `db` | ruta | `tasks.db`, dentro de la carpeta del producto |
 | `http.host` | texto | `127.0.0.1` |
 | `http.port` | entero | `8890` |
-| `log.level` | enumerado | `info` |
+| `log.level` | enumerado: `debug`, `info`, `warn`, `error` | `info` |
+
+- El prefijo empieza por letra o número y sigue con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres.
 
 - El producto escribe el archivo al instalar y no reescribe lo que el usuario haya
   puesto.

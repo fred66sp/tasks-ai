@@ -43,6 +43,16 @@ contrato de documentación no cita nada de fuera.
 **Cobertura:** deuda aceptada. Se revisa al usarlo y, si estorba, se decide si se adapta o
 se retira, con su documento de decisión.
 
+### RX-7 La interfaz lleva un parche sobre un fichero de terceros
+
+`web/public/vendor/toast-anchor.mjs` es código de terceros, minificado, y lleva un parche
+nuestro: retirar la escucha de teclado del diálogo cuando se cierra. Es la única vía,
+porque esa escucha la registra el propio fichero y no se puede retirar desde fuera. El
+parche se pierde el día que se vuelva a copiar el fichero original.
+
+**Cobertura:** esta entrada. Quien reemplace el fichero, la lee antes y vuelve a aplicar el
+parche, o cambia de idea sobre el diálogo.
+
 ## Resueltos
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas
@@ -71,6 +81,5 @@ cambio que lo dejó obsoleto, o se retira.
 
 ## Deuda aceptada
 
-- La interfaz de partida trae piezas sin uso: `web/src/task-manager/components/toast.js` no
-  lo importa nadie, y la interfaz no consume `GET /api/status`. Siguen ahí, y todavía no se
-  ha decidido si se retiran o se usan.
+- La interfaz de partida trae una pieza sin uso: no consume `GET /api/status`. Sigue ahí, y
+  todavía no se ha decidido si se retira o se usa.

@@ -5,6 +5,19 @@ Changelog* y el versionado es semántico.
 
 ## [Sin publicar]
 
+### Documentación
+
+- `docs/contracts.md` describe lo que la API responde de verdad: `parent_id` viaja como
+  el número interno del que el cliente deriva la referencia del padre, el cambio de
+  tarea con `status` junto a otro campo se rechaza, y el nivel de registro enumera sus
+  valores junto al formato del prefijo.
+- El contrato de documentación ya no nombra una suite de comprobaciones que el
+  repositorio no tiene: las comprobaciones corren a mano, igual que dicen el registro
+  de riesgos y el de operaciones.
+- Quedan fuera de la documentación lo obsoleto: la tabla de ajustes duplicada del PRD
+  ahora se enlaza a `contracts.md`, la carpeta del producto ya no anuncia skills que
+  la instalación no escribe, y `init` se dice no repetible y con el JSON que devuelve.
+
 ### Añadido
 
 - **Ver todas las tareas por CLI**: `list` responde en JSON todas las tareas del
@@ -93,3 +106,32 @@ Changelog* y el versionado es semántico.
   de comandos, de otra ventana o de la misma, y la ventana que pidió el cambio no se
   lo repite: lo evita con su propio estado local, sin identidad viajando al
   servidor.
+- **El servidor se apaga en el acto aunque queden conexiones de más** (`tk-95b5.1`): con
+  una sesión leyendo el canal de avisos, apagarlo podía tardar cinco segundos y salir con
+  error, porque una conexión aceptada que todavía no ha pedido nada —el navegador abre
+  más de las que usa— retiene el apagado ordenado de Go hasta los cinco segundos que él
+  le concede. El plazo propio baja a un segundo, de sobra para las peticiones de un
+  proyecto local, y lo que siga abierto se cierra sin quejarse.
+- **El suelo de cobertura del flujo de pruebas deja de ser inalcanzable** (`tk-95b5.2`):
+  el flujo pedía una cobertura que la suite nunca alcanzaba, así que el paso fallaba con
+  todas las pruebas en verde. El número pasa a lo que la suite mide de verdad y queda
+  como trinquete: a partir de ahí solo puede subir.
+- **El flujo de pruebas corre con una sola versión de Go** (`tk-95b5.12`): la matriz
+  clavaba una versión concreta además de la estable, y el suelo de cobertura colgaba de
+  la clavada. Con una sola versión, el suelo se comprueba contra la que se instala.
+- **El aviso de un cambio de tarea no puede ejecutar HTML** (`tk-95b5.3`): el título de
+  la tarea llegaba al aviso y el diálogo de confirmación lo insertaba como HTML. Ahora
+  todo texto que viene del servidor se escapa antes de mostrarse.
+- **La interfaz ya no pierde la escucha del diálogo ni cierra lo de debajo**
+  (`tk-95b5.8`): cerrar una confirmación dejaba viva su escucha de teclado, y Escape
+  cerraba además el cajón o el formulario que quedaban detrás.
+- **Buscar «null» ya no devuelve las etiquetas sin descripción** (`tk-95b5.10`), y
+  renombrar una etiqueta conserva el filtro que la seguía.
+- **El listado de tareas deja de consultar la base tarea a tarea** (`tk-95b5.11`):
+  resuelve los bloqueos y las etiquetas en dos consultas en lote, con el mismo JSON.
+- **El repositorio deja de versionar los binarios de la herramienta de desarrollo**
+  (`tk-95b5.7`): `tk` y `tk.exe` son de terceros y se instalan aparte, y la base del
+  tablero nunca vivió aquí, así que tenerlos versionados no hacía el clon más útil. Se
+  van también el Vue de desarrollo, que no lo cargaba ninguna página, y las órdenes del
+  manifiesto de la herramienta que apuntaban a un `src/` y unos `tests/` que no están en
+  el repositorio, con sus dependencias.

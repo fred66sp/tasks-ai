@@ -1,9 +1,9 @@
 // Extensión del agente Pi: el tablero del proyecto como herramientas, sobre el CLI
 // del producto (ADR-012). Las reglas y los rechazos siguen siendo del producto.
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { deriveBoard, renderBoard, renderDetail, renderSummary, type Detail, type Task } from "./board.ts";
+import { deriveBoard, renderBoard, renderDetail, renderSummary, type Board, type Detail, type Task } from "./board.ts";
 import { findProjectRoot, runCli, type Outcome } from "./cli.ts";
 
 const taskFields = {
@@ -20,14 +20,19 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	let previousTools: string[] | undefined;
 	let cached: { cwd: string; at: number; pending: Promise<Outcome> } | undefined;
 
-	pi.on("session_start", () => {
-		if (previousTools !== undefined) return;
-		previousTools = [...pi.getActiveTools()];
-		pi.setActiveTools(previousTools.filter((name) => name !== "todo"));
+	let statusUI: ExtensionContext["ui"] | undefined;
+
+	pi.on("session_start", async (_event, ctx) => {
+		if (previousTools === undefined) {
+			previousTools = [...pi.getActiveTools()];
+			pi.setActiveTools(previousTools.filter((name) => name !== "todo"));
+		}
+		if (ctx.mode === "tui" && ctx.hasUI) await refreshUI(ctx);
 	});
 	pi.on("session_shutdown", () => {
-		if (previousTools === undefined) return;
-		pi.setActiveTools(previousTools);
+		statusUI?.setStatus("tasks_board", undefined);
+		statusUI = undefined;
+		if (previousTools !== undefined) pi.setActiveTools(previousTools);
 		previousTools = undefined;
 		cached = undefined;
 	});
@@ -47,19 +52,56 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		}
 	}
 
+	function setBoardStatus(ctx: ExtensionContext, board?: Board, message = "no hay tablero instalado en este proyecto") {
+		if (ctx.mode !== "tui" || !ctx.hasUI) return;
+		const current = board?.inProgress[0];
+		const text = current ? `${current.ref} · ${current.title.replace(/\s+/g, " ").trim()}`
+			: board ? "sin tarea en curso" : message;
+		statusUI = ctx.ui;
+		ctx.ui.setStatus("tasks_board", `tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
+	}
+
+	async function refreshUI(ctx: ExtensionContext) {
+		if (findProjectRoot(ctx.cwd) === null) {
+			setBoardStatus(ctx);
+			return "Tablero: no hay tablero instalado en este proyecto.";
+		}
+		try {
+			const board = await readBoard(ctx.cwd, ctx.signal);
+			setBoardStatus(ctx, board);
+			return renderBoard(board);
+		} catch (error) {
+			setBoardStatus(ctx, undefined, "no disponible");
+			return `Tablero no disponible: ${error instanceof Error ? error.message : String(error)}`;
+		}
+	}
+
+	pi.registerCommand("board", {
+		description: "Muestra el tablero del proyecto en el TUI",
+		async handler(_args, ctx) {
+			if (ctx.mode !== "tui" || !ctx.hasUI) return;
+			ctx.ui.notify(await refreshUI(ctx), "info");
+		},
+	});
+
 	pi.on("before_agent_start", async (event, ctx) => {
 		let summary = "Tablero: no hay tablero instalado en este proyecto.";
 		if (findProjectRoot(ctx.cwd) !== null) {
-			summary = renderSummary(await readBoard(ctx.cwd, ctx.signal));
+			const board = await readBoard(ctx.cwd, ctx.signal);
+			summary = renderSummary(board);
+			setBoardStatus(ctx, board);
+		} else {
+			setBoardStatus(ctx);
 		}
 		event.systemPromptOptions.sections.tasks_board = summary;
 	});
 
 	/** Una línea para el modelo; la respuesta completa del producto queda en details. */
-	async function writeTask(args: string[], action: string, cwd: string, signal?: AbortSignal) {
-		const outcome = await executeCli(args, cwd, signal);
+	async function writeTask(args: string[], action: string, ctx: ExtensionContext, signal?: AbortSignal) {
+		const outcome = await executeCli(args, ctx.cwd, signal);
 		if (!outcome.ok) throw new Error(outcome.message);
 		cached = undefined;
+		if (ctx.mode === "tui" && ctx.hasUI) await refreshUI(ctx);
 
 		const task = outcome.data as Task;
 		const title = task.title.replace(/\s+/g, " ").trim();
@@ -78,6 +120,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		parameters: Type.Object({}),
 		async execute(_toolCallId, _params, signal, _onUpdate, ctx) {
 			const board = await readBoard(ctx.cwd, signal);
+			setBoardStatus(ctx, board);
 
 			return {
 				content: [{ type: "text", text: renderBoard(board) }],
@@ -120,7 +163,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 			for (const field of ["title", "description", "notes", "assignee", "priority", "parent"] as const) {
 				if (params[field] !== undefined) args.push(`--${field}`, String(params[field]));
 			}
-			return writeTask(args, "creada", ctx.cwd, signal);
+			return writeTask(args, "creada", ctx, signal);
 		},
 	});
 
@@ -140,7 +183,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 				const value = params[field];
 				if (value !== undefined) args.push(`--${field}`, Array.isArray(value) ? value.join(",") : String(value));
 			}
-			return writeTask(args, "actualizada", ctx.cwd, signal);
+			return writeTask(args, "actualizada", ctx, signal);
 		},
 	});
 
@@ -156,7 +199,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 			]),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			return writeTask(["close", params.ref, "--reason", params.reason], "cerrada", ctx.cwd, signal);
+			return writeTask(["close", params.ref, "--reason", params.reason], "cerrada", ctx, signal);
 		},
 	});
 
@@ -166,7 +209,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		description: "Reabre una tarea cerrada cuando vuelve a necesitar trabajo y retira su motivo de cierre.",
 		parameters: Type.Object({ ref: reference }),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			return writeTask(["reopen", params.ref], "reabierta", ctx.cwd, signal);
+			return writeTask(["reopen", params.ref], "reabierta", ctx, signal);
 		},
 	});
 
@@ -176,7 +219,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		description: "Añade una dependencia cuando una tarea debe esperar a otra; blocker es la tarea que la bloquea.",
 		parameters: Type.Object({ ref: reference, blocker: reference }),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			return writeTask(["block", params.ref, params.blocker], "bloqueo añadido", ctx.cwd, signal);
+			return writeTask(["block", params.ref, params.blocker], "bloqueo añadido", ctx, signal);
 		},
 	});
 
@@ -186,7 +229,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 		description: "Retira la dependencia de blocker cuando una tarea ya no debe esperar a esa otra tarea.",
 		parameters: Type.Object({ ref: reference, blocker: reference }),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			return writeTask(["unblock", params.ref, params.blocker], "bloqueo retirado", ctx.cwd, signal);
+			return writeTask(["unblock", params.ref, params.blocker], "bloqueo retirado", ctx, signal);
 		},
 	});
 
@@ -199,7 +242,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 			body: Type.String({ minLength: 1, pattern: "\\S", description: "el texto no vacío del comentario" }),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
-			return writeTask(["comment", params.ref, "--body", params.body], "comentario añadido", ctx.cwd, signal);
+			return writeTask(["comment", params.ref, "--body", params.body], "comentario añadido", ctx, signal);
 		},
 	});
 }

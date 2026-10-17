@@ -25,11 +25,25 @@ interface Registered {
 }
 
 function harness(executeCli = runCli) {
+	const commands: Record<string, { handler: (args: string, ctx: any) => Promise<void> }> = {};
+	const notifications: string[] = [];
+	const statuses = new Map<string, string>();
+	const ui = {
+		notify(text: string) { notifications.push(text); },
+		setStatus(key: string, text: string | undefined) {
+			if (text === undefined) statuses.delete(key);
+			else statuses.set(key, text);
+		},
+	};
+	const context = (cwd: string, mode = "tui") => ({ cwd, mode, hasUI: mode === "tui", ui });
 	const registered: Record<string, Registered> = {};
 	const handlers: Record<string, (event: any, ctx: any) => any> = {};
 	let active = ["read", "todo", "bash"];
 	const changes: string[][] = [];
 	const pi = {
+		registerCommand(name: string, command: typeof commands[string]) {
+			commands[name] = command;
+		},
 		registerTool(tool: Registered) {
 			registered[tool.name] = tool;
 			active.push(tool.name);
@@ -47,9 +61,9 @@ function harness(executeCli = runCli) {
 
 	tasksExtension(pi, executeCli);
 	const previous = [...active];
-	const start = () => handlers.session_start?.({ type: "session_start", reason: "startup" }, {});
+	const start = (ctx: any = {}) => handlers.session_start?.({ type: "session_start", reason: "startup" }, ctx);
 	start();
-	return { registered, handlers, previous, changes, start, active: () => [...active] };
+	return { registered, commands, notifications, statuses, context, handlers, previous, changes, start, active: () => [...active] };
 }
 
 function load(): Record<string, Registered> {
@@ -95,6 +109,98 @@ describe("la extensión", () => {
 		assert.deepEqual(result.details, (cli("list") as Detail[]).find((entry) => entry.ref === task.ref));
 		return task;
 	}
+
+	it("/board enseña la épica, las subtareas y los bloqueos sin mensajes al modelo", async () => {
+		cli("create", "--title", "épica del TUI");
+		cli("create", "--title", "comando /board", "--parent", "tk-1");
+		cli("create", "--title", "verificar comando", "--parent", "tk-1");
+		cli("block", "tk-3", "tk-2");
+		const extension = harness();
+		assert.ok(extension.commands.board, "falta /board");
+		assert.equal(await extension.commands.board.handler("", extension.context(project)), undefined);
+		const text = extension.notifications.join("\n");
+		assert.match(text, /tk-1 · épica del TUI/);
+		assert.match(text, /  - tk-2 · comando \/board/);
+		assert.match(text, /  - tk-3 · verificar comando \[open, bloqueada\]/);
+	});
+
+	it("/board y el estado sin instalación informan sin ejecutar el CLI", async () => {
+		let calls = 0;
+		const extension = harness(async () => { calls++; throw new Error("no debe ejecutarse"); });
+		const ctx = extension.context(path.parse(project).root);
+		assert.ok(extension.commands.board, "falta /board");
+		await extension.commands.board.handler("", ctx);
+		assert.match(extension.notifications.join(""), /no.*instalado/i);
+		assert.match([...extension.statuses.values()].join(""), /no.*instalado/i);
+		assert.equal(calls, 0);
+	});
+
+	it("el estado muestra la tarea en curso al iniciar y se limpia al descargar", async () => {
+		cli("create", "--title", "09 comando /board");
+		cli("update", "tk-1", "--status", "in_progress");
+		const extension = harness();
+		await extension.handlers.session_start({}, extension.context(project));
+		assert.deepEqual([...extension.statuses.values()], ["tablero: tk-1 · 09 comando /board"]);
+		await extension.handlers.session_shutdown({}, extension.context(project));
+		assert.equal(extension.statuses.size, 0);
+	});
+
+	it("/board comparte list con el resumen, la herramienta y llamadas consecutivas", async () => {
+		let lists = 0;
+		const extension = harness(async (...args) => {
+			if (args[0][0] === "list") lists++;
+			return runCli(...args);
+		});
+		const ctx = extension.context(project);
+		assert.ok(extension.commands.board, "falta /board");
+		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
+		await extension.commands.board.handler("", ctx);
+		await extension.commands.board.handler("", ctx);
+		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
+		assert.equal(lists, 1);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+	});
+
+	it("/board en print y json no usa UI ni lee el CLI", async () => {
+		const extension = harness(async () => { throw new Error("no debe ejecutarse"); });
+		assert.ok(extension.commands.board, "falta /board");
+		for (const mode of ["print", "json"]) {
+			await extension.commands.board.handler("", { ...extension.context(project, mode), ui: undefined });
+		}
+		assert.deepEqual(extension.notifications, []);
+		assert.equal(extension.statuses.size, 0);
+	});
+
+	it("/board informa de un fallo de lectura y permite reintentar", async () => {
+		let calls = 0;
+		const extension = harness(async () => ++calls === 1
+			? { ok: false, code: 1, message: "fallo de lectura" }
+			: { ok: true, data: [] });
+		const ctx = extension.context(project);
+		await extension.commands.board.handler("", ctx);
+		assert.match(extension.notifications[0], /Tablero no disponible: fallo de lectura/);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: no disponible"]);
+		await extension.commands.board.handler("", ctx);
+		assert.equal(calls, 2);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+	});
+
+	it("el estado se actualiza tras escribir y al comenzar un turno", async (t) => {
+		let now = 0;
+		t.mock.method(Date, "now", () => now);
+		cli("create", "--title", "tarea\nactual");
+		const extension = harness();
+		const ctx = extension.context(project);
+		await extension.handlers.session_start({}, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+		await extension.registered.tasks_update.execute("id", { ref: "tk-1", status: "in_progress" }, undefined, undefined, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: tk-1 · tarea actual"]);
+		cli("close", "tk-1", "--reason", "done");
+		// La siguiente lectura debe ver también cambios externos una vez caducada la caché.
+		now = 1000;
+		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["tablero: sin tarea en curso"]);
+	});
 
 	it("añade al prompt un resumen corto, sin mensaje ni detalles privados", async () => {
 		cli("create", "--title", "trabajo actual", "--description", "detalle privado");

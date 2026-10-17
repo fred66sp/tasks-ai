@@ -62,6 +62,11 @@ los riesgos (`TM-R#`, `RX-#`) de `docs/known-risks.md`. Los identificadores son 
 Desde otro documento solo se citan esos registros y los ADR; cualquier otro dato se
 enuncia o se enlaza.
 
+**Excepción: material de marca.** Los documentos de `docs/tasks-ai-brand/` no llevan
+identificador: son un paquete aprobado que se usa tal cual y su cabecera se conserva como
+vino. La excepción vale solo para esos ficheros; cualquier documento que cuente el
+proyecto sigue la regla.
+
 ## 5. Misión y frontera de cada documento
 
 | Documento | Misión | Puede contener | No puede contener |

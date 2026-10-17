@@ -1,8 +1,8 @@
 # Contratos del producto
 
 Formas de datos y acuerdos de interfaz que no se pueden romper: el modelo, la salida
-en JSON, la API, los eventos, las referencias y el settings. Los requisitos están en
-`PRD.md` y el diseño en `architecture.md`.
+en JSON, la API, los eventos, las referencias, el settings y la integración con el
+agente. Los requisitos están en `PRD.md` y el diseño en `architecture.md`.
 
 ## 1. Modelo de datos
 
@@ -239,3 +239,64 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 - Si el prefijo del archivo no coincide con el que la base tiene registrado, el
   producto avisa de que las referencias escritas con el prefijo anterior dejan de
   resolver, y continúa con el nuevo.
+
+## 7. Integración con el agente
+
+La extensión del agente Pi (`ADR-012`) no es una superficie del producto: envuelve el
+CLI. Cada herramienta ejecuta un comando y devuelve su JSON; ninguna toca la base ni
+recompone un mensaje del producto.
+
+### Herramientas
+
+| Herramienta | Comando | Parámetros | Devuelve |
+|---|---|---|---|
+| `tasks_board` | `list` | ninguno | el tablero derivado: contadores, en curso, listas para empezar y árbol |
+| `tasks_show` | `show` | `ref` | la tarea con sus hijas, sus bloqueantes, sus dependientes y sus comentarios |
+| `tasks_create` | `create` | `title` obligatorio; `description`, `notes`, `assignee`, `priority` y `parent` opcionales | la tarea creada |
+| `tasks_update` | `update` | `ref`, más los campos que cambian entre `title`, `description`, `notes`, `assignee`, `priority`, `status` y `tags` | la tarea tal como queda |
+| `tasks_close` | `close` | `ref` y `reason` | la tarea cerrada |
+| `tasks_reopen` | `reopen` | `ref` | la tarea reabierta |
+| `tasks_block` | `block` | `ref` y `blocker` | la tarea bloqueada |
+| `tasks_unblock` | `unblock` | `ref` y `blocker` | la tarea sin ese bloqueo |
+| `tasks_comment` | `comment` | `ref` y `body` | la tarea con el comentario añadido |
+
+- `tasks_board` no tiene comando propio: sale de `list`, que devuelve todas las tareas
+  con todos sus campos. La derivación es esta: contadores por estado; en curso, las que
+  están en `in_progress`; listas para empezar, las `open` que no están bloqueadas; árbol,
+  por `parent_id`.
+- `tasks_create` no acepta etiquetas, porque `create` no las tiene: se ponen después con
+  `tasks_update`.
+- `tasks_unblock` acompaña a `tasks_block` porque el CLI tiene las dos y una herramienta
+  sin su contraria deja el vocabulario a medias.
+- `init`, `serve`, `tags` y `tag` no son herramientas: instalar, servir y mantener el
+  catálogo no son operaciones del ciclo de trabajo del agente. Las etiquetas de una tarea
+  se leen dentro de la tarea, por su nombre.
+
+### Parámetros y validación
+
+- Las referencias se escriben tal cual las escribe el producto —`tk-18`—: la extensión no
+  compone ninguna ni acepta el número interno suelto.
+- Lo que la extensión declara en su esquema es la misma regla que impone el CLI: una
+  prioridad de `0` a `3`, un motivo de cierre de los cinco conocidos, un cuerpo de
+  comentario no vacío. El producto lo vuelve a comprobar, y su rechazo es el que vale.
+- Un campo que no se nombra no cambia; `tasks_update` no manda lo que no se le ha dado.
+
+### Errores
+
+- La salida `2` es el mal uso: una bandera que no encaja o una entrada que el núcleo
+  rechaza como inválida. La salida `1` es el fallo: el proyecto no está instalado, la
+  referencia no resuelve, una regla lo impide.
+- Las dos llegan como error de la herramienta con el mensaje del producto tal cual, y con
+  su `{"error": "..."}` delante cuando lo trae. La extensión no traduce ni reinterpreta:
+  si el texto cambia en el producto, cambia en la herramienta.
+- Un rechazo no deja nada escrito, y la herramienta no vuelve a leer el estado para
+  arreglarlo por su cuenta.
+
+### Fuera del contrato
+
+- Un comando o una herramienta `ready`: lo que se puede empezar se deriva en
+  `tasks_board`.
+- Un importador: traer el tablero anterior fue una pasada de retirada, no una capacidad
+  del producto.
+- Un servidor MCP: la forma elegida es la extensión (`ADR-012`), y su condición de
+  revisión está en esa decisión.

@@ -1146,6 +1146,9 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
       <h3 data-i18n="agente.18">El tablero en cada turno</h3>
       <p data-i18n="agente.19">El agente recibe el tablero al empezar cada turno: contadores, la tarea en curso, unas pocas de las que se pueden empezar y las reglas de uso. Va en las instrucciones del turno, no como mensaje en la conversación.</p>
       <p data-i18n="agente.20">Mientras la extensión está cargada y el proyecto tiene tablero, la herramienta <code>todo</code> del arnés no está disponible: el tablero es el único sitio donde se anota el trabajo. En un proyecto sin tablero, <code>todo</code> sigue disponible y el resumen lo dice. Al descargar la extensión, <code>todo</code> vuelve. El resumen y <code>tasks_board</code> comparten una sola lectura del tablero: si acabas de leerlo, no se vuelve a ejecutar el CLI; una escritura obliga a leer de nuevo.</p>
+      <h3 data-i18n="agente.21">El tablero mientras trabajas</h3>
+      <p data-i18n="agente.22">Con la extensión cargada, el tablero está a la vista mientras trabajas: una línea de estado que empieza por <code>🦊 tablero:</code> y nombra las tareas en curso —recortada a 100 caracteres— y, encima del editor, un bloque con el título <code>🦊 Tasks-ai tablero:</code> y una línea por tarea en curso. Sin nada en curso, el bloque lo dice; en un proyecto sin tablero el bloque se retira y la línea de estado avisa de que no hay tablero.</p>
+      <p data-i18n="agente.23">Los dos se repintan al empezar cada turno y después de cada escritura. La extensión no vigila la base: un cambio hecho desde otra terminal aparece en el turno siguiente o cuando el agente vuelve a leer el tablero, no en el acto.</p>
       <h3 data-i18n="agente.9">Cargar la extensión</h3>
       <p data-i18n="agente.10">Para probarla, ejecuta esta orden desde la raíz del repositorio:</p>
       <div class="code">
@@ -1554,6 +1557,9 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "agente.18": "The board on every turn",
  "agente.19": "The agent receives the board at the start of every turn: counters, the current task, a few tasks that can be started, and the usage rules. It goes in the turn instructions, not as a message in the conversation.",
  "agente.20": "While the extension is loaded and the project has a board, the harness's <code>todo</code> tool is unavailable: the board is the only place to track work. In a project without a board, <code>todo</code> stays available and the summary says so. Unloading the extension brings <code>todo</code> back. The summary and <code>tasks_board</code> share a single board read: if you have just read it, the CLI does not run again; a write forces a fresh read.",
+ "agente.21": "The board while you work",
+ "agente.22": "With the extension loaded, the board stays in sight while you work: a status line that starts with <code>🦊 tablero:</code> and names the tasks in progress —clipped to 100 characters— and, above the editor, a block titled <code>🦊 Tasks-ai tablero:</code> with one line per task in progress. With nothing in progress the block says so; in a project with no board the block goes away and the status line says there is none.",
+ "agente.23": "Both repaint at the start of every turn and after every write. The extension does not watch the database: a change made from another terminal appears on the next turn, or when the agent reads the board again, not straight away.",
  "configuracion.2": "Configuration",
  "configuracion.3": "One file, four keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
  "configuracion.4": "Key",

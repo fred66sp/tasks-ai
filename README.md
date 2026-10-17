@@ -80,16 +80,20 @@ deja de escribir comandos del tablero y recibe el tablero resumido en cada turno
 está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
 además del comando `/board` y una línea de estado con la tarea en curso.
 
-No forma parte del binario: se carga desde el proyecto con una línea en el archivo de
-ajustes de Pi del proyecto, que Git ignora (`.pi/settings.json`):
+No forma parte del binario: es un paquete de Pi que vive en el repositorio, y se instala
+en el proyecto con los comandos del host, que dejan su ruta relativa en
+`.pi/settings.json` —que Git ignora— sin copiar el fuente fuera:
 
-```json
-{ "extensions": ["<ruta absoluta al proyecto>/extensions/pi/index.ts"] }
+```bash
+pi install -l ./extensions/pi              # instala el paquete en el proyecto
+pi remove -l --approve ./extensions/pi     # lo retira y deja la configuración como estaba
 ```
 
-Con ese ajuste se arranca Pi desde la raíz del proyecto: la extensión encuentra el
-tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que el CLI. En un
-proyecto sin tablero las herramientas no responden.
+Con el paquete instalado se arranca Pi desde la raíz del proyecto: la extensión encuentra
+el tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que el CLI, y
+ejecuta el binario del proyecto (`bin/tasks-ai`) o, si falta, el que esté en el `PATH`. En
+un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
+sigue.
 
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 

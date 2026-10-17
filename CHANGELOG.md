@@ -21,6 +21,13 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **La extensión se instala como paquete de Pi**: `extensions/pi` declara su manifiesto y
+  se instala en el proyecto con `pi install -l ./extensions/pi`, que deja la ruta relativa
+  en `.pi/settings.json` sin copiar el fuente fuera del repositorio; `pi remove -l
+  --approve ./extensions/pi` la retira y deja la configuración como estaba. Una sesión
+  nueva de Pi carga sus herramientas sin pasar `--extension`, y como el paquete de
+  proyecto lo lee después de conceder confianza, la primera vez hay que aceptarla.
+
 - **El agente opera el tablero con herramientas**: la extensión de Pi en
   `extensions/pi/` envuelve el CLI en nueve herramientas con esquema —`tasks_board`,
   `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`, `tasks_reopen`,

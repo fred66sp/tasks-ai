@@ -53,6 +53,17 @@ parche se pierde el día que se vuelva a copiar el fichero original.
 **Cobertura:** esta entrada. Quien reemplace el fichero, la lee antes y vuelve a aplicar el
 parche, o cambia de idea sobre el diálogo.
 
+### RX-8 La extensión del agente depende del contrato del CLI
+
+La integración con el agente envuelve el CLI (`ADR-012`): cada herramienta suya ejecuta un
+comando y espera su JSON. Hasta ahora el CLI no tenía consumidores fuera del repositorio,
+así que cambiar un campo o el significado de un código de salida era un cambio local.
+
+**Cobertura:** `RF-11` y `CA-12` hacen la integración parte del alcance, y el cambio que
+toque el CLI comprueba también la extensión y las dos juntas, no solo las pruebas del
+producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
+el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
+
 ## Resueltos
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas

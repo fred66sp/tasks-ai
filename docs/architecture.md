@@ -118,7 +118,22 @@ Su código vive en `web/` y su construcción es suya, no del compilador de Go: e
 artefacto construido se versiona y viaja incrustado en el binario, de modo que `serve`
 reparte las dos superficies sin depender de nada más (`ADR-010`).
 
-## 10. De qué decisión sale cada pieza
+## 10. Integración con el agente
+
+El agente que trabaja en el proyecto llega al tablero por una extensión del agente Pi,
+que vive en `extensions/pi/`, fuera del binario (`ADR-012`). No es una tercera
+superficie del producto: envuelve el CLI, ejecuta sus comandos y devuelve su JSON.
+
+- No toca la base ni reimplementa reglas: lo que el núcleo rechaza llega rechazado.
+- El proyecto lo encuentra el CLI subiendo hasta `.task-ai/`, no la extensión.
+- Una herramienta por operación que el CLI ya tenga; ninguna que no exista.
+- Las etiquetas se asignan después de crear, porque `create` no las acepta.
+
+```text
+ agente ──> extensión (extensions/pi/) ──CLI──> núcleo ──> SQLite
+```
+
+## 11. De qué decisión sale cada pieza
 
 | Pieza del diseño | Decisión |
 |---|---|
@@ -132,3 +147,4 @@ reparte las dos superficies sin depender de nada más (`ADR-010`).
 | Escrituras ordenadas por la base | `ADR-008` |
 | Forma del código y dependencias | `ADR-009` |
 | Interfaz en `web/`, incrustada en el binario | `ADR-010` |
+| Integración con el agente fuera del binario | `ADR-012` |

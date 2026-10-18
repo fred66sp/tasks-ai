@@ -1576,6 +1576,10 @@ textarea:focus-visible {
   color: var(--tk-color-text-secondary);
   white-space: pre-wrap;
 }
+.tk-scrollable-text {
+  max-height: 150px;
+  overflow-y: auto;
+}
 .task-panel-stack,
 .comment-list {
   display: grid;

@@ -73,7 +73,7 @@ export const TaskInspector = {
             @click="$emit('update:mobileOpen', false)">Volver a tareas</button>
           <div class="task-inspector__kicker">{{ task.id }} · {{ task.type }}</div>
           <h1 class="task-inspector__title">{{ task.title }}</h1>
-          <p class="task-inspector__description">{{ task.description || 'Sin descripción.' }}</p>
+          <p class="task-inspector__description tk-scrollable-text">{{ task.description || 'Sin descripción.' }}</p>
         </div>
         <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
             aria-label="Editar tarea" @click="emitAction('edit.open')">✎</button>
@@ -140,7 +140,7 @@ export const TaskInspector = {
           <header class="tk-panel__header">
             <h3>Notas</h3>
           </header>
-          <div class="tk-panel__content pre-wrap">{{ task.notes || 'Sin notas.' }}</div>
+          <div class="tk-panel__content pre-wrap tk-scrollable-text">{{ task.notes || 'Sin notas.' }}</div>
         </section>
       </div>
       <div v-show="activeTab === 'edit'" class="tk-panel-stack">
@@ -242,7 +242,7 @@ export const TaskInspector = {
                   </div>
                 </template>
                 <template v-else>
-                  <p>{{ comment.body }}</p>
+                  <p class="tk-scrollable-text">{{ comment.body }}</p>
                   <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
                       class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
                       :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"

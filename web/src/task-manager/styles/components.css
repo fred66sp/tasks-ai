@@ -1492,6 +1492,11 @@
         color: var(--tk-color-text-secondary);
         white-space: pre-wrap;
       }
+      /* Texto largo en bloque: alto tope con scroll vertical para no agrandar la interfaz. */
+      .tk-scrollable-text {
+        max-height: 150px;
+        overflow-y: auto;
+      }
       .task-panel-stack,
       .comment-list {
         display: grid;

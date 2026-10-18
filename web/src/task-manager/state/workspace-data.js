@@ -70,6 +70,10 @@ export const workspaceData = {
   data() {
     return {
       tasks: [],
+      // Índice de comentarios por referencia de tarea (tk-124): alimenta la
+      // búsqueda en comentarios. No es preferencia de interfaz: se recarga con
+      // el workspace.
+      commentIndex: new Map(),
       tags: [],
       detail: null,
       selectedTaskId: '',

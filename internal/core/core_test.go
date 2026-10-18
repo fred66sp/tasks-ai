@@ -10,6 +10,60 @@ import (
 	"testing"
 )
 
+// TestAllComments_namesEachCommentWithItsTaskReference comprueba que el índice
+// de comentarios del proyecto nombra cada comentario con la referencia visible
+// de la tarea que lo lleva, compuesta con el prefijo del proyecto.
+func TestAllComments_namesEachCommentWithItsTaskReference(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+	ctx := t.Context()
+
+	none, err := apply.AllComments(ctx)
+	if err != nil {
+		t.Fatalf("leyendo los comentarios de una base vacía: %v", err)
+	}
+
+	if len(none) != 0 {
+		t.Errorf("una base sin comentarios respondió %+v, se esperaba ninguno", none)
+	}
+
+	first, err := apply.CreateTask(ctx, core.NewTask{Title: "Primera"})
+	if err != nil {
+		t.Fatalf("creando la primera tarea: %v", err)
+	}
+
+	second, err := apply.CreateTask(ctx, core.NewTask{Title: "Segunda"})
+	if err != nil {
+		t.Fatalf("creando la segunda tarea: %v", err)
+	}
+
+	if _, err := apply.AddComment(ctx, first.Ref, "de la primera"); err != nil {
+		t.Fatalf("añadiendo el comentario de la primera: %v", err)
+	}
+
+	if _, err := apply.AddComment(ctx, second.Ref, "de la segunda"); err != nil {
+		t.Fatalf("añadiendo el comentario de la segunda: %v", err)
+	}
+
+	all, err := apply.AllComments(ctx)
+	if err != nil {
+		t.Fatalf("leyendo todos los comentarios: %v", err)
+	}
+
+	if len(all) != 2 {
+		t.Fatalf("el índice trae %d comentarios, se esperaban 2", len(all))
+	}
+
+	if all[0].Ref != first.Ref || all[0].Body != "de la primera" {
+		t.Errorf("el primer comentario es %+v, se esperaba el de %q", all[0], first.Ref)
+	}
+
+	if all[1].Ref != second.Ref || all[1].Body != "de la segunda" {
+		t.Errorf("el segundo comentario es %+v, se esperaba el de %q", all[1], second.Ref)
+	}
+}
+
 func TestCreateTask_givesTheTaskItsIdentityAndItsReference(t *testing.T) {
 	t.Parallel()
 

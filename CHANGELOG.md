@@ -20,6 +20,11 @@ Changelog* y el versionado es semántico.
   `create --parent` la asigna en la misma creación —creándola en el catálogo si falta—,
   igual que el cambio de padre la ajusta después.
 
+- **El buscador de la interfaz encuentra tareas por su contenido**: además del título,
+  el identificador y las etiquetas, la búsqueda cubre la descripción, las notas y los
+  comentarios de cada tarea. Se apoya en el nuevo endpoint `GET /api/comments`, que
+  devuelve todos los comentarios del proyecto con la referencia de la tarea que los
+  lleva.
 - **Los comentarios se pueden leer y editar**: además de añadirlos, `comment list`
   devuelve los de la tarea del primero al último con su identidad y su fecha, y
   `comment edit <referencia> <id> --body` cambia el cuerpo de uno conservando su

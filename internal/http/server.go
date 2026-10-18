@@ -161,6 +161,7 @@ func (s *Server) routes() *nethttp.ServeMux {
 	mux.HandleFunc("POST /api/tasks/{ref}/comments", s.addComment)
 	mux.HandleFunc("GET /api/tasks/{ref}/comments", s.listComments)
 	mux.HandleFunc("PATCH /api/tasks/{ref}/comments/{id}", s.editComment)
+	mux.HandleFunc("GET /api/comments", s.listAllComments)
 	mux.HandleFunc("GET /api/tags", s.listTags)
 	mux.HandleFunc("POST /api/tags", s.createTag)
 	mux.HandleFunc("PATCH /api/tags/{name}", s.patchTag)
@@ -407,6 +408,20 @@ func (s *Server) addComment(w nethttp.ResponseWriter, r *nethttp.Request) {
 // last, each one with its identity. Leerlos no deja ningún aviso.
 func (s *Server) listComments(w nethttp.ResponseWriter, r *nethttp.Request) {
 	comments, err := s.core.Comments(r.Context(), r.PathValue("ref"))
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, comments)
+}
+
+// listAllComments answers with every comment of the project, each one with the
+// reference of the task that carries it. Es el índice que el buscador de la
+// interfaz recorre. Leerlo no deja ningún aviso.
+func (s *Server) listAllComments(w nethttp.ResponseWriter, r *nethttp.Request) {
+	comments, err := s.core.AllComments(r.Context())
 	if err != nil {
 		s.writeError(w, err)
 

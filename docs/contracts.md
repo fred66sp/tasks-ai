@@ -181,6 +181,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `POST /api/tasks/:ref/comments` | Añadir un comentario |
 | `GET /api/tasks/:ref/comments` | Los comentarios de la tarea, del primero al último, con su identidad |
 | `PATCH /api/tasks/:ref/comments/:id` | Cambiar el cuerpo de un comentario, conservando su identidad y su fecha |
+| `GET /api/comments` | Todos los comentarios del proyecto, cada uno con la referencia visible de la tarea que lo lleva —`ref`, `id`, `body`, `created_at`—, agrupados por tarea y del primero al último. Es el índice que el buscador de la interfaz recorre |
 | `GET /api/tags` | Catálogo de etiquetas con su uso |
 | `POST /api/tags` | Crear etiqueta |
 | `PATCH /api/tags/:name` | Renombrar, recolorear o describir |

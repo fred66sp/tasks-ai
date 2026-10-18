@@ -6,6 +6,7 @@ import {
   createTask as requestTaskCreate,
   listTags,
   listTasks,
+  listAllComments,
   removeTaskBlocker,
   editTaskComment,
   showTask,
@@ -28,13 +29,20 @@ export const taskActions = {
       if (!initial) this.refreshing = true;
       this.errorMessage = '';
       try {
-        const [rawTasks, tags] = await Promise.all([
+        const [rawTasks, tags, comments] = await Promise.all([
           listTasks(),
-          listTags()
+          listTags(),
+          listAllComments()
         ]);
-        if (!Array.isArray(rawTasks) || !Array.isArray(tags)) throw new ApiError('El servidor devolvió datos de tareas no válidos.');
+        if (!Array.isArray(rawTasks) || !Array.isArray(tags) || !Array.isArray(comments)) throw new ApiError('El servidor devolvió datos de tareas no válidos.');
         if (requestSequence !== this.reloadRequestSequence) return null;
         const tasks = rawTasks.map(mapTask);
+        // El índice agrupa los cuerpos por referencia de tarea: la búsqueda la
+        // concatena al texto buscable de cada una.
+        this.commentIndex = comments.reduce((index, comment) => {
+          if (comment?.ref && comment.body) index.set(comment.ref, `${index.get(comment.ref) || ''} ${comment.body}`);
+          return index;
+        }, new Map());
         const selectedId = preferredId && tasks.some((task) => task.id === preferredId) ? preferredId : (tasks[0]?.id || '');
         this.tasks = tasks;
         this.tags = tags;

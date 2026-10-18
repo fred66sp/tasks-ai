@@ -64,6 +64,9 @@ export async function listTasks() {
   ));
 }
 export const listTags = () => apiRequest('/api/tags');
+// Índice de todos los comentarios del proyecto con la referencia de su tarea:
+// alimenta la búsqueda en comentarios de la interfaz.
+export const listAllComments = () => apiRequest('/api/comments');
 export const showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
 export const createTask = (task) => jsonRequest('/api/tasks', 'POST', task);
 export const updateTask = (ref, changes) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}`, 'PATCH', changes);

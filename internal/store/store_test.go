@@ -1325,6 +1325,62 @@ func TestEditComment_refusesWhatIsNotThereWithoutWriting(t *testing.T) {
 	}
 }
 
+// TestAllComments_listsEveryCommentOfTheProjectOrderedByTask recorre el índice
+// que alimenta el buscador: cada comentario del proyecto sale con la tarea que
+// lo lleva, de la primera tarea a la última y, dentro de cada una, del primer
+// comentario al último. Una base sin comentarios responde sin ninguno.
+func TestAllComments_listsEveryCommentOfTheProjectOrderedByTask(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	none, err := base.AllComments(ctx)
+	if err != nil {
+		t.Fatalf("leyendo los comentarios de una base vacía: %v", err)
+	}
+
+	if len(none) != 0 {
+		t.Errorf("una base sin comentarios respondió %+v, se esperaba ninguno", none)
+	}
+
+	first, err := base.CreateTask(ctx, newTask("Con historial"))
+	if err != nil {
+		t.Fatalf("creando la primera tarea: %v", err)
+	}
+
+	second, err := base.CreateTask(ctx, newTask("Otra con historial"))
+	if err != nil {
+		t.Fatalf("creando la segunda tarea: %v", err)
+	}
+
+	firstComment, err := base.AddComment(ctx, first.ID, "primero de la primera")
+	if err != nil {
+		t.Fatalf("añadiendo el primer comentario: %v", err)
+	}
+
+	secondComment, err := base.AddComment(ctx, first.ID, "segundo de la primera")
+	if err != nil {
+		t.Fatalf("añadiendo el segundo comentario: %v", err)
+	}
+
+	thirdComment, err := base.AddComment(ctx, second.ID, "comentario de la otra")
+	if err != nil {
+		t.Fatalf("añadiendo el comentario de la otra tarea: %v", err)
+	}
+
+	all, err := base.AllComments(ctx)
+	if err != nil {
+		t.Fatalf("leyendo todos los comentarios: %v", err)
+	}
+
+	want := []store.Comment{firstComment, secondComment, thirdComment}
+
+	if !slices.Equal(all, want) {
+		t.Errorf("el índice es %+v, se esperaba %+v", all, want)
+	}
+}
+
 // wholeHistory es el límite que las pruebas piden cuando quieren la historia entera
 // de una base pequeña: Changes siempre lee como mucho un lote.
 const wholeHistory = 100

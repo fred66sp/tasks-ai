@@ -111,6 +111,46 @@ func (s *Store) EditComment(ctx context.Context, taskID, commentID int64, body s
 	return stored, nil
 }
 
+// AllComments son todos los comentarios del proyecto, agrupados por la tarea
+// que los lleva y, dentro de cada una, del primero al último. Es el índice que
+// alimenta el buscador de la interfaz.
+func (s *Store) AllComments(ctx context.Context) ([]Comment, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, task_id, body, created_at
+		FROM comments
+		ORDER BY task_id, created_at, id`)
+	if err != nil {
+		return nil, fmt.Errorf("reading the comments of the project: %w", err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	comments := []Comment{}
+
+	for rows.Next() {
+		var (
+			comment   Comment
+			createdAt string
+		)
+
+		if err := rows.Scan(&comment.ID, &comment.TaskID, &comment.Body, &createdAt); err != nil {
+			return nil, fmt.Errorf("reading the comments of the project: %w", err)
+		}
+
+		if comment.CreatedAt, err = time.Parse(timeLayout, createdAt); err != nil {
+			return nil, fmt.Errorf("the date of comment %d cannot be read: %w", comment.ID, err)
+		}
+
+		comments = append(comments, comment)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading the comments of the project: %w", err)
+	}
+
+	return comments, nil
+}
+
 // Comments are the comments of the task, from the first to the last.
 func (s *Store) Comments(ctx context.Context, taskID int64) ([]Comment, error) {
 	rows, err := s.db.QueryContext(ctx, `

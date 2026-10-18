@@ -1689,3 +1689,58 @@ func decode(t *testing.T, raw string, target any) {
 		t.Fatalf("el JSON devuelto no se entiende (%v): %q", err, raw)
 	}
 }
+
+// TestServer_listsEveryCommentForTheSearchIndex recorre el criterio de tk-124:
+// la API expone todos los comentarios del proyecto con la referencia de la
+// tarea que los lleva, y una base sin comentarios responde una lista vacía.
+func TestServer_listsEveryCommentForTheSearchIndex(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := do(t, server, http.MethodGet, "/api/comments", "")
+	if status != http.StatusOK {
+		t.Fatalf("leer los comentarios de una base vacía respondió %d: %s", status, body)
+	}
+
+	var none []core.TaskComment
+	decode(t, body, &none)
+
+	if len(none) != 0 {
+		t.Errorf("una base sin comentarios respondió %s, se esperaba una lista vacía", body)
+	}
+
+	createsATaskThroughTheAPI(t, server)
+
+	if status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title": "La otra"}`); status != http.StatusCreated {
+		t.Fatalf("crear la segunda tarea respondió %d: %s", status, body)
+	}
+
+	if status, body := do(t, server, http.MethodPost, "/api/tasks/tk-1/comments", `{"body": "de la primera"}`); status != http.StatusOK {
+		t.Fatalf("añadir el comentario a tk-1 respondió %d: %s", status, body)
+	}
+
+	if status, body := do(t, server, http.MethodPost, "/api/tasks/tk-2/comments", `{"body": "de la segunda"}`); status != http.StatusOK {
+		t.Fatalf("añadir el comentario a tk-2 respondió %d: %s", status, body)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/comments", "")
+	if status != http.StatusOK {
+		t.Fatalf("leer todos los comentarios respondió %d: %s", status, body)
+	}
+
+	var listed []core.TaskComment
+	decode(t, body, &listed)
+
+	if len(listed) != 2 {
+		t.Fatalf("el índice trae %d comentarios, se esperaban 2: %s", len(listed), body)
+	}
+
+	if listed[0].Ref != firstRef || listed[0].Body != "de la primera" {
+		t.Errorf("el primer comentario es %+v, se esperaba el de %s", listed[0], firstRef)
+	}
+
+	if listed[1].Ref != "tk-2" || listed[1].Body != "de la segunda" {
+		t.Errorf("el segundo comentario es %+v, se esperaba el de tk-2", listed[1])
+	}
+}

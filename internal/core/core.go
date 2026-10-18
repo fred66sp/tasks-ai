@@ -189,6 +189,15 @@ type Detail struct {
 	Comments   []Comment `json:"comments"`
 }
 
+// TaskComment es un comentario de cualquier tarea con la referencia visible de
+// la que lo lleva: el índice que el buscador de la interfaz recorre.
+type TaskComment struct {
+	Ref       string    `json:"ref"`
+	ID        int64     `json:"id"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // NewTask is what it takes to create a task. An empty text is an absent value,
 // a priority left out is the default one and a parent left out leaves the task
 // on its own.
@@ -888,6 +897,29 @@ func (c *Core) Comments(ctx context.Context, ref string) ([]Comment, error) {
 	}
 
 	return commented(stored), nil
+}
+
+// AllComments son todos los comentarios del proyecto, cada uno con la
+// referencia visible de la tarea que lo lleva. Leerlos no deja ningún aviso:
+// solo lo deja una escritura.
+func (c *Core) AllComments(ctx context.Context) ([]TaskComment, error) {
+	stored, err := c.store.AllComments(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("reading the comments of the project: %w", err)
+	}
+
+	all := make([]TaskComment, 0, len(stored))
+
+	for _, comment := range stored {
+		all = append(all, TaskComment{
+			Ref:       Ref(c.prefix, comment.TaskID),
+			ID:        comment.ID,
+			Body:      comment.Body,
+			CreatedAt: comment.CreatedAt,
+		})
+	}
+
+	return all, nil
 }
 
 // EditComment changes the body of the comment of the task that carries the number

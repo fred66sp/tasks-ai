@@ -24,7 +24,7 @@ Rama: `fix/audit-findings`.
 - T2 — `tk-91`, S4, inline, commit `04f0561`: corregir descripciones de eventos SSE.
 - T3 — `tk-92`, S5, inline, commit `bc8ef50`: rechazar JSON con contenido posterior.
 - T4 — `tk-93`, S6, inline, commit `dd82ba8`: alinear `parent_id` de la API con el contrato.
-- T5 — `tk-94`, S7, inline, commit pendiente: añadir índices a comentarios y dependencias.
+- T5 — `tk-94`, S7, inline, commit `faf2f55`: añadir índices a comentarios y dependencias.
 - T6 — `tk-95`, S8, inline, commit pendiente: evitar transacciones de migración innecesarias.
 - T7 — `tk-96`, S9, inline, commit pendiente: paginar y agrupar el historial de eventos.
 - T8 — `tk-97`, S10, inline, commit pendiente: escribir settings de forma atómica.
@@ -40,3 +40,4 @@ Rama: `fix/audit-findings`.
 - L4: T2 requirió una migración de esquema y verificación independiente; su commit de trabajo es `04f0561` (598 líneas authored), aislado como unidad de alto riesgo antes de continuar con otra tarea.
 - L5: T3 añade la validación de un único valor JSON en todas las escrituras HTTP; su diferencial contra `HEAD` para cuerpos JSON válidos fue idéntico y su commit es `bc8ef50`.
 - L6: T4 conserva `parent_id` numérico en la API y corrige el contrato contradictorio; la interfaz web transforma el número en referencia visible y la extensión Pi conserva la identidad numérica. Verificación independiente PASS; commit `dd82ba8`.
+- L7: T5 añade la migración 6 con índices para `comments.task_id` y `dependencies.blocker_id`; la verificación independiente confirmó preservación de datos, planes indexados y salidas públicas idénticas. Commit `faf2f55`.

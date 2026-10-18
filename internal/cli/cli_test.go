@@ -235,6 +235,60 @@ func TestRun_reportsAFailingAnswerWriter(t *testing.T) {
 	}
 }
 
+// TestRun_tagsCanBeCreatedEditedListedAndDeleted recorre el catálogo de etiquetas
+// por el CLI: crear, editar, listar y borrar siguen cruzando la superficie pública.
+func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
+	t.Chdir(t.TempDir())
+
+	if code, _, errOut := run(t, "init"); code != 0 {
+		t.Fatalf("init salió con %d, se esperaba 0: %s", code, errOut)
+	}
+
+	code, out, errOut := run(t, "tag", "create", "--name", "docs")
+	if code != 0 {
+		t.Fatalf("tag create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Tag
+	decode(t, out, &created)
+
+	code, out, errOut = run(t, "tag", "edit", "docs", "--name", "documentacion")
+	if code != 0 {
+		t.Fatalf("tag edit salió con %d: %s", code, errOut)
+	}
+
+	var edited core.Tag
+	decode(t, out, &edited)
+
+	if edited.ID != created.ID || edited.Name != "documentacion" {
+		t.Errorf("la etiqueta editada es %+v, se esperaba la identidad %d y el nombre documentacion", edited, created.ID)
+	}
+
+	code, out, errOut = run(t, "tags")
+	if code != 0 {
+		t.Fatalf("tags salió con %d: %s", code, errOut)
+	}
+
+	var catalogue []core.TagWithUses
+	decode(t, out, &catalogue)
+
+	if len(catalogue) != 1 || catalogue[0].Name != "documentacion" {
+		t.Errorf("el catálogo es %+v, se esperaba documentacion", catalogue)
+	}
+
+	code, out, errOut = run(t, "tag", "delete", "documentacion")
+	if code != 0 {
+		t.Fatalf("tag delete salió con %d: %s", code, errOut)
+	}
+
+	var deleted core.Tag
+	decode(t, out, &deleted)
+
+	if deleted.ID != created.ID || deleted.Name != "documentacion" {
+		t.Errorf("la etiqueta borrada es %+v, se esperaba la creada", deleted)
+	}
+}
+
 // TestRun_updateMovesATaskInProgressAndBack recorre el ciclo del estado desde
 // la línea de comandos: una tarea pendiente se pone en curso con --status y
 // vuelve a pendiente.

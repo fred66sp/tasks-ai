@@ -105,11 +105,6 @@ func (s *Store) Tags(ctx context.Context) ([]TagUse, error) {
 	return catalogue, nil
 }
 
-// Tag devuelve la etiqueta con ese nombre.
-func (s *Store) Tag(ctx context.Context, name string) (Tag, error) {
-	return readTag(ctx, s.db, name)
-}
-
 // readTag reads one tag from wherever it is asked for.
 func readTag(ctx context.Context, from rowQuerier, name string) (Tag, error) {
 	var tag Tag

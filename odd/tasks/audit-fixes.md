@@ -26,7 +26,7 @@ Rama: `fix/audit-findings`.
 - T4 — `tk-93`, S6, inline, commit `dd82ba8`: alinear `parent_id` de la API con el contrato.
 - T5 — `tk-94`, S7, inline, commit `faf2f55`: añadir índices a comentarios y dependencias.
 - T6 — `tk-95`, S8, inline, commit `8363eda`: evitar transacciones de migración innecesarias.
-- T7 — `tk-96`, S9, inline, commit pendiente: paginar y agrupar el historial de eventos.
+- T7 — `tk-96`, S9, inline, commit `b37962d`: paginar y agrupar el historial de eventos.
 - T8 — `tk-97`, S10, inline, commit pendiente: escribir settings de forma atómica.
 - T9 — `tk-98`, S11, inline, commit pendiente: rechazar claves desconocidas en settings.
 - T10 — `tk-99`, S12, inline, commit pendiente: eliminar `Store.Tag` sin uso.
@@ -42,3 +42,4 @@ Rama: `fix/audit-findings`.
 - L6: T4 conserva `parent_id` numérico en la API y corrige el contrato contradictorio; la interfaz web transforma el número en referencia visible y la extensión Pi conserva la identidad numérica. Verificación independiente PASS; commit `dd82ba8`.
 - L7: T5 añade la migración 6 con índices para `comments.task_id` y `dependencies.blocker_id`; la verificación independiente confirmó preservación de datos, planes indexados y salidas públicas idénticas. Commit `faf2f55`.
 - L8: T6 prelee el esquema y evita transacciones cuando la base ya está al día; las migraciones pendientes conservan relectura transaccional y la prueba de aperturas concurrentes pasa. Verificación independiente PASS; commit `8363eda`.
+- L9: T7 recorre `GET /api/events` en lotes de 100 avisos, agrupa las consultas de nombres de etiquetas y deja vacía la referencia de etiquetas borradas; la historia larga llega completa y ordenada por la interfaz pública. La unidad superó el límite aproximado de 400 líneas (471 authored) y quedó aislada en `b37962d`; suite Go, race, vet y lint pasan.

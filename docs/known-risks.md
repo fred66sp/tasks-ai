@@ -64,6 +64,17 @@ toque el CLI comprueba también la extensión y las dos juntas, no solo las prue
 producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
 el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
 
+### RX-9 La copia del agente de delegación puede quedarse atrás
+
+La fuente del agente de delegación vive versionada en `extensions/pi/agents/`, pero Pi
+solo busca agentes en `.pi/agents/`, que Git ignora. La copia no la genera ni la compara
+ninguna herramienta: puede quedar desactualizada cuando la fuente cambie, y el agente
+trabajaría con un contrato viejo sin que nada lo avise.
+
+**Cobertura:** el contrato del agente es corto y cambia poco; cuando cambie, el mismo
+cambio actualiza la copia, como se actualiza cualquier documento dependiente. Ante un
+comportamiento raro en un encargo, se comparan las dos copias antes de buscar otra causa.
+
 ## Resueltos
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas

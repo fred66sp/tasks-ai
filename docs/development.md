@@ -19,6 +19,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
 | `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
+| `extensions/pi/agents/` | La fuente del agente de delegación, que se copia a `.pi/agents/` después de instalar el paquete; su modelo se elige con `/gentle:models` y la sesión de Pi arranca después de la copia ([`README.md`](../README.md)) |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
 Las pruebas de la extensión se ejecutan con `cd extensions/pi && npm test`, que usa el runner

@@ -101,6 +101,22 @@ ejecuta el binario del proyecto (`bin/tasks-ai`) o, si falta, el que esté en el
 un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
 sigue.
 
+### El agente de delegación
+
+`extensions/pi/agents/tasks-ai-worker.md` es el subagente que trabaja una tarea del
+tablero: lee su resultado y su criterio con `tasks_show`, toca solo los archivos que el
+encargo declara y devuelve evidencia. Pi solo busca agentes en `.pi/agents/`, que Git
+ignora, así que la fuente versionada se copia después de instalar el paquete:
+
+```bash
+mkdir -p .pi/agents
+cp extensions/pi/agents/tasks-ai-worker.md .pi/agents/
+```
+
+El modelo del agente no se configura en el repositorio: se elige con `/gentle:models`,
+que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de la copia,
+porque el arnés congela su configuración al inicio.
+
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 
 Se retiró del repositorio al pasar el trabajo a `.task-ai/`. Era un servidor en Node sobre

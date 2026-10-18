@@ -50,6 +50,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 | Riesgos, deuda y su cobertura de pruebas | `docs/known-risks.md` | `docs/known-risks.md` |
 | Flujo de Git, CHANGELOG y versionado | `CONTRATO_FLUJO_GIT_VERSIONADO.md` | ese contrato |
 | Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `.task-ai/AGENTS.md` |
+| Reglas de etiquetas del tablero: clases, asignación y gestión del catálogo | `.task-ai/CONTRATO_ETIQUETAS.md` | ese contrato |
 | Presentación del producto y puesta en marcha | `README.md` | `README.md` |
 | Contenido de los artefactos generados | El build | `npm run build` y los ficheros versionados |
 | Guía de uso del producto para quien aprende a manejarlo | `docs/web/index.html` | esa página |

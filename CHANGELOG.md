@@ -7,6 +7,16 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **El padre de una tarea se puede cambiar después de crearla**: `update --parent <ref>`
+  la asigna, la mueve a otro padre o, con el valor vacío, la deja en su nivel. Un ciclo
+  —tomar como padre a la propia tarea o a una de sus descendientes— y una referencia que
+  no resuelve se rechazan sin escribir nada. Al quedar con padre la tarea lleva la
+  etiqueta `task` y al quedarse sin padre la pierde; si el catálogo no la tiene, el
+  producto la crea con el color por omisión. El padre puede estar cerrado: colgar una
+  subtarea de una tarea hecha está permitido. Está en el CLI (`update --parent`), la API
+  (`PATCH /api/tasks/:ref` con `parent`), la interfaz web (campo «Tarea padre» en la
+  edición del inspector) y la extensión de Pi (`tasks_update` con `parent`).
+
 - **Los comentarios se pueden leer y editar**: además de añadirlos, `comment list`
   devuelve los de la tarea del primero al último con su identidad y su fecha, y
   `comment edit <referencia> <id> --body` cambia el cuerpo de uno conservando su

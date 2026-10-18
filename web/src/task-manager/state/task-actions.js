@@ -188,11 +188,15 @@ export const taskActions = {
         this.editDraft = this.emptyEditDraft();
         return;
       }
+      // El detalle nombra al padre por su numero interno y la lista por su
+      // referencia visible: el selector de padre vale la referencia.
+      const listed = this.mappedTasks.find((entry) => entry.id === task.id);
       this.editDraft = {
         title: task.title || '',
         description: task.description || '',
         notes: task.notes || '',
         assignee: task.assignee || '',
+        parent: listed?.parentId || '',
         tags: Array.isArray(task.chips) ? [...task.chips] : []
       };
     },
@@ -209,13 +213,17 @@ export const taskActions = {
     async saveSelectedTask() {
       const title = this.editDraft.title.trim();
       if (!title || !this.hasSelection) return;
-      const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, {
+      const changes = {
         title,
         description: this.editDraft.description.trim(),
         notes: this.editDraft.notes.trim(),
         assignee: this.editDraft.assignee.trim(),
         tags: [...this.editDraft.tags]
-      }), 'Cambios guardados.');
+      };
+      // Un borrador sin el campo no toca el padre; vacio lo quita, igual que
+      // el contrato del CLI.
+      if ('parent' in this.editDraft) changes.parent = this.editDraft.parent;
+      const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, changes), 'Cambios guardados.');
       if (result) this.activeInspectorTab = 'detail';
     },
     async updateTaskField(id, field, value) {

@@ -11,16 +11,29 @@
       selectedDependents() {
         return Array.isArray(this.detail?.dependents) ? this.detail.dependents : [];
       },
+      /**
+       * Tareas que el formulario de edicion ofrece como padre. La tarea editada
+       * no se ofrece a si misma: un ciclo mas profundo lo rechaza el servidor y su
+       * error se presenta tal cual.
+       *
+       * @returns {Array<{ id: string, title: string }>}
+       */
+      parentOptions() {
+        const ownId = this.selectedTask.id;
+        return this.mappedTasks.filter((task) => task.id !== ownId).map((task) => ({ id: task.id, title: task.title }));
+      },
       taskInspectorProps() {
         return {
           hasSelection: this.hasSelection,
           task: this.selectedTask,
+          parentTask: this.selectedParentTask,
           menuOpen: this.isInspectorMenuOpen,
           busy: this.isBusy,
           statusBadgeClass: this.statusBadgeClass,
           statusLabel: this.statusLabel,
           priorityLabel: this.priorityLabel,
           subtasks: this.selectedSubtasks,
+          parentOptions: this.parentOptions,
           blockers: this.selectedBlockers,
           dependents: this.selectedDependents,
           comments: this.selectedComments,
@@ -866,11 +879,13 @@
           this.editDraft = this.emptyEditDraft();
           return;
         }
+        const listed = this.mappedTasks.find((entry) => entry.id === task.id);
         this.editDraft = {
           title: task.title || "",
           description: task.description || "",
           notes: task.notes || "",
           assignee: task.assignee || "",
+          parent: listed?.parentId || "",
           tags: Array.isArray(task.chips) ? [...task.chips] : []
         };
       },
@@ -887,13 +902,15 @@
       async saveSelectedTask() {
         const title = this.editDraft.title.trim();
         if (!title || !this.hasSelection) return;
-        const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, {
+        const changes = {
           title,
           description: this.editDraft.description.trim(),
           notes: this.editDraft.notes.trim(),
           assignee: this.editDraft.assignee.trim(),
           tags: [...this.editDraft.tags]
-        }), "Cambios guardados.");
+        };
+        if ("parent" in this.editDraft) changes.parent = this.editDraft.parent;
+        const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, changes), "Cambios guardados.");
         if (result) this.activeInspectorTab = "detail";
       },
       async updateTaskField(id, field, value) {
@@ -1068,6 +1085,15 @@
         const listed = this.mappedTasks.find((task2) => task2.id === this.selectedTaskId);
         const task = this.detail || listed || {};
         return { ...mapTask(task), status: listed?.status || task.status || "open" };
+      },
+      // El detalle trae el padre como numero interno; la lista lo trae ya
+      // traducido a su referencia visible. La navegacion vale la referencia.
+      selectedParentTask() {
+        const listed = this.mappedTasks.find((task) => task.id === this.selectedTaskId);
+        const parentId = listed?.parentId || this.selectedTask.parentId;
+        if (!parentId) return null;
+        const parent = this.mappedTasks.find((task) => task.id === parentId);
+        return parent ? { id: parent.id, title: parent.title } : null;
       },
       hasSelection() {
         return Boolean(this.selectedTaskId && this.selectedTask.id);
@@ -2061,6 +2087,7 @@
       mobileOpen: { type: Boolean, required: true },
       hasSelection: { type: Boolean, required: true },
       task: { type: Object, required: true },
+      parentTask: { type: Object, default: null },
       activeTab: { type: String, required: true },
       menuOpen: { type: Boolean, required: true },
       busy: { type: Function, required: true },
@@ -2068,6 +2095,7 @@
       statusLabel: { type: Function, required: true },
       priorityLabel: { type: Function, required: true },
       subtasks: { type: Array, required: true },
+      parentOptions: { type: Array, required: true },
       blockers: { type: Array, required: true },
       dependents: { type: Array, required: true },
       comments: { type: Array, required: true },
@@ -2123,9 +2151,11 @@
       <div class="task-inspector__heading-row">
         <div class="task-inspector__heading"><button class="task-mobile-back tk-button tk-button--ghost" type="button"
             @click="$emit('update:mobileOpen', false)">Volver a tareas</button>
-          <div class="task-inspector__kicker">{{ task.id }} \xB7 {{ task.type }}</div>
+          <div class="task-inspector__kicker">{{ task.id }} \xB7 {{ task.type }}<template v-if="parentTask"> de <button
+              class="task-parent-link" type="button" :title="parentTask.title"
+              @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
           <h1 class="task-inspector__title">{{ task.title }}</h1>
-          <p class="task-inspector__description">{{ task.description || 'Sin descripci\xF3n.' }}</p>
+          <p class="task-inspector__description tk-scrollable-text">{{ task.description || 'Sin descripci\xF3n.' }}</p>
         </div>
         <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
             aria-label="Editar tarea" @click="emitAction('edit.open')">\u270E</button>
@@ -2171,7 +2201,9 @@
             <div class="property-grid">
               <div class="property-card">
                 <div class="property-card__label">Tipo</div>
-                <div class="property-card__value">{{ task.type }}</div>
+                <div class="property-card__value">{{ task.type }}<template v-if="parentTask"> de <button
+                    class="task-parent-link" type="button" :title="parentTask.title"
+                    @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
               </div>
               <div class="property-card">
                 <div class="property-card__label">Etiquetas</div>
@@ -2192,7 +2224,7 @@
           <header class="tk-panel__header">
             <h3>Notas</h3>
           </header>
-          <div class="tk-panel__content pre-wrap">{{ task.notes || 'Sin notas.' }}</div>
+          <div class="tk-panel__content pre-wrap tk-scrollable-text">{{ task.notes || 'Sin notas.' }}</div>
         </section>
       </div>
       <div v-show="activeTab === 'edit'" class="tk-panel-stack">
@@ -2210,9 +2242,15 @@
                 class="tk-textarea" @input="updateDraft('notes', $event.target.value)"></textarea></label><label
               class="tk-field"><span class="tk-field__label">Responsable</span><input :value="editDraft.assignee"
                 class="tk-input" placeholder="Sin asignar"
-                @input="updateDraft('assignee', $event.target.value)" /></label>
+                @input="updateDraft('assignee', $event.target.value)" /></label><label class="tk-field"><span
+              class="tk-field__label">Tarea padre</span><select :value="editDraft.parent || ''" class="tk-select"
+              :disabled="busy('edit:' + task.id)" @change="updateDraft('parent', $event.target.value)">
+              <option value="">Sin padre</option>
+              <option v-for="option in parentOptions" :key="option.id" :value="option.id">{{ option.id }} \xB7
+                {{ option.title }}</option>
+            </select></label>
             <tag-picker-field :model-value="editDraft.tags" :tags="tagCatalog" :colors="colors"
-              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab"
+              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab" wide
               @update:model-value="updateDraft('tags', $event)"></tag-picker-field>
             <div class="span-2 task-form-actions"><button class="tk-button tk-button--ghost" type="button"
                 :disabled="busy('edit:' + task.id)" @click="emitAction('edit.cancel')">Cancelar</button><button
@@ -2294,7 +2332,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <p>{{ comment.body }}</p>
+                  <p class="tk-scrollable-text">{{ comment.body }}</p>
                   <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
                       class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
                       :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"

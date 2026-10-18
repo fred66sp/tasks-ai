@@ -420,6 +420,8 @@ describe("la extensión", () => {
 		assert.deepEqual(reasons.map((value) => value.const), ["done", "duplicate", "absorbed", "stale", "superseded"]);
 		const statuses = tools.tasks_update.parameters.properties.status.anyOf as { const: string }[];
 		assert.deepEqual(statuses.map((value) => value.const), ["open", "in_progress"]);
+		assert.equal(tools.tasks_update.parameters.properties.parent.type, "string");
+		assert.equal(tools.tasks_update.parameters.properties.parent.default, undefined);
 		const body = tools.tasks_comment.parameters.properties.body;
 		assert.equal(body.minLength, 1);
 		assert.ok(!new RegExp(body.pattern as string).test(" \n\t"));
@@ -529,6 +531,67 @@ describe("la extensión", () => {
 		assert.equal(stored.priority, 3);
 		const opened = await write("tasks_update", { ref: "tk-1", status: "open" });
 		assert.equal(opened.status, "open");
+	});
+
+	it("tasks_update asigna, mueve y retira el padre como el CLI", async () => {
+		cli("create", "--title", "primer padre");
+		cli("create", "--title", "segundo padre");
+		cli("create", "--title", "hija");
+		const assigned = await write("tasks_update", { ref: " tk-3 ", parent: " TK-1 " });
+		assert.equal(assigned.parent_id, cli("show", "tk-1").id);
+		assert.deepEqual(cli("show", "tk-1").children.map((child: { ref: string }) => child.ref), ["tk-3"]);
+		const moved = await write("tasks_update", { ref: "tk-3", parent: "tk-2" });
+		assert.equal(moved.parent_id, cli("show", "tk-2").id);
+		assert.deepEqual(cli("show", "tk-1").children, []);
+		assert.deepEqual(cli("show", "tk-2").children.map((child: { ref: string }) => child.ref), ["tk-3"]);
+		const removed = await write("tasks_update", { ref: "tk-3", parent: "" });
+		assert.equal(removed.parent_id, null);
+		assert.deepEqual(cli("show", "tk-2").children, []);
+	});
+
+	it("tasks_update compone --parent solo cuando el parámetro se da", async () => {
+		cli("create", "--title", "con padre");
+		cli("create", "--title", "hija", "--parent", "tk-1");
+		const calls: string[][] = [];
+		const extension = harness(async (args: string[]) => {
+			calls.push(args);
+			return runCli(args, project);
+		});
+		const update = async (params: Record<string, unknown>) => {
+			calls.length = 0;
+			await extension.registered.tasks_update.execute("id", { ref: "tk-2", ...params },
+				undefined, undefined, { cwd: project });
+			assert.equal(calls.length, 1);
+			return calls[0];
+		};
+		assert.deepEqual(await update({ title: "renombrada" }), ["update", "tk-2", "--title", "renombrada"]);
+		assert.equal(cli("show", "tk-2").parent_id, cli("show", "tk-1").id);
+		assert.deepEqual(await update({ parent: "" }), ["update", "tk-2", "--parent", ""]);
+		assert.equal(cli("show", "tk-2").parent_id, null);
+	});
+
+	it("tasks_update propaga el rechazo de un padre que no existe", async () => {
+		cli("create", "--title", "una tarea");
+		const before = cli("list");
+		const rejected = spawnSync(binary, ["update", "tk-1", "--parent", "tk-999"], { cwd: project, encoding: "utf8" });
+		assert.equal(rejected.status, 1);
+		const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+		await assert.rejects(() => execute("tasks_update", { ref: "tk-1", parent: "tk-999" }),
+			(error: Error) => error.message === message);
+		assert.deepEqual(cli("list"), before);
+	});
+
+	it("tasks_update propaga el rechazo de ciclo del producto", async () => {
+		cli("create", "--title", "padre");
+		cli("create", "--title", "hija", "--parent", "tk-1");
+		const before = cli("list");
+		const rejected = spawnSync(binary, ["update", "tk-1", "--parent", "tk-2"], { cwd: project, encoding: "utf8" });
+		assert.equal(rejected.status, 2);
+		const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+		await assert.rejects(() => execute("tasks_update", { ref: "tk-1", parent: "tk-2" }),
+			(error: Error) => error.message === message);
+		assert.equal(cli("show", "tk-1").parent_id, null);
+		assert.deepEqual(cli("list"), before);
 	});
 
 	it("tasks_block bloquea y tasks_unblock retira el bloqueo", async () => {

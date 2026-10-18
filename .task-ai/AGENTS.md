@@ -9,6 +9,7 @@ Este proyecto guarda sus tareas con el gestor local que vive en esta carpeta.
 | `tasks.db` | Las tareas del proyecto |
 | `settings.json` | El prefijo de las referencias, la base y los ajustes de la interfaz |
 | `AGENTS.md` | Estas instrucciones |
+| `CONTRATO_ETIQUETAS.md` | El contrato de las etiquetas: clases, asignación y gestión del catálogo |
 
 ## Cómo se usa
 
@@ -47,7 +48,8 @@ al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no 
 bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
 dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
-Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
+Las etiquetas se gestionan por su nombre en el catálogo de `tags`; el cómo y el cuándo
+los gobierna [`CONTRATO_ETIQUETAS.md`](CONTRATO_ETIQUETAS.md). El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create
 --help`); un color que falte es `blue` y un color desconocido se rechaza. Renombrar una
 etiqueta cambia el nombre que muestran las tareas sin tocar su fila guardada, y borrar
@@ -74,8 +76,9 @@ este archivo, así que aquí se corrige lo que haga falta.
   del proyecto, no una unidad de trabajo.
 - Una **subtarea** es una tarea con padre y la etiqueta `task`: una unidad de trabajo que
   puede atravesar sesiones.
-- Cada tarea lleva además un único tipo principal: `docs`, `feat`, `fix`, `test`,
-  `chore`, `refactor`, `style` o `improvement`. El trabajo del registro ODD lleva `ODD`.
+- Cada tarea lleva además un único tipo principal. Las clases de etiquetas, su asignación
+  y la gestión del catálogo las gobierna [`CONTRATO_ETIQUETAS.md`](CONTRATO_ETIQUETAS.md).
+  El trabajo del registro ODD lleva `ODD`.
 - Toda tarea declara en su descripción **el resultado que la cierra** y **el criterio con
   el que se comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
   empieza: se escribe primero.

@@ -1031,3 +1031,261 @@ func listedComments(t *testing.T, apply *core.Core, ref string) []core.Comment {
 
 	return comments
 }
+
+// changeParent applies the parent change the reference names and returns the
+// task as it is left.
+func changeParent(t *testing.T, apply *core.Core, ref, parent string) core.Task {
+	t.Helper()
+
+	changed, err := apply.UpdateTask(t.Context(), ref, core.Changes{Parent: &parent})
+	if err != nil {
+		t.Fatalf("cambiando el padre de %q a %q: %v", ref, parent, err)
+	}
+
+	return changed
+}
+
+// assertTags comprueba que la tarea lleva exactamente esas etiquetas.
+func assertTags(t *testing.T, task core.Task, want ...string) {
+	t.Helper()
+
+	if !slices.Equal(slices.Sorted(slices.Values(task.Tags)), slices.Sorted(slices.Values(want))) {
+		t.Errorf("la tarea %q lleva %v, se esperaba %v", task.Ref, task.Tags, want)
+	}
+}
+
+// TestUpdateTask_assignsMovesAndRemovesTheParent recorre el ciclo completo del
+// cambio de padre: una tarea sin padre recibe uno, se mueve a otro y vuelve a
+// su nivel. La etiqueta estructural task entra y sale con el padre, y las
+// demás etiquetas no se tocan.
+func TestUpdateTask_assignsMovesAndRemovesTheParent(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	if _, err := apply.CreateTag(ctx, "docs", "", ""); err != nil {
+		t.Fatalf("creando la etiqueta docs: %v", err)
+	}
+
+	epicA := newTask(t, apply, "Épica A")
+	epicB := newTask(t, apply, "Épica B")
+	child := newTask(t, apply, "La que se mueve")
+	other := newTask(t, apply, "Otra épica")
+
+	docs := []string{"docs"}
+
+	if _, err := apply.UpdateTask(ctx, child.Ref, core.Changes{Tags: &docs}); err != nil {
+		t.Fatalf("poniendo la etiqueta docs: %v", err)
+	}
+
+	moved := changeParent(t, apply, child.Ref, epicA.Ref)
+
+	if moved.ParentID == nil || *moved.ParentID != epicA.ID {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, epicA.ID)
+	}
+
+	assertTags(t, moved, "docs", "task")
+
+	moved = changeParent(t, apply, child.Ref, epicB.Ref)
+
+	if moved.ParentID == nil || *moved.ParentID != epicB.ID {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, epicB.ID)
+	}
+
+	assertTags(t, moved, "docs", "task")
+
+	alone := changeParent(t, apply, child.Ref, "")
+
+	if alone.ParentID != nil {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba sin padre", alone.ParentID)
+	}
+
+	assertTags(t, alone, "docs")
+
+	// El árbol no cambia por el camino: la tarea que nunca fue padre sigue igual.
+	intact, err := apply.Task(ctx, other.Ref)
+	if err != nil {
+		t.Fatalf("leyendo la tarea ajena: %v", err)
+	}
+
+	if intact.ParentID != nil {
+		t.Errorf("el cambio de padre tocó una tarea ajena: %+v", intact.ParentID)
+	}
+
+	assertTags(t, intact)
+}
+
+// TestUpdateTask_createsTheStructuralTagWhenTheCatalogueLacksIt comprueba que el
+// ajuste de la etiqueta estructural no depende de que alguien la haya creado:
+// un catálogo vacío no impide asignar un padre.
+func TestUpdateTask_createsTheStructuralTagWhenTheCatalogueLacksIt(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	epic := newTask(t, apply, "Épica")
+	child := newTask(t, apply, "Hija")
+
+	assign := epic.Ref
+
+	moved, err := apply.UpdateTask(ctx, child.Ref, core.Changes{Parent: &assign})
+	if err != nil {
+		t.Fatalf("asignando el padre sin la etiqueta en el catálogo: %v", err)
+	}
+
+	if !slices.Contains(moved.Tags, "task") {
+		t.Errorf("la tarea con padre debe llevar la etiqueta task, lleva %v", moved.Tags)
+	}
+
+	uses := false
+
+	for _, tag := range catalogTags(t, apply) {
+		if tag.Name == "task" && tag.Uses == 1 {
+			uses = true
+		}
+	}
+
+	if !uses {
+		t.Errorf("la etiqueta task debe quedar en el catálogo con su uso, el catálogo es %v", catalogTags(t, apply))
+	}
+}
+
+// TestUpdateTask_refusesTheParentChangesTheRulesRefuse recorre los cambios de
+// padre que las reglas se niegan a escribir: una referencia que no resuelve y
+// los ciclos —consigo misma y con una de sus descendientes—. Nada de ellos
+// deja nada escrito.
+func TestUpdateTask_refusesTheParentChangesTheRulesRefuse(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	epic := newTask(t, apply, "Épica")
+	child := newTask(t, apply, "Hija")
+
+	assign := epic.Ref
+
+	if _, err := apply.UpdateTask(ctx, child.Ref, core.Changes{Parent: &assign}); err != nil {
+		t.Fatalf("asignando el padre %q: %v", epic.Ref, err)
+	}
+
+	refusals := []struct {
+		name   string
+		ref    string
+		parent string
+		want   error
+	}{
+		{"padre que no resuelve", child.Ref, "tk-999", core.ErrNotFound},
+		{"padre en sí misma", epic.Ref, epic.Ref, core.ErrInvalid},
+		{"padre en su propia descendiente", epic.Ref, child.Ref, core.ErrInvalid},
+	}
+
+	for _, refusal := range refusals {
+		_, err := apply.UpdateTask(ctx, refusal.ref, core.Changes{Parent: &refusal.parent})
+		if !errors.Is(err, refusal.want) {
+			t.Errorf("%s devolvió %v, se esperaba el centinela %v", refusal.name, err, refusal.want)
+		}
+	}
+
+	after, err := apply.Task(ctx, epic.Ref)
+	if err != nil {
+		t.Fatalf("leyendo la épica tras los rechazos: %v", err)
+	}
+
+	if after.ParentID != nil {
+		t.Errorf("un cambio de padre rechazado dejó escrito un padre: %+v", after.ParentID)
+	}
+
+	if slices.Contains(after.Tags, "task") {
+		t.Errorf("un cambio de padre rechazado dejó escrita la etiqueta task: %v", after.Tags)
+	}
+}
+
+// catalogTags devuelve el catálogo de etiquetas tal como lo responde el núcleo.
+func catalogTags(t *testing.T, apply *core.Core) []core.TagWithUses {
+	t.Helper()
+
+	tags, err := apply.Tags(t.Context())
+	if err != nil {
+		t.Fatalf("Tags devolvió %v", err)
+	}
+
+	return tags
+}
+
+// TestUpdateTask_allowsAClosedParent deja escrito con una prueba que el padre
+// puede estar cerrado: una tarea cerrada admite subtareas nuevas, igual que
+// una épica cerrada conserva las que ya tenía. Colgar de ella no la reabre ni
+// cambia su estado.
+func TestUpdateTask_allowsAClosedParent(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	closed := newTask(t, apply, "Épica cerrada")
+
+	if _, err := apply.CloseTask(ctx, closed.Ref, core.CloseReasonDone); err != nil {
+		t.Fatalf("cerrando la épica: %v", err)
+	}
+
+	child := newTask(t, apply, "Hija tardía")
+
+	assign := closed.Ref
+
+	moved, err := apply.UpdateTask(ctx, child.Ref, core.Changes{Parent: &assign})
+	if err != nil {
+		t.Fatalf("colgando de una tarea cerrada: %v", err)
+	}
+
+	if moved.ParentID == nil || *moved.ParentID != closed.ID {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, closed.ID)
+	}
+
+	assertTags(t, moved, "task")
+
+	parent, err := apply.Task(ctx, closed.Ref)
+	if err != nil {
+		t.Fatalf("leyendo el padre cerrado: %v", err)
+	}
+
+	if parent.Status != "done" {
+		t.Errorf("colgar una subtarea cambió el estado del padre: %q", parent.Status)
+	}
+}
+
+// TestCreateTask_withAParentCarriesTheStructuralTag deja escrito que la tarea
+// que nace con padre lleva la etiqueta task desde el primer momento, igual
+// que la que lo gana después: la misma regla en las dos entradas.
+func TestCreateTask_withAParentCarriesTheStructuralTag(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	epic := newTask(t, apply, "Épica")
+
+	child, err := apply.CreateTask(ctx, core.NewTask{Title: "Hija", Parent: epic.Ref})
+	if err != nil {
+		t.Fatalf("creando la subtarea: %v", err)
+	}
+
+	created := listedTask(t, listedTasks(t, apply), child.Ref)
+
+	if !slices.Contains(created.Tags, "task") {
+		t.Errorf("la subtarea nacida con padre debe llevar la etiqueta task, lleva %v", created.Tags)
+	}
+
+	loose, err := apply.CreateTask(ctx, core.NewTask{Title: "Suelta"})
+	if err != nil {
+		t.Fatalf("creando la tarea sin padre: %v", err)
+	}
+
+	without := listedTask(t, listedTasks(t, apply), loose.Ref)
+
+	if slices.Contains(without.Tags, "task") {
+		t.Errorf("la tarea sin padre no debe llevar la etiqueta task, lleva %v", without.Tags)
+	}
+}

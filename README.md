@@ -47,9 +47,10 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
 ./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada
 ./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
-./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado o etiquetas
+./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado, etiquetas o padre
 ./tasks-ai update <referencia> --status in_progress  # pone la tarea en curso: solo desde pendiente; --status open la devuelve a pendiente
 ./tasks-ai update <referencia> --tags "docs,urgente"  # pone la lista entera de etiquetas de la tarea: una lista vacía la deja sin ninguna
+./tasks-ai update <referencia> --parent tk-1  # asigna el padre a la tarea o la mueve al que se le da; --parent "" lo quita y la deja en su nivel
 ./tasks-ai tags                 # devuelve el catálogo de etiquetas con el uso de cada una
 ./tasks-ai tag create --name "docs" --color blue  # crea una etiqueta; el color que falta es blue
 ./tasks-ai tag edit <nombre> --name <nuevo>  # cambia de la etiqueta lo que se pide y nada más; renombrar no toca ninguna tarea

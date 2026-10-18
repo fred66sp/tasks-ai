@@ -14,8 +14,10 @@ import (
 // sitio: los documentos dicen de dónde viene y no la copian.
 var TagColors = []string{"blue", "purple", "green", "yellow", "orange", "red"}
 
-// DefaultTagColor es el color que lleva una etiqueta a la que nadie le dio otro.
-const DefaultTagColor = "blue"
+// DefaultTagColor es el color que lleva una etiqueta a la que nadie le dio otro:
+// una sola fuente, la del store, que es quien la escribe cuando el cambio de
+// padre necesita crear la etiqueta estructural.
+const DefaultTagColor = store.DefaultTagColor
 
 // Tag es una etiqueta tal como cruza el límite del núcleo: su identidad interna,
 // que mantiene el renombrado lejos de las tareas, y lo que de ella se muestra.

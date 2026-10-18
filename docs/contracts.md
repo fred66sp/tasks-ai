@@ -113,11 +113,26 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `update --tags "uno,dos"` pone la lista entera de etiquetas de la tarea, separadas
   por comas: una lista vacía la deja sin ninguna, y un nombre que no está en el
   catálogo es entrada inválida que no toca la tarea.
+- `create --parent <ref>` nace con la etiqueta `task` puesta —creándola en el catálogo
+  con el color por omisión si todavía no está—: la tarea que nace con padre y la que lo
+  gana después llevan la misma marca.
 - `update --status` cambia el estado: `in_progress` pone la tarea en curso y solo
   cabe desde `open`, y `open` la devuelve a pendiente —desde `done` es reabrir, y le
   quita el motivo de cierre—. `done` no se pone por el cambio: cerrar va por `close`,
   con su motivo, y pedirlo se rechaza como entrada inválida —código `2`— sin tocar la
   tarea.
+- `update --parent <ref>` cambia el padre de la tarea: la referencia del nuevo padre
+  lo asigna a quien no tiene o lo mueve al que se dé, y un valor vacío lo quita y
+  deja la tarea en su nivel. Una referencia que no resuelve —ni la del padre ni, en
+  su caso, la de la tarea— se rechaza con el código `1`, y el cambio que formaría un
+  ciclo —tomar como padre a la propia tarea o a una de sus descendientes— se rechaza
+  como entrada inválida con el código `2`; en los dos casos no se escribe nada. Al
+  quedar con padre, la tarea pasa a llevar la etiqueta `task`, y al quedarse sin
+  padre la pierde: el producto la ajusta dentro del mismo cambio y las demás etiquetas
+  no se tocan. Si el catálogo no tiene todavía la etiqueta `task`, el cambio la crea
+  con el color por omisión: un catálogo vacío no es motivo para rechazar un padre. El
+  padre puede estar cerrado: una tarea cerrada admite subtareas nuevas igual que conserva
+  las que ya tenía, y colgar de ella no la reabre.
 - `list` responde todas las tareas del proyecto con la forma de arriba —las cerradas
   también—, cada una con su referencia visible, su estado y su `blocked`, que es
   verdadero mientras alguna de sus bloqueantes siga sin cerrar.
@@ -159,7 +174,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `GET /api/tasks` | Lista de tareas |
 | `GET /api/tasks/:ref` | Detalle con bloqueantes, dependientes, hijas y comentarios |
 | `POST /api/tasks` | Crear tarea o subtarea |
-| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad o estado —`open` o `in_progress`—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
+| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad, estado —`open` o `in_progress`— o padre —referencia visible del nuevo padre, o vacío para quitarlo; los rechazos son los del CLI—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
 | `POST /api/tasks/:ref/close` | Cerrar con motivo |
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
 | `DELETE /api/tasks/:ref/blockers/:blockerRef` | Retirar un bloqueo |
@@ -285,7 +300,7 @@ recompone un mensaje del producto.
 | `tasks_board` | `list` | ninguno | el tablero derivado: contadores, en curso, listas para empezar y árbol |
 | `tasks_show` | `show` | `ref` | la tarea con sus hijas, sus bloqueantes, sus dependientes y sus comentarios |
 | `tasks_create` | `create` | `title` obligatorio; `description`, `notes`, `assignee`, `priority` y `parent` opcionales | la tarea creada |
-| `tasks_update` | `update` | `ref`, más los campos que cambian entre `title`, `description`, `notes`, `assignee`, `priority`, `status` y `tags` | la tarea tal como queda |
+| `tasks_update` | `update` | `ref`, más los campos que cambian entre `title`, `description`, `notes`, `assignee`, `priority`, `status`, `tags` y `parent` | la tarea tal como queda |
 | `tasks_close` | `close` | `ref` y `reason` | la tarea cerrada |
 | `tasks_reopen` | `reopen` | `ref` | la tarea reabierta |
 | `tasks_block` | `block` | `ref` y `blocker` | la tarea bloqueada |

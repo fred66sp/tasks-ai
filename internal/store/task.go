@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 )
 
@@ -68,6 +69,18 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionCreate); err != nil {
 		return Task{}, err
+	}
+
+	// La subtarea nace con su etiqueta estructural: la misma regla que el
+	// cambio de padre, dentro de la misma transacción que la crea.
+	if task.ParentID != nil {
+		if err := ensureTaskTag(ctx, tx, s.origin); err != nil {
+			return Task{}, err
+		}
+
+		if err := replaceTaskTags(ctx, tx, id, []string{structuralTaskTag}); err != nil {
+			return Task{}, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -228,6 +241,16 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		return Task{}, err
 	}
 
+	// La regla del padre se comprueba dentro de la transacción que guarda el
+	// bloqueo de escritura: un ciclo que se rechaza no deja nada escrito y
+	// nadie puede colar la jerarquía entre la comprobación y la escritura.
+	parentChanged := !sameParent(stored.ParentID, changed.ParentID)
+	if parentChanged && changed.ParentID != nil {
+		if err := checkNoCycle(ctx, tx, id, *changed.ParentID); err != nil {
+			return Task{}, err
+		}
+	}
+
 	// Neither the identity nor the moment of creation belong to whoever changes
 	// the task: they are kept from what was read, whatever comes back.
 	changed.ID = stored.ID
@@ -254,10 +277,8 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		return Task{}, fmt.Errorf("saving the change of task %d: %w", id, err)
 	}
 
-	if tags != nil {
-		if err := replaceTaskTags(ctx, tx, id, tags); err != nil {
-			return Task{}, err
-		}
+	if err := syncTaskTags(ctx, tx, s.origin, id, tags, parentChanged, changed.ParentID); err != nil {
+		return Task{}, err
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionUpdate); err != nil {
@@ -269,6 +290,49 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 	}
 
 	return changed, nil
+}
+
+// syncTaskTags leaves the task with the tags its change asks for, inside the
+// transaction that holds the write lock. When the change touched the parent,
+// the structural tag follows it — with a parent the task carries it, without
+// one it loses it — and the rest of the tags keep what the change asked for
+// them, or what the task already had when no list was given. A change that
+// names neither the tags nor the parent leaves the tags as they are.
+func syncTaskTags(ctx context.Context, within *sql.Tx, origin string, taskID int64, given []string, parentChanged bool, parent *int64) error {
+	if given == nil && !parentChanged {
+		return nil
+	}
+
+	names := given
+
+	if names == nil {
+		read, err := readTaskTagNames(ctx, within, taskID)
+		if err != nil {
+			return err
+		}
+
+		names = read
+	}
+
+	if !parentChanged {
+		return replaceTaskTags(ctx, within, taskID, names)
+	}
+
+	if parent != nil {
+		if !slices.Contains(names, structuralTaskTag) {
+			if err := ensureTaskTag(ctx, within, origin); err != nil {
+				return err
+			}
+
+			names = append(slices.Clone(names), structuralTaskTag)
+		}
+	} else {
+		names = slices.DeleteFunc(slices.Clone(names), func(name string) bool {
+			return name == structuralTaskTag
+		})
+	}
+
+	return replaceTaskTags(ctx, within, taskID, names)
 }
 
 // CloseTask closes the task with the reason given. The refusal and the write
@@ -335,4 +399,54 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 	stored.UpdatedAt = now
 
 	return stored, nil
+}
+
+// checkNoCycle refuses a parent change that would make the task its own
+// descendant: the new parent cannot be the task itself and cannot hang from
+// it. It walks the ancestors of the new parent inside the transaction that
+// holds the write lock, so nobody can slip a hierarchy in between the check
+// and the write.
+func checkNoCycle(ctx context.Context, within *sql.Tx, taskID, newParentID int64) error {
+	if newParentID == taskID {
+		return ErrCycle
+	}
+
+	seen := map[int64]bool{taskID: true}
+	current := newParentID
+
+	for current != 0 {
+		if seen[current] {
+			return ErrCycle
+		}
+
+		seen[current] = true
+
+		var parentID sql.NullInt64
+
+		err := within.QueryRowContext(ctx,
+			`SELECT parent_id FROM tasks WHERE id = ?`, current).Scan(&parentID)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		case err != nil:
+			return fmt.Errorf("walking the ancestors of task %d: %w", current, err)
+		}
+
+		if !parentID.Valid {
+			return nil
+		}
+
+		current = parentID.Int64
+	}
+
+	return nil
+}
+
+// sameParent says whether two optional parents are the same one.
+func sameParent(a, b *int64) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+
+	return *a == *b
 }

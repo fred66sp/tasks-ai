@@ -412,8 +412,10 @@ func (c *Core) Task(ctx context.Context, ref string) (Task, error) {
 
 // Changes is what an update asks to change. A field left out is not touched, and
 // a text given empty clears the field; the tags travel as the whole list of
-// names, and an empty list leaves the task without any. An update that asks for
-// nothing is refused: it would touch the answer without touching the task.
+// names, and an empty list leaves the task without any. The parent travels as
+// the reference of the new parent, and an empty one leaves the task without a
+// parent. An update that asks for nothing is refused: it would touch the answer
+// without touching the task.
 type Changes struct {
 	Title       *string
 	Description *string
@@ -422,6 +424,7 @@ type Changes struct {
 	Priority    *int
 	Tags        *[]string
 	Status      *string
+	Parent      *string
 }
 
 // UpdateTask changes what the update asks for and returns the task as it is left.
@@ -440,8 +443,24 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 		tags = *changes.Tags
 	}
 
+	// The parent resolves before the write: the reference the change carries
+	// turns into the identity the base keeps, and one that resolves to nothing
+	// refuses the whole change without opening the transaction.
+	var parent *int64
+
+	if changes.Parent != nil {
+		parentID, err := c.parentID(ctx, *changes.Parent)
+		if err != nil {
+			return Task{}, err
+		}
+
+		if parentID != 0 {
+			parent = &parentID
+		}
+	}
+
 	stored, err := c.store.UpdateTask(ctx, id, func(task store.Task) (store.Task, error) {
-		return changed(task, changes)
+		return changed(task, changes, parent)
 	}, tags)
 	if err != nil {
 		switch {
@@ -449,6 +468,8 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 			return Task{}, c.missing(ref)
 		case errors.Is(err, store.ErrUnknownTag):
 			return Task{}, invalid("%v", err)
+		case errors.Is(err, store.ErrCycle):
+			return Task{}, invalid("the task cannot take itself or one of its own descendants as its parent")
 		case errors.Is(err, ErrInvalid), errors.Is(err, ErrConflict):
 			// La regla que el cambio ha pisado ya trae su mensaje: sale tal
 			// cual, sin la envoltura de la operación.
@@ -463,8 +484,9 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 
 // changed applies the fields of an update, checking the rules before anything is
 // written. It must not ask the base for anything: it runs inside the transaction
-// that holds the write lock.
-func changed(task store.Task, changes Changes) (store.Task, error) {
+// that holds the write lock. The parent arrives already resolved, nil when the
+// change leaves the task without one.
+func changed(task store.Task, changes Changes, parent *int64) (store.Task, error) {
 	if changes.Title != nil {
 		title, err := checkTitle(*changes.Title)
 		if err != nil {
@@ -498,6 +520,10 @@ func changed(task store.Task, changes Changes) (store.Task, error) {
 		if err := applyStatus(&task, *changes.Status); err != nil {
 			return store.Task{}, err
 		}
+	}
+
+	if changes.Parent != nil {
+		task.ParentID = parent
 	}
 
 	return task, nil
@@ -535,7 +561,8 @@ func (changes Changes) empty() bool {
 		changes.Assignee == nil &&
 		changes.Priority == nil &&
 		changes.Tags == nil &&
-		changes.Status == nil
+		changes.Status == nil &&
+		changes.Parent == nil
 }
 
 // CloseTask closes the task the reference points at with the reason given: it

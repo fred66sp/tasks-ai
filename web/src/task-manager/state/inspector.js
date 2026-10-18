@@ -15,16 +15,31 @@ export const inspectorState = {
     selectedDependents() {
       return Array.isArray(this.detail?.dependents) ? this.detail.dependents : [];
     },
+    /**
+     * Tareas que el formulario de edicion ofrece como padre. La tarea editada
+     * no se ofrece a si misma: un ciclo mas profundo lo rechaza el servidor y su
+     * error se presenta tal cual.
+     *
+     * @returns {Array<{ id: string, title: string }>}
+     */
+    parentOptions() {
+      const ownId = this.selectedTask.id;
+      return this.mappedTasks
+        .filter((task) => task.id !== ownId)
+        .map((task) => ({ id: task.id, title: task.title }));
+    },
     taskInspectorProps() {
       return {
         hasSelection: this.hasSelection,
         task: this.selectedTask,
+        parentTask: this.selectedParentTask,
         menuOpen: this.isInspectorMenuOpen,
         busy: this.isBusy,
         statusBadgeClass: this.statusBadgeClass,
         statusLabel: this.statusLabel,
         priorityLabel: this.priorityLabel,
         subtasks: this.selectedSubtasks,
+        parentOptions: this.parentOptions,
         blockers: this.selectedBlockers,
         dependents: this.selectedDependents,
         comments: this.selectedComments,

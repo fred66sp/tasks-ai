@@ -426,6 +426,16 @@
         letter-spacing: 0.06em;
         text-transform: uppercase;
       }
+      .task-parent-link {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        letter-spacing: inherit;
+        text-decoration: underline;
+        cursor: pointer;
+      }
       .task-inspector__title {
         margin: 4px 0 0;
         font-size: 26px;
@@ -1491,6 +1501,11 @@
       .pre-wrap {
         color: var(--tk-color-text-secondary);
         white-space: pre-wrap;
+      }
+      /* Texto largo en bloque: alto tope con scroll vertical para no agrandar la interfaz. */
+      .tk-scrollable-text {
+        max-height: 150px;
+        overflow-y: auto;
       }
       .task-panel-stack,
       .comment-list {

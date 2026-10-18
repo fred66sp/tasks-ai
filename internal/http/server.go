@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	nethttp "net/http"
 	"strconv"
@@ -624,7 +625,14 @@ func lastSeen(r *nethttp.Request) (int64, bool, error) {
 func decode[T any](r *nethttp.Request) (T, error) {
 	var entry T
 
-	if err := json.NewDecoder(r.Body).Decode(&entry); err != nil {
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&entry); err != nil {
+		return entry, badEntry("the body of the request is not valid JSON")
+	}
+
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
 		return entry, badEntry("the body of the request is not valid JSON")
 	}
 

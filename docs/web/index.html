@@ -1101,7 +1101,7 @@
           </tbody>
         </table>
       </div>
-      <p data-i18n="api.29">El cuerpo de un error es siempre <code>{"error": "..."}</code>, con el código que corresponde, y nunca un error dentro de una respuesta correcta. El estado del producto se consulta con una petición y responde la versión, la versión del esquema y el prefijo en uso:</p>
+      <p data-i18n="api.29">El cuerpo de un error es siempre <code>{"error": "..."}</code>, con el código que corresponde, y nunca un error dentro de una respuesta correcta. Cada petición de escritura contiene un único valor JSON: cualquier contenido posterior es entrada inválida y no modifica el proyecto. El estado del producto se consulta con una petición y responde la versión, la versión del esquema y el prefijo en uso:</p>
       <div class="code">
         <pre><code>curl -s http://127.0.0.1:8891/api/status
 # {"version":"0.1.0","schema":5,"prefix":"tk"}</code></pre>
@@ -1537,7 +1537,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.26": "The reference matches no task or tag.",
  "api.27": "A rule stops it: closing a task with open subtasks.",
  "api.28": "Internal failure.",
- "api.29": "An error body is always <code>{\"error\": \"...\"}</code>, with the code that corresponds, and never an error inside a successful response. The product status is one request away and answers the version, the schema version and the prefix in use:",
+ "api.29": "An error body is always <code>{\"error\": \"...\"}</code>, with the code that corresponds, and never an error inside a successful response. Every write request contains exactly one JSON value: trailing content is invalid and leaves the project unchanged. The product status is one request away and answers the version, the schema version and the prefix in use:",
  "api.30": "The change channel",
  "api.31": "<code>GET /api/events</code> keeps a channel open and emits one event per notice, in the order they happened. Each event carries the name <code>workspace.changed</code> and the notice as JSON: the resource that changed, without saying who asked for it.",
  "api.32": "<code>changes</code> names the task with its reference, what happened to it —<code>creada</code>, <code>cerrada</code> or <code>actualizada</code>— and its title. A tag notice does not carry it.",

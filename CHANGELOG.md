@@ -7,6 +7,10 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **La API rechaza contenido posterior al JSON de una escritura**: un cuerpo debe
+  contener un único valor JSON; si trae basura o un segundo valor, la operación
+  responde con error sin modificar el proyecto.
+
 - **Los avisos SSE conservan cada cambio de tarea**: crear, cerrar, actualizar y
   comentar una tarea llevan su propia acción y título, aunque varias escrituras hayan
   ocurrido dentro del mismo sondeo. Las bases existentes migran su historial sin

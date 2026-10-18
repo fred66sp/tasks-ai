@@ -166,8 +166,10 @@ Códigos de estado:
 | `500` | Fallo interno |
 
 El cuerpo de un error es `{"error": "..."}` con el código que corresponde, nunca un
-error dentro de una respuesta correcta. El mensaje va en inglés y es el mismo que el
-CLI escribe en su JSON de error: lo compone el núcleo, no cada superficie (`ADR-011`).
+error dentro de una respuesta correcta. Cada petición de escritura contiene un único
+valor JSON; cualquier contenido posterior, aunque empiece por otro JSON válido, es
+entrada inválida y no modifica el proyecto. El mensaje va en inglés y es el mismo que
+el CLI escribe en su JSON de error: lo compone el núcleo, no cada superficie (`ADR-011`).
 
 ## 4. Eventos
 

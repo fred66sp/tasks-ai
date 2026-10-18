@@ -377,6 +377,27 @@ func errorTranslations() []errorTranslation {
 			},
 		},
 		{
+			name: "la entrada lleva contenido después del JSON",
+			steps: func(t *testing.T, server string) {
+				t.Helper()
+
+				status, body := do(t, server, "POST", "/api/tasks", `{"title":"válida"} basura`)
+				expect(t, status, body, http.StatusBadRequest, "the body of the request is not valid JSON")
+
+				status, body = do(t, server, "GET", "/api/tasks", "")
+				if status != http.StatusOK {
+					t.Fatalf("consultar después del JSON rechazado respondió %d: %s", status, body)
+				}
+
+				var tasks []core.Task
+				decode(t, body, &tasks)
+
+				if len(tasks) != 0 {
+					t.Errorf("el JSON posterior creó %d tareas, se esperaban 0", len(tasks))
+				}
+			},
+		},
+		{
 			name: "la prioridad está fuera del rango y la entrada llega al núcleo",
 			steps: func(t *testing.T, server string) {
 				t.Helper()

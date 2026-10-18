@@ -11,6 +11,17 @@
       selectedDependents() {
         return Array.isArray(this.detail?.dependents) ? this.detail.dependents : [];
       },
+      /**
+       * Tareas que el formulario de edicion ofrece como padre. La tarea editada
+       * no se ofrece a si misma: un ciclo mas profundo lo rechaza el servidor y su
+       * error se presenta tal cual.
+       *
+       * @returns {Array<{ id: string, title: string }>}
+       */
+      parentOptions() {
+        const ownId = this.selectedTask.id;
+        return this.mappedTasks.filter((task) => task.id !== ownId).map((task) => ({ id: task.id, title: task.title }));
+      },
       taskInspectorProps() {
         return {
           hasSelection: this.hasSelection,
@@ -22,6 +33,7 @@
           statusLabel: this.statusLabel,
           priorityLabel: this.priorityLabel,
           subtasks: this.selectedSubtasks,
+          parentOptions: this.parentOptions,
           blockers: this.selectedBlockers,
           dependents: this.selectedDependents,
           comments: this.selectedComments,
@@ -867,11 +879,13 @@
           this.editDraft = this.emptyEditDraft();
           return;
         }
+        const listed = this.mappedTasks.find((entry) => entry.id === task.id);
         this.editDraft = {
           title: task.title || "",
           description: task.description || "",
           notes: task.notes || "",
           assignee: task.assignee || "",
+          parent: listed?.parentId || "",
           tags: Array.isArray(task.chips) ? [...task.chips] : []
         };
       },
@@ -888,13 +902,15 @@
       async saveSelectedTask() {
         const title = this.editDraft.title.trim();
         if (!title || !this.hasSelection) return;
-        const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, {
+        const changes = {
           title,
           description: this.editDraft.description.trim(),
           notes: this.editDraft.notes.trim(),
           assignee: this.editDraft.assignee.trim(),
           tags: [...this.editDraft.tags]
-        }), "Cambios guardados.");
+        };
+        if ("parent" in this.editDraft) changes.parent = this.editDraft.parent;
+        const result = await this.mutate(`edit:${this.selectedTaskId}`, () => updateTask(this.selectedTaskId, changes), "Cambios guardados.");
         if (result) this.activeInspectorTab = "detail";
       },
       async updateTaskField(id, field, value) {
@@ -2079,6 +2095,7 @@
       statusLabel: { type: Function, required: true },
       priorityLabel: { type: Function, required: true },
       subtasks: { type: Array, required: true },
+      parentOptions: { type: Array, required: true },
       blockers: { type: Array, required: true },
       dependents: { type: Array, required: true },
       comments: { type: Array, required: true },
@@ -2225,9 +2242,15 @@
                 class="tk-textarea" @input="updateDraft('notes', $event.target.value)"></textarea></label><label
               class="tk-field"><span class="tk-field__label">Responsable</span><input :value="editDraft.assignee"
                 class="tk-input" placeholder="Sin asignar"
-                @input="updateDraft('assignee', $event.target.value)" /></label>
+                @input="updateDraft('assignee', $event.target.value)" /></label><label class="tk-field"><span
+              class="tk-field__label">Tarea padre</span><select :value="editDraft.parent || ''" class="tk-select"
+              :disabled="busy('edit:' + task.id)" @change="updateDraft('parent', $event.target.value)">
+              <option value="">Sin padre</option>
+              <option v-for="option in parentOptions" :key="option.id" :value="option.id">{{ option.id }} \xB7
+                {{ option.title }}</option>
+            </select></label>
             <tag-picker-field :model-value="editDraft.tags" :tags="tagCatalog" :colors="colors"
-              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab"
+              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab" wide
               @update:model-value="updateDraft('tags', $event)"></tag-picker-field>
             <div class="span-2 task-form-actions"><button class="tk-button tk-button--ghost" type="button"
                 :disabled="busy('edit:' + task.id)" @click="emitAction('edit.cancel')">Cancelar</button><button

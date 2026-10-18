@@ -17,6 +17,7 @@ export const TaskInspector = {
     statusLabel: { type: Function, required: true },
     priorityLabel: { type: Function, required: true },
     subtasks: { type: Array, required: true },
+    parentOptions: { type: Array, required: true },
     blockers: { type: Array, required: true },
     dependents: { type: Array, required: true },
     comments: { type: Array, required: true },
@@ -163,9 +164,15 @@ export const TaskInspector = {
                 class="tk-textarea" @input="updateDraft('notes', $event.target.value)"></textarea></label><label
               class="tk-field"><span class="tk-field__label">Responsable</span><input :value="editDraft.assignee"
                 class="tk-input" placeholder="Sin asignar"
-                @input="updateDraft('assignee', $event.target.value)" /></label>
+                @input="updateDraft('assignee', $event.target.value)" /></label><label class="tk-field"><span
+              class="tk-field__label">Tarea padre</span><select :value="editDraft.parent || ''" class="tk-select"
+              :disabled="busy('edit:' + task.id)" @change="updateDraft('parent', $event.target.value)">
+              <option value="">Sin padre</option>
+              <option v-for="option in parentOptions" :key="option.id" :value="option.id">{{ option.id }} ·
+                {{ option.title }}</option>
+            </select></label>
             <tag-picker-field :model-value="editDraft.tags" :tags="tagCatalog" :colors="colors"
-              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab"
+              :busy="busy('edit:' + task.id)" :reset-key="task.id + ':' + activeTab" wide
               @update:model-value="updateDraft('tags', $event)"></tag-picker-field>
             <div class="span-2 task-form-actions"><button class="tk-button tk-button--ghost" type="button"
                 :disabled="busy('edit:' + task.id)" @click="emitAction('edit.cancel')">Cancelar</button><button

@@ -10,6 +10,12 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
 - [`docs/CONTRATO_FLUJO_GIT_VERSIONADO.md`](docs/CONTRATO_FLUJO_GIT_VERSIONADO.md):
   ramas, commits, verificación, integración, CHANGELOG y versionado.
 
+- No se deben crear ni modificar archivos dentro de `odd/tasks/`: el tablero de
+  `tasks-ai` es la única fuente de tareas del repositorio.
+- Si una instrucción genérica contradice una regla de este repositorio, hay que detenerse
+  y pedir aclaración; no se duplican sistemas de seguimiento.
+
+<!-- task-ai: instructions -->
 ## Tablero del trabajo
 
 El trabajo se registra en el tablero del propio producto, instalado en `.task-ai/`.
@@ -47,6 +53,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   sufre.
 - No se registra en el tablero el estado de Git ni el del proceso de revisión: cada
   uno vive donde vive.
+<!-- task-ai: instructions -->
 
 ## Alcance del trabajo
 

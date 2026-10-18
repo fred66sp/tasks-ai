@@ -41,35 +41,46 @@ type Result struct {
 // Root is the root of the project the folder dir belongs to: the enclosing
 // repository when there is one, and the folder itself when there is not.
 func Root(dir string) string {
-	current := filepath.Clean(dir)
+	cleaned := filepath.Clean(dir)
+	if root, found := walkUp(cleaned, func(current string) bool {
+		_, err := os.Stat(filepath.Join(current, ".git"))
 
-	for {
-		if _, err := os.Stat(filepath.Join(current, ".git")); err == nil {
-			return current
-		}
-
-		parent := filepath.Dir(current)
-		if parent == current {
-			return filepath.Clean(dir)
-		}
-
-		current = parent
+		return err == nil
+	}); found {
+		return root
 	}
+
+	return cleaned
 }
 
 // Project returns the project the product is installed in, looking in the folder
 // dir and in the ones above it.
 func Project(dir string) (string, error) {
+	if root, found := walkUp(dir, func(current string) bool {
+		info, err := os.Stat(filepath.Join(current, DirName))
+
+		return err == nil && info.IsDir()
+	}); found {
+		return root, nil
+	}
+
+	return "", fmt.Errorf("there is no project with the product installed in %s or in the folders that contain it", dir)
+}
+
+// walkUp visits dir and each of its parents until a predicate accepts one or the
+// filesystem root is reached. Both callers share the same boundary traversal;
+// their predicates keep the repository and installation rules separate.
+func walkUp(dir string, found func(string) bool) (string, bool) {
 	current := filepath.Clean(dir)
 
 	for {
-		if info, err := os.Stat(filepath.Join(current, DirName)); err == nil && info.IsDir() {
-			return current, nil
+		if found(current) {
+			return current, true
 		}
 
 		parent := filepath.Dir(current)
 		if parent == current {
-			return "", fmt.Errorf("there is no project with the product installed in %s or in the folders that contain it", dir)
+			return filepath.Clean(dir), false
 		}
 
 		current = parent

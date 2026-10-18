@@ -25,6 +25,22 @@ func TestRoot_staysInTheRepositoryTheFolderBelongsTo(t *testing.T) {
 	}
 }
 
+func TestRoot_findsARepositoryWhoseGitEntryIsAFile(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, ".git"), []byte("gitdir: outside"), 0o600); err != nil {
+		t.Fatalf("preparando el .git como fichero: %v", err)
+	}
+
+	deep := filepath.Join(dir, "uno", "dos")
+	mkdir(t, deep)
+
+	if got := install.Root(deep); got != dir {
+		t.Errorf("Root(%q) = %q, se esperaba %q", deep, got, dir)
+	}
+}
+
 func TestRoot_fallsBackToTheFolderItWasGiven(t *testing.T) {
 	t.Parallel()
 

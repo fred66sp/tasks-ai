@@ -41,6 +41,17 @@ func TestLoad_keepsTheDefaultsForWhatTheFileLeavesOut(t *testing.T) {
 	}
 }
 
+func TestLoad_reportsAnUnknownSettingKey(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	write(t, dir, `{"prefx": "px"}`)
+
+	if _, err := settings.Load(dir); err == nil || !strings.Contains(err.Error(), `unknown field "prefx"`) {
+		t.Errorf("Load devolvió %v, se esperaba un error claro sobre la clave desconocida", err)
+	}
+}
+
 func TestLoad_refusesSettingsThatWouldBreakTheProduct(t *testing.T) {
 	t.Parallel()
 

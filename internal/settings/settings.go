@@ -3,6 +3,7 @@
 package settings
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -83,7 +84,19 @@ func Load(dir string) (Settings, error) {
 	}
 
 	cfg := Default()
-	if err := json.Unmarshal(raw, &cfg); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&cfg); err != nil {
+		return Settings{}, fmt.Errorf("%s is not a valid settings file: %w", FileName, err)
+	}
+
+	var extra json.RawMessage
+	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
+		if err == nil {
+			err = errors.New("more than one JSON value")
+		}
+
 		return Settings{}, fmt.Errorf("%s is not a valid settings file: %w", FileName, err)
 	}
 

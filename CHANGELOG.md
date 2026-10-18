@@ -7,6 +7,9 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Settings rechaza claves desconocidas**: una errata como `prefx` deja de aplicar
+  silenciosamente el valor por omisión y muestra el nombre de la clave no reconocida.
+
 - **Guardar settings sustituye el archivo de forma atómica**: una escritura o
   sustitución fallida conserva el JSON anterior y evita que el producto vuelva a leer
   un archivo truncado.

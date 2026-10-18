@@ -1255,3 +1255,37 @@ func TestUpdateTask_allowsAClosedParent(t *testing.T) {
 		t.Errorf("colgar una subtarea cambió el estado del padre: %q", parent.Status)
 	}
 }
+
+// TestCreateTask_withAParentCarriesTheStructuralTag deja escrito que la tarea
+// que nace con padre lleva la etiqueta task desde el primer momento, igual
+// que la que lo gana después: la misma regla en las dos entradas.
+func TestCreateTask_withAParentCarriesTheStructuralTag(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	epic := newTask(t, apply, "Épica")
+
+	child, err := apply.CreateTask(ctx, core.NewTask{Title: "Hija", Parent: epic.Ref})
+	if err != nil {
+		t.Fatalf("creando la subtarea: %v", err)
+	}
+
+	created := listedTask(t, listedTasks(t, apply), child.Ref)
+
+	if !slices.Contains(created.Tags, "task") {
+		t.Errorf("la subtarea nacida con padre debe llevar la etiqueta task, lleva %v", created.Tags)
+	}
+
+	loose, err := apply.CreateTask(ctx, core.NewTask{Title: "Suelta"})
+	if err != nil {
+		t.Fatalf("creando la tarea sin padre: %v", err)
+	}
+
+	without := listedTask(t, listedTasks(t, apply), loose.Ref)
+
+	if slices.Contains(without.Tags, "task") {
+		t.Errorf("la tarea sin padre no debe llevar la etiqueta task, lleva %v", without.Tags)
+	}
+}

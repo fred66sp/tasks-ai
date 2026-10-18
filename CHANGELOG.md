@@ -16,6 +16,9 @@ Changelog* y el versionado es semántico.
   subtarea de una tarea hecha está permitido. Está en el CLI (`update --parent`), la API
   (`PATCH /api/tasks/:ref` con `parent`), la interfaz web (campo «Tarea padre» en la
   edición del inspector) y la extensión de Pi (`tasks_update` con `parent`).
+- **La tarea que nace con padre lleva su etiqueta `task` desde el primer momento**:
+  `create --parent` la asigna en la misma creación —creándola en el catálogo si falta—,
+  igual que el cambio de padre la ajusta después.
 
 - **Los comentarios se pueden leer y editar**: además de añadirlos, `comment list`
   devuelve los de la tarea del primero al último con su identidad y su fecha, y

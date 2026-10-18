@@ -113,6 +113,9 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `update --tags "uno,dos"` pone la lista entera de etiquetas de la tarea, separadas
   por comas: una lista vacía la deja sin ninguna, y un nombre que no está en el
   catálogo es entrada inválida que no toca la tarea.
+- `create --parent <ref>` nace con la etiqueta `task` puesta —creándola en el catálogo
+  con el color por omisión si todavía no está—: la tarea que nace con padre y la que lo
+  gana después llevan la misma marca.
 - `update --status` cambia el estado: `in_progress` pone la tarea en curso y solo
   cabe desde `open`, y `open` la devuelve a pendiente —desde `done` es reabrir, y le
   quita el motivo de cierre—. `done` no se pone por el cambio: cerrar va por `close`,

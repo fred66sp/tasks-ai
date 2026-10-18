@@ -71,6 +71,18 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 		return Task{}, err
 	}
 
+	// La subtarea nace con su etiqueta estructural: la misma regla que el
+	// cambio de padre, dentro de la misma transacción que la crea.
+	if task.ParentID != nil {
+		if err := ensureTaskTag(ctx, tx, s.origin); err != nil {
+			return Task{}, err
+		}
+
+		if err := replaceTaskTags(ctx, tx, id, []string{structuralTaskTag}); err != nil {
+			return Task{}, err
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return Task{}, fmt.Errorf("closing the creation transaction: %w", err)
 	}

@@ -573,6 +573,13 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 		flusher.Flush()
 
+		// Un lote lleno puede dejar historia detras: se lee en seguida, sin esperar
+		// al sondeo, para que quien reconecta desde un aviso antiguo alcance el
+		// presente sin cargarla entera en memoria.
+		if len(events) == core.EventBatch {
+			continue
+		}
+
 		select {
 		case <-r.Context().Done():
 			return

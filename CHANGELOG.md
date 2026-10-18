@@ -7,6 +7,10 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Las reconexiones SSE recorren el historial en lotes**: los nombres de las
+  etiquetas se leen agrupados y un aviso de una etiqueta borrada sigue llegando sin
+  romper el canal.
+
 - **Abrir una base ya migrada evita transacciones de comprobación**: las migraciones
   pendientes conservan su transacción y la protección ante aperturas concurrentes.
 

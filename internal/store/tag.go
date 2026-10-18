@@ -267,21 +267,18 @@ func readTagUsers(ctx context.Context, within *sql.Tx, tagID int64) ([]int64, er
 	return users, nil
 }
 
-// TagName returns the name the tag with that identity carries now: el aviso
-// viaja por el número interno, y quien lo lee compone aquí el nombre que se
-// muestra, siempre el de ahora.
-func (s *Store) TagName(ctx context.Context, id int64) (string, error) {
-	var name string
-
-	err := s.db.QueryRowContext(ctx, `SELECT name FROM tags WHERE id = ?`, id).Scan(&name)
-	switch {
-	case errors.Is(err, sql.ErrNoRows):
-		return "", ErrNotFound
-	case err != nil:
-		return "", fmt.Errorf("reading the name of tag %d: %w", id, err)
+// TagNames devuelve, para cada etiqueta pedida, el nombre que lleva ahora: el
+// aviso viaja por el número interno, y quien lo lee compone aquí los nombres de
+// todo un lote con una sola consulta, no con una por aviso. La etiqueta que ya no
+// está —la que se borró o la que nadie tiene— sale fuera del mapa.
+func (s *Store) TagNames(ctx context.Context, ids []int64) (map[int64]string, error) {
+	if len(ids) == 0 {
+		return map[int64]string{}, nil
 	}
 
-	return name, nil
+	query := `SELECT id, name FROM tags WHERE id IN (` + inPlaceholders(len(ids)) + `)`
+
+	return idNames(ctx, s.db, query, ids)
 }
 
 // TaskTagNames returns the names of the tags a task carries, ordered by name.

@@ -367,11 +367,14 @@ type Change struct {
 	HappenedAt time.Time
 }
 
-// Changes lee los avisos guardados a partir del id dado, en el orden en que
-// ocurrieron: quien lee continúa donde se quedó pasando el último que vio.
-func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
+// Changes lee como mucho limit avisos guardados a partir del id dado, en el orden
+// en que ocurrieron: quien lee continúa donde se quedó pasando el último que vio,
+// y el tope deja que una historia larga se recorra en lotes en vez de cargarse
+// entera en memoria.
+func (s *Store) Changes(ctx context.Context, after int64, limit int) ([]Change, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, resource, resource_id, origin, action, happened_at FROM changes WHERE id > ? ORDER BY id`, after)
+		`SELECT id, resource, resource_id, origin, action, happened_at FROM changes WHERE id > ? ORDER BY id LIMIT ?`,
+		after, limit)
 	if err != nil {
 		return nil, fmt.Errorf("reading the changes: %w", err)
 	}
@@ -451,6 +454,44 @@ func int64Args(ids []int64) []any {
 	}
 
 	return args
+}
+
+// batchReader lee filas: basta con la base viva, que es de donde sale un lote.
+type batchReader interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+}
+
+// idNames lee pares (identidad, texto) de una consulta con cláusula IN: es la forma
+// en la que un lote pide los textos de ahora de sus recursos, en una sola consulta.
+// Una identidad que ya no está en la tabla sale fuera del mapa: no es un error.
+func idNames(ctx context.Context, from batchReader, query string, ids []int64) (map[int64]string, error) {
+	rows, err := from.QueryContext(ctx, query, int64Args(ids)...)
+	if err != nil {
+		return nil, fmt.Errorf("reading %d names: %w", len(ids), err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	names := make(map[int64]string, len(ids))
+
+	for rows.Next() {
+		var (
+			id   int64
+			text string
+		)
+
+		if err := rows.Scan(&id, &text); err != nil {
+			return nil, fmt.Errorf("reading %d names: %w", len(ids), err)
+		}
+
+		names[id] = text
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading %d names: %w", len(ids), err)
+	}
+
+	return names, nil
 }
 
 // migrate applies the migrations the database still owes, each one in its own

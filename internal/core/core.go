@@ -252,6 +252,12 @@ func (c *Core) Tasks(ctx context.Context) ([]Task, error) {
 	return c.tasks(ctx, stored)
 }
 
+// EventBatch es el máximo de avisos que Events entrega de una vez: la historia
+// larga se recorre en lotes, así que una reconexión desde un aviso antiguo no carga
+// todos los cambios en memoria ni hace una consulta por etiqueta. Quien lee sigue
+// desde el último aviso del lote hasta que un lote sale más corto que el tope.
+const EventBatch = 100
+
 // Event is a change of the project as it crosses the boundary: el aviso viajó
 // por el número interno, y aquí se compone la referencia que se muestra ahora,
 // con el título que la tarea tiene hoy. Action es lo que el cambio anotó sobre
@@ -281,14 +287,20 @@ func (c *Core) LastEventID(ctx context.Context) (int64, error) {
 // Events reads the changes that happened after the notice id given, with the
 // reference of each changed resource composed the way it is shown now and the
 // title the task carries today: quien lee continúa donde se quedó pasando el
-// último aviso que vio.
+// último aviso que vio. Como mucho sale un lote —EventBatch avisos—, leídos los
+// datos que el lote necesita en una sola consulta por recurso.
 func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
-	changes, err := c.store.Changes(ctx, after)
+	changes, err := c.store.Changes(ctx, after, EventBatch)
 	if err != nil {
 		return nil, fmt.Errorf("reading the change notices: %w", err)
 	}
 
 	titles, err := c.titlesOf(ctx, changes)
+	if err != nil {
+		return nil, err
+	}
+
+	tagNames, err := c.tagNamesOf(ctx, changes)
 	if err != nil {
 		return nil, err
 	}
@@ -310,7 +322,7 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 			event.Title = titles[change.ResourceID]
 		}
 
-		if event.Ref, err = c.referenceOf(ctx, change); err != nil {
+		if event.Ref, err = c.referenceOf(change, tagNames); err != nil {
 			return nil, err
 		}
 
@@ -321,17 +333,10 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 }
 
 // titlesOf lee, en una sola consulta, el título que tienen ahora las tareas de
-// las que hablan los avisos: lo que el lote necesita, no una pregunta por aviso.
+// las que hablan los avisos del lote: lo que el lote necesita, no una pregunta por
+// aviso.
 func (c *Core) titlesOf(ctx context.Context, changes []store.Change) (map[int64]string, error) {
-	asked := make([]int64, 0, len(changes))
-
-	for _, change := range changes {
-		if change.Resource == store.ResourceTask {
-			asked = append(asked, change.ResourceID)
-		}
-	}
-
-	titles, err := c.store.TaskTitles(ctx, asked)
+	titles, err := c.store.TaskTitles(ctx, identitiesOf(changes, store.ResourceTask))
 	if err != nil {
 		return nil, fmt.Errorf("reading the titles of the changes: %w", err)
 	}
@@ -339,24 +344,46 @@ func (c *Core) titlesOf(ctx context.Context, changes []store.Change) (map[int64]
 	return titles, nil
 }
 
+// tagNamesOf lee, en una sola consulta, el nombre que tienen ahora las etiquetas de
+// las que hablan los avisos del lote. Una etiqueta borrada sale sin nombre: su aviso
+// viaja igual y el canal no se rompe.
+func (c *Core) tagNamesOf(ctx context.Context, changes []store.Change) (map[int64]string, error) {
+	names, err := c.store.TagNames(ctx, identitiesOf(changes, store.ResourceTag))
+	if err != nil {
+		return nil, fmt.Errorf("reading the names of the changes: %w", err)
+	}
+
+	return names, nil
+}
+
+// identitiesOf recoge, sin repetirlos, los números internos de los avisos que
+// hablan del recurso dado: el lote pregunta una vez por identidad, y su tamaño ya
+// acota la lista que la consulta recibe.
+func identitiesOf(changes []store.Change, resource string) []int64 {
+	seen := make(map[int64]bool, len(changes))
+	asked := make([]int64, 0, len(changes))
+
+	for _, change := range changes {
+		if change.Resource != resource || seen[change.ResourceID] {
+			continue
+		}
+
+		seen[change.ResourceID] = true
+		asked = append(asked, change.ResourceID)
+	}
+
+	return asked
+}
+
 // referenceOf composes the reference a notice speaks of: la tarea se nombra con
-// el prefijo de ahora, y la etiqueta con el nombre que lleva ahora.
-func (c *Core) referenceOf(ctx context.Context, change store.Change) (string, error) {
+// el prefijo de ahora, y la etiqueta con el nombre que lleva ahora, leído en el
+// lote. La etiqueta borrada no tiene nombre que mostrar.
+func (c *Core) referenceOf(change store.Change, tagNames map[int64]string) (string, error) {
 	switch change.Resource {
 	case store.ResourceTask:
 		return Ref(c.prefix, change.ResourceID), nil
 	case store.ResourceTag:
-		name, err := c.store.TagName(ctx, change.ResourceID)
-		if errors.Is(err, store.ErrNotFound) {
-			// La etiqueta se borró: su aviso no tiene nombre que mostrar.
-			return "", nil
-		}
-
-		if err != nil {
-			return "", fmt.Errorf("composing the notice of tag %d: %w", change.ResourceID, err)
-		}
-
-		return name, nil
+		return tagNames[change.ResourceID], nil
 	default:
 		return "", fmt.Errorf("notice %d speaks of resource %q, which cannot be read", change.ID, change.Resource)
 	}

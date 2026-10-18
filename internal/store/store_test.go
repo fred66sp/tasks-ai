@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"tasks-ai/internal/store"
 	"testing"
@@ -598,7 +599,7 @@ func TestCreateTask_annotatesTheChangeItMade(t *testing.T) {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
 
-	changes, err := base.Changes(ctx, 0)
+	changes, err := base.Changes(ctx, 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -685,7 +686,7 @@ func TestOpenAs_recordsTheSurfaceThatAsksForTheChanges(t *testing.T) {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
 
-	changes, err := base.Changes(t.Context(), 0)
+	changes, err := base.Changes(t.Context(), 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -721,7 +722,7 @@ func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 		t.Fatalf("bloqueando la misma pareja otra vez: %v", err)
 	}
 
-	changes, err := base.Changes(ctx, 0)
+	changes, err := base.Changes(ctx, 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -749,7 +750,7 @@ func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 		t.Fatalf("retirando un bloqueo que ya no está: %v", err)
 	}
 
-	changes, err = base.Changes(ctx, 0)
+	changes, err = base.Changes(ctx, 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -807,7 +808,7 @@ func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
 		t.Fatalf("borrando la etiqueta: %v", err)
 	}
 
-	changes, err := base.Changes(ctx, 0)
+	changes, err := base.Changes(ctx, 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -892,7 +893,7 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 6", version)
 	}
 
-	changes, err := again.Changes(ctx, 0)
+	changes, err := again.Changes(ctx, 0, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -915,7 +916,7 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 		t.Fatalf("añadiendo el comentario: %v", err)
 	}
 
-	changes, err = again.Changes(ctx, stored.ID)
+	changes, err = again.Changes(ctx, stored.ID, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios nuevos: %v", err)
 	}
@@ -991,7 +992,7 @@ func TestChanges_readsOnlyWhatHappenedAfter(t *testing.T) {
 		t.Fatalf("guardando la segunda tarea: %v", err)
 	}
 
-	after, err := base.Changes(ctx, first.ID)
+	after, err := base.Changes(ctx, first.ID, wholeHistory)
 	if err != nil {
 		t.Fatalf("leyendo los cambios: %v", err)
 	}
@@ -1001,30 +1002,111 @@ func TestChanges_readsOnlyWhatHappenedAfter(t *testing.T) {
 	}
 }
 
-func TestTagName_returnsTheNameAndSaysWhenTheTagIsGone(t *testing.T) {
+// TestChanges_readsBoundedBatchesInTheOrderTheyHappened recorre el lote del
+// historial: como mucho los avisos pedidos, en el orden en que ocurrieron, y
+// cada lote deja en el último de ellos la identidad desde la que seguir leyendo.
+func TestChanges_readsBoundedBatchesInTheOrderTheyHappened(t *testing.T) {
 	t.Parallel()
 
 	base := openStore(t)
 	ctx := t.Context()
 
-	tag, err := base.CreateTag(ctx, store.Tag{Name: "docs", Color: "blue"})
-	if err != nil {
-		t.Fatalf("creando la etiqueta: %v", err)
+	for _, title := range []string{"Uno", "Dos", "Tres", "Cuatro", "Cinco"} {
+		if _, err := base.CreateTask(ctx, newTask(title)); err != nil {
+			t.Fatalf("guardando la tarea %q: %v", title, err)
+		}
 	}
 
-	name, err := base.TagName(ctx, tag.ID)
-	if err != nil {
-		t.Fatalf("leyendo el nombre de la etiqueta: %v", err)
-	}
+	// Cada lote trae como mucho el tope pedido, en el orden en que ocurrieron, y su
+	// último aviso es la identidad desde la que seguir leyendo. El último lote sale
+	// más corto que el tope y, después de él, la historia ya no da más.
+	want := [][]int64{{1, 2}, {3, 4}, {5}, {}}
 
-	if name != "docs" {
-		t.Errorf("la etiqueta %d se llama %q, se esperaba %q", tag.ID, name, "docs")
-	}
+	after := int64(0)
 
-	if _, err := base.TagName(ctx, 404); !errors.Is(err, store.ErrNotFound) {
-		t.Errorf("TagName devolvió %v, se esperaba ErrNotFound", err)
+	for _, ids := range want {
+		batch, err := base.Changes(ctx, after, 2)
+		if err != nil {
+			t.Fatalf("leyendo un lote de dos avisos desde %d: %v", after, err)
+		}
+
+		if got := changeIDs(batch); !slices.Equal(got, ids) {
+			t.Errorf("el lote leído desde el aviso %d trajo %v, se esperaba %v", after, got, ids)
+		}
+
+		if len(batch) > 0 {
+			after = batch[len(batch)-1].ID
+		}
 	}
 }
+
+// changeIDs nombra los avisos leídos por su identidad, en el orden en que vienen.
+func changeIDs(changes []store.Change) []int64 {
+	ids := make([]int64, 0, len(changes))
+
+	for _, change := range changes {
+		ids = append(ids, change.ID)
+	}
+
+	return ids
+}
+
+// TestTagNames_returnsTheNameOfEachTagInTheBatch recorre la lectura del lote: los
+// nombres de ahora de todas las identidades pedidas, en una sola consulta, con la
+// etiqueta borrada y la que nadie tiene fuera del mapa —leerlas no es un error, así
+// el aviso de una etiqueta que ya no está se queda sin nombre— y ninguna pregunta
+// para una lista vacía.
+func TestTagNames_returnsTheNameOfEachTagInTheBatch(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	docs, err := base.CreateTag(ctx, store.Tag{Name: "docs", Color: "blue"})
+	if err != nil {
+		t.Fatalf("creando la etiqueta docs: %v", err)
+	}
+
+	feat, err := base.CreateTag(ctx, store.Tag{Name: "feat", Color: "green"})
+	if err != nil {
+		t.Fatalf("creando la etiqueta feat: %v", err)
+	}
+
+	gone, err := base.CreateTag(ctx, store.Tag{Name: "gone", Color: "red"})
+	if err != nil {
+		t.Fatalf("creando la etiqueta a borrar: %v", err)
+	}
+
+	if _, _, err := base.DeleteTag(ctx, gone.Name); err != nil {
+		t.Fatalf("borrando la etiqueta: %v", err)
+	}
+
+	names, err := base.TagNames(ctx, []int64{docs.ID, feat.ID, gone.ID, 404})
+	if err != nil {
+		t.Fatalf("leyendo los nombres del lote: %v", err)
+	}
+
+	if len(names) != 2 || names[docs.ID] != "docs" || names[feat.ID] != "feat" {
+		t.Errorf("el lote devolvió %+v, se esperaban docs y feat", names)
+	}
+
+	if _, ok := names[gone.ID]; ok {
+		t.Errorf("la etiqueta borrada %d sigue en el mapa %+v, se esperaba fuera", gone.ID, names)
+	}
+
+	none, err := base.TagNames(ctx, nil)
+	if err != nil {
+		t.Fatalf("leyendo los nombres de ninguna etiqueta: %v", err)
+	}
+
+	if len(none) != 0 {
+		t.Errorf("una lista vacía pidió %d nombres, se esperaba ninguno", len(none))
+	}
+}
+
+// wholeHistory es el límite que las pruebas piden cuando quieren la historia entera
+// de una base pequeña: Changes siempre lee como mucho un lote.
+const wholeHistory = 100
 
 func openStore(t *testing.T) *store.Store {
 	t.Helper()

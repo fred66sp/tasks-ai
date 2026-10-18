@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"tasks-ai/internal/core"
 	api "tasks-ai/internal/http"
@@ -91,6 +93,7 @@ func TestServer_listsParentIDAsTheInternalNumberUsedByConsumers(t *testing.T) {
 const (
 	firstRef      = "tk-1"
 	renamedTitle  = "Renombrada"
+	createdAction = "creada"
 	updatedAction = "actualizada"
 )
 
@@ -770,7 +773,7 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 	}
 
 	created := readNotice(t, readRawEvent(t, events))
-	if len(created.Changes) != 1 || created.Changes[0] != (taskChange{ID: firstRef, Action: "creada", Title: "Avisada"}) {
+	if len(created.Changes) != 1 || created.Changes[0] != (taskChange{ID: firstRef, Action: createdAction, Title: "Avisada"}) {
 		t.Errorf("el aviso de la alta dice %+v, se esperaba tk-1 creada como “Avisada”", created.Changes)
 	}
 
@@ -843,7 +846,7 @@ func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testin
 	}{
 		// El título que lleva cada aviso es el que la tarea tiene ahora, no el de
 		// cuando ocurrió: el producto compone el aviso al leerlo.
-		{"id: 1\n", taskChange{ID: firstRef, Action: "creada", Title: renamedTitle}},
+		{"id: 1\n", taskChange{ID: firstRef, Action: createdAction, Title: renamedTitle}},
 		{"id: 2\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
 		{"id: 3\n", taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}},
 		{"id: 4\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
@@ -982,6 +985,122 @@ func TestServer_theEventsChannelContinuesWhereTheReaderLeftOff(t *testing.T) {
 	}
 }
 
+// TestServer_theEventsChannelBringsALongHistoryInBatches recorre la reconexión
+// desde un aviso antiguo por la interfaz pública: una historia más larga que el
+// lote que el canal lee de una vez llega completa, en orden y sin repetirse, con
+// su identidad delante, y las etiquetas que se borraron por el camino siguen
+// viajando sin romper el canal ni cortar el historial.
+func TestServer_theEventsChannelBringsALongHistoryInBatches(t *testing.T) {
+	t.Parallel()
+
+	server, base := newServer(t)
+	apply := core.New(base, "tk")
+
+	ctx := t.Context()
+
+	history := 2*core.EventBatch + 1
+	tagCreated, tagDeleted := writtenLongHistory(t, apply, history)
+
+	next := eventReader(t, openEvents(t, server+"/api/events?after=0"))
+
+	for id := range history + 2 {
+		checkHistoryNotice(t, id+1, next(), tagCreated, tagDeleted)
+	}
+
+	// Y el canal sigue vivo después del historial: lo que pasa ahora llega.
+	if _, err := apply.CreateTask(ctx, core.NewTask{Title: "La siguiente"}); err != nil {
+		t.Fatalf("creando la tarea de después: %v", err)
+	}
+
+	live := readNotice(t, next())
+	if len(live.Changes) != 1 || live.Changes[0].Title != "La siguiente" {
+		t.Errorf("el canal después del historial dice %+v, se esperaba la tarea de después", live)
+	}
+}
+
+// writtenLongHistory deja en la base una historia más larga que un lote del canal:
+// history tareas y, a la mitad, una etiqueta que se crea y se borra en seguida. Los
+// dos avisos de la etiqueta caen entre lotes, así que el lote siguiente tiene que
+// seguir leyendo después de ellos. Devuelve la identidad de los dos.
+func writtenLongHistory(t *testing.T, apply *core.Core, history int) (int, int) {
+	t.Helper()
+
+	ctx := t.Context()
+
+	for i := range history {
+		if _, err := apply.CreateTask(ctx, core.NewTask{Title: fmt.Sprintf("Tarea %d", i+1)}); err != nil {
+			t.Fatalf("creando la tarea %d: %v", i+1, err)
+		}
+
+		if i != history/2 {
+			continue
+		}
+
+		tag, err := apply.CreateTag(ctx, "borrada", "", "")
+		if err != nil {
+			t.Fatalf("creando la etiqueta: %v", err)
+		}
+
+		if _, _, err := apply.DeleteTag(ctx, tag.Name); err != nil {
+			t.Fatalf("borrando la etiqueta: %v", err)
+		}
+	}
+
+	tagCreated := history/2 + 2
+
+	return tagCreated, tagCreated + 1
+}
+
+// checkHistoryNotice recorre un aviso del historial como lo lee la interfaz: su
+// identidad delante y, cuando habla de una tarea, la tarea nombrada con el título
+// que lleva ahora. Los avisos de la etiqueta que se borró viajan sin cambios.
+func checkHistoryNotice(t *testing.T, id int, block string, tagCreated, tagDeleted int) {
+	t.Helper()
+
+	if want := "id: " + strconv.Itoa(id) + "\n"; !strings.HasPrefix(block, want) {
+		t.Fatalf("el aviso %d llegó con %q delante, se esperaba %q", id, firstLine(block), want)
+	}
+
+	notice := readNotice(t, block)
+
+	if id == tagCreated || id == tagDeleted {
+		if notice.Resource != "tags" || len(notice.Changes) != 0 {
+			t.Errorf("el aviso %d de la etiqueta dice %+v, se esperaba el recurso tags sin cambios", id, notice)
+		}
+
+		return
+	}
+
+	// Las dos escrituras de la etiqueta van en medio del historial: después de ellas
+	// cada aviso habla de la tarea dos números más atrás.
+	task := id
+	if id > tagDeleted {
+		task -= 2
+	}
+
+	if notice.Resource != taskResource || len(notice.Changes) != 1 {
+		t.Fatalf("el aviso %d dice %+v, se esperaba una tarea con su cambio", id, notice)
+	}
+
+	want := taskChange{
+		ID:     fmt.Sprintf("tk-%d", task),
+		Action: createdAction,
+		Title:  fmt.Sprintf("Tarea %d", task),
+	}
+
+	if notice.Changes[0] != want {
+		t.Fatalf("el aviso %d dice %+v, se esperaba %+v", id, notice.Changes[0], want)
+	}
+}
+
+// firstLine deja delante lo que el canal anuncia primero de un aviso: su
+// identidad.
+func firstLine(block string) string {
+	line, _, _ := strings.Cut(block, "\n")
+
+	return line
+}
+
 // TestServer_aSessionOpenedNowDoesNotReceiveTheChangesOfBefore recorre el
 // defecto: el aviso cuenta lo que pasa mientras miras, no lo que pasó antes.
 // Quien abre el canal recibe el cambio que ocurre después de abrirlo, y no los
@@ -1007,7 +1126,7 @@ func TestServer_aSessionOpenedNowDoesNotReceiveTheChangesOfBefore(t *testing.T) 
 
 	notice := readNotice(t, readRawEvent(t, events))
 
-	if len(notice.Changes) != 1 || notice.Changes[0] != (taskChange{ID: "tk-3", Action: "creada", Title: "De después"}) {
+	if len(notice.Changes) != 1 || notice.Changes[0] != (taskChange{ID: "tk-3", Action: createdAction, Title: "De después"}) {
 		t.Errorf("el primer aviso dice %+v, se esperaba tk-3 creada como “De después” y nada de antes", notice.Changes)
 	}
 }

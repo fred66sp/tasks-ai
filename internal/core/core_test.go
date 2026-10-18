@@ -2,6 +2,7 @@ package core_test
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"slices"
 	"tasks-ai/internal/core"
@@ -540,6 +541,138 @@ func TestEvents_doNotGiveATagTheTitleOfTheTaskThatSharesItsNumber(t *testing.T) 
 
 	if events[1].Resource != store.ResourceTag || events[1].Title != "" {
 		t.Errorf("el aviso de la etiqueta es %+v, se esperaba una etiqueta sin título", events[1])
+	}
+}
+
+// TestEvents_readsALongHistoryInMoreThanOneBatch recorre la reconexión desde un
+// aviso antiguo: una historia más larga que un lote no puede venir entera de una
+// vez —un solo lote con todo sería cargarla toda en memoria—, y los lotes leídos
+// uno detrás de otro salen completos, en orden, con su referencia y el título que
+// la tarea lleva ahora.
+func TestEvents_readsALongHistoryInMoreThanOneBatch(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+
+	const history = 250
+
+	for i := range history {
+		if _, err := apply.CreateTask(t.Context(), core.NewTask{Title: fmt.Sprintf("Tarea %d", i+1)}); err != nil {
+			t.Fatalf("creando la tarea %d: %v", i+1, err)
+		}
+	}
+
+	seen, sizes := readHistoryBatches(t, apply, history)
+
+	// La historia cabe en lotes llenos del tope y, al final, uno más corto: ahí se
+	// ve el borde del lote, que es donde una reconexión puede dejar avisos atrás.
+	want := slices.Repeat([]int{core.EventBatch}, history/core.EventBatch)
+	if tail := history % core.EventBatch; tail > 0 {
+		want = append(want, tail)
+	}
+
+	if !slices.Equal(sizes, want) {
+		t.Errorf("una historia de %d avisos llegó en lotes %v, se esperaban %v", history, sizes, want)
+	}
+
+	ordered := make([]int64, history)
+	for i := range ordered {
+		ordered[i] = int64(i + 1)
+	}
+
+	if !slices.Equal(seen, ordered) {
+		t.Errorf("los avisos leídos por lotes son %d %v, se esperaban los %d primeros en orden",
+			len(seen), seen, history)
+	}
+}
+
+// readHistoryBatches lee la historia entera por lotes, como la recorre quien se
+// reconecta: sigue desde el último aviso del lote hasta que un lote sale vacío. Cada
+// aviso tiene que salir con la referencia que le toca y el título que su tarea lleva
+// ahora, sea el lote que sea. Devuelve los ids leídos y el tamaño de cada lote.
+func readHistoryBatches(t *testing.T, apply *core.Core, history int) ([]int64, []int) {
+	t.Helper()
+
+	ctx := t.Context()
+
+	var (
+		after int64
+		seen  []int64
+		sizes []int
+	)
+
+	for range history + 1 {
+		batch, err := apply.Events(ctx, after)
+		if err != nil {
+			t.Fatalf("Events devolvió %v", err)
+		}
+
+		if len(batch) == 0 {
+			break
+		}
+
+		sizes = append(sizes, len(batch))
+
+		for _, event := range batch {
+			want := fmt.Sprintf("Tarea %d", event.ID)
+			if event.Ref != fmt.Sprintf("px-%d", event.ID) || event.Title != want {
+				t.Fatalf("el aviso %d dice %q con título %q, se esperaba %q", event.ID, event.Ref, event.Title, want)
+			}
+
+			seen = append(seen, event.ID)
+		}
+
+		after = batch[len(batch)-1].ID
+	}
+
+	return seen, sizes
+}
+
+// TestEvents_composeTheNameEachTagCarriesNowAndLeaveTheDeletedOneWithoutName
+// recorre el lote de etiquetas: la que sigue en el catálogo sale con el nombre que
+// lleva ahora, y la que se borró se queda sin nombre —como hasta ahora— en vez de
+// romper la lectura de los avisos que la nombran.
+func TestEvents_composeTheNameEachTagCarriesNowAndLeaveTheDeletedOneWithoutName(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+	ctx := t.Context()
+
+	kept, err := apply.CreateTag(ctx, "docs", "", "")
+	if err != nil {
+		t.Fatalf("creando la etiqueta que queda: %v", err)
+	}
+
+	gone, err := apply.CreateTag(ctx, "gone", "", "")
+	if err != nil {
+		t.Fatalf("creando la etiqueta a borrar: %v", err)
+	}
+
+	if _, err := apply.EditTag(ctx, kept.Name, core.TagChanges{Name: new("documentacion")}); err != nil {
+		t.Fatalf("renombrando la etiqueta: %v", err)
+	}
+
+	if _, _, err := apply.DeleteTag(ctx, gone.Name); err != nil {
+		t.Fatalf("borrando la etiqueta: %v", err)
+	}
+
+	events, err := apply.Events(ctx, 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v: el aviso de una etiqueta borrada no puede romper la lectura", err)
+	}
+
+	// Los avisos de la etiqueta borrada salen en su puesto, sin nombre: el que ya
+	// no está no tiene cómo nombrarse.
+	want := []string{"documentacion", "", "documentacion", ""}
+
+	if len(events) != len(want) {
+		t.Fatalf("cuatro cambios dejaron %d avisos, se esperaban %d", len(events), len(want))
+	}
+
+	for i, event := range events {
+		if event.Resource != store.ResourceTag || event.Ref != want[i] || event.Title != "" {
+			t.Errorf("el aviso %d es %+v, se esperaba la etiqueta %q sin título", i+1, event, want[i])
+		}
 	}
 }
 

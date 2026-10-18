@@ -454,15 +454,26 @@ func int64Args(ids []int64) []any {
 }
 
 // migrate applies the migrations the database still owes, each one in its own
-// transaction and recording the version it reached. The version is re-read
-// inside each transaction: with the write lock already taken, whoever arrives
-// second sees the work the first one committed and skips it instead of
-// creating the same tables twice.
+// transaction and recording the version it reached. An up-to-date database is
+// returned before opening any transaction; the version is still re-read inside
+// each pending transaction so concurrent openers skip work already committed by
+// whoever arrived first.
 func (s *Store) migrate(ctx context.Context) error {
+	version, err := schemaVersion(ctx, s.db)
+	if err != nil {
+		return fmt.Errorf("reading the schema before migration: %w", err)
+	}
+
 	for _, change := range migrations {
+		if change.version <= version {
+			continue
+		}
+
 		if err := s.apply(ctx, change); err != nil {
 			return err
 		}
+
+		version = change.version
 	}
 
 	return nil

@@ -7,6 +7,9 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Abrir una base ya migrada evita transacciones de comprobación**: las migraciones
+  pendientes conservan su transacción y la protección ante aperturas concurrentes.
+
 - **Las bases existentes crean índices para las consultas de detalle**: la migración
   añade índices sobre `comments.task_id` y `dependencies.blocker_id` sin alterar los
   comentarios, dependencias ni respuestas existentes.

@@ -35,6 +35,11 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("abriendo la base por primera vez: %v", err)
 	}
 
+	created, err := first.CreateTask(t.Context(), newTask("Se conserva"))
+	if err != nil {
+		t.Fatalf("escribiendo antes de reabrir: %v", err)
+	}
+
 	if err := first.Close(); err != nil {
 		t.Fatalf("cerrando la base: %v", err)
 	}
@@ -53,6 +58,11 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 
 	if version != 6 {
 		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 6", version)
+	}
+
+	read, err := again.Task(t.Context(), created.ID)
+	if err != nil || read.Title != created.Title {
+		t.Errorf("reabrir la base cambió la tarea a %+v (%v), se esperaba %+v", read, err, created)
 	}
 }
 
@@ -534,6 +544,12 @@ func TestOpen_givesUpWhenTheLockNeverYields(t *testing.T) {
 	if err := created.Close(); err != nil {
 		t.Fatalf("cerrando la base de prueba: %v", err)
 	}
+
+	// La base debe una migración para que Open necesite la escritura que este
+	// test bloquea; una base al día ya no abre transacciones solo para mirar.
+	rawBase(t, path, "DROP INDEX comments_task_id_idx")
+	rawBase(t, path, "DROP INDEX dependencies_blocker_id_idx")
+	rawBase(t, path, "UPDATE meta SET value = '5' WHERE key = 'schema_version'")
 
 	// Otra conexión toma la escritura y no la suelta, como un proceso atascado.
 	keen, err := sql.Open("sqlite", path)

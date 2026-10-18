@@ -28,7 +28,7 @@ repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
 La extensión no viaja en el binario: es un paquete de Pi que vive en el repositorio y se
 instala en el proyecto con los comandos del host, que dejan su ruta relativa en el archivo
-de ajustes de Pi del proyecto, que Git ignora (`.pi/settings.json`):
+de ajustes de Pi del proyecto, versionado (`.pi/settings.json`):
 
 ```bash
 pi install -l ./extensions/pi              # instala el paquete en el proyecto

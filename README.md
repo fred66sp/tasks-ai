@@ -88,7 +88,8 @@ además del comando `/board` y una línea de estado con la tarea en curso.
 
 No forma parte del binario: es un paquete de Pi que vive en el repositorio, y se instala
 en el proyecto con los comandos del host, que dejan su ruta relativa en
-`.pi/settings.json` —que Git ignora— sin copiar el fuente fuera:
+`.pi/settings.json` —versionado, para que otra máquina arranque igual— sin copiar el
+fuente fuera:
 
 ```bash
 pi install -l ./extensions/pi              # instala el paquete en el proyecto

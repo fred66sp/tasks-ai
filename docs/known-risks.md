@@ -66,14 +66,25 @@ el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
 
 ### RX-9 La copia del agente de delegación puede quedarse atrás
 
-La fuente del agente de delegación vive versionada en `extensions/pi/agents/`, pero Pi
-solo busca agentes en `.pi/agents/`, que Git ignora. La copia no la genera ni la compara
-ninguna herramienta: puede quedar desactualizada cuando la fuente cambie, y el agente
-trabajaría con un contrato viejo sin que nada lo avise.
+El agente de delegación vive en dos sitios del repositorio —la fuente en
+`extensions/pi/agents/` y la copia que Pi lee en `.pi/agents/`—, y nada compara las dos.
+Si una cambia y la otra no, el agente trabaja con un contrato viejo sin que nada lo avise.
 
 **Cobertura:** el contrato del agente es corto y cambia poco; cuando cambie, el mismo
-cambio actualiza la copia, como se actualiza cualquier documento dependiente. Ante un
-comportamiento raro en un encargo, se comparan las dos copias antes de buscar otra causa.
+cambio actualiza las dos. Ante un comportamiento raro en un encargo, se comparan antes de
+buscar otra causa.
+
+### RX-10 La base del tablero es un binario que no se fusiona
+
+La base viaja en el repositorio para llevarla a otra máquina. Un binario en Git no se
+fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve
+eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
+historia del repositorio.
+
+**Cobertura:** el tablero se mueve desde una máquina cada vez; antes de integrar se
+comprueba que la otra no tiene tareas nuevas, y una tarea creada en la máquina que se
+queda se vuelve a crear a mano si el conflicto ya ocurrió. Cuando moleste de verdad, la
+salida es un volcado de texto exportable, no la base binaria.
 
 ## Resueltos
 

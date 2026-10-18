@@ -78,7 +78,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 |---|---|
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
-| `.task-ai/` | El tablero del proyecto; la base no se versiona |
+| `.task-ai/` | El tablero del proyecto; su base viaja en el repositorio para llevarla a otra máquina |
 | `skills/` | Las skills del proyecto, copiadas del taller; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.

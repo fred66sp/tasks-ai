@@ -52,6 +52,17 @@ var ErrClosed = errors.New("the task is already closed")
 // lo están.
 var ErrOpenSubtasks = errors.New("the task has open subtasks")
 
+// ErrCycle dice que el cambio de padre formaría un ciclo: una tarea no puede
+// tomarse a sí misma ni a una de sus descendientes como padre.
+var ErrCycle = errors.New("the change would make the task its own descendant")
+
+// DefaultTagColor es el color que lleva una etiqueta a la que nadie dio uno.
+const DefaultTagColor = "blue"
+
+// structuralTaskTag es la etiqueta que marca una subtarea: entra cuando la
+// tarea tiene padre y sale cuando se queda sin él.
+const structuralTaskTag = "task"
+
 // driverName is the engine this package registers with database/sql.
 const driverName = "sqlite"
 
@@ -288,6 +299,12 @@ func (s *Store) SchemaVersion(ctx context.Context) (int, error) {
 // transaction, which read the schema version the same way.
 type rowQuerier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
+// rowsQuerier reads several rows: the live database and a transaction answer
+// the same queries the same way.
+type rowsQuerier interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 // schemaVersion reads the schema version from wherever a row can be queried,

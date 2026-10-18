@@ -126,7 +126,10 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   como entrada inválida con el código `2`; en los dos casos no se escribe nada. Al
   quedar con padre, la tarea pasa a llevar la etiqueta `task`, y al quedarse sin
   padre la pierde: el producto la ajusta dentro del mismo cambio y las demás etiquetas
-  no se tocan.
+  no se tocan. Si el catálogo no tiene todavía la etiqueta `task`, el cambio la crea
+  con el color por omisión: un catálogo vacío no es motivo para rechazar un padre. El
+  padre puede estar cerrado: una tarea cerrada admite subtareas nuevas igual que conserva
+  las que ya tenía, y colgar de ella no la reabre.
 - `list` responde todas las tareas del proyecto con la forma de arriba —las cerradas
   también—, cada una con su referencia visible, su estado y su `blocked`, que es
   verdadero mientras alguna de sus bloqueantes siga sin cerrar.

@@ -278,14 +278,26 @@ func (s *Store) TagNames(ctx context.Context, ids []int64) (map[int64]string, er
 
 // TaskTagNames returns the names of the tags a task carries, ordered by name.
 func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error) {
-	rows, err := s.db.QueryContext(ctx, `
+	names, err := readTaskTagNames(ctx, s.db, taskID)
+	if err != nil {
+		return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
+	}
+
+	return names, nil
+}
+
+// readTaskTagNames reads the names of the tags a task carries, from wherever it
+// is asked for: the live database from outside, the transaction from inside a
+// change that must see the tags it is about to replace.
+func readTaskTagNames(ctx context.Context, from rowsQuerier, taskID int64) ([]string, error) {
+	rows, err := from.QueryContext(ctx, `
 		SELECT t.name
 		FROM task_tags tt
 		JOIN tags t ON t.id = tt.tag_id
 		WHERE tt.task_id = ?
 		ORDER BY t.name`, taskID)
 	if err != nil {
-		return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
+		return nil, err
 	}
 
 	defer func() { _ = rows.Close() }()
@@ -296,17 +308,13 @@ func (s *Store) TaskTagNames(ctx context.Context, taskID int64) ([]string, error
 		var name string
 
 		if err := rows.Scan(&name); err != nil {
-			return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
+			return nil, err
 		}
 
 		names = append(names, name)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("reading the tags of task %d: %w", taskID, err)
-	}
-
-	return names, nil
+	return names, rows.Err()
 }
 
 // TasksTagNames devuelve, para cada tarea de la lista, los nombres de las
@@ -402,4 +410,31 @@ func replaceTaskTags(ctx context.Context, within *sql.Tx, taskID int64, names []
 // violations, the only case CreateTag translates into ErrTagExists.
 func isConstraint(err error) bool {
 	return isCode(err, sqlite3.SQLITE_CONSTRAINT)
+}
+
+// ensureTaskTag leaves the structural tag of the subtasks in the catalogue,
+// inside the transaction that holds the write lock: the change of parent needs
+// it, and a catalogue without it —a fresh one, or one where it was deleted—
+// cannot be a reason to refuse the change. Creating it records its own change
+// like CreateTag does, so the surfaces reload when it appears.
+func ensureTaskTag(ctx context.Context, within *sql.Tx, origin string) error {
+	if _, err := readTag(ctx, within, structuralTaskTag); err == nil {
+		return nil
+	} else if !errors.Is(err, ErrNotFound) {
+		return fmt.Errorf("looking up the structural tag %q: %w", structuralTaskTag, err)
+	}
+
+	result, err := within.ExecContext(ctx,
+		`INSERT INTO tags (name, color, description) VALUES (?, ?, ?)`,
+		structuralTaskTag, DefaultTagColor, nil)
+	if err != nil {
+		return fmt.Errorf("creating the structural tag %q: %w", structuralTaskTag, err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("reading the identity of the structural tag: %w", err)
+	}
+
+	return recordChange(ctx, within, origin, ResourceTag, id, ActionCreate)
 }

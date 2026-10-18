@@ -279,6 +279,7 @@ type taskPatch struct {
 	Priority    *int      `json:"priority"`
 	Tags        *[]string `json:"tags"`
 	Status      *string   `json:"status"`
+	Parent      *string   `json:"parent"`
 }
 
 // patchTask changes what the change asks for. El estado va solo en el cambio:
@@ -307,6 +308,7 @@ func (s *Server) patchTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 		Assignee:    entry.Assignee,
 		Priority:    entry.Priority,
 		Tags:        entry.Tags,
+		Parent:      entry.Parent,
 	}
 
 	task, err := s.core.UpdateTask(r.Context(), ref, changes)
@@ -325,7 +327,7 @@ func (s *Server) patchTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 // su motivo y va por su ruta.
 func (s *Server) changeStatus(w nethttp.ResponseWriter, r *nethttp.Request, ref string, entry taskPatch) {
 	if entry.Title != nil || entry.Description != nil || entry.Notes != nil ||
-		entry.Assignee != nil || entry.Priority != nil || entry.Tags != nil {
+		entry.Assignee != nil || entry.Priority != nil || entry.Tags != nil || entry.Parent != nil {
 		s.writeError(w, badEntry("the status goes alone in the change"))
 
 		return

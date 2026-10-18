@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"tasks-ai/internal/core"
@@ -96,6 +97,7 @@ const (
 	renamedTitle  = "Renombrada"
 	createdAction = "creada"
 	updatedAction = "actualizada"
+	openStatus    = "open"
 )
 
 // taskResource es el recurso en plural que la interfaz compara en los avisos de
@@ -115,7 +117,7 @@ func createsATaskThroughTheAPI(t *testing.T, server string) core.Task {
 
 	decode(t, body, &created)
 
-	if created.Ref != firstRef || created.Status != "open" || created.Priority != core.DefaultPriority {
+	if created.Ref != firstRef || created.Status != openStatus || created.Priority != core.DefaultPriority {
 		t.Errorf("la tarea creada es %+v, se esperaba tk-1 abierta con la prioridad por omisión", created)
 	}
 
@@ -553,7 +555,7 @@ func TestServer_closesAndReopensThroughTheStatusOfThePatch(t *testing.T) {
 
 	decode(t, body, &reopened)
 
-	if reopened.Status != "open" || reopened.CloseReason != nil {
+	if reopened.Status != openStatus || reopened.CloseReason != nil {
 		t.Errorf("la tarea reabierta es %+v, se esperaba open sin motivo", reopened)
 	}
 }
@@ -590,12 +592,196 @@ func TestServer_putsATaskInProgressThroughThePatch(t *testing.T) {
 
 	decode(t, body, &returned)
 
-	if returned.Status != "open" {
+	if returned.Status != openStatus {
 		t.Errorf("la tarea quedó en %q, se esperaba open", returned.Status)
 	}
 
 	status, body = do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "done"}`)
 	expect(t, status, body, http.StatusBadRequest, `status "done" cannot be set: to close use its route with the reason`)
+}
+
+// TestServer_changesTheParentOfATaskThroughThePatch recorre el ciclo del padre
+// por el cambio de la API: la tarea sin padre recibe uno, se mueve a otro y
+// vuelve a su nivel. La etiqueta estructural entra y sale con el padre, porque
+// el ajuste lo hace el producto y la API no lo repite.
+func TestServer_changesTheParentOfATaskThroughThePatch(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	epicA := createdTask(t, server, `{"title": "Épica A"}`)
+	epicB := createdTask(t, server, `{"title": "Épica B"}`)
+	child := createdTask(t, server, `{"title": "La que se mueve"}`)
+
+	assigned := patchesTheParent(t, server, child.Ref, epicA.Ref)
+	if assigned.ParentID == nil || *assigned.ParentID != epicA.ID {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", assigned.ParentID, epicA.ID)
+	}
+
+	if !slices.Contains(assigned.Tags, "task") {
+		t.Errorf("la tarea con padre debe llevar la etiqueta task, lleva %v", assigned.Tags)
+	}
+
+	moved := patchesTheParent(t, server, child.Ref, epicB.Ref)
+	if moved.ParentID == nil || *moved.ParentID != epicB.ID {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, epicB.ID)
+	}
+
+	alone := patchesTheParent(t, server, child.Ref, "")
+	if alone.ParentID != nil {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba sin padre", alone.ParentID)
+	}
+
+	if slices.Contains(alone.Tags, "task") {
+		t.Errorf("la tarea sin padre no debe llevar la etiqueta task, lleva %v", alone.Tags)
+	}
+}
+
+// TestServer_refusesTheParentChangesTheContractRefuses recorre los rechazos del
+// contrato —la referencia que no resuelve y los ciclos, consigo misma y con una
+// descendiente— y comprueba que ninguno deja nada escrito.
+func TestServer_refusesTheParentChangesTheContractRefuses(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	epic := createdTask(t, server, `{"title": "Épica"}`)
+	child := createdTask(t, server, `{"title": "Hija", "parent": "tk-1"}`)
+
+	refusals := []struct {
+		name    string
+		ref     string
+		parent  string
+		status  int
+		message string
+	}{
+		{
+			name:    "el padre no resuelve",
+			ref:     child.Ref,
+			parent:  "tk-999",
+			status:  http.StatusNotFound,
+			message: `there is no task with reference "tk-999"`,
+		},
+		{
+			name:    "la tarea del cambio no resuelve",
+			ref:     "tk-404",
+			parent:  epic.Ref,
+			status:  http.StatusNotFound,
+			message: `there is no task with reference "tk-404"`,
+		},
+		{
+			name:    "el padre es la propia tarea",
+			ref:     epic.Ref,
+			parent:  epic.Ref,
+			status:  http.StatusBadRequest,
+			message: "the task cannot take itself or one of its own descendants as its parent",
+		},
+		{
+			name:    "el padre es una descendiente",
+			ref:     epic.Ref,
+			parent:  child.Ref,
+			status:  http.StatusBadRequest,
+			message: "the task cannot take itself or one of its own descendants as its parent",
+		},
+	}
+
+	for _, refusal := range refusals {
+		t.Run(refusal.name, func(t *testing.T) {
+			t.Parallel()
+
+			body := fmt.Sprintf(`{"parent": %q}`, refusal.parent)
+			status, answer := do(t, server, http.MethodPatch, "/api/tasks/"+refusal.ref, body)
+			expect(t, status, answer, refusal.status, refusal.message)
+		})
+	}
+
+	// Nada de lo rechazado quedó escrito: la épica sigue en su nivel y sin la
+	// etiqueta estructural, y la hija sigue colgando de ella.
+	after := readTask(t, server, epic.Ref)
+	if after.ParentID != nil {
+		t.Errorf("un cambio de padre rechazado dejó escrito un padre: %+v", after.ParentID)
+	}
+
+	if slices.Contains(after.Tags, "task") {
+		t.Errorf("un cambio de padre rechazado dejó escrita la etiqueta task: %v", after.Tags)
+	}
+
+	if kept := readTask(t, server, child.Ref); kept.ParentID == nil || *kept.ParentID != epic.ID {
+		t.Errorf("la hija quedó con padre %+v, se esperaba %d", kept.ParentID, epic.ID)
+	}
+}
+
+// TestServer_refusesTheParentTogetherWithTheStatus comprueba que el estado
+// sigue yendo solo en el cambio, también cuando lo que lo acompaña es el padre:
+// la entrada es inválida y la tarea queda como estaba.
+func TestServer_refusesTheParentTogetherWithTheStatus(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	createdTask(t, server, `{"title": "Padre"}`)
+	createdTask(t, server, `{"title": "Para poner en curso"}`)
+
+	status, body := do(t, server, http.MethodPatch, "/api/tasks/tk-2", `{"status": "in_progress", "parent": "tk-1"}`)
+	expect(t, status, body, http.StatusBadRequest, "the status goes alone in the change")
+
+	after := readTask(t, server, "tk-2")
+	if after.ParentID != nil {
+		t.Errorf("la tarea quedó con padre %+v, se esperaba sin padre", after.ParentID)
+	}
+
+	if after.Status != openStatus {
+		t.Errorf("la tarea quedó en %q, se esperaba open", after.Status)
+	}
+}
+
+// createdTask crea una tarea por la API y devuelve la guardada.
+func createdTask(t *testing.T, server, body string) core.Task {
+	t.Helper()
+
+	status, answer := do(t, server, http.MethodPost, "/api/tasks", body)
+	if status != http.StatusCreated {
+		t.Fatalf("crear la tarea respondió %d: %s", status, answer)
+	}
+
+	var created core.Task
+
+	decode(t, answer, &created)
+
+	return created
+}
+
+// readTask lee el detalle de la tarea y devuelve la tarea tal como está.
+func readTask(t *testing.T, server, ref string) core.Task {
+	t.Helper()
+
+	status, answer := do(t, server, http.MethodGet, "/api/tasks/"+ref, "")
+	if status != http.StatusOK {
+		t.Fatalf("leer %s respondió %d: %s", ref, status, answer)
+	}
+
+	var detail core.Detail
+
+	decode(t, answer, &detail)
+
+	return detail.Task
+}
+
+// patchesTheParent pide el cambio de padre de la tarea y devuelve la tarea tal
+// como la respuesta la trae.
+func patchesTheParent(t *testing.T, server, ref, parent string) core.Task {
+	t.Helper()
+
+	status, answer := do(t, server, http.MethodPatch, "/api/tasks/"+ref, fmt.Sprintf(`{"parent": %q}`, parent))
+	if status != http.StatusOK {
+		t.Fatalf("cambiar el padre de %s respondió %d: %s", ref, status, answer)
+	}
+
+	var changed core.Task
+
+	decode(t, answer, &changed)
+
+	return changed
 }
 
 // errorTranslation nombra una negativa de la API con los pasos que la provocan.

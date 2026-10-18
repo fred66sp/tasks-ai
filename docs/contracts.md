@@ -208,10 +208,10 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
   sesiones se vean. La interfaz recarga lo suyo y avisa de cualquier cambio de
   tarea; la ventana que lo pidió no se lo repite, porque lo evita con su propio
   estado local.
-- El listado de tareas de la sección 3 entrega cada `parent_id` resuelto a la
-  referencia visible del padre, con la propia lista: la interfaz enlaza su árbol por
-  la referencia, y con ella el árbol anida y cada épica muestra el progreso de sus
-  subtareas. El detalle sigue nombrando el padre por su número interno.
+- El listado de tareas de la sección 3 entrega `parent_id` como el número interno del
+  padre, igual que el modelo de la sección 1. La interfaz transforma ese número en la
+  referencia visible al construir su árbol; la API, el CLI y la extensión Pi conservan
+  la identidad numérica y no dependen del prefijo para enlazar tareas.
 - Un canal pedido por alguien que no admite un canal abierto se rechaza con el código
   de entrada inválida de la sección 3, con el cuerpo de error de la API.
 

@@ -57,6 +57,34 @@ func TestServer_createsAndReadsTasksThroughTheCore(t *testing.T) {
 	listsItAsTheOnlyTaskOfTheProject(t, server, created)
 }
 
+func TestServer_listsParentIDAsTheInternalNumberUsedByConsumers(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title":"Padre"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("crear el padre respondió %d: %s", status, body)
+	}
+
+	status, body = do(t, server, http.MethodPost, "/api/tasks", `{"title":"Hija","parent":"tk-1"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("crear la hija respondió %d: %s", status, body)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/tasks", "")
+	if status != http.StatusOK {
+		t.Fatalf("listar padre e hija respondió %d: %s", status, body)
+	}
+
+	var tasks []core.Task
+	decode(t, body, &tasks)
+
+	if len(tasks) != 2 || tasks[1].ParentID == nil || *tasks[1].ParentID != 1 {
+		t.Fatalf("parent_id de la hija es %+v, se esperaba el número interno 1", tasks)
+	}
+}
+
 // createsATaskThroughTheAPI crea una tarea por la API y comprueba que llega
 // firstRef es la referencia visible que el producto da a la primera tarea de un
 // proyecto: las pruebas la comparan con lo que el servidor devuelve.

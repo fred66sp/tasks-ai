@@ -77,7 +77,7 @@ Changelog* y el versionado es semántico.
   El contrato de documentación le da su misión y su frontera, y el mapa del `README.md`
   nombra las dos carpetas.
 - `docs/contracts.md` describe lo que la API responde de verdad: `parent_id` viaja como
-  el número interno del que el cliente deriva la referencia del padre, el cambio de
+  el número interno del que la interfaz deriva la referencia del padre, el cambio de
   tarea con `status` junto a otro campo se rechaza, y el nivel de registro enumera sus
   valores junto al formato del prefijo.
 - El contrato de documentación ya no nombra una suite de comprobaciones que el
@@ -165,8 +165,8 @@ Changelog* y el versionado es semántico.
   cambio hecho desde la línea de comandos
   aparece solo, con su aviso de qué tarea cambió, y el
   progreso de las épicas y el recuento lo reflejan. El listado de tareas entrega
-  además cada `parent_id` resuelto a la referencia visible del padre, así que el
-  árbol anida y cada épica muestra el progreso de sus subtareas.
+  `parent_id` como número interno; la interfaz lo transforma en la referencia visible
+  para que el árbol anide y cada épica muestre el progreso de sus subtareas.
 
 ### Corregido
 

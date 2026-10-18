@@ -47,6 +47,7 @@ export const AppShell = {
       <task-inspector v-bind="taskInspectorProps" v-model:mobile-open="isMobileInspectorOpen"
         v-model:active-tab="activeInspectorTab" v-model:edit-draft="editDraft"
         v-model:dependency-draft="dependencyDraft" v-model:comment-draft="commentDraft"
+        v-model:editing-comment-draft="editingCommentDraft"
         @action="handleInspectorAction"></task-inspector>
     </section>
   </div>

@@ -169,9 +169,11 @@ type Task struct {
 	Notes       *string   `json:"notes"`
 }
 
-// Comment is a comment as it crosses the boundary: its body and the moment it
-// was added at. Comments are only added; nothing changes one afterwards.
+// Comment is a comment as it crosses the boundary: the number that identifies it
+// inside its task, its body and the moment it was added at. The identity and the
+// date are kept when the body is edited.
 type Comment struct {
+	ID        int64     `json:"id"`
 	Body      string    `json:"body"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -782,6 +784,7 @@ func commented(stored []store.Comment) []Comment {
 
 	for i := range stored {
 		comments = append(comments, Comment{
+			ID:        stored[i].ID,
 			Body:      stored[i].Body,
 			CreatedAt: stored[i].CreatedAt.UTC(),
 		})
@@ -823,12 +826,12 @@ func (c *Core) UnblockTask(ctx context.Context, ref, blockerRef string) (Task, e
 	return c.Task(ctx, ref)
 }
 
-// AddComment appends a comment to the task: comments are added, and that is
-// all, there is no way to change one afterwards. The body is required.
+// AddComment appends a comment to the task and returns the task as it is left.
+// The body is required and is stored without the spaces at its sides.
 func (c *Core) AddComment(ctx context.Context, ref, body string) (Task, error) {
-	text := strings.TrimSpace(body)
-	if text == "" {
-		return Task{}, invalid("the comment body is missing: use --body")
+	text, err := commentBody(body)
+	if err != nil {
+		return Task{}, err
 	}
 
 	id, err := c.taskID(ctx, ref)
@@ -841,6 +844,61 @@ func (c *Core) AddComment(ctx context.Context, ref, body string) (Task, error) {
 	}
 
 	return c.Task(ctx, ref)
+}
+
+// Comments are the comments of the task the reference points at, from the first
+// to the last, each one with its identity. Leer los comentarios no deja ningún
+// aviso: solo lo deja una escritura.
+func (c *Core) Comments(ctx context.Context, ref string) ([]Comment, error) {
+	id, err := c.taskID(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	stored, err := c.store.Comments(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("looking up the comments of task %q: %w", ref, err)
+	}
+
+	return commented(stored), nil
+}
+
+// EditComment changes the body of the comment of the task that carries the number
+// given, and returns the task as it is left. The identity of the comment and the
+// moment it was added at are kept. The number is understood inside the task, so a
+// comment that is not one of the task's is refused the way a reference that
+// resolves to nothing is, and a refused edit writes nothing.
+func (c *Core) EditComment(ctx context.Context, ref string, commentID int64, body string) (Task, error) {
+	text, err := commentBody(body)
+	if err != nil {
+		return Task{}, err
+	}
+
+	taskID, err := c.taskID(ctx, ref)
+	if err != nil {
+		return Task{}, err
+	}
+
+	if _, err := c.store.EditComment(ctx, taskID, commentID, text); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			return Task{}, notFound("there is no comment %d in task %q", commentID, strings.TrimSpace(ref))
+		}
+
+		return Task{}, fmt.Errorf("editing comment %d of task %q: %w", commentID, ref, err)
+	}
+
+	return c.Task(ctx, ref)
+}
+
+// commentBody is the rule every surface shares: a comment is written with a body,
+// stored without the spaces at its sides.
+func commentBody(body string) (string, error) {
+	text := strings.TrimSpace(body)
+	if text == "" {
+		return "", invalid("the comment body is missing: use --body")
+	}
+
+	return text, nil
 }
 
 // pair resolves the two references a block speaks of: both must point at tasks

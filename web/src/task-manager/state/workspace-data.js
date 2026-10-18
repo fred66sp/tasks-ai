@@ -101,6 +101,8 @@ export const workspaceData = {
       editDraft: { title: '', description: '', notes: '', assignee: '', tags: [] },
       dependencyDraft: '',
       commentDraft: '',
+      editingCommentId: null,
+      editingCommentDraft: '',
       tagSearchQuery: '',
       tagFormMode: '',
       editingTagName: '',

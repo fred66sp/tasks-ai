@@ -58,7 +58,9 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai reopen <referencia>   # reabre una tarea cerrada: vuelve a open y quita el motivo de cierre
 ./tasks-ai block <referencia> <referencia-bloqueante>   # deja la primera tarea bloqueada por la segunda
 ./tasks-ai unblock <referencia> <referencia-bloqueante>  # retira el bloqueo entre las dos tareas
-./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea: los comentarios solo se añaden
+./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea
+./tasks-ai comment list <referencia>  # devuelve los comentarios de la tarea, del primero al último, cada uno con su identidad
+./tasks-ai comment edit <referencia> <id> --body "..."  # cambia el cuerpo del comentario: conserva su identidad y su fecha de creación
 ./tasks-ai serve                # arranca la API HTTP y la interfaz en la dirección y el puerto del settings: la interfaz responde en la raíz, y los cambios se anuncian por un canal abierto
 ```
 
@@ -77,7 +79,8 @@ cd web && npm run watch  # la reconstruye al cambiar
 
 `extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
 `tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
-`tasks_reopen`, `tasks_block`, `tasks_unblock` y `tasks_comment` (`ADR-012`). El agente
+`tasks_reopen`, `tasks_block`, `tasks_unblock`, `tasks_comment`, `tasks_comment_list` y
+`tasks_comment_edit` (`ADR-012`). El agente
 deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
 está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
 además del comando `/board` y una línea de estado con la tarea en curso.

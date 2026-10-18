@@ -55,10 +55,10 @@ function mapRelation(relation) {
 }
 
 function mapComment(comment) {
-  if (typeof comment === 'string') return { body: comment, author: '', createdAt: '' };
+  if (typeof comment === 'string') return { id: null, body: comment, createdAt: '' };
   return {
+    id: comment?.id ?? null,
     body: comment?.body || comment?.text || '',
-    author: comment?.author || '',
     createdAt: comment?.created_at || comment?.createdAt || ''
   };
 }

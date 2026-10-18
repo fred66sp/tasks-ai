@@ -3,7 +3,7 @@
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { deriveBoard, renderBoard, renderDetail, renderSummary, type Board, type Detail, type Task } from "./board.ts";
+import { deriveBoard, renderBoard, renderComments, renderDetail, renderSummary, type Board, type Comment, type Detail, type Task } from "./board.ts";
 import { findProjectRoot, runCli, type Outcome } from "./cli.ts";
 
 const taskFields = {
@@ -260,13 +260,47 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_comment",
 		label: "Comentar tarea",
-		description: "Añade un comentario para dejar avances o contexto en una tarea; no edita comentarios anteriores.",
+		description: "Añade un comentario para dejar avances o contexto en una tarea; para leerlos tasks_comment_list y para cambiar el cuerpo de uno tasks_comment_edit.",
 		parameters: Type.Object({
 			ref: reference,
 			body: Type.String({ minLength: 1, pattern: "\\S", description: "el texto no vacío del comentario" }),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			return writeTask(["comment", params.ref, "--body", params.body], "comentario añadido", ctx, signal);
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_comment_list",
+		label: "Comentarios",
+		description: "Lee los comentarios de una tarea, del primero al último, cada uno con su identidad, su cuerpo y su fecha.",
+		promptSnippet: "Read the comments of one task",
+		parameters: Type.Object({ ref: reference }),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			const outcome = await executeCli(["comment", "list", params.ref], ctx.cwd, signal);
+			if (!outcome.ok) throw new Error(outcome.message);
+
+			const comments = outcome.data as Comment[];
+
+			return {
+				content: [{ type: "text" as const, text: renderComments(comments) }],
+				details: comments,
+			};
+		},
+	});
+
+	pi.registerTool({
+		name: "tasks_comment_edit",
+		label: "Editar comentario",
+		description: "Cambia el cuerpo del comentario de una tarea que lleva el número dado; la identidad y la fecha del comentario se conservan.",
+		promptSnippet: "Edit the body of one comment",
+		parameters: Type.Object({
+			ref: reference,
+			id: Type.Integer({ minimum: 1, description: "el número del comentario dentro de la tarea" }),
+			body: Type.String({ minLength: 1, pattern: "\\S", description: "el nuevo texto del comentario" }),
+		}),
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+			return writeTask(["comment", "edit", params.ref, String(params.id), "--body", params.body], "comentario editado", ctx, signal);
 		},
 	});
 }

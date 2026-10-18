@@ -809,6 +809,169 @@ func TestTasks_recomputesTheBlockedStateInsteadOfStoringIt(t *testing.T) {
 	}
 }
 
+// TestComments_areCreatedListedAndEditedUnderTheirIdentity recorre el histórico
+// por el núcleo: se añaden varios, se leen del primero al último con su
+// identidad y su fecha, y se edita uno conservando las dos, con la tarea tal como
+// queda y su aviso actualizado.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
+func TestComments_areCreatedListedAndEditedUnderTheirIdentity(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task := newTask(t, apply, "Con histórico")
+
+	for _, body := range []string{"  el primero  ", "el segundo"} {
+		changed, err := apply.AddComment(ctx, task.Ref, body)
+		if err != nil {
+			t.Fatalf("añadiendo el comentario %q: %v", body, err)
+		}
+
+		if changed.Ref != task.Ref {
+			t.Errorf("añadir un comentario devolvió la tarea %+v, se esperaba %q", changed, task.Ref)
+		}
+	}
+
+	listed := listedComments(t, apply, task.Ref)
+
+	if len(listed) != 2 || listed[0].Body != "el primero" || listed[1].Body != "el segundo" {
+		t.Fatalf("el histórico lista %+v, se esperaban los dos cuerpos sin los espacios de sobra", listed)
+	}
+
+	if listed[0].ID == 0 || listed[1].ID <= listed[0].ID {
+		t.Errorf("los comentarios salen identificados como %+v, se esperaba su número dentro de la tarea", listed)
+	}
+
+	if listed[0].CreatedAt.IsZero() || listed[1].CreatedAt.IsZero() {
+		t.Errorf("los comentarios salen sin fecha de creación: %+v", listed)
+	}
+
+	created, err := apply.EditComment(ctx, task.Ref, listed[0].ID, "corregido")
+	if err != nil {
+		t.Fatalf("editando el comentario %d: %v", listed[0].ID, err)
+	}
+
+	if created.Ref != task.Ref {
+		t.Errorf("editar un comentario devolvió la tarea %+v, se esperaba %q", created, task.Ref)
+	}
+
+	after := listedComments(t, apply, task.Ref)
+
+	if len(after) != 2 || after[0].ID != listed[0].ID || after[0].Body != "corregido" {
+		t.Fatalf("tras editar, el histórico es %+v, se esperaba el comentario %d corregido", after, listed[0].ID)
+	}
+
+	if !after[0].CreatedAt.Equal(listed[0].CreatedAt) {
+		t.Errorf("la edición cambió la fecha a %s, se esperaba %s", after[0].CreatedAt, listed[0].CreatedAt)
+	}
+
+	if after[1].ID != listed[1].ID || after[1].Body != listed[1].Body ||
+		!after[1].CreatedAt.Equal(listed[1].CreatedAt) {
+		t.Errorf("el comentario vecino cambió a %+v, se esperaba %+v", after[1], listed[1])
+	}
+
+	detail, err := apply.TaskDetail(ctx, task.Ref)
+	if err != nil {
+		t.Fatalf("TaskDetail devolvió %v", err)
+	}
+
+	if len(detail.Comments) != 2 || detail.Comments[0].ID != listed[0].ID ||
+		detail.Comments[0].Body != "corregido" {
+		t.Errorf("el detalle trae los comentarios %+v, se esperaban con su identidad", detail.Comments)
+	}
+
+	events, err := apply.Events(ctx, 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	// Un aviso por cambio: el alta de la tarea, los dos comentarios y la edición.
+	if len(events) != 4 {
+		t.Fatalf("cuatro cambios dejaron %d avisos: %+v", len(events), events)
+	}
+
+	last := events[len(events)-1]
+
+	if last.Resource != store.ResourceTask || last.Ref != task.Ref || last.Action != store.ActionUpdate {
+		t.Errorf("el aviso de la edición es %+v, se esperaba la tarea %q actualizada", last, task.Ref)
+	}
+}
+
+// TestComments_shareTheRuleOfTheBodyAndRefuseWhatIsNotTheirs recorre la regla
+// compartida por todas las superficies: el cuerpo vacío se rechaza igual al añadir
+// que al editar, y una identidad que no es de la tarea o una referencia que no
+// resuelve se rechazan sin tocar el histórico.
+func TestComments_shareTheRuleOfTheBodyAndRefuseWhatIsNotTheirs(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task := newTask(t, apply, "Con histórico")
+	elsewhere := newTask(t, apply, "Otra tarea")
+
+	if _, err := apply.AddComment(ctx, task.Ref, "el suyo"); err != nil {
+		t.Fatalf("añadiendo el comentario: %v", err)
+	}
+
+	if _, err := apply.AddComment(ctx, elsewhere.Ref, "el de otra tarea"); err != nil {
+		t.Fatalf("añadiendo el comentario de otra tarea: %v", err)
+	}
+
+	mine := listedComments(t, apply, task.Ref)[0]
+	theirs := listedComments(t, apply, elsewhere.Ref)[0]
+
+	_, added := apply.AddComment(ctx, task.Ref, "   ")
+	if !errors.Is(added, core.ErrInvalid) {
+		t.Errorf("AddComment aceptó un cuerpo vacío y devolvió %v, se esperaba ErrInvalid", added)
+	}
+
+	_, edited := apply.EditComment(ctx, task.Ref, mine.ID, "   ")
+	if !errors.Is(edited, core.ErrInvalid) {
+		t.Errorf("EditComment aceptó un cuerpo vacío y devolvió %v, se esperaba ErrInvalid", edited)
+	}
+
+	// La regla es una sola: el mismo cuerpo vacío sale rechazado con la misma
+	// palabra, venga de la superficie que venga.
+	if added.Error() != edited.Error() {
+		t.Errorf("el cuerpo vacío se rechaza con %q al añadir y %q al editar, se esperaba el mismo mensaje",
+			added, edited)
+	}
+
+	tests := []struct {
+		name string
+		ref  string
+		id   int64
+	}{
+		{name: "a comment of another task", ref: task.Ref, id: theirs.ID},
+		{name: "an identity nobody carries", ref: task.Ref, id: theirs.ID + 100},
+		{name: "a reference that resolves to nothing", ref: "tk-404", id: mine.ID},
+	}
+
+	if _, err := apply.Comments(ctx, "tk-404"); !errors.Is(err, core.ErrNotFound) {
+		t.Errorf("Comments aceptó una referencia que no resuelve y devolvió %v, se esperaba ErrNotFound", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := apply.EditComment(ctx, tt.ref, tt.id, "cambiado"); !errors.Is(err, core.ErrNotFound) {
+				t.Errorf("EditComment devolvió %v, se esperaba ErrNotFound", err)
+			}
+
+			// Un rechazo no escribe nada: el histórico de la tarea comentada sigue
+			// igual que estaba.
+			after := listedComments(t, apply, task.Ref)
+			if len(after) != 1 || after[0].ID != mine.ID || after[0].Body != "el suyo" {
+				t.Errorf("el rechazo dejó el histórico como %+v, se esperaba intacto", after)
+			}
+		})
+	}
+}
+
 // listedTasks devuelve el listado del proyecto.
 func listedTasks(t *testing.T, apply *core.Core) []core.Task {
 	t.Helper()
@@ -855,4 +1018,16 @@ func newTask(t *testing.T, apply *core.Core, title string) core.Task {
 	}
 
 	return task
+}
+
+// listedComments devuelve el histórico de la tarea, del primero al último.
+func listedComments(t *testing.T, apply *core.Core, ref string) []core.Comment {
+	t.Helper()
+
+	comments, err := apply.Comments(t.Context(), ref)
+	if err != nil {
+		t.Fatalf("Comments devolvió %v", err)
+	}
+
+	return comments
 }

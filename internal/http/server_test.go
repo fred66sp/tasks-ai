@@ -91,6 +91,7 @@ func TestServer_listsParentIDAsTheInternalNumberUsedByConsumers(t *testing.T) {
 // firstRef es la referencia visible que el producto da a la primera tarea de un
 // proyecto: las pruebas la comparan con lo que el servidor devuelve.
 const (
+	rejectedEntry = `{"body": "nada"}`
 	firstRef      = "tk-1"
 	renamedTitle  = "Renombrada"
 	createdAction = "creada"
@@ -258,6 +259,214 @@ func aCommentAddedArrivesInTheDetail(t *testing.T, server string) {
 	if len(detail.Comments) != 1 || detail.Comments[0].Body != "un comentario" {
 		t.Errorf("el detalle trae los comentarios %+v, se esperaba el añadido", detail.Comments)
 	}
+}
+
+// TestServer_readsAndEditsTheCommentsOfATask recorre el criterio de tk-105: la
+// API expone la lectura y la edición de los comentarios de una tarea, responde
+// con sus códigos, no muta ante un rechazo y deja el aviso de la tarea
+// actualizada que otras sesiones ven.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
+func TestServer_readsAndEditsTheCommentsOfATask(t *testing.T) {
+	t.Parallel()
+
+	server, base := newServer(t)
+
+	createsATaskThroughTheAPI(t, server)
+
+	addAComment := func(t *testing.T, body string) {
+		t.Helper()
+
+		status, body := do(t, server, http.MethodPost, "/api/tasks/"+firstRef+"/comments", `{"body": "`+body+`"}`)
+		if status != http.StatusOK {
+			t.Fatalf("añadir el comentario respondió %d: %s", status, body)
+		}
+	}
+
+	addAComment(t, "primero")
+	addAComment(t, "segundo")
+
+	// La lectura responde del primero al último, cada uno con su identidad.
+	status, body := do(t, server, http.MethodGet, "/api/tasks/"+firstRef+"/comments", "")
+	if status != http.StatusOK {
+		t.Fatalf("leer los comentarios respondió %d: %s", status, body)
+	}
+
+	var listed []core.Comment
+	decode(t, body, &listed)
+
+	if len(listed) != 2 || listed[0].Body != "primero" || listed[1].Body != "segundo" {
+		t.Fatalf("la lista es %+v, se esperaba primero y luego segundo", listed)
+	}
+
+	if listed[0].ID == 0 || listed[0].ID == listed[1].ID {
+		t.Errorf("cada comentario debe traer una identidad propia: %+v", listed)
+	}
+
+	before := listed
+
+	// La edición responde con la tarea tal como queda.
+	status, body = do(t, server, http.MethodPatch, "/api/tasks/"+firstRef+"/comments/2", `{"body": "segundo, corregido"}`)
+	if status != http.StatusOK {
+		t.Fatalf("editar el comentario respondió %d: %s", status, body)
+	}
+
+	var task core.Task
+	decode(t, body, &task)
+
+	if task.Ref != firstRef {
+		t.Errorf("la respuesta de la edición es %+v, se esperaba la tarea %q", task, firstRef)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/tasks/"+firstRef+"/comments", "")
+	if status != http.StatusOK {
+		t.Fatalf("releer los comentarios respondió %d: %s", status, body)
+	}
+
+	decode(t, body, &listed)
+
+	if listed[1].ID != before[1].ID || !listed[1].CreatedAt.Equal(before[1].CreatedAt) {
+		t.Errorf("la edición debía conservar identidad y fecha: antes %+v, después %+v", before[1], listed[1])
+	}
+
+	if listed[1].Body != "segundo, corregido" {
+		t.Errorf("el cuerpo editado es %q, se esperaba %q", listed[1].Body, "segundo, corregido")
+	}
+
+	if listed[0] != before[0] {
+		t.Errorf("el vecino cambió con la edición: antes %+v, después %+v", before[0], listed[0])
+	}
+
+	// El aviso del cambio viaja por el canal: una edición deja la tarea
+	// actualizada, igual que cuando el comentario llega.
+	events, err := core.New(base, "tk").Events(t.Context(), 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	last := events[len(events)-1]
+
+	if last.Resource != "task" || last.Ref != firstRef || last.Action != store.ActionUpdate {
+		t.Errorf("el último aviso es %+v, se esperaba la tarea %q actualizada", last, firstRef)
+	}
+}
+
+// TestServer_refusesTheCommentOperationsThatDoNotApply recorre los rechazos de
+// la lectura y la edición: la entrada vacía es 400, el recurso que no está es
+// 404, y ninguno deja nada escrito.
+func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	createsATaskThroughTheAPI(t, server)
+
+	// Una segunda tarea del mismo proyecto: el número de su comentario no es de
+	// la tarea que se edita.
+	status, _ := do(t, server, http.MethodPost, "/api/tasks", `{"title": "La vecina"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("crear la vecina respondió %d", status)
+	}
+
+	status, _ = do(t, server, http.MethodPost, "/api/tasks/tk-2/comments", `{"body": "de otra tarea"}`)
+	if status != http.StatusOK {
+		t.Fatalf("añadir el comentario de la vecina respondió %d", status)
+	}
+
+	status, _ = do(t, server, http.MethodPost, "/api/tasks/"+firstRef+"/comments", `{"body": "el mío"}`)
+	if status != http.StatusOK {
+		t.Fatalf("añadir el comentario respondió %d", status)
+	}
+
+	before, _, _ := readComments(t, server, firstRef)
+
+	tests := []struct {
+		name    string
+		method  string
+		path    string
+		body    string
+		status  int
+		message string
+	}{
+		{
+			name:    "the comment body is missing on edit",
+			method:  http.MethodPatch,
+			path:    "/api/tasks/" + firstRef + "/comments/1",
+			body:    `{"body": "  "}`,
+			status:  http.StatusBadRequest,
+			message: "the comment body is missing",
+		},
+		{
+			name:    "a comment that is not of the task is not found",
+			method:  http.MethodPatch,
+			path:    "/api/tasks/" + firstRef + "/comments/1",
+			body:    rejectedEntry,
+			status:  http.StatusNotFound,
+			message: `there is no comment 1 in task "tk-1"`,
+		},
+		{
+			name:    "an unknown comment is not found",
+			method:  http.MethodPatch,
+			path:    "/api/tasks/" + firstRef + "/comments/99",
+			body:    rejectedEntry,
+			status:  http.StatusNotFound,
+			message: `there is no comment 99 in task "tk-1"`,
+		},
+		{
+			name:    "an unknown task is not found",
+			method:  http.MethodPatch,
+			path:    "/api/tasks/tk-404/comments/1",
+			body:    rejectedEntry,
+			status:  http.StatusNotFound,
+			message: `there is no task with reference "tk-404"`,
+		},
+		{
+			name:    "a comment id that is not a number is a bad entry",
+			method:  http.MethodPatch,
+			path:    "/api/tasks/" + firstRef + "/comments/uno",
+			body:    rejectedEntry,
+			status:  http.StatusBadRequest,
+			message: `the comment id "uno" is not a number`,
+		},
+		{
+			name:    "the comments of an unknown task are not found",
+			method:  http.MethodGet,
+			path:    "/api/tasks/tk-404/comments",
+			body:    "",
+			status:  http.StatusNotFound,
+			message: `there is no task with reference "tk-404"`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			status, body := do(t, server, test.method, test.path, test.body)
+			expect(t, status, body, test.status, test.message)
+		})
+	}
+
+	after, _, _ := readComments(t, server, firstRef)
+
+	if len(after) != len(before) || len(after) == 0 || after[0].Body != before[0].Body {
+		t.Errorf("un rechazo debía dejar los comentarios como estaban: antes %+v, después %+v", before, after)
+	}
+}
+
+// readComments lee los comentarios de la tarea por la API.
+func readComments(t *testing.T, server, ref string) ([]core.Comment, int, string) {
+	t.Helper()
+
+	status, body := do(t, server, http.MethodGet, "/api/tasks/"+ref+"/comments", "")
+	if status != http.StatusOK {
+		return nil, status, body
+	}
+
+	var comments []core.Comment
+	decode(t, body, &comments)
+
+	return comments, status, body
 }
 
 func TestServer_servesTheCatalogueOfTags(t *testing.T) {

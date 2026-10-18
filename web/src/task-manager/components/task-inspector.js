@@ -23,9 +23,11 @@ export const TaskInspector = {
     tagCatalog: { type: Array, required: true },
     colors: { type: Array, required: true },
     dependencyDraft: { type: String, required: true },
-    commentDraft: { type: String, required: true }
+    commentDraft: { type: String, required: true },
+    editingCommentId: { type: Number, default: null },
+    editingCommentDraft: { type: String, default: '' }
   },
-  emits: ['update:mobileOpen', 'update:activeTab', 'update:editDraft', 'update:dependencyDraft', 'update:commentDraft', 'action'],
+  emits: ['update:mobileOpen', 'update:activeTab', 'update:editDraft', 'update:dependencyDraft', 'update:commentDraft', 'update:editingCommentDraft', 'action'],
   computed: {
     menuItems() {
       return [
@@ -52,7 +54,7 @@ export const TaskInspector = {
       else this.$emit('update:activeTab', tab);
     },
     commentMeta(comment) {
-      return [comment.author, comment.createdAt].filter(Boolean).join(' · ');
+      return ['#' + comment.id, comment.createdAt && new Date(comment.createdAt).toLocaleString('es')].filter(Boolean).join(' · ');
     }
   },
   template: `
@@ -227,8 +229,25 @@ export const TaskInspector = {
           </header>
           <div class="tk-panel__content">
             <div class="comment-list">
-              <article v-for="(comment, index) in comments" :key="index" class="comment-card">
-                <p>{{ comment.body }}</p><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span>
+              <article v-for="comment in comments" :key="comment.id" class="comment-card">
+                <template v-if="editingCommentId === comment.id">
+                  <textarea :value="editingCommentDraft" class="tk-textarea"
+                    @input="$emit('update:editingCommentDraft', $event.target.value)"></textarea>
+                  <div class="comment-card__actions">
+                    <button class="tk-button tk-button--primary" type="button"
+                      :disabled="busy('comment-edit:' + task.id) || !editingCommentDraft.trim()"
+                      @click="emitAction('comment.edit.save')">{{ busy('comment-edit:' + task.id) ? 'Guardando…' : 'Guardar' }}</button>
+                    <button class="tk-button" type="button" :disabled="busy('comment-edit:' + task.id)"
+                      @click="emitAction('comment.edit.cancel')">Cancelar</button>
+                  </div>
+                </template>
+                <template v-else>
+                  <p>{{ comment.body }}</p>
+                  <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
+                      class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
+                      :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"
+                      @click="emitAction('comment.edit.start', { comment })">✎</button></div>
+                </template>
               </article>
               <p v-show="!comments.length">Sin comentarios.</p>
             </div>

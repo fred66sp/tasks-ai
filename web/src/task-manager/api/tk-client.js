@@ -73,6 +73,7 @@ export const closeTask = (ref) => jsonRequest(`/api/tasks/${encodeURIComponent(r
 export const addTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers`, 'POST', { blocker });
 export const removeTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers/${encodeURIComponent(blocker)}`, 'DELETE');
 export const addTaskComment = (ref, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments`, 'POST', { body });
+export const editTaskComment = (ref, id, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments/${encodeURIComponent(id)}`, 'PATCH', { body });
 export const createTag = (tag) => jsonRequest('/api/tags', 'POST', tag);
 export const updateTag = (name, tag) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, 'PATCH', tag);
 export const deleteTag = (name) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, 'DELETE');

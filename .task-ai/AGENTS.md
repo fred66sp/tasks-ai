@@ -14,8 +14,9 @@ Este proyecto guarda sus tareas con el gestor local que vive en esta carpeta.
 
 Con la extensión de Pi cargada, el agente no escribe estos comandos: opera el tablero
 con sus herramientas (`tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`,
-`tasks_close`, `tasks_reopen`, `tasks_block`, `tasks_unblock` y `tasks_comment`). Los
-comandos quedan para la persona. Desde cualquier punto del proyecto:
+`tasks_close`, `tasks_reopen`, `tasks_block`, `tasks_unblock`, `tasks_comment`,
+`tasks_comment_list` y `tasks_comment_edit`). Los comandos quedan para la persona. Desde
+cualquier punto del proyecto:
 
 ```bash
 tasks-ai create --title "Preparar el análisis"   # crea una tarea y devuelve su JSON
@@ -43,8 +44,8 @@ vez ni una abierta se reabre.
 El estado bloqueado se calcula y no se guarda: una tarea aparece bloqueada mientras
 tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloqueante o
 al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede
-bloquearse por sí misma. Los comentarios solo se añaden: no hay manera de editar ni de
-borrar uno, y su cuerpo es obligatorio.
+bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
+dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
 Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create
@@ -85,8 +86,9 @@ este archivo, así que aquí se corrige lo que haga falta.
    borrar, solo cerrar.
 2. La tarea existe y está en curso antes de tocar archivos.
 3. Las **notas** son el relevo: qué falta y cuál es el siguiente paso. Se sobrescriben.
-4. Los **comentarios** son decisiones, hallazgos y evidencias. Solo se añaden: no se
-   editan ni se borran, así que se escribe lo que se querrá leer después.
+4. Los **comentarios** son decisiones, hallazgos y evidencias. Se corrigen editando su
+   cuerpo (`tasks_comment_edit`) y no se borran, así que se escribe lo que se querrá
+   leer después.
 5. Se cierra con su motivo cuando el resultado y sus comprobaciones se han observado, y
    no antes. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
 

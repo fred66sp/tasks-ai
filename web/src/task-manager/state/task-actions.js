@@ -7,6 +7,7 @@ import {
   listTags,
   listTasks,
   removeTaskBlocker,
+  editTaskComment,
   showTask,
   updateTask
 } from '../api/tk-client.js';
@@ -84,6 +85,9 @@ export const taskActions = {
       if (!id || this.isBusy(`detail:${id}`)) return;
       const requestSequence = ++this.detailRequestSequence;
       this.selectedTaskId = id;
+      // La edición de comentarios se entiende dentro de la tarea: al cambiar de
+      // selección se abandona, porque el número no apuntaria al mismo comentario.
+      if (this.detail?.id !== id) this.cancelCommentEdit();
       if (this.detail?.id !== id) this.detail = null;
       this.setBusy(`detail:${id}`, true);
       this.errorMessage = '';
@@ -250,6 +254,20 @@ export const taskActions = {
       if (!body || !this.hasSelection) return;
       const result = await this.mutate(`comment:${this.selectedTaskId}`, () => addTaskComment(this.selectedTaskId, body), 'Comentario añadido.');
       if (result) this.commentDraft = '';
+    },
+    startCommentEdit(comment) {
+      this.editingCommentId = comment?.id ?? null;
+      this.editingCommentDraft = comment?.body || '';
+    },
+    cancelCommentEdit() {
+      this.editingCommentId = null;
+      this.editingCommentDraft = '';
+    },
+    async saveCommentEdit() {
+      const body = this.editingCommentDraft.trim();
+      if (!body || !this.hasSelection || !this.editingCommentId) return;
+      const result = await this.mutate(`comment-edit:${this.selectedTaskId}`, () => editTaskComment(this.selectedTaskId, this.editingCommentId, body), 'Comentario actualizado.');
+      if (result) this.cancelCommentEdit();
     },
     async copyTaskId(id = this.selectedTaskId) {
       this.isInspectorMenuOpen = false;

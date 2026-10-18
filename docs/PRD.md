@@ -73,7 +73,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Estado y prioridad | Cambiarlos desde el listado y desde el detalle |
 | Cierre | Cerrar con motivo y comentario de cierre |
 | Dependencias | Alta y baja de bloqueos, y ver qué bloquea a qué |
-| Comentarios | Historial de solo añadir en cada tarea |
+| Comentarios | Historial de cada tarea con identidad propia: añadir, leer y editar el cuerpo |
 | Etiquetas | Catálogo con color y descripción: alta, renombrado y borrado, con aviso del uso antes de borrar |
 | Listado | Árbol con jerarquía visible, filtros por estado, prioridad y etiqueta, búsqueda por texto y vista por periodo |
 | Épicas | Marcar frentes de nivel superior y mostrar su progreso |
@@ -122,6 +122,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-06 | Cerrar una subtarea no cierra su tarea padre |
 | RN-07 | La marca de épica la pone quien crea la tarea; el producto no la añade sola |
 | RN-08 | La prioridad tiene un rango válido, y el valor que se salga de él se rechaza |
+| RN-09 | Cada comentario lleva una identidad estable dentro de su tarea y la fecha en que se añadió: editar su cuerpo no cambia ninguna de las dos |
 
 ### No funcionales
 

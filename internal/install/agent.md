@@ -29,6 +29,8 @@ tasks-ai reopen tk-1                             # reabre la tarea cerrada y dev
 tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
 tasks-ai unblock tk-2 tk-1                       # retira el bloqueo entre tk-2 y tk-1 y devuelve tk-2
 tasks-ai comment tk-1 --body "..."               # añade un comentario a tk-1 y devuelve la tarea
+tasks-ai comment list tk-1                       # devuelve los comentarios de tk-1, del primero al último, cada uno con su identidad
+tasks-ai comment edit tk-1 1 --body "..."        # cambia el cuerpo del comentario 1 de tk-1: conserva su identidad y su fecha
 tasks-ai serve                                   # arranca la API HTTP en la dirección y el puerto del settings y anuncia los cambios por un canal abierto
 ```
 
@@ -40,8 +42,8 @@ vez ni una abierta se reabre.
 El estado bloqueado se calcula y no se guarda: una tarea aparece bloqueada mientras
 tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloqueante o
 al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede
-bloquearse por sí misma. Los comentarios solo se añaden: no hay manera de editar ni de
-borrar uno, y su cuerpo es obligatorio.
+bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
+dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
 Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create

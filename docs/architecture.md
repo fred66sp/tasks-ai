@@ -109,7 +109,7 @@ querer añadir en sus propios archivos.
 
 La interfaz existente se reutiliza (`ADR-005`). Su capa de peticiones apunta a la
 superficie HTTP del núcleo; el árbol, los filtros, la búsqueda, las preferencias y las
-hojas de estilo no cambian. Lo que el servidor anterior calculaba —el estado
+hojas de estilo no se reescriben. Lo que el servidor anterior calculaba —el estado
 bloqueado, las reglas de cierre y la cascada del catálogo de etiquetas— pasa al
 núcleo. Las capacidades nuevas, el progreso de épicas y el recuento, se añaden sobre
 la misma base.

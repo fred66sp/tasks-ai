@@ -237,7 +237,8 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 - El prefijo empieza por letra o número y sigue con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres.
 
 - El producto escribe el archivo al instalar y no reescribe lo que el usuario haya
-  puesto.
+  puesto. Cada sustitución prepara el JSON en la misma carpeta y lo renombra al final:
+  si la escritura falla, el archivo anterior sigue intacto.
 - Un valor inválido detiene el arranque con un mensaje claro.
 - Si el prefijo del archivo no coincide con el que la base tiene registrado, el
   producto avisa de que las referencias escritas con el prefijo anterior dejan de

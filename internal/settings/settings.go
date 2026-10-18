@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -105,11 +106,61 @@ func Save(dir string, cfg Settings) error {
 	}
 
 	path := filepath.Join(dir, FileName)
-	if err := os.WriteFile(path, append(raw, '\n'), 0o644); err != nil { //nolint:gosec // los ajustes se escriben con los permisos de lectura del proyecto
+	if err := writeAtomically(path, append(raw, '\n'), os.Rename); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
 
 	return nil
+}
+
+// writeAtomically writes content beside path and replaces path only after the
+// complete temporary file is ready, so a failed write or replacement leaves the
+// previous settings file untouched.
+func writeAtomically(path string, content []byte, rename func(string, string) error) error {
+	temporary, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+
+	temporaryPath := temporary.Name()
+	defer func() { _ = os.Remove(temporaryPath) }()
+
+	mode := fs.FileMode(0o644)
+	if existing, err := os.Stat(path); err == nil {
+		mode = existing.Mode().Perm()
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		_ = temporary.Close()
+
+		return err
+	}
+
+	if err := temporary.Chmod(mode); err != nil {
+		_ = temporary.Close()
+
+		return err
+	}
+
+	if written, err := temporary.Write(content); err != nil {
+		_ = temporary.Close()
+
+		return err
+	} else if written != len(content) {
+		_ = temporary.Close()
+
+		return io.ErrShortWrite
+	}
+
+	if err := temporary.Sync(); err != nil {
+		_ = temporary.Close()
+
+		return err
+	}
+
+	if err := temporary.Close(); err != nil {
+		return err
+	}
+
+	return rename(temporaryPath, path)
 }
 
 // Exists reports whether dir holds a settings file.

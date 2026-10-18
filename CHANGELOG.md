@@ -7,6 +7,10 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Guardar settings sustituye el archivo de forma atómica**: una escritura o
+  sustitución fallida conserva el JSON anterior y evita que el producto vuelva a leer
+  un archivo truncado.
+
 - **Las reconexiones SSE recorren el historial en lotes**: los nombres de las
   etiquetas se leen agrupados y un aviso de una etiqueta borrada sigue llegando sin
   romper el canal.

@@ -7,6 +7,9 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Los settings nuevos quedan privados**: la escritura atómica usa permisos `0600`
+  cuando todavía no existe un archivo y conserva los permisos de uno existente.
+
 - **Settings rechaza claves desconocidas**: una errata como `prefx` deja de aplicar
   silenciosamente el valor por omisión y muestra el nombre de la clave no reconocida.
 

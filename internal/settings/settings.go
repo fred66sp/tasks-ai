@@ -138,7 +138,7 @@ func writeAtomically(path string, content []byte, rename func(string, string) er
 	temporaryPath := temporary.Name()
 	defer func() { _ = os.Remove(temporaryPath) }()
 
-	mode := fs.FileMode(0o644)
+	mode := fs.FileMode(0o600)
 	if existing, err := os.Stat(path); err == nil {
 		mode = existing.Mode().Perm()
 	} else if !errors.Is(err, fs.ErrNotExist) {

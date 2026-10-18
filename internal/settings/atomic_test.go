@@ -34,6 +34,24 @@ func TestWriteAtomically_keepsThePreviousFileWhenReplacementFails(t *testing.T) 
 	}
 }
 
+func TestWriteAtomically_usesPrivatePermissionsForANewFile(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), FileName)
+	if err := writeAtomically(path, []byte("new"), os.Rename); err != nil {
+		t.Fatalf("escribiendo los ajustes nuevos: %v", err)
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("leyendo los permisos de los ajustes nuevos: %v", err)
+	}
+
+	if got := info.Mode().Perm(); got != 0o600 {
+		t.Errorf("los ajustes nuevos tienen permisos %o, se esperaban 600", got)
+	}
+}
+
 func TestWriteAtomically_preservesTheExistingFilePermissions(t *testing.T) {
 	t.Parallel()
 

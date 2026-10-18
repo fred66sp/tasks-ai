@@ -238,7 +238,8 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 
 - El producto escribe el archivo al instalar y no reescribe lo que el usuario haya
   puesto. Cada sustitución prepara el JSON en la misma carpeta y lo renombra al final:
-  si la escritura falla, el archivo anterior sigue intacto.
+  si la escritura falla, el archivo anterior sigue intacto. Un archivo nuevo queda con
+  permisos privados (`0600`); uno existente conserva sus permisos.
 - Una clave desconocida también invalida el archivo y dice qué nombre no reconoce;
   no se aplica silenciosamente el valor por omisión.
 - Un valor inválido detiene el arranque con un mensaje claro.

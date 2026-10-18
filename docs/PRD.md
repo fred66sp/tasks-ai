@@ -76,7 +76,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Dependencias | Alta y baja de bloqueos, y ver qué bloquea a qué |
 | Comentarios | Historial de cada tarea con identidad propia: añadir, leer y editar el cuerpo |
 | Etiquetas | Catálogo con color y descripción: alta, renombrado y borrado, con aviso del uso antes de borrar |
-| Listado | Árbol con jerarquía visible, filtros por estado, prioridad y etiqueta, búsqueda por texto y vista por periodo |
+| Listado | Árbol con jerarquía visible, filtros por estado, prioridad y etiqueta, búsqueda por el título, la referencia, las etiquetas, la descripción, las notas y los comentarios, y vista por periodo |
 | Épicas | Marcar frentes de nivel superior y mostrar su progreso |
 | Recuento | Trabajo abierto del proyecto |
 | Preferencias | Recordar en el navegador lo último que miró la persona |
@@ -111,6 +111,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-10 | El CLI y el servidor son el mismo programa: un solo binario, que levanta el servidor de la interfaz con un comando |
 | RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio y fuera del binario, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
 | RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
+| RF-13 | La búsqueda de la interfaz encuentra una tarea por el texto de su título, su referencia, sus etiquetas, su descripción, sus notas y sus comentarios |
 
 ### Reglas de negocio
 
@@ -160,3 +161,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |
 | CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |
 | CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol, el recuento de épica y la etiqueta `task` reflejan siempre el padre vigente |
+| CA-15 | El texto buscado en la interfaz lista la tarea que lo lleva en el título, la referencia, una etiqueta, la descripción, las notas o un comentario, y no lista nada cuando el texto no aparece en ninguno de esos campos |

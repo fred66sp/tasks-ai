@@ -1062,7 +1062,7 @@
       <div class="grid cols-2">
         <div class="card"><h3 data-i18n="interfaz.6">El árbol</h3><p data-i18n="interfaz.7">Las tareas anidadas por su padre, cada épica con el progreso de sus subtareas y el recuento del proyecto.</p></div>
         <div class="card"><h3 data-i18n="interfaz.8">Las pestañas</h3><p data-i18n="interfaz.9">Pendientes, en curso y hechas, con el mismo estado que devuelve la API: lo que ves es lo que hay.</p></div>
-        <div class="card"><h3 data-i18n="interfaz.10">Los filtros</h3><p data-i18n="interfaz.11">Por estado, prioridad, etiqueta y texto. Se combinan, y el árbol se pliega y se despliega.</p></div>
+        <div class="card"><h3 data-i18n="interfaz.10">Los filtros</h3><p data-i18n="interfaz.11">Por estado, prioridad, etiqueta y texto. El texto busca en el título, la referencia, las etiquetas, la descripción, las notas y los comentarios. Se combinan, y el árbol se pliega y se despliega.</p></div>
         <div class="card"><h3 data-i18n="interfaz.12">Los avisos de cambio</h3><p data-i18n="interfaz.13">Lo que cambia desde otra ventana o desde la terminal aparece solo, con su aviso, sin recargar.</p></div>
       </div>
       <h3 data-i18n="interfaz.14">Lo que conviene saber antes de fiarse de la pantalla</h3>
@@ -1091,6 +1091,7 @@
             <tr><td><code>POST /api/tasks/:ref/comments</code></td><td data-i18n="api.13">Añadir un comentario.</td></tr>
             <tr><td><code>GET /api/tasks/:ref/comments</code></td><td data-i18n="api.36">Los comentarios de la tarea, del primero al último, cada uno con su identidad.</td></tr>
             <tr><td><code>PATCH /api/tasks/:ref/comments/:id</code></td><td data-i18n="api.37">Cambiar el cuerpo de un comentario: conserva su identidad y su fecha.</td></tr>
+            <tr><td><code>GET /api/comments</code></td><td data-i18n="api.38">Todos los comentarios del proyecto, cada uno con la referencia visible de la tarea que lo lleva —<code>ref</code>, <code>id</code>, <code>body</code>, <code>created_at</code>—, agrupados por tarea y del primero al último. Es el índice que el buscador de la interfaz recorre.</td></tr>
             <tr><td><code>GET /api/tags</code></td><td data-i18n="api.14">El catálogo de etiquetas con su uso.</td></tr>
             <tr><td><code>POST /api/tags</code></td><td data-i18n="api.15">Crear una etiqueta.</td></tr>
             <tr><td><code>PATCH /api/tags/:name</code></td><td data-i18n="api.16">Renombrar, recolorear o describir.</td></tr>
@@ -1516,7 +1517,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "interfaz.8": "The tabs",
  "interfaz.9": "Pending, in progress and done, with the same status the API returns: what you see is what is there.",
  "interfaz.10": "The filters",
- "interfaz.11": "By status, priority, tag and text. They combine, and the tree folds and unfolds.",
+ "interfaz.11": "By status, priority, tag and text. The text searches the title, the reference, the tags, the description, the notes and the comments. They combine, and the tree folds and unfolds.",
  "interfaz.12": "The change notices",
  "interfaz.13": "Whatever changes from another window or from the terminal shows up on its own, with its notice, without reloading.",
  "interfaz.14": "What to know before trusting the screen",
@@ -1538,6 +1539,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.13": "Add a comment.",
  "api.36": "The task's comments, from first to last, each one with its identity.",
  "api.37": "Change a comment's body: it keeps its identity and its timestamp.",
+ "api.38": "Every comment of the project, each one with the visible reference of the task that carries it —ref, id, body, created_at—, grouped by task and from first to last. It is the index the interface search walks.",
  "api.14": "The tag catalogue with its usage.",
  "api.15": "Create a tag.",
  "api.16": "Rename, recolour or describe.",

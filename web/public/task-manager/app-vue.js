@@ -139,6 +139,7 @@
     return tasks.map((task) => task.parent_id == null || !refOf.has(task.parent_id) ? task : { ...task, parent_id: refOf.get(task.parent_id) });
   }
   var listTags = () => apiRequest("/api/tags");
+  var listAllComments = () => apiRequest("/api/comments");
   var showTask = (ref) => apiRequest(`/api/tasks/${encodeURIComponent(ref)}`);
   var createTask = (task) => jsonRequest("/api/tasks", "POST", task);
   var updateTask = (ref, changes) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}`, "PATCH", changes);
@@ -737,13 +738,18 @@
         if (!initial) this.refreshing = true;
         this.errorMessage = "";
         try {
-          const [rawTasks, tags] = await Promise.all([
+          const [rawTasks, tags, comments] = await Promise.all([
             listTasks(),
-            listTags()
+            listTags(),
+            listAllComments()
           ]);
-          if (!Array.isArray(rawTasks) || !Array.isArray(tags)) throw new ApiError("El servidor devolvi\xF3 datos de tareas no v\xE1lidos.");
+          if (!Array.isArray(rawTasks) || !Array.isArray(tags) || !Array.isArray(comments)) throw new ApiError("El servidor devolvi\xF3 datos de tareas no v\xE1lidos.");
           if (requestSequence !== this.reloadRequestSequence) return null;
           const tasks = rawTasks.map(mapTask);
+          this.commentIndex = comments.reduce((index, comment) => {
+            if (comment?.ref && comment.body) index.set(comment.ref, `${index.get(comment.ref) || ""} ${comment.body}`);
+            return index;
+          }, /* @__PURE__ */ new Map());
           const selectedId = preferredId && tasks.some((task) => task.id === preferredId) ? preferredId : tasks[0]?.id || "";
           this.tasks = tasks;
           this.tags = tags;
@@ -1040,7 +1046,16 @@
       filteredTaskIds() {
         const query = this.normalizeSearchText(this.taskSearchQuery);
         return new Set(this.mappedTasks.filter(
-          (task) => (this.activeTaskFilter === "all" || this.activeTaskFilter === "current" && taskInCurrentPeriod(task, this.currentPeriod, /* @__PURE__ */ new Date()) || this.activeTaskFilter !== "current" && task.status === this.activeTaskFilter) && (!this.advancedStatuses.length || this.advancedStatuses.includes(task.status)) && (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) && (!this.advancedTags.length || task.chips.some((tag) => this.advancedTags.includes(tag))) && (!this.quickTagFilter || task.chips.includes(this.quickTagFilter)) && (!query || this.normalizeSearchText(`${task.id} ${task.title} ${task.chips.join(" ")}`).includes(query))
+          (task) => (this.activeTaskFilter === "all" || this.activeTaskFilter === "current" && taskInCurrentPeriod(task, this.currentPeriod, /* @__PURE__ */ new Date()) || this.activeTaskFilter !== "current" && task.status === this.activeTaskFilter) && (!this.advancedStatuses.length || this.advancedStatuses.includes(task.status)) && (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) && (!this.advancedTags.length || task.chips.some((tag) => this.advancedTags.includes(tag))) && (!this.quickTagFilter || task.chips.includes(this.quickTagFilter)) && // La búsqueda cubre descripción, notas y comentarios (tk-124): lo que
+          // la lista trae y lo que el índice de comentarios agrupa por referencia.
+          (!query || this.normalizeSearchText([
+            task.id,
+            task.title,
+            task.chips.join(" "),
+            task.description,
+            task.notes,
+            this.commentIndex?.get(task.id)
+          ].join(" ")).includes(query))
         ).map((task) => task.id));
       },
       visibleTasks() {
@@ -1220,6 +1235,10 @@
     data() {
       return {
         tasks: [],
+        // Índice de comentarios por referencia de tarea (tk-124): alimenta la
+        // búsqueda en comentarios. No es preferencia de interfaz: se recarga con
+        // el workspace.
+        commentIndex: /* @__PURE__ */ new Map(),
         tags: [],
         detail: null,
         selectedTaskId: "",
@@ -1851,7 +1870,7 @@
       datos</strong><span>Se mantiene visible el \xFAltimo estado confirmado.</span></div>
   <div class="task-search-row">
     <label><span class="sr-only">Buscar tareas</span><input :value="taskSearchQuery" class="tk-input" type="search"
-        placeholder="Buscar por t\xEDtulo, ID o etiqueta" @input="$emit('update-search', $event.target.value)" /></label>
+        placeholder="Buscar por t\xEDtulo, ID, etiqueta, descripci\xF3n, notas o comentarios" @input="$emit('update-search', $event.target.value)" /></label>
     <button class="tk-icon-button task-filter-button" type="button" aria-label="Filtros" title="Mostrar filtros avanzados" :aria-expanded="advancedFiltersOpen"
       @click.stop="$emit('toggle-filters')"><span class="tk-icon">\u2637</span><span v-if="hasAdvancedFilters" class="advanced-filter-indicator" aria-hidden="true"></span></button>
     <div class="menu-anchor"><button class="tk-icon-button" type="button" aria-label="Opciones del listado"

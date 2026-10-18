@@ -71,7 +71,16 @@ export const taskTree = {
         (!this.advancedPriorities.length || this.advancedPriorities.includes(task.priority)) &&
         (!this.advancedTags.length || task.chips.some((tag) => this.advancedTags.includes(tag))) &&
         (!this.quickTagFilter || task.chips.includes(this.quickTagFilter)) &&
-        (!query || this.normalizeSearchText(`${task.id} ${task.title} ${task.chips.join(' ')}`).includes(query))
+        // La búsqueda cubre descripción, notas y comentarios (tk-124): lo que
+        // la lista trae y lo que el índice de comentarios agrupa por referencia.
+        (!query || this.normalizeSearchText([
+          task.id,
+          task.title,
+          task.chips.join(' '),
+          task.description,
+          task.notes,
+          this.commentIndex?.get(task.id)
+        ].join(' ')).includes(query))
       ).map((task) => task.id));
     },
     visibleTasks() {

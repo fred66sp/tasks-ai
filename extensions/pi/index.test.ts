@@ -398,10 +398,10 @@ describe("la extensión", () => {
 		assert.equal(lists, 8);
 	});
 
-	it("registra las dos herramientas de lectura y las siete de escritura", () => {
+	it("registra las tres herramientas de lectura y las ocho de escritura", () => {
 		assert.deepEqual(Object.keys(tools).sort(), [
-			"tasks_block", "tasks_board", "tasks_close", "tasks_comment", "tasks_create",
-			"tasks_reopen", "tasks_show", "tasks_unblock", "tasks_update",
+			"tasks_block", "tasks_board", "tasks_close", "tasks_comment", "tasks_comment_edit",
+			"tasks_comment_list", "tasks_create", "tasks_reopen", "tasks_show", "tasks_unblock", "tasks_update",
 		]);
 	});
 
@@ -423,6 +423,13 @@ describe("la extensión", () => {
 		const body = tools.tasks_comment.parameters.properties.body;
 		assert.equal(body.minLength, 1);
 		assert.ok(!new RegExp(body.pattern as string).test(" \n\t"));
+		const edit = tools.tasks_comment_edit.parameters.properties;
+		assert.equal(edit.id.type, "integer");
+		assert.equal(edit.id.minimum, 1);
+		assert.equal(edit.body.minLength, 1);
+		assert.ok(!new RegExp(edit.body.pattern as string).test(" \n\t"));
+		assert.deepEqual(tools.tasks_comment_edit.parameters.required, ["ref", "id", "body"]);
+		assert.deepEqual(tools.tasks_comment_list.parameters.required, ["ref"]);
 	});
 
 	it("tasks_board devuelve el tablero del proyecto", async () => {
@@ -543,6 +550,78 @@ describe("la extensión", () => {
 		assert.deepEqual(result.details, cli("list")[0]);
 		assert.match(result.content[0].text, /^tk-1 · .*\[open\]/);
 		assert.doesNotMatch(result.content[0].text, /comentario privado|\n/);
+	});
+
+	it("tasks_comment_list lee los comentarios con su identidad y su fecha", async () => {
+		cli("create", "--title", "una tarea");
+		await execute("tasks_comment", { ref: "tk-1", body: "primero" });
+		await execute("tasks_comment", { ref: "tk-1", body: "segundo" });
+
+		const result = await execute("tasks_comment_list", { ref: " TK-1 " });
+		const comments = result.details as { id: number; body: string; created_at: string }[];
+
+		assert.equal(comments.length, 2);
+		assert.deepEqual(comments.map((comment) => comment.id), [1, 2]);
+		assert.deepEqual(comments.map((comment) => comment.body), ["primero", "segundo"]);
+		assert.ok(comments.every((comment) => /^\d{4}-\d{2}-\d{2}T/.test(comment.created_at)));
+		assert.match(result.content[0].text, /#1 · 20\d\d-.*primero/s);
+		assert.match(result.content[0].text, /#2 · 20\d\d-.*segundo/s);
+	});
+
+	it("tasks_comment_list responde vacía y propaga el rechazo de una tarea sin referencia", async () => {
+		cli("create", "--title", "una tarea");
+		const empty = await execute("tasks_comment_list", { ref: "tk-1" });
+		assert.equal((empty.details as unknown[]).length, 0);
+		assert.match(empty.content[0].text, /Sin comentarios/);
+
+		await assert.rejects(
+			() => execute("tasks_comment_list", { ref: "tk-999" }),
+			/there is no task with reference "tk-999"/,
+		);
+	});
+
+	it("tasks_comment_edit cambia el cuerpo y conserva identidad y fecha", async () => {
+		cli("create", "--title", "una tarea");
+		await execute("tasks_comment", { ref: "tk-1", body: "versión original" });
+		const before = (cli("show", "tk-1") as Detail).comments[0];
+
+		const result = await execute("tasks_comment_edit", { ref: " TK-1 ", id: 1, body: "versión corregida" });
+		const after = (cli("show", "tk-1") as Detail).comments[0];
+
+		assert.equal(after.id, before.id);
+		assert.equal(after.created_at, before.created_at);
+		assert.equal(after.body, "versión corregida");
+		assert.match(result.content[0].text, /^tk-1 · .*\[open\]/);
+	});
+
+	it("tasks_comment_edit propaga los rechazos del producto y no escribe nada", async () => {
+		cli("create", "--title", "una tarea");
+		cli("create", "--title", "otra");
+		await execute("tasks_comment", { ref: "tk-2", body: "de la otra" });
+		await execute("tasks_comment", { ref: "tk-1", body: "el mío" });
+		const before = cli("show", "tk-1").comments;
+
+		const rejected = spawnSync(binary, ["comment", "edit", "tk-1", "1", "--body", "nada"], { cwd: project, encoding: "utf8" });
+		assert.equal(rejected.status, 1);
+		const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+		await assert.rejects(() => execute("tasks_comment_edit", { ref: "tk-1", id: 1, body: "nada" }),
+			(error: Error) => error.message === message);
+
+		await assert.rejects(() => execute("tasks_comment_edit", { ref: "tk-1", id: 99, body: "nada" }),
+			/there is no comment 99 in task "tk-1"/);
+		await assert.rejects(() => execute("tasks_comment_edit", { ref: "tk-1", id: 0, body: "nada" }));
+
+		assert.deepEqual(cli("show", "tk-1").comments, before);
+		assert.deepEqual(cli("show", "tk-2").comments.map((comment: { body: string }) => comment.body), ["de la otra"]);
+	});
+
+	it("el detalle conserva la identidad y la fecha de los comentarios", async () => {
+		cli("create", "--title", "una tarea");
+		await execute("tasks_comment", { ref: "tk-1", body: "con identidad" });
+		const shown = await execute("tasks_show", { ref: "tk-1" });
+		const comment = (cli("show", "tk-1") as Detail).comments[0];
+
+		assert.match(shown.content[0].text, new RegExp(`#${comment.id} · ${comment.created_at.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} · con identidad`));
 	});
 
 	it("sin tablero instalado la herramienta falla con el mensaje del producto", async () => {

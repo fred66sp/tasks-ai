@@ -14,13 +14,20 @@ export interface Task {
 	tags: string[];
 }
 
+/** Un comentario tal como lo devuelve `show` o `comment list`. */
+export interface Comment {
+	id: number;
+	body: string;
+	created_at: string;
+}
+
 /** Una tarea con su descripción y lo que la rodea, tal como lo devuelve `show`. */
 export interface Detail extends Task {
 	description: string | null;
 	children: Task[];
 	blockers: Task[];
 	dependents: Task[];
-	comments: { body: string }[];
+	comments: Comment[];
 }
 
 export interface TreeNode {
@@ -135,10 +142,16 @@ export function renderDetail(detail: Detail): string {
 	if (detail.comments.length > 0) {
 		const recent = detail.comments.slice(-10);
 		lines.push("", `comentarios (${detail.comments.length}, los ${recent.length} últimos):`);
-		for (const comment of recent) lines.push(`- ${clip(comment.body, MAX_COMMENT)}`);
+		for (const comment of recent) lines.push(`- #${comment.id} · ${comment.created_at} · ${clip(comment.body, MAX_COMMENT)}`);
 	}
 
 	return lines.join("\n");
+}
+
+/** Compone la lista de comentarios de una tarea, tal como la responde `comment list`. */
+export function renderComments(comments: Comment[]): string {
+	if (comments.length === 0) return "Sin comentarios.";
+	return comments.map((comment) => `- #${comment.id} · ${comment.created_at} · ${clip(comment.body, MAX_COMMENT)}`).join("\n");
 }
 
 function listOf(tasks: Task[]): string {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { deriveBoard, renderBoard, renderDetail, type Task } from "./board.ts";
+import { deriveBoard, renderBoard, renderComments, renderDetail, type Task } from "./board.ts";
 
 function task(over: Partial<Task> & { id: number; ref: string }): Task {
 	return {
@@ -84,8 +84,12 @@ describe("renderBoard", () => {
 });
 
 describe("renderDetail", () => {
-	it("trae la descripción entera y solo los 10 comentarios más recientes", () => {
-		const comments = Array.from({ length: 26 }, (_, index) => ({ body: `comentario ${index + 1}` }));
+	it("trae la descripción entera y solo los 10 comentarios más recientes, con identidad y fecha", () => {
+		const comments = Array.from({ length: 26 }, (_, index) => ({
+			id: index + 1,
+			body: `comentario ${index + 1}`,
+			created_at: `2026-10-18T12:0${index % 10}:00Z`,
+		}));
 
 		const text = renderDetail({
 			ref: "tk-1",
@@ -106,5 +110,20 @@ describe("renderDetail", () => {
 		assert.doesNotMatch(text, /comentario 16\n/);
 		assert.match(text, /comentarios \(26, los 10 últimos\)/);
 		assert.match(text, /tk-2 · hija/);
+		assert.match(text, /#17 · 2026-10-18T12:06:00Z · comentario 17/);
+		assert.doesNotMatch(text, /#16 ·/);
+	});
+
+	it("renderComments lista los comentarios con su identidad y avisa de que no hay", () => {
+		assert.equal(renderComments([]), "Sin comentarios.");
+
+		const text = renderComments([
+			{ id: 1, body: "primero", created_at: "2026-10-18T12:00:00Z" },
+			{ id: 2, body: "segundo\nlargo", created_at: "2026-10-18T12:01:00Z" },
+		]);
+
+		assert.match(text, /#1 · 2026-10-18T12:00:00Z · primero/);
+		assert.match(text, /#2 · 2026-10-18T12:01:00Z · segundo largo/);
+		assert.doesNotMatch(text, /\n\n/);
 	});
 });

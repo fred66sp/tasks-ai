@@ -30,7 +30,7 @@ Rama: `fix/audit-findings`.
 - T8 — `tk-97`, S10, inline, commit `09ae1a4`: escribir settings de forma atómica.
 - T9 — `tk-98`, S11, inline, commit `e84dae1`: rechazar claves desconocidas en settings.
 - T10 — `tk-99`, S12, inline, commit `a4dd6af`: eliminar `Store.Tag` sin uso.
-- T11 — `tk-100`, S13, inline, commit pendiente: unificar el recorrido de raíces de instalación.
+- T11 — `tk-100`, S13, inline, commit `fd90598`: unificar el recorrido de raíces de instalación.
 
 ## Log
 
@@ -46,3 +46,4 @@ Rama: `fix/audit-findings`.
 - L10: T8 escribe settings en un temporal de la misma carpeta, sincroniza y renombra al final; los fallos de sustitución conservan el archivo anterior y los permisos existentes. Verificación independiente PASS tras cubrir también el modo `0600`; commit `09ae1a4`.
 - L11: T9 decodifica settings con `DisallowUnknownFields`, conserva los valores por omisión de un archivo parcial y rechaza una clave como `prefx` con su nombre en el error. La suite Go, race, vet y lint pasan; las rutas públicas `list` y `serve` devuelven el error JSON con salida distinta de cero. Commit `e84dae1`.
 - L12: T10 retira el método interno `Store.Tag`, que no tenía callers, y añade un recorrido CLI de crear, editar, listar y borrar etiquetas; la API HTTP y la suite completa conservan el catálogo. Commit `a4dd6af`.
+- L13: T11 unifica el ascenso de `install.Root` y `install.Project` en `walkUp`, manteniendo sus predicados distintos; las pruebas cubren subdirectorios, `.git` como fichero y proyectos sin instalación. Suite Go, race, vet y lint pasan; commit `fd90598`.

@@ -64,17 +64,7 @@ toque el CLI comprueba también la extensión y las dos juntas, no solo las prue
 producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
 el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
 
-### RX-9 La copia del agente de delegación puede quedarse atrás
-
-El agente de delegación vive en dos sitios del repositorio —la fuente en
-`extensions/pi/agents/` y la copia que Pi lee en `.pi/agents/`—, y nada compara las dos.
-Si una cambia y la otra no, el agente trabaja con un contrato viejo sin que nada lo avise.
-
-**Cobertura:** el contrato del agente es corto y cambia poco; cuando cambie, el mismo
-cambio actualiza las dos. Ante un comportamiento raro en un encargo, se comparan antes de
-buscar otra causa.
-
-### RX-10 La base del tablero es un binario que no se fusiona
+### RX-9 La base del tablero es un binario que no se fusiona
 
 La base viaja en el repositorio para llevarla a otra máquina. Un binario en Git no se
 fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve

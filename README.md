@@ -104,19 +104,14 @@ sigue.
 
 ### El agente de delegación
 
-`extensions/pi/agents/tasks-ai-worker.md` es el subagente que trabaja una tarea del
-tablero: lee su resultado y su criterio con `tasks_show`, toca solo los archivos que el
-encargo declara y devuelve evidencia. Pi solo busca agentes en `.pi/agents/`, que Git
-ignora, así que la fuente versionada se copia después de instalar el paquete:
-
-```bash
-mkdir -p .pi/agents
-cp extensions/pi/agents/tasks-ai-worker.md .pi/agents/
-```
+`.pi/agents/tasks-ai-worker.md` es el subagente que trabaja una tarea del tablero: lee su
+resultado y su criterio con `tasks_show`, toca solo los archivos que el encargo declara y
+devuelve evidencia. Vive en el proyecto, que es donde Pi busca agentes, y viaja en el
+repositorio: otra máquina lo tiene al clonar, sin copiar nada.
 
 El modelo del agente no se configura en el repositorio: se elige con `/gentle:models`,
-que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de la copia,
-porque el arnés congela su configuración al inicio.
+que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de cambiar
+ese archivo, porque el arnés congela su configuración al inicio.
 
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 

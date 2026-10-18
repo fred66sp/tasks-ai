@@ -21,7 +21,7 @@ Rama: `fix/audit-findings`.
 ## Tasks
 
 - T1 — `tk-90`, S3, inline, commit `915dad5`: conservar el aviso de prefijo durante `init`.
-- T2 — `tk-91`, S4, inline, commit pendiente: corregir descripciones de eventos SSE.
+- T2 — `tk-91`, S4, inline, commit `04f0561`: corregir descripciones de eventos SSE.
 - T3 — `tk-92`, S5, inline, commit pendiente: rechazar JSON con contenido posterior.
 - T4 — `tk-93`, S6, inline, commit pendiente: alinear `parent_id` de la API con el contrato.
 - T5 — `tk-94`, S7, inline, commit pendiente: añadir índices a comentarios y dependencias.
@@ -37,3 +37,4 @@ Rama: `fix/audit-findings`.
 - L1: “pues adelante tienes autorización. Crea una rama para estas tareas, haz los commits necesarios con mi autorización. No puedes hacer push ni integración con main hasta que yo lo revise.”
 - L2: “tk-89 pasa a subtarea épica, crea las subtareas hijas para solucionar todo esto.”
 - L3: Se reabrió `tk-89` como épica en curso y se crearon `tk-90` a `tk-100` como subtareas abiertas.
+- L4: T2 requirió una migración de esquema y verificación independiente; su commit de trabajo es `04f0561` (598 líneas authored), aislado como unidad de alto riesgo antes de continuar con otra tarea.

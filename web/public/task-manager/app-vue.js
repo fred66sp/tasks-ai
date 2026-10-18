@@ -24,6 +24,8 @@
           blockers: this.selectedBlockers,
           dependents: this.selectedDependents,
           comments: this.selectedComments,
+          editingCommentId: this.editingCommentId,
+          editingCommentDraft: this.editingCommentDraft,
           tagCatalog: this.tagCatalog,
           colors: this.colors
         };
@@ -67,6 +69,12 @@
             return this.removeDependent(payload.id);
           case "comment.add":
             return this.addComment();
+          case "comment.edit.start":
+            return this.startCommentEdit(payload.comment);
+          case "comment.edit.cancel":
+            return this.cancelCommentEdit();
+          case "comment.edit.save":
+            return this.saveCommentEdit();
           default:
             console.warn(`[Gestor de tareas] Accion de inspector desconocida: ${action.type}`);
             return;
@@ -125,6 +133,7 @@
   var addTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers`, "POST", { blocker });
   var removeTaskBlocker = (ref, blocker) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/blockers/${encodeURIComponent(blocker)}`, "DELETE");
   var addTaskComment = (ref, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments`, "POST", { body });
+  var editTaskComment = (ref, id, body) => jsonRequest(`/api/tasks/${encodeURIComponent(ref)}/comments/${encodeURIComponent(id)}`, "PATCH", { body });
   var createTag = (tag) => jsonRequest("/api/tags", "POST", tag);
   var updateTag = (name, tag) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "PATCH", tag);
   var deleteTag = (name) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, "DELETE");
@@ -691,10 +700,10 @@
     return { id: relation?.ref || relation?.id || "", title: relation?.title || "" };
   }
   function mapComment(comment) {
-    if (typeof comment === "string") return { body: comment, author: "", createdAt: "" };
+    if (typeof comment === "string") return { id: null, body: comment, createdAt: "" };
     return {
+      id: comment?.id ?? null,
       body: comment?.body || comment?.text || "",
-      author: comment?.author || "",
       createdAt: comment?.created_at || comment?.createdAt || ""
     };
   }
@@ -770,6 +779,7 @@
         if (!id || this.isBusy(`detail:${id}`)) return;
         const requestSequence = ++this.detailRequestSequence;
         this.selectedTaskId = id;
+        if (this.detail?.id !== id) this.cancelCommentEdit();
         if (this.detail?.id !== id) this.detail = null;
         this.setBusy(`detail:${id}`, true);
         this.errorMessage = "";
@@ -920,6 +930,20 @@
         if (!body || !this.hasSelection) return;
         const result = await this.mutate(`comment:${this.selectedTaskId}`, () => addTaskComment(this.selectedTaskId, body), "Comentario a\xF1adido.");
         if (result) this.commentDraft = "";
+      },
+      startCommentEdit(comment) {
+        this.editingCommentId = comment?.id ?? null;
+        this.editingCommentDraft = comment?.body || "";
+      },
+      cancelCommentEdit() {
+        this.editingCommentId = null;
+        this.editingCommentDraft = "";
+      },
+      async saveCommentEdit() {
+        const body = this.editingCommentDraft.trim();
+        if (!body || !this.hasSelection || !this.editingCommentId) return;
+        const result = await this.mutate(`comment-edit:${this.selectedTaskId}`, () => editTaskComment(this.selectedTaskId, this.editingCommentId, body), "Comentario actualizado.");
+        if (result) this.cancelCommentEdit();
       },
       async copyTaskId(id = this.selectedTaskId) {
         this.isInspectorMenuOpen = false;
@@ -1201,6 +1225,8 @@
         editDraft: { title: "", description: "", notes: "", assignee: "", tags: [] },
         dependencyDraft: "",
         commentDraft: "",
+        editingCommentId: null,
+        editingCommentDraft: "",
         tagSearchQuery: "",
         tagFormMode: "",
         editingTagName: "",
@@ -2049,9 +2075,11 @@
       tagCatalog: { type: Array, required: true },
       colors: { type: Array, required: true },
       dependencyDraft: { type: String, required: true },
-      commentDraft: { type: String, required: true }
+      commentDraft: { type: String, required: true },
+      editingCommentId: { type: Number, default: null },
+      editingCommentDraft: { type: String, default: "" }
     },
-    emits: ["update:mobileOpen", "update:activeTab", "update:editDraft", "update:dependencyDraft", "update:commentDraft", "action"],
+    emits: ["update:mobileOpen", "update:activeTab", "update:editDraft", "update:dependencyDraft", "update:commentDraft", "update:editingCommentDraft", "action"],
     computed: {
       menuItems() {
         return [
@@ -2078,7 +2106,7 @@
         else this.$emit("update:activeTab", tab);
       },
       commentMeta(comment) {
-        return [comment.author, comment.createdAt].filter(Boolean).join(" \xB7 ");
+        return ["#" + comment.id, comment.createdAt && new Date(comment.createdAt).toLocaleString("es")].filter(Boolean).join(" \xB7 ");
       }
     },
     template: `
@@ -2253,8 +2281,25 @@
           </header>
           <div class="tk-panel__content">
             <div class="comment-list">
-              <article v-for="(comment, index) in comments" :key="index" class="comment-card">
-                <p>{{ comment.body }}</p><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span>
+              <article v-for="comment in comments" :key="comment.id" class="comment-card">
+                <template v-if="editingCommentId === comment.id">
+                  <textarea :value="editingCommentDraft" class="tk-textarea"
+                    @input="$emit('update:editingCommentDraft', $event.target.value)"></textarea>
+                  <div class="comment-card__actions">
+                    <button class="tk-button tk-button--primary" type="button"
+                      :disabled="busy('comment-edit:' + task.id) || !editingCommentDraft.trim()"
+                      @click="emitAction('comment.edit.save')">{{ busy('comment-edit:' + task.id) ? 'Guardando\u2026' : 'Guardar' }}</button>
+                    <button class="tk-button" type="button" :disabled="busy('comment-edit:' + task.id)"
+                      @click="emitAction('comment.edit.cancel')">Cancelar</button>
+                  </div>
+                </template>
+                <template v-else>
+                  <p>{{ comment.body }}</p>
+                  <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
+                      class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
+                      :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"
+                      @click="emitAction('comment.edit.start', { comment })">\u270E</button></div>
+                </template>
               </article>
               <p v-show="!comments.length">Sin comentarios.</p>
             </div>
@@ -2316,6 +2361,7 @@
       <task-inspector v-bind="taskInspectorProps" v-model:mobile-open="isMobileInspectorOpen"
         v-model:active-tab="activeInspectorTab" v-model:edit-draft="editDraft"
         v-model:dependency-draft="dependencyDraft" v-model:comment-draft="commentDraft"
+        v-model:editing-comment-draft="editingCommentDraft"
         @action="handleInspectorAction"></task-inspector>
     </section>
   </div>

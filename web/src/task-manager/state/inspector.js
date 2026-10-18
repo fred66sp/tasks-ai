@@ -28,6 +28,8 @@ export const inspectorState = {
         blockers: this.selectedBlockers,
         dependents: this.selectedDependents,
         comments: this.selectedComments,
+        editingCommentId: this.editingCommentId,
+        editingCommentDraft: this.editingCommentDraft,
         tagCatalog: this.tagCatalog,
         colors: this.colors
       };
@@ -71,6 +73,12 @@ export const inspectorState = {
           return this.removeDependent(payload.id);
         case 'comment.add':
           return this.addComment();
+        case 'comment.edit.start':
+          return this.startCommentEdit(payload.comment);
+        case 'comment.edit.cancel':
+          return this.cancelCommentEdit();
+        case 'comment.edit.save':
+          return this.saveCommentEdit();
         default:
           // Los tipos validos estan centralizados en docs/contracts.md. Un tipo
           // desconocido solo puede venir de una emision mal escrita, y sin este

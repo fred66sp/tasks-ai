@@ -159,6 +159,8 @@ func (s *Server) routes() *nethttp.ServeMux {
 	mux.HandleFunc("POST /api/tasks/{ref}/blockers", s.addBlocker)
 	mux.HandleFunc("DELETE /api/tasks/{ref}/blockers/{blocker}", s.removeBlocker)
 	mux.HandleFunc("POST /api/tasks/{ref}/comments", s.addComment)
+	mux.HandleFunc("GET /api/tasks/{ref}/comments", s.listComments)
+	mux.HandleFunc("PATCH /api/tasks/{ref}/comments/{id}", s.editComment)
 	mux.HandleFunc("GET /api/tags", s.listTags)
 	mux.HandleFunc("POST /api/tags", s.createTag)
 	mux.HandleFunc("PATCH /api/tags/{name}", s.patchTag)
@@ -397,6 +399,53 @@ func (s *Server) addComment(w nethttp.ResponseWriter, r *nethttp.Request) {
 		badEntry("the comment body is missing"),
 		(*core.Core).AddComment,
 	)
+}
+
+// listComments answers with the comments of the task, from the first to the
+// last, each one with its identity. Leerlos no deja ningún aviso.
+func (s *Server) listComments(w nethttp.ResponseWriter, r *nethttp.Request) {
+	comments, err := s.core.Comments(r.Context(), r.PathValue("ref"))
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, comments)
+}
+
+// editComment changes the body of the comment the route names, and answers with
+// the task as it is left. El número se entiende dentro de la tarea: un número
+// que no es de ningún comentario de ella es un recurso que no está.
+func (s *Server) editComment(w nethttp.ResponseWriter, r *nethttp.Request) {
+	entry, err := decode[commentEntry](r)
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	if strings.TrimSpace(entry.Body) == "" {
+		s.writeError(w, badEntry("the comment body is missing"))
+
+		return
+	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		s.writeError(w, badEntry("the comment id %q is not a number", r.PathValue("id")))
+
+		return
+	}
+
+	task, err := s.core.EditComment(r.Context(), r.PathValue("ref"), id, entry.Body)
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, task)
 }
 
 // writeTaskFromEntry es el cuerpo compartido por las rutas que llevan una

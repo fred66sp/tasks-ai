@@ -18,6 +18,7 @@ func newUpdateCommand() *cobra.Command {
 		priority    int
 		tags        string
 		status      string
+		parent      string
 	)
 
 	command := &cobra.Command{
@@ -27,7 +28,9 @@ func newUpdateCommand() *cobra.Command {
 			"Only what is asked for is touched: a field that is not named does not change, and\n" +
 			"an empty text leaves that field without a value.\n" +
 			"With --status the status changes: open or in_progress.\n" +
-			"Closing does not go through here: use close, with its reason.",
+			"Closing does not go through here: use close, with its reason.\n" +
+			"With --parent the parent changes: a reference assigns it or moves it, and an\n" +
+			"empty value leaves the task without one, on its own level.",
 		Args: usage(cobra.ExactArgs(1)),
 		RunE: func(command *cobra.Command, args []string) error {
 			changes := core.Changes{}
@@ -61,6 +64,10 @@ func newUpdateCommand() *cobra.Command {
 				changes.Status = &status
 			}
 
+			if command.Flags().Changed("parent") {
+				changes.Parent = &parent
+			}
+
 			dir, err := workingDir()
 			if err != nil {
 				return err
@@ -89,6 +96,7 @@ func newUpdateCommand() *cobra.Command {
 	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "new priority, from 0 to 3")
 	command.Flags().StringVar(&tags, "tags", "", "new task tags, separated by commas; an empty list removes all of them")
 	command.Flags().StringVar(&status, "status", "", "new task status: open or in_progress; to close use close, with its reason")
+	command.Flags().StringVar(&parent, "parent", "", "new parent reference: assigns or moves it, empty leaves the task without one")
 
 	return command
 }

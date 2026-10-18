@@ -194,16 +194,17 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_update",
 		label: "Actualizar tarea",
-		description: "Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas.",
+		description: "Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas; parent la asigna, la mueve o, con el texto vacío, la deja sin padre.",
 		parameters: Type.Object({
 			ref: reference,
 			...taskFields,
 			status: Type.Optional(Type.Union([Type.Literal("open"), Type.Literal("in_progress")])),
 			tags: Type.Optional(Type.Array(Type.String())),
+			parent: Type.Optional(Type.String({ description: "la referencia visible del padre: la asigna o la mueve, y el texto vacío deja la tarea sin padre" })),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			const args = ["update", params.ref];
-			for (const field of ["title", "description", "notes", "assignee", "priority", "status", "tags"] as const) {
+			for (const field of ["title", "description", "notes", "assignee", "priority", "status", "tags", "parent"] as const) {
 				const value = params[field];
 				if (value !== undefined) args.push(`--${field}`, Array.isArray(value) ? value.join(",") : String(value));
 			}

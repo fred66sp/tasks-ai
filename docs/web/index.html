@@ -685,7 +685,7 @@
       <h3 data-i18n="modelo.39">La dependencia</h3>
       <p data-i18n="modelo.40">Una dependencia dice que una tarea espera a otra: mientras la segunda no esté cerrada, la primera aparece bloqueada. No hay estado «bloqueada» guardado, así que quitar el bloqueo devuelve la tarea a su estado real sin tocar nada más. Bloquear la misma pareja dos veces no cambia nada, y retirar un bloqueo que no está tampoco.</p>
       <h3 data-i18n="modelo.41">El comentario</h3>
-      <p data-i18n="modelo.42">Un comentario es cuerpo y fecha, y <strong>solo se añade</strong>: no hay manera de editarlo ni de borrarlo, y se leen del primero al último. Es el sitio para las decisiones y las evidencias; las notas son el sitio para el relevo.</p>
+      <p data-i18n="modelo.42">Un comentario es identidad, cuerpo y fecha. El cuerpo se puede editar: la identidad con la que se añadió y su fecha de creación se quedan como estaban. Se leen del primero al último. Es el sitio para las decisiones y las evidencias; las notas son el sitio para el relevo.</p>
     </section>
 
     <section id="comandos">
@@ -754,13 +754,13 @@
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai show tk-1
 # { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
-#   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
+#   "dependents": [], "comments": [ { "id": 1, "body": "...", "created_at": "..." } ] }
 
 ./tasks-ai show tk-99
 # { "error": "there is no task with reference \"tk-99\"" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai show tk-1
 # { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
-#   "dependents": [], "comments": [ { "body": "...", "created_at": "..." } ] }
+#   "dependents": [], "comments": [ { "id": 1, "body": "...", "created_at": "..." } ] }
 
 ./tasks-ai show tk-99
 # { "error": "there is no task with reference \"tk-99\"" }   exit 1</code></pre>
@@ -850,13 +850,21 @@
 # { "error": "task \"tk-1\" cannot be blocked by itself" }   exit 2</code></pre>
       </div>
 
-      <h3 class="cmd" data-i18n="comandos.48"><code>comment</code><span class="sig">— añade un comentario</span></h3>
-      <p data-i18n="comandos.49">El cuerpo es obligatorio y el comentario no se puede editar ni borrar después. Devuelve la tarea tal como está, con su lista de comentarios al final del detalle.</p>
+      <h3 class="cmd" data-i18n="comandos.48"><code>comment</code> <code>comment list</code> <code>comment edit</code><span class="sig">— el histórico de la tarea</span></h3>
+      <p data-i18n="comandos.49">El cuerpo es obligatorio. Cada comentario tiene su identidad y su fecha: <code>comment</code> añade uno y devuelve la tarea tal como está, <code>comment list</code> devuelve los de la tarea del primero al último, y <code>comment edit &lt;referencia&gt; &lt;id&gt;</code> cambia el cuerpo de uno conservando su identidad y su fecha. El <code>id</code> se entiende dentro de la tarea: un número que no es de sus comentarios se rechaza como una referencia que no resuelve.</p>
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai comment --body "Decidido: el informe se entrega el viernes." tk-1
-./tasks-ai show tk-1      # los comentarios salen al final, del primero al último</code></pre>
+./tasks-ai comment list tk-1
+# [ { "id": 1, "body": "Decidido: el informe se entrega el viernes.", "created_at": "..." } ]
+
+./tasks-ai comment edit tk-1 1 --body "Decidido: el informe se entrega el lunes."
+# la tarea, con el cuerpo cambiado y la misma identidad y fecha en el comentario</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai comment --body "Decided: the report ships on Friday." tk-1
-./tasks-ai show tk-1      # comments come last, first to last</code></pre>
+./tasks-ai comment list tk-1
+# [ { "id": 1, "body": "Decided: the report ships on Friday.", "created_at": "..." } ]
+
+./tasks-ai comment edit tk-1 1 --body "Decided: the report ships on Monday."
+# the task, with the body changed and the same identity and timestamp on the comment</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.50"><code>tags</code><span class="sig">— el catálogo con su uso</span></h3>
@@ -956,7 +964,7 @@
         <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
 # { "error": "cannot close task \"tk-1\": it has open subtasks" }   exit 1</code></pre>
       </div>
-      <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y sirve de relevo: qué falta y cuál es el siguiente paso. Los comentarios son append-only y sirven para lo que no debe perderse: la petición, la decisión y la evidencia.</p></div>
+      <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y sirve de relevo: qué falta y cuál es el siguiente paso. Los comentarios son el histórico de la tarea —cada uno con su identidad y su fecha, y con el cuerpo editable— y sirven para lo que no debe perderse: la petición, la decisión y la evidencia.</p></div>
     </section>
 
     <section id="recetas">
@@ -1078,6 +1086,8 @@
             <tr><td><code>POST /api/tasks/:ref/blockers</code></td><td data-i18n="api.11">Añadir un bloqueo.</td></tr>
             <tr><td><code>DELETE /api/tasks/:ref/blockers/:blockerRef</code></td><td data-i18n="api.12">Retirar un bloqueo.</td></tr>
             <tr><td><code>POST /api/tasks/:ref/comments</code></td><td data-i18n="api.13">Añadir un comentario.</td></tr>
+            <tr><td><code>GET /api/tasks/:ref/comments</code></td><td data-i18n="api.36">Los comentarios de la tarea, del primero al último, cada uno con su identidad.</td></tr>
+            <tr><td><code>PATCH /api/tasks/:ref/comments/:id</code></td><td data-i18n="api.37">Cambiar el cuerpo de un comentario: conserva su identidad y su fecha.</td></tr>
             <tr><td><code>GET /api/tags</code></td><td data-i18n="api.14">El catálogo de etiquetas con su uso.</td></tr>
             <tr><td><code>POST /api/tags</code></td><td data-i18n="api.15">Crear una etiqueta.</td></tr>
             <tr><td><code>PATCH /api/tags/:name</code></td><td data-i18n="api.16">Renombrar, recolorear o describir.</td></tr>
@@ -1214,7 +1224,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
           <thead><tr><th data-i18n="limites.4">No hace</th><th data-i18n="limites.5">Qué significa en la práctica</th></tr></thead>
           <tbody>
             <tr><td data-i18n="limites.6">Borrar tareas</td><td data-i18n="limites.7">No hay orden de borrado. Una tarea se cierra con su motivo y se queda: el histórico del proyecto no se pierde.</td></tr>
-            <tr><td data-i18n="limites.8">Editar o borrar comentarios</td><td data-i18n="limites.9">Solo se añaden. Si algo estaba mal, se corrige con otro comentario, no reescribiendo el anterior.</td></tr>
+            <tr><td data-i18n="limites.8">Borrar comentarios</td><td data-i18n="limites.9">No hay orden de borrado. Si algo estaba mal, se corrige editando el cuerpo del comentario: su identidad y su fecha se quedan.</td></tr>
             <tr><td data-i18n="limites.10">Guardar el estado «bloqueada»</td><td data-i18n="limites.11">Se calcula en cada lectura desde las dependencias; no es un estado que se pueda poner ni quitar a mano.</td></tr>
             <tr><td data-i18n="limites.12">Impedir ciclos de dependencias</td><td data-i18n="limites.13">Se permiten: A puede esperar a B y B a A. Si pasa, las dos aparecen bloqueadas y hay que retirar un bloqueo.</td></tr>
             <tr><td data-i18n="limites.14">Cerrar en cascada</td><td data-i18n="limites.15">Cerrar una subtarea no cierra al padre, y un padre con subtareas abiertas no se puede cerrar.</td></tr>
@@ -1385,7 +1395,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "modelo.39": "The dependency",
  "modelo.40": "A dependency says one task waits for another: while the second is not closed, the first shows as blocked. There is no stored \"blocked\" status, so removing the blocker returns the task to its real state without touching anything else. Blocking the same pair twice changes nothing, and removing a blocker that is not there does nothing either.",
  "modelo.41": "The comment",
- "modelo.42": "A comment is a body and a timestamp, and it <strong>is only ever added</strong>: there is no way to edit or delete it, and they read from first to last. It is the place for decisions and evidence; notes are the place for the handover.",
+ "modelo.42": "A comment is an identity, a body and a timestamp. The body can be edited: the identity it was added with and its creation timestamp stay as they were. They read from first to last. It is the place for decisions and evidence; notes are the place for the handover.",
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
@@ -1428,8 +1438,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.45": "It removes the close reason and sets the status to <code>open</code>. Reopening something that is not closed is rejected, and the only way back is to close it again.",
  "comandos.46": "<code>block</code> and <code>unblock</code><span class=\"sig\">— dependencies between tasks</span>",
  "comandos.47": "<code>block</code> leaves the first task blocked by the second; <code>unblock</code> removes that blocker. Both return the first task as it ends up. A task cannot be blocked by itself, and cycles are allowed: the product does not stop A waiting for B and B waiting for A.",
- "comandos.48": "<code>comment</code><span class=\"sig\">— adds a comment</span>",
- "comandos.49": "The body is mandatory and the comment cannot be edited or deleted afterwards. It returns the task as it is, with its comment list at the end of the detail.",
+ "comandos.48": "<code>comment</code> <code>comment list</code> <code>comment edit</code><span class=\"sig\">— the history of the task</span>",
+ "comandos.49": "The body is mandatory. Every comment has its identity and its timestamp: <code>comment</code> adds one and returns the task as it is, <code>comment list</code> returns the task's comments from first to last, and <code>comment edit &lt;reference&gt; &lt;id&gt;</code> changes one comment's body while keeping its identity and its timestamp. The <code>id</code> is understood inside the task: a number that is not one of its comments is refused like a reference that does not resolve.",
  "comandos.50": "<code>tags</code><span class=\"sig\">— the catalogue with its usage</span>",
  "comandos.51": "Returns every tag sorted by name: identity, name, colour, description and the number of tasks that carry it.",
  "comandos.52": "<code>tag create</code> <code>tag edit</code> <code>tag delete</code><span class=\"sig\">— the catalogue changes by name</span>",
@@ -1479,7 +1489,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "ciclo.26": "The two rules that are computed",
  "ciclo.27": "<strong>Blocked.</strong> A task is blocked while it has any blocker that is not closed. It is not a stored status: it is computed on every read, which is why removing the blocker returns it to what it was without touching the database.",
  "ciclo.28": "<strong>Cascading closes do not exist.</strong> Closing a subtask does not close its parent, and closing a parent with open subtasks is rejected without writing anything. Whoever closes decides what gets closed.",
- "ciclo.29": "<strong>Notes and comments are not the same thing.</strong> <code>notes</code> is a single text that is overwritten and serves as the handover: what is missing and what comes next. Comments are append-only and are for what must not be lost: the request, the decision and the evidence.",
+ "ciclo.29": "<strong>Notes and comments are not the same thing.</strong> <code>notes</code> is a single text that is overwritten and serves as the handover: what is missing and what comes next. Comments are the history of the task —each one with its identity and its timestamp, and with an editable body— and are for what must not be lost: the request, the decision and the evidence.",
  "recetas.2": "Recipes",
  "recetas.3": "Five ways of working the product does well, with the commands in order.",
  "recetas.4": "An epic with subtasks",
@@ -1522,6 +1532,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.11": "Add a blocker.",
  "api.12": "Remove a blocker.",
  "api.13": "Add a comment.",
+ "api.36": "The task's comments, from first to last, each one with its identity.",
+ "api.37": "Change a comment's body: it keeps its identity and its timestamp.",
  "api.14": "The tag catalogue with its usage.",
  "api.15": "Create a tag.",
  "api.16": "Rename, recolour or describe.",
@@ -1591,8 +1603,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "limites.5": "What that means in practice",
  "limites.6": "Delete tasks",
  "limites.7": "There is no delete command. A task is closed with its reason and stays: the project's history is not lost.",
- "limites.8": "Edit or delete comments",
- "limites.9": "They are only added. If something was wrong, it is corrected with another comment, not by rewriting the previous one.",
+ "limites.8": "Delete comments",
+ "limites.9": "There is no delete command. If something was wrong, it is corrected by editing the comment's body: its identity and its timestamp stay.",
  "limites.10": "Store a \"blocked\" status",
  "limites.11": "It is computed on every read from the dependencies; it is not a status you can set or clear by hand.",
  "limites.12": "Prevent dependency cycles",

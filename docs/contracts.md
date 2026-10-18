@@ -54,8 +54,16 @@ nada, y retirar un bloqueo que no está tampoco.
 
 ### Comentario
 
-Tarea, cuerpo y fecha. Solo se añaden: no se editan ni se borran. Se leen del primero
-al último.
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | entero | Clave. Es la identidad del comentario y lo único que se presenta de él: un comentario no tiene referencia visible, se le nombra por su número dentro de su tarea |
+| `task_id` | entero | Número interno de la tarea comentada. No cruza la frontera: la tarea se nombra por su referencia |
+| `body` | texto | Obligatorio. Se guarda sin los espacios de los lados |
+| `created_at` | fecha y hora | En UTC, en el momento en que se añade. No cambia al editar el cuerpo |
+
+Un comentario se añade, se lee y se edita: al editarlo cambia solo el cuerpo, y su
+identidad y su fecha se conservan. No hay borrado. Se leen del primero al último, por
+fecha y, empatados, por identidad.
 
 ### Configuración de la base
 
@@ -114,7 +122,8 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   también—, cada una con su referencia visible, su estado y su `blocked`, que es
   verdadero mientras alguna de sus bloqueantes siga sin cerrar.
 - El detalle de una tarea añade sus bloqueantes, sus dependientes, sus hijas y sus
-  comentarios.
+  comentarios, cada uno con su identidad, su cuerpo y su fecha:
+  `"comments": [{ "id": 4, "body": "...", "created_at": "2026-10-16T15:02:00Z" }]`.
 - Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y
   refresca `updated_at`; reabrir la devuelve a `open` y le quita el motivo. Cerrar una
   tarea ya cerrada y reabrir una no cerrada se rechazan. Cerrar una tarea con subtareas
@@ -125,10 +134,18 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   no resuelve se rechaza con el código `1`, igual que `show`, y bloquearse una tarea
   por sí misma es entrada inválida: código `2`. Los ciclos se permiten. Una operación
   rechazada no escribe nada.
-- `comment` añade un comentario con su cuerpo obligatorio y responde con la tarea tal
-  como está. Los comentarios solo se añaden: la herramienta no ofrece ninguna manera
-  de editar o de borrar uno, y cada uno muestra su cuerpo y el momento en que se
-  añadió.
+- `comment <referencia> --body` añade un comentario a la tarea y responde con la tarea
+  tal como queda. El cuerpo es obligatorio: vacío o reducido a espacios es entrada
+  inválida —código `2`— y no escribe nada.
+- `comment list <referencia>` responde los comentarios de la tarea, del primero al
+  último, cada uno con su `id`, su `body` y su `created_at`. Una referencia que no
+  resuelve se rechaza con el código `1`.
+- `comment edit <referencia> <id> --body` cambia el cuerpo del comentario de esa tarea
+  con ese número y responde con la tarea tal como queda: la identidad y la fecha del
+  comentario no cambian. El `id` se entiende dentro de la tarea: un número que no es de
+  ningún comentario de esa tarea se rechaza con el código `1` sin tocar nada, y un cuerpo
+  vacío es entrada inválida —código `2`—. La herramienta no ofrece borrar un comentario:
+  lo que estaba mal se corrige editando su cuerpo.
 - `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix` y `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones—. No es repetible: un proyecto que ya tiene la base y las instrucciones lo rechaza, y lo que una intenta anterior dejó a medias se completa sin borrar nada.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
@@ -147,6 +164,8 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
 | `DELETE /api/tasks/:ref/blockers/:blockerRef` | Retirar un bloqueo |
 | `POST /api/tasks/:ref/comments` | Añadir un comentario |
+| `GET /api/tasks/:ref/comments` | Los comentarios de la tarea, del primero al último, con su identidad |
+| `PATCH /api/tasks/:ref/comments/:id` | Cambiar el cuerpo de un comentario, conservando su identidad y su fecha |
 | `GET /api/tags` | Catálogo de etiquetas con su uso |
 | `POST /api/tags` | Crear etiqueta |
 | `PATCH /api/tags/:name` | Renombrar, recolorear o describir |
@@ -164,6 +183,11 @@ Códigos de estado:
 | `404` | La referencia no corresponde a ninguna tarea o etiqueta |
 | `409` | La regla lo impide: cerrar una tarea con subtareas abiertas |
 | `500` | Fallo interno |
+
+Crear y editar un comentario responden con `200` y la tarea tal como queda, igual que el
+CLI; `GET /api/tasks/:ref/comments` responde la lista con la forma de la sección 1. El
+`id` de la ruta es el número del comentario dentro de la tarea de la ruta: un número que
+no pertenece a esa tarea es `404`, y un cuerpo vacío es `400`.
 
 El cuerpo de un error es `{"error": "..."}` con el código que corresponde, nunca un
 error dentro de una respuesta correcta. Cada petición de escritura contiene un único
@@ -195,8 +219,9 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
   `cerrada` o `actualizada`) y el título que tiene al emitir el aviso. La acción se
   guarda junto con el cambio, así que varios cambios de la misma tarea dentro de un
   sondeo conservan su propia descripción y un comentario también se anuncia como
-  `actualizada`. El aviso de una etiqueta no lleva `changes`; los avisos antiguos
-  escritos antes de guardar la acción se publican como `actualizada`.
+  `actualizada`: lo es tanto cuando se añade como cuando se edita su cuerpo. Leer los
+  comentarios no deja ningún aviso. El aviso de una etiqueta no lleva `changes`; los avisos
+  antiguos escritos antes de guardar la acción se publican como `actualizada`.
 - Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
   consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
   Sin ninguna de las dos, el canal empieza por el cambio siguiente: quien acaba de

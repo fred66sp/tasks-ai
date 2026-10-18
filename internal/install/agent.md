@@ -40,8 +40,8 @@ vez ni una abierta se reabre.
 El estado bloqueado se calcula y no se guarda: una tarea aparece bloqueada mientras
 tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloqueante o
 al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede
-bloquearse por sí misma. Los comentarios solo se añaden: no hay manera de editar ni de
-borrar uno, y su cuerpo es obligatorio.
+bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
+dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
 Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create

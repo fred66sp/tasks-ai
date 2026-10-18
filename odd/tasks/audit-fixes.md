@@ -27,7 +27,7 @@ Rama: `fix/audit-findings`.
 - T5 — `tk-94`, S7, inline, commit `faf2f55`: añadir índices a comentarios y dependencias.
 - T6 — `tk-95`, S8, inline, commit `8363eda`: evitar transacciones de migración innecesarias.
 - T7 — `tk-96`, S9, inline, commit `b37962d`: paginar y agrupar el historial de eventos.
-- T8 — `tk-97`, S10, inline, commit pendiente: escribir settings de forma atómica.
+- T8 — `tk-97`, S10, inline, commit `09ae1a4`: escribir settings de forma atómica.
 - T9 — `tk-98`, S11, inline, commit pendiente: rechazar claves desconocidas en settings.
 - T10 — `tk-99`, S12, inline, commit pendiente: eliminar `Store.Tag` sin uso.
 - T11 — `tk-100`, S13, inline, commit pendiente: unificar el recorrido de raíces de instalación.
@@ -43,3 +43,4 @@ Rama: `fix/audit-findings`.
 - L7: T5 añade la migración 6 con índices para `comments.task_id` y `dependencies.blocker_id`; la verificación independiente confirmó preservación de datos, planes indexados y salidas públicas idénticas. Commit `faf2f55`.
 - L8: T6 prelee el esquema y evita transacciones cuando la base ya está al día; las migraciones pendientes conservan relectura transaccional y la prueba de aperturas concurrentes pasa. Verificación independiente PASS; commit `8363eda`.
 - L9: T7 recorre `GET /api/events` en lotes de 100 avisos, agrupa las consultas de nombres de etiquetas y deja vacía la referencia de etiquetas borradas; la historia larga llega completa y ordenada por la interfaz pública. La unidad superó el límite aproximado de 400 líneas (471 authored) y quedó aislada en `b37962d`; suite Go, race, vet y lint pasan.
+- L10: T8 escribe settings en un temporal de la misma carpeta, sincroniza y renombra al final; los fallos de sustitución conservan el archivo anterior y los permisos existentes. Verificación independiente PASS tras cubrir también el modo `0600`; commit `09ae1a4`.

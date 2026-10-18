@@ -1104,6 +1104,223 @@ func TestTagNames_returnsTheNameOfEachTagInTheBatch(t *testing.T) {
 	}
 }
 
+// TestComments_areStoredUnderTheirTaskAndReadFirstToLast recorre el histórico de
+// una tarea: cada comentario guarda la tarea que comenta y sale del primero al
+// último, aunque todos se escriban dentro del mismo segundo.
+func TestComments_areStoredUnderTheirTaskAndReadFirstToLast(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	if err != nil {
+		t.Fatalf("creando la tarea comentada: %v", err)
+	}
+
+	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"))
+	if err != nil {
+		t.Fatalf("creando la otra tarea: %v", err)
+	}
+
+	bodies := []string{"el primero", "el segundo", "el tercero"}
+	added := make([]store.Comment, 0, len(bodies))
+
+	for _, body := range bodies {
+		comment, err := base.AddComment(ctx, task.ID, body)
+		if err != nil {
+			t.Fatalf("añadiendo el comentario %q: %v", body, err)
+		}
+
+		if comment.ID == 0 || comment.TaskID != task.ID || comment.Body != body {
+			t.Errorf("el comentario añadido es %+v, se esperaba de la tarea %d con cuerpo %q", comment, task.ID, body)
+		}
+
+		added = append(added, comment)
+	}
+
+	if _, err := base.AddComment(ctx, elsewhere.ID, "el de otra tarea"); err != nil {
+		t.Fatalf("añadiendo el comentario de otra tarea: %v", err)
+	}
+
+	read, err := base.Comments(ctx, task.ID)
+	if err != nil {
+		t.Fatalf("leyendo los comentarios: %v", err)
+	}
+
+	if len(read) != len(bodies) {
+		t.Fatalf("la tarea tiene %d comentarios, se esperaban %d: %+v", len(read), len(bodies), read)
+	}
+
+	for i, want := range added {
+		got := read[i]
+
+		if got.ID != want.ID || got.TaskID != task.ID || got.Body != want.Body {
+			t.Errorf("el %dº comentario es %+v, se esperaba %+v", i+1, got, want)
+		}
+
+		if !got.CreatedAt.Equal(want.CreatedAt) {
+			t.Errorf("el %dº comentario se lee en %s, se esperaba %s", i+1, got.CreatedAt, want.CreatedAt)
+		}
+
+		if i > 0 && read[i-1].ID >= got.ID {
+			t.Errorf("los comentarios salen sin orden: el %dº lleva id %d detrás de %d",
+				i+1, got.ID, read[i-1].ID)
+		}
+	}
+}
+
+// TestEditComment_changesOnlyTheBodyOfTheCommentItNames recorre la edición: la
+// identidad, la tarea y la fecha de creación se conservan, el cuerpo cambia, los
+// demás comentarios siguen como estaban y la tarea queda avisada de su cambio en
+// la misma transacción.
+func TestEditComment_changesOnlyTheBodyOfTheCommentItNames(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	first, err := base.AddComment(ctx, task.ID, "mal escrito")
+	if err != nil {
+		t.Fatalf("añadiendo el primer comentario: %v", err)
+	}
+
+	second, err := base.AddComment(ctx, task.ID, "el segundo")
+	if err != nil {
+		t.Fatalf("añadiendo el segundo comentario: %v", err)
+	}
+
+	before, err := base.LastChangeID(ctx)
+	if err != nil {
+		t.Fatalf("leyendo el último aviso: %v", err)
+	}
+
+	edited, err := base.EditComment(ctx, task.ID, first.ID, "bien escrito")
+	if err != nil {
+		t.Fatalf("editando el comentario %d: %v", first.ID, err)
+	}
+
+	if edited.ID != first.ID || edited.TaskID != task.ID {
+		t.Errorf("el comentario editado es %+v, se esperaba que conservara su id %d y su tarea %d",
+			edited, first.ID, task.ID)
+	}
+
+	if !edited.CreatedAt.Equal(first.CreatedAt) {
+		t.Errorf("la edición cambió la fecha a %s, se esperaba la de creación %s", edited.CreatedAt, first.CreatedAt)
+	}
+
+	if edited.Body != "bien escrito" {
+		t.Errorf("el cuerpo editado es %q, se esperaba %q", edited.Body, "bien escrito")
+	}
+
+	read, err := base.Comments(ctx, task.ID)
+	if err != nil {
+		t.Fatalf("leyendo los comentarios: %v", err)
+	}
+
+	if len(read) != 2 || read[0].Body != "bien escrito" {
+		t.Fatalf("los comentarios leídos son %+v, se esperaba el primero corregido", read)
+	}
+
+	if read[1].ID != second.ID || read[1].Body != second.Body || !read[1].CreatedAt.Equal(second.CreatedAt) {
+		t.Errorf("el comentario vecino cambió a %+v, se esperaba %+v", read[1], second)
+	}
+
+	notices, err := base.Changes(ctx, before, wholeHistory)
+	if err != nil {
+		t.Fatalf("leyendo los avisos: %v", err)
+	}
+
+	if len(notices) != 1 {
+		t.Fatalf("la edición dejó %d avisos, se esperaba 1: %+v", len(notices), notices)
+	}
+
+	if notices[0].Resource != store.ResourceTask || notices[0].ResourceID != task.ID ||
+		notices[0].Action != store.ActionUpdate {
+		t.Errorf("el aviso de la edición es %+v, se esperaba la tarea %d actualizada", notices[0], task.ID)
+	}
+}
+
+// TestEditComment_refusesWhatIsNotThereWithoutWriting recorre el rechazo: el
+// número se entiende dentro de la tarea, así que un comentario de otra tarea o un
+// número que nadie lleva sale por ErrNotFound sin tocar el histórico ni dejar
+// aviso.
+func TestEditComment_refusesWhatIsNotThereWithoutWriting(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"))
+	if err != nil {
+		t.Fatalf("creando la otra tarea: %v", err)
+	}
+
+	mine, err := base.AddComment(ctx, task.ID, "el suyo")
+	if err != nil {
+		t.Fatalf("añadiendo el comentario: %v", err)
+	}
+
+	theirs, err := base.AddComment(ctx, elsewhere.ID, "el de otra tarea")
+	if err != nil {
+		t.Fatalf("añadiendo el comentario de otra tarea: %v", err)
+	}
+
+	before, err := base.LastChangeID(ctx)
+	if err != nil {
+		t.Fatalf("leyendo el último aviso: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		taskID  int64
+		comment int64
+	}{
+		{name: "the identity of a comment of another task", taskID: task.ID, comment: theirs.ID},
+		{name: "an identity nobody carries", taskID: task.ID, comment: theirs.ID + 100},
+		{name: "a task that is not stored", taskID: 404, comment: mine.ID},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := base.EditComment(ctx, tt.taskID, tt.comment, "cambiado"); !errors.Is(err, store.ErrNotFound) {
+				t.Errorf("EditComment devolvió %v, se esperaba ErrNotFound", err)
+			}
+
+			// Un rechazo no escribe nada: ni toca el histórico ni deja aviso.
+			read, err := base.Comments(ctx, task.ID)
+			if err != nil {
+				t.Fatalf("leyendo los comentarios: %v", err)
+			}
+
+			if len(read) != 1 || read[0].Body != "el suyo" {
+				t.Errorf("el rechazo dejó el histórico como %+v, se esperaba intacto", read)
+			}
+
+			last, err := base.LastChangeID(ctx)
+			if err != nil {
+				t.Fatalf("leyendo el último aviso: %v", err)
+			}
+
+			if last != before {
+				t.Errorf("el rechazo dejó avisos hasta %d, se esperaba %d", last, before)
+			}
+		})
+	}
+}
+
 // wholeHistory es el límite que las pruebas piden cuando quieren la historia entera
 // de una base pequeña: Changes siempre lee como mucho un lote.
 const wholeHistory = 100

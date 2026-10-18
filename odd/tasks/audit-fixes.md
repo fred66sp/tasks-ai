@@ -17,6 +17,7 @@ Rama: `fix/audit-findings`.
 - S11: “Resultado: un settings con una clave mal escrita se rechaza con un error claro en lugar de aplicar silenciosamente el valor por omisión. Criterio: arrancar con una clave desconocida, comprobar el error de CLI y HTTP cuando corresponda, y verificar que un settings válido parcial conserva sus valores por omisión.”
 - S12: “Resultado: retirar el método interno sin callers y conservar el comportamiento del catálogo de etiquetas. Criterio: compilar, pasar la suite Go y comprobar por CLI/API que crear, editar, listar y borrar etiquetas siguen funcionando.”
 - S13: “Resultado: `install.Root` y `install.Project` comparten el recorrido ascendente sin cambiar dónde encuentra el producto. Criterio: comprobar desde raíz, subdirectorio, repositorio con `.git` como archivo y proyecto sin instalación que `init` y los comandos localizan exactamente las mismas carpetas que antes.”
+- S14: “crea una última subtarea de tk-89 con la revisión /ponytail-review de la propia tk-89, así cerramos con más garantías.”
 
 ## Tasks
 
@@ -31,6 +32,7 @@ Rama: `fix/audit-findings`.
 - T9 — `tk-98`, S11, inline, commit `e84dae1`: rechazar claves desconocidas en settings.
 - T10 — `tk-99`, S12, inline, commit `a4dd6af`: eliminar `Store.Tag` sin uso.
 - T11 — `tk-100`, S13, inline, commit `fd90598`: unificar el recorrido de raíces de instalación.
+- T12 — `tk-101`, S14, inline, commit `ae4ba54`: revisión final ponytail y corrección del modo privado de settings.
 
 ## Log
 
@@ -47,3 +49,4 @@ Rama: `fix/audit-findings`.
 - L11: T9 decodifica settings con `DisallowUnknownFields`, conserva los valores por omisión de un archivo parcial y rechaza una clave como `prefx` con su nombre en el error. La suite Go, race, vet y lint pasan; las rutas públicas `list` y `serve` devuelven el error JSON con salida distinta de cero. Commit `e84dae1`.
 - L12: T10 retira el método interno `Store.Tag`, que no tenía callers, y añade un recorrido CLI de crear, editar, listar y borrar etiquetas; la API HTTP y la suite completa conservan el catálogo. Commit `a4dd6af`.
 - L13: T11 unifica el ascenso de `install.Root` y `install.Project` en `walkUp`, manteniendo sus predicados distintos; las pruebas cubren subdirectorios, `.git` como fichero y proyectos sin instalación. Suite Go, race, vet y lint pasan; commit `fd90598`.
+- L14: La revisión `/ponytail-review` de tk-89 encontró un único hallazgo: los settings nuevos podían quedar en 0644 e ignorar `umask 077`. Se corrigió a 0600, se añadió prueba de permisos y la verificación independiente PASS; commit `ae4ba54`.

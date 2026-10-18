@@ -22,7 +22,7 @@ Rama: `fix/audit-findings`.
 
 - T1 — `tk-90`, S3, inline, commit `915dad5`: conservar el aviso de prefijo durante `init`.
 - T2 — `tk-91`, S4, inline, commit `04f0561`: corregir descripciones de eventos SSE.
-- T3 — `tk-92`, S5, inline, commit pendiente: rechazar JSON con contenido posterior.
+- T3 — `tk-92`, S5, inline, commit `bc8ef50`: rechazar JSON con contenido posterior.
 - T4 — `tk-93`, S6, inline, commit pendiente: alinear `parent_id` de la API con el contrato.
 - T5 — `tk-94`, S7, inline, commit pendiente: añadir índices a comentarios y dependencias.
 - T6 — `tk-95`, S8, inline, commit pendiente: evitar transacciones de migración innecesarias.
@@ -38,3 +38,4 @@ Rama: `fix/audit-findings`.
 - L2: “tk-89 pasa a subtarea épica, crea las subtareas hijas para solucionar todo esto.”
 - L3: Se reabrió `tk-89` como épica en curso y se crearon `tk-90` a `tk-100` como subtareas abiertas.
 - L4: T2 requirió una migración de esquema y verificación independiente; su commit de trabajo es `04f0561` (598 líneas authored), aislado como unidad de alto riesgo antes de continuar con otra tarea.
+- L5: T3 añade la validación de un único valor JSON en todas las escrituras HTTP; su diferencial contra `HEAD` para cuerpos JSON válidos fue idéntico y su commit es `bc8ef50`.

@@ -79,7 +79,8 @@ cd web && npm run watch  # la reconstruye al cambiar
 
 `extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
 `tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
-`tasks_reopen`, `tasks_block`, `tasks_unblock` y `tasks_comment` (`ADR-012`). El agente
+`tasks_reopen`, `tasks_block`, `tasks_unblock`, `tasks_comment`, `tasks_comment_list` y
+`tasks_comment_edit` (`ADR-012`). El agente
 deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
 está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
 además del comando `/board` y una línea de estado con la tarea en curso.

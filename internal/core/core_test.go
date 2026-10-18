@@ -813,6 +813,8 @@ func TestTasks_recomputesTheBlockedStateInsteadOfStoringIt(t *testing.T) {
 // por el núcleo: se añaden varios, se leen del primero al último con su
 // identidad y su fecha, y se edita uno conservando las dos, con la tarea tal como
 // queda y su aviso actualizado.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
 func TestComments_areCreatedListedAndEditedUnderTheirIdentity(t *testing.T) {
 	t.Parallel()
 

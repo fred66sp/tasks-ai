@@ -1107,6 +1107,8 @@ func TestTagNames_returnsTheNameOfEachTagInTheBatch(t *testing.T) {
 // TestComments_areStoredUnderTheirTaskAndReadFirstToLast recorre el histórico de
 // una tarea: cada comentario guarda la tarea que comenta y sale del primero al
 // último, aunque todos se escriban dentro del mismo segundo.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
 func TestComments_areStoredUnderTheirTaskAndReadFirstToLast(t *testing.T) {
 	t.Parallel()
 
@@ -1174,6 +1176,8 @@ func TestComments_areStoredUnderTheirTaskAndReadFirstToLast(t *testing.T) {
 // identidad, la tarea y la fecha de creación se conservan, el cuerpo cambia, los
 // demás comentarios siguen como estaban y la tarea queda avisada de su cambio en
 // la misma transacción.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
 func TestEditComment_changesOnlyTheBodyOfTheCommentItNames(t *testing.T) {
 	t.Parallel()
 

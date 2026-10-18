@@ -6,6 +6,14 @@ import (
 	"testing"
 )
 
+const (
+	editFlag     = "--body"
+	commentCmd   = "comment"
+	editCmd      = "edit"
+	refusedBody  = "nada"
+	correctedOne = "segundo, corregido"
+)
+
 // commentProject deja un proyecto con una tarea y devuelve su referencia, para
 // que los recorridos de comentarios no repitan la instalación.
 func commentProject(t *testing.T) string {
@@ -33,7 +41,7 @@ func commentProject(t *testing.T) string {
 func addComment(t *testing.T, ref, body string) core.Task {
 	t.Helper()
 
-	code, out, errOut := run(t, "comment", ref, "--body", body)
+	code, out, errOut := run(t, "comment", ref, editFlag, body)
 	if code != 0 {
 		t.Fatalf("comment salió con %d: %s", code, errOut)
 	}
@@ -62,6 +70,8 @@ func commentsOf(t *testing.T, ref string) []core.Comment {
 // TestRun_commentAddsACommentAndAnswersWithTheTask fija el comportamiento que
 // el comando ya tenía: la creación sigue respondiendo con la tarea, y el cuerpo
 // se guarda sin los espacios de los lados.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentAddsACommentAndAnswersWithTheTask(t *testing.T) {
 	ref := commentProject(t)
 
@@ -88,6 +98,8 @@ func TestRun_commentAddsACommentAndAnswersWithTheTask(t *testing.T) {
 // TestRun_commentListReturnsTheCommentsFirstToLast recorre la lectura: los
 // comentarios salen del primero al último, cada uno con su identidad, su cuerpo
 // y su fecha, y una tarea sin comentarios responde una lista vacía.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentListReturnsTheCommentsFirstToLast(t *testing.T) {
 	ref := commentProject(t)
 
@@ -125,6 +137,8 @@ func TestRun_commentListReturnsTheCommentsFirstToLast(t *testing.T) {
 
 // TestRun_commentListRefusesAReferenceThatResolvesToNothing comprueba que la
 // lectura de una referencia sin tarea se rechaza con el código de error 1.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentListRefusesAReferenceThatResolvesToNothing(t *testing.T) {
 	commentProject(t)
 
@@ -145,6 +159,8 @@ func TestRun_commentListRefusesAReferenceThatResolvesToNothing(t *testing.T) {
 // TestRun_commentEditChangesOnlyTheBodyOfTheComment recorre la edición: la
 // respuesta es la tarea tal como queda, y el comentario editado conserva su
 // identidad y su fecha mientras el vecino queda intacto.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentEditChangesOnlyTheBodyOfTheComment(t *testing.T) {
 	ref := commentProject(t)
 
@@ -153,7 +169,7 @@ func TestRun_commentEditChangesOnlyTheBodyOfTheComment(t *testing.T) {
 
 	before := commentsOf(t, ref)
 
-	code, out, errOut := run(t, "comment", "edit", ref, "2", "--body", "segundo, corregido")
+	code, out, errOut := run(t, "comment", "edit", ref, "2", editFlag, correctedOne)
 	if code != 0 {
 		t.Fatalf("comment edit salió con %d: %s", code, errOut)
 	}
@@ -176,7 +192,7 @@ func TestRun_commentEditChangesOnlyTheBodyOfTheComment(t *testing.T) {
 	}
 
 	if after[1].Body != "segundo, corregido" {
-		t.Errorf("el cuerpo editado es %q, se esperaba %q", after[1].Body, "segundo, corregido")
+		t.Errorf("el cuerpo editado es %q, se esperaba %q", after[1].Body, correctedOne)
 	}
 
 	if after[0] != before[0] {
@@ -188,6 +204,8 @@ func TestRun_commentEditChangesOnlyTheBodyOfTheComment(t *testing.T) {
 // un cuerpo vacío es entrada inválida, un identificador que no es de la tarea y
 // una referencia que no resuelve son referencia sin resolución, y ninguno deja
 // nada escrito.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentEditRefusesWithoutWriting(t *testing.T) {
 	ref := commentProject(t)
 
@@ -213,31 +231,32 @@ func TestRun_commentEditRefusesWithoutWriting(t *testing.T) {
 	}{
 		{
 			name: "un cuerpo vacío es entrada inválida",
-			args: []string{"comment", "edit", ref, "1", "--body", "   "},
+			args: []string{commentCmd, editCmd, ref, "1", editFlag, "   "},
 			code: 2,
 		},
 		{
 			name: "un identificador que no es de la tarea no resuelve",
-			args: []string{"comment", "edit", ref, "99", "--body", "nada"},
+			args: []string{commentCmd, editCmd, ref, "99", editFlag, refusedBody},
 			code: 1,
 		},
 		{
 			name: "el identificador de otra tarea no es de esta",
-			args: []string{"comment", "edit", ref, "1", "--body", "nada"},
+			args: []string{commentCmd, editCmd, ref, "1", editFlag, refusedBody},
 			code: 1,
 		},
 		{
 			name: "una referencia que no resuelve se rechaza",
-			args: []string{"comment", "edit", "tk-404", "1", "--body", "nada"},
+			args: []string{commentCmd, editCmd, "tk-404", "1", editFlag, refusedBody},
 			code: 1,
 		},
 		{
 			name: "un identificador que no es número es uso incorrecto",
-			args: []string{"comment", "edit", ref, "uno", "--body", "nada"},
+			args: []string{commentCmd, editCmd, ref, "uno", editFlag, refusedBody},
 			code: 2,
 		},
 	}
 
+	//nolint:paralleltest // los subtests comparten la carpeta que t.Chdir puso: en paralelo se pisarían
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			code, out, errOut := run(t, test.args...)
@@ -263,6 +282,8 @@ func TestRun_commentEditRefusesWithoutWriting(t *testing.T) {
 
 // TestRun_commentWithoutArgumentsIsMisuse fija que el alta sigue siendo el
 // comando: sin su referencia y su cuerpo, es un uso incorrecto.
+//
+//nolint:paralleltest // el test cambia de carpeta con t.Chdir: en paralelo pisaría la carpeta de otra prueba
 func TestRun_commentWithoutArgumentsIsMisuse(t *testing.T) {
 	commentProject(t)
 

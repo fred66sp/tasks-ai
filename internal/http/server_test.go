@@ -91,6 +91,7 @@ func TestServer_listsParentIDAsTheInternalNumberUsedByConsumers(t *testing.T) {
 // firstRef es la referencia visible que el producto da a la primera tarea de un
 // proyecto: las pruebas la comparan con lo que el servidor devuelve.
 const (
+	rejectedEntry = `{"body": "nada"}`
 	firstRef      = "tk-1"
 	renamedTitle  = "Renombrada"
 	createdAction = "creada"
@@ -264,6 +265,8 @@ func aCommentAddedArrivesInTheDetail(t *testing.T, server string) {
 // API expone la lectura y la edición de los comentarios de una tarea, responde
 // con sus códigos, no muta ante un rechazo y deja el aviso de la tarea
 // actualizada que otras sesiones ven.
+//
+//nolint:gocyclo // el recorrido completo del criterio debe quedarse lineal
 func TestServer_readsAndEditsTheCommentsOfATask(t *testing.T) {
 	t.Parallel()
 
@@ -397,7 +400,7 @@ func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
 			name:    "a comment that is not of the task is not found",
 			method:  http.MethodPatch,
 			path:    "/api/tasks/" + firstRef + "/comments/1",
-			body:    `{"body": "nada"}`,
+			body:    rejectedEntry,
 			status:  http.StatusNotFound,
 			message: `there is no comment 1 in task "tk-1"`,
 		},
@@ -405,7 +408,7 @@ func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
 			name:    "an unknown comment is not found",
 			method:  http.MethodPatch,
 			path:    "/api/tasks/" + firstRef + "/comments/99",
-			body:    `{"body": "nada"}`,
+			body:    rejectedEntry,
 			status:  http.StatusNotFound,
 			message: `there is no comment 99 in task "tk-1"`,
 		},
@@ -413,7 +416,7 @@ func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
 			name:    "an unknown task is not found",
 			method:  http.MethodPatch,
 			path:    "/api/tasks/tk-404/comments/1",
-			body:    `{"body": "nada"}`,
+			body:    rejectedEntry,
 			status:  http.StatusNotFound,
 			message: `there is no task with reference "tk-404"`,
 		},
@@ -421,7 +424,7 @@ func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
 			name:    "a comment id that is not a number is a bad entry",
 			method:  http.MethodPatch,
 			path:    "/api/tasks/" + firstRef + "/comments/uno",
-			body:    `{"body": "nada"}`,
+			body:    rejectedEntry,
 			status:  http.StatusBadRequest,
 			message: `the comment id "uno" is not a number`,
 		},
@@ -437,6 +440,8 @@ func TestServer_refusesTheCommentOperationsThatDoNotApply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			status, body := do(t, server, test.method, test.path, test.body)
 			expect(t, status, body, test.status, test.message)
 		})

@@ -29,6 +29,8 @@ tasks-ai reopen tk-1                             # reabre la tarea cerrada y dev
 tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
 tasks-ai unblock tk-2 tk-1                       # retira el bloqueo entre tk-2 y tk-1 y devuelve tk-2
 tasks-ai comment tk-1 --body "..."               # añade un comentario a tk-1 y devuelve la tarea
+tasks-ai comment list tk-1                       # devuelve los comentarios de tk-1, del primero al último, cada uno con su identidad
+tasks-ai comment edit tk-1 1 --body "..."        # cambia el cuerpo del comentario 1 de tk-1: conserva su identidad y su fecha
 tasks-ai serve                                   # arranca la API HTTP en la dirección y el puerto del settings y anuncia los cambios por un canal abierto
 ```
 

@@ -5,6 +5,17 @@ Changelog* y el versionado es semántico.
 
 ## [Sin publicar]
 
+### Añadido
+
+- **Los comentarios se pueden leer y editar**: además de añadirlos, `comment list`
+  devuelve los de la tarea del primero al último con su identidad y su fecha, y
+  `comment edit <referencia> <id> --body` cambia el cuerpo de uno conservando su
+  identidad y su fecha de creación. No hay borrado: lo que estaba mal se corrige
+  editando. Las operaciones están en el CLI, la API (`GET` y `PATCH` sobre
+  `/api/tasks/:ref/comments`), la interfaz web (identidad y fecha visibles, edición
+  desde el inspector) y la extensión de Pi (`tasks_comment_list` y
+  `tasks_comment_edit`).
+
 ### Modificado
 
 - **Los settings nuevos quedan privados**: la escritura atómica usa permisos `0600`

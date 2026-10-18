@@ -291,6 +291,8 @@ recompone un mensaje del producto.
 | `tasks_block` | `block` | `ref` y `blocker` | la tarea bloqueada |
 | `tasks_unblock` | `unblock` | `ref` y `blocker` | la tarea sin ese bloqueo |
 | `tasks_comment` | `comment` | `ref` y `body` | la tarea con el comentario añadido |
+| `tasks_comment_list` | `comment list` | `ref` | los comentarios de la tarea, del primero al último, con su identidad y su fecha |
+| `tasks_comment_edit` | `comment edit` | `ref`, `id` del comentario dentro de la tarea y `body` nuevo | la tarea con el cuerpo cambiado, conservando identidad y fecha |
 
 - `tasks_board` no tiene comando propio: sale de `list`, que devuelve todas las tareas
   con todos sus campos. La derivación es esta: contadores por estado; en curso, las que

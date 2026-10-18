@@ -99,6 +99,8 @@ este archivo, así que aquí se corrige lo que haga falta.
 
 ### Lo que no se escribe en el tablero
 
+- El estado de la tarea: su estado, su motivo de cierre y sus bloqueos ya lo dicen. Ni
+  «pendiente», ni «a la espera», ni «abierta» o «cerrada», ni «reabierta».
 - El estado de Git: ramas, hashes, commits pendientes. Se consulta con Git.
 - El proceso de revisión. Cada cosa vive donde vive.
 - Métricas, listas de archivos ni resúmenes de la documentación: la documentación tiene

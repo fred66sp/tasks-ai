@@ -190,10 +190,11 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
   estado local.
 - Cuando el cambio toca una tarea, `changes` nombra a esa tarea como la imprime el
   aviso de la interfaz: su referencia visible (`id`), lo que le pasó (`creada`,
-  `cerrada` o `actualizada`) y su título. El servidor lo dice comparando el listado
-  que vio con el que ve, igual que hacía el servidor de referencia; el aviso de una
-  etiqueta no lleva `changes`, y un aviso cuyo cambio no alcanza a describirse —el
-  que se relee al continuar desde muy atrás— viaja sin él.
+  `cerrada` o `actualizada`) y el título que tiene al emitir el aviso. La acción se
+  guarda junto con el cambio, así que varios cambios de la misma tarea dentro de un
+  sondeo conservan su propia descripción y un comentario también se anuncia como
+  `actualizada`. El aviso de una etiqueta no lleva `changes`; los avisos antiguos
+  escritos antes de guardar la acción se publican como `actualizada`.
 - Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
   consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
   Sin ninguna de las dos, el canal empieza por el cambio siguiente: quien acaba de

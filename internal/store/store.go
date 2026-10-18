@@ -35,6 +35,16 @@ const (
 	ResourceTag  = "tag"
 )
 
+// Las acciones que un aviso declara: lo que le pasó al recurso. Viajan dentro
+// de las filas de cambio como datos, no como mensajes: cada superficie las
+// traduce al vocabulario que muestra.
+const (
+	ActionCreate = "create"
+	ActionUpdate = "update"
+	ActionClose  = "close"
+	ActionDelete = "delete"
+)
+
 // ErrClosed dice que la tarea que se quiso cerrar ya está cerrada.
 var ErrClosed = errors.New("the task is already closed")
 
@@ -116,6 +126,17 @@ var migrations = []migration{
 				origin      TEXT    NOT NULL,
 				happened_at TEXT    NOT NULL
 			)`,
+		},
+	},
+	{
+		// Cada aviso dice lo que pasó, escrito con el cambio. Comparar listados
+		// no puede decirlo: varias escrituras de una misma tarea dentro de un
+		// vistazo dan un solo par de listas, y un comentario no cambia nada en la
+		// tarea que comenta. Las filas de antes se quedan sin acción, que es lo
+		// que son: un cambio cuyo modo no se anotó.
+		version: 5,
+		statements: []string{
+			`ALTER TABLE changes ADD COLUMN action TEXT NOT NULL DEFAULT ''`,
 		},
 	},
 }
@@ -325,12 +346,15 @@ func (s *Store) SetPrefix(ctx context.Context, prefix string) error {
 }
 
 // Change es un aviso de cambio tal como está guardado: el recurso que cambió
-// por su clase y su identidad interna, quién lo pidió y cuándo ocurrió.
+// por su clase y su identidad interna, lo que le pasó, quién lo pidió y cuándo
+// ocurrió. Action está vacío en las filas escritas antes de que cada aviso
+// llevara su acción.
 type Change struct {
 	ID         int64
 	Resource   string
 	ResourceID int64
 	Origin     string
+	Action     string
 	HappenedAt time.Time
 }
 
@@ -338,7 +362,7 @@ type Change struct {
 // ocurrieron: quien lee continúa donde se quedó pasando el último que vio.
 func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, resource, resource_id, origin, happened_at FROM changes WHERE id > ? ORDER BY id`, after)
+		`SELECT id, resource, resource_id, origin, action, happened_at FROM changes WHERE id > ? ORDER BY id`, after)
 	if err != nil {
 		return nil, fmt.Errorf("reading the changes: %w", err)
 	}
@@ -353,7 +377,7 @@ func (s *Store) Changes(ctx context.Context, after int64) ([]Change, error) {
 			happenedAt string
 		)
 
-		if err := rows.Scan(&change.ID, &change.Resource, &change.ResourceID, &change.Origin, &happenedAt); err != nil {
+		if err := rows.Scan(&change.ID, &change.Resource, &change.ResourceID, &change.Origin, &change.Action, &happenedAt); err != nil {
 			return nil, fmt.Errorf("reading the changes: %w", err)
 		}
 
@@ -393,12 +417,12 @@ type changeWriter interface {
 // recordChange deja una fila de cambio dentro de la transacción que está
 // haciendo el cambio: el aviso y el cambio se escriben juntos, o no se escribe
 // nada.
-func recordChange(ctx context.Context, within changeWriter, origin, resource string, resourceID int64) error {
+func recordChange(ctx context.Context, within changeWriter, origin, resource string, resourceID int64, action string) error {
 	now := time.Now().UTC().Truncate(time.Second)
 
 	if _, err := within.ExecContext(ctx,
-		`INSERT INTO changes (resource, resource_id, origin, happened_at) VALUES (?, ?, ?, ?)`,
-		resource, resourceID, origin, now.Format(timeLayout)); err != nil {
+		`INSERT INTO changes (resource, resource_id, origin, action, happened_at) VALUES (?, ?, ?, ?, ?)`,
+		resource, resourceID, origin, action, now.Format(timeLayout)); err != nil {
 		return fmt.Errorf("recording the change of %s %d: %w", resource, resourceID, err)
 	}
 

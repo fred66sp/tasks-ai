@@ -40,7 +40,8 @@ func (s *Store) AddComment(ctx context.Context, taskID int64, body string) (Comm
 		return Comment{}, fmt.Errorf("reading the identity of the added comment: %w", err)
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTask, taskID); err != nil {
+	// Un comentario es un cambio de la tarea que comenta: su aviso lo dice.
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, taskID, ActionUpdate); err != nil {
 		return Comment{}, err
 	}
 

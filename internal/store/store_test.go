@@ -20,8 +20,8 @@ func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 4 {
-		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 4", version)
+	if version != 5 {
+		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 5", version)
 	}
 }
 
@@ -51,8 +51,8 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 4 {
-		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 4", version)
+	if version != 5 {
+		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 5", version)
 	}
 }
 
@@ -97,8 +97,8 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 4 {
-		t.Errorf("la base quedó en el esquema %d, se esperaba el 4", version)
+	if version != 5 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 5", version)
 	}
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {
@@ -596,6 +596,7 @@ func TestOpenAs_recordsTheSurfaceThatAsksForTheChanges(t *testing.T) {
 	}
 }
 
+//nolint:gocyclo // the test asserts both idempotent blocker operations and their notices
 func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 	t.Parallel()
 
@@ -634,6 +635,12 @@ func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 		t.Errorf("el bloqueo habla de %s %d, se esperaba la tarea bloqueada %d", changes[2].Resource, changes[2].ResourceID, blocked.ID)
 	}
 
+	// Un bloqueo cambia la tarea: lo que le pasó es un cambio, no un alta ni un
+	// cierre, y el aviso lo dice.
+	if changes[2].Action != store.ActionUpdate {
+		t.Errorf("el bloqueo dice %q, se esperaba %q", changes[2].Action, store.ActionUpdate)
+	}
+
 	// Retirar un bloqueo que está deja aviso; retirar el que ya no está, no.
 	if err := base.RemoveBlock(ctx, blocked.ID, blocker.ID); err != nil {
 		t.Fatalf("retirando el bloqueo: %v", err)
@@ -653,6 +660,7 @@ func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 	}
 }
 
+//nolint:gocyclo // the test covers every public operation that records a notice
 func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
 	t.Parallel()
 
@@ -708,14 +716,16 @@ func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
 	expected := []struct {
 		resource string
 		id       int64
+		action   string
 	}{
-		{store.ResourceTask, created.ID},
-		{store.ResourceTask, created.ID},
-		{store.ResourceTask, created.ID},
-		{store.ResourceTask, created.ID},
-		{store.ResourceTag, tag.ID},
-		{store.ResourceTag, tag.ID},
-		{store.ResourceTag, tag.ID},
+		{store.ResourceTask, created.ID, store.ActionCreate},
+		{store.ResourceTask, created.ID, store.ActionUpdate},
+		{store.ResourceTask, created.ID, store.ActionClose},
+		// El comentario cambia la tarea: su aviso lo dice como un cambio.
+		{store.ResourceTask, created.ID, store.ActionUpdate},
+		{store.ResourceTag, tag.ID, store.ActionCreate},
+		{store.ResourceTag, tag.ID, store.ActionUpdate},
+		{store.ResourceTag, tag.ID, store.ActionDelete},
 	}
 
 	if len(changes) != len(expected) {
@@ -726,6 +736,142 @@ func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
 		if changes[i].Resource != want.resource || changes[i].ResourceID != want.id {
 			t.Errorf("la fila %d habla de %s %d, se esperaba %s %d", i+1, changes[i].Resource, changes[i].ResourceID, want.resource, want.id)
 		}
+
+		if changes[i].Action != want.action {
+			t.Errorf("la fila %d dice %q, se esperaba %q", i+1, changes[i].Action, want.action)
+		}
+	}
+}
+
+// TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet recorre la migración
+// sobre una base ya escrita: las filas de antes siguen ahí con todo lo que
+// decían y solo ganan la acción vacía de quien no la anotó, y la base vieja
+// sigue escribiendo avisos con su acción a partir de ahí.
+//
+//nolint:gocyclo // the migration test checks both legacy preservation and new writes
+func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	base, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	created, err := base.CreateTask(t.Context(), newTask("De antes"))
+	if err != nil {
+		t.Fatalf("guardando la tarea: %v", err)
+	}
+
+	if err := base.Close(); err != nil {
+		t.Fatalf("cerrando la base: %v", err)
+	}
+
+	// La base se deja como estaba antes de la columna: sin ella y con el
+	// esquema 4 anotado, que es como llega una base de una versión anterior.
+	rawBase(t, path, `ALTER TABLE changes DROP COLUMN action`)
+	rawBase(t, path, `UPDATE meta SET value = '4' WHERE key = 'schema_version'`)
+
+	again, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base de antes: %v", err)
+	}
+
+	defer again.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	ctx := t.Context()
+
+	version, err := again.SchemaVersion(ctx)
+	if err != nil {
+		t.Fatalf("SchemaVersion devolvió %v", err)
+	}
+
+	if version != 5 {
+		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 5", version)
+	}
+
+	changes, err := again.Changes(ctx, 0)
+	if err != nil {
+		t.Fatalf("leyendo los cambios: %v", err)
+	}
+
+	if len(changes) != 1 {
+		t.Fatalf("la base de antes conserva %d filas, se esperaba 1", len(changes))
+	}
+
+	stored := changes[0]
+	if stored.Resource != store.ResourceTask || stored.ResourceID != created.ID || stored.Origin != store.OriginCLI {
+		t.Errorf("el aviso de antes se lee %+v, se esperaba la tarea %d pedida por el CLI", stored, created.ID)
+	}
+
+	if stored.Action != "" {
+		t.Errorf("el aviso de antes dice %q, se esperaba sin acción, que es lo que no se anotó", stored.Action)
+	}
+
+	// Y la base migrada sigue sirviendo: el aviso nuevo lleva su acción.
+	if _, err := again.AddComment(ctx, created.ID, "un comentario"); err != nil {
+		t.Fatalf("añadiendo el comentario: %v", err)
+	}
+
+	changes, err = again.Changes(ctx, stored.ID)
+	if err != nil {
+		t.Fatalf("leyendo los cambios nuevos: %v", err)
+	}
+
+	if len(changes) != 1 || changes[0].Action != store.ActionUpdate {
+		t.Errorf("el aviso nuevo dice %+v, se esperaba un cambio de la tarea", changes)
+	}
+}
+
+// TestTaskTitles_returnsTheCurrentTitleOfEachTaskAskedFor recorre la lectura que
+// compone el aviso: el título de ahora de cada tarea pedida, en una sola
+// consulta, con la tarea que ya no está fuera del mapa y ninguna pregunta para
+// una lista vacía.
+func TestTaskTitles_returnsTheCurrentTitleOfEachTaskAskedFor(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	first, err := base.CreateTask(ctx, newTask("Primera"))
+	if err != nil {
+		t.Fatalf("guardando la primera tarea: %v", err)
+	}
+
+	second, err := base.CreateTask(ctx, newTask("Segunda"))
+	if err != nil {
+		t.Fatalf("guardando la segunda tarea: %v", err)
+	}
+
+	if _, err := base.UpdateTask(ctx, second.ID, func(task store.Task) (store.Task, error) {
+		task.Title = "Renombrada"
+
+		return task, nil
+	}, nil); err != nil {
+		t.Fatalf("cambiando la segunda tarea: %v", err)
+	}
+
+	titles, err := base.TaskTitles(ctx, []int64{first.ID, second.ID, 404})
+	if err != nil {
+		t.Fatalf("leyendo los títulos: %v", err)
+	}
+
+	if len(titles) != 2 {
+		t.Fatalf("los títulos pedidos son %d, se esperaban 2: %+v", len(titles), titles)
+	}
+
+	if titles[first.ID] != "Primera" || titles[second.ID] != "Renombrada" {
+		t.Errorf("los títulos leídos son %+v, se esperaba la primera y la segunda renombrada", titles)
+	}
+
+	none, err := base.TaskTitles(ctx, nil)
+	if err != nil {
+		t.Fatalf("leyendo los títulos de ninguna tarea: %v", err)
+	}
+
+	if len(none) != 0 {
+		t.Errorf("una lista vacía pidió %d títulos, se esperaba ninguno", len(none))
 	}
 }
 

@@ -66,7 +66,7 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 		return Task{}, fmt.Errorf("reading the identity of the stored task: %w", err)
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionCreate); err != nil {
 		return Task{}, err
 	}
 
@@ -87,6 +87,47 @@ func (s *Store) Tasks(ctx context.Context) ([]Task, error) {
 // Task returns the task with that identity.
 func (s *Store) Task(ctx context.Context, id int64) (Task, error) {
 	return readTask(ctx, s.db, id)
+}
+
+// TaskTitles devuelve el título que lleva ahora cada tarea pedida por su
+// identidad interna: una consulta para el lote entero, no una por tarea. La
+// tarea que ya no está no aparece en el mapa.
+//
+//nolint:gosec // la consulta solo añade marcadores, nunca datos
+func (s *Store) TaskTitles(ctx context.Context, ids []int64) (map[int64]string, error) {
+	titles := make(map[int64]string, len(ids))
+	if len(ids) == 0 {
+		return titles, nil
+	}
+
+	// La consulta solo concatena marcadores, nunca datos: de ahí el nolint.
+	query := `SELECT id, title FROM tasks WHERE id IN (` + inPlaceholders(len(ids)) + `)`
+
+	rows, err := s.db.QueryContext(ctx, query, int64Args(ids)...)
+	if err != nil {
+		return nil, fmt.Errorf("reading the titles of %d tasks: %w", len(ids), err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var (
+			id    int64
+			title string
+		)
+
+		if err := rows.Scan(&id, &title); err != nil {
+			return nil, fmt.Errorf("reading the titles of %d tasks: %w", len(ids), err)
+		}
+
+		titles[id] = title
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("reading the titles of %d tasks: %w", len(ids), err)
+	}
+
+	return titles, nil
 }
 
 // taskColumns is the column list every read of tasks asks for, in the order
@@ -219,7 +260,7 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		}
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionUpdate); err != nil {
 		return Task{}, err
 	}
 
@@ -281,7 +322,7 @@ func (s *Store) CloseTask(ctx context.Context, id int64, reason string) (Task, e
 		return Task{}, fmt.Errorf("saving the close of task %d: %w", id, err)
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTask, id); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionClose); err != nil {
 		return Task{}, err
 	}
 

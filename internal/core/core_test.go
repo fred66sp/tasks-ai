@@ -378,8 +378,8 @@ func TestStatus_reportsTheVersionTheSchemaAndThePrefix(t *testing.T) {
 		t.Errorf("el estado trae la versión %q, se esperaba %q", status.Version, core.Version)
 	}
 
-	if status.Schema != 4 {
-		t.Errorf("el estado trae el esquema %d, se esperaba el 4", status.Schema)
+	if status.Schema != 5 {
+		t.Errorf("el estado trae el esquema %d, se esperaba el 5", status.Schema)
 	}
 
 	if status.Prefix != "px" {
@@ -417,7 +417,9 @@ func createTaskAndTag(t *testing.T, apply *core.Core) (core.Task, core.Tag) {
 
 // speakOfTheTaskAndTheTag comprueba que el canal guarda un aviso por cambio y
 // que cada uno habla del suyo: su identidad, su recurso, su referencia compuesta
-// y su origen.
+// su origen y lo que le pasó a ese recurso.
+//
+//nolint:gocyclo // the helper asserts each observable field of both event resources
 func speakOfTheTaskAndTheTag(t *testing.T, apply *core.Core, task core.Task, tag core.Tag) {
 	t.Helper()
 
@@ -436,8 +438,108 @@ func speakOfTheTaskAndTheTag(t *testing.T, apply *core.Core, task core.Task, tag
 		t.Errorf("el aviso de la tarea es %+v, se esperaba la tarea %q pedida por el CLI", first, task.Ref)
 	}
 
+	if first.Action != store.ActionCreate || first.Title != "Con aviso" {
+		t.Errorf("el aviso de la tarea dice %q como %q, se esperaba un alta de “Con aviso”", first.Action, first.Title)
+	}
+
 	if second.ID != 2 || second.Resource != "tag" || second.Ref != tag.Name || second.Origin != "cli" {
 		t.Errorf("el aviso de la etiqueta es %+v, se esperaba la etiqueta %q pedida por el CLI", second, tag.Name)
+	}
+
+	// El aviso de una etiqueta no habla de ninguna tarea: no lleva título.
+	if second.Action != store.ActionCreate || second.Title != "" {
+		t.Errorf("el aviso de la etiqueta dice %q con título %q, se esperaba un alta sin título", second.Action, second.Title)
+	}
+}
+
+// TestEvents_sayTheTitleTheTaskHasNow recorre el título del aviso: cada aviso
+// dice el título que la tarea tiene cuando se lee, no el que tenía cuando se
+// escribió, y cada aviso dice lo que pasó en su propio cambio, aunque sean
+// varios cambios de la misma tarea.
+func TestEvents_sayTheTitleTheTaskHasNow(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Con aviso"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	if _, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Title: new("Renombrada")}); err != nil {
+		t.Fatalf("cambiando la tarea: %v", err)
+	}
+
+	if _, err := apply.CloseTask(ctx, task.Ref, "done"); err != nil {
+		t.Fatalf("cerrando la tarea: %v", err)
+	}
+
+	events, err := apply.Events(ctx, 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	if len(events) != 3 {
+		t.Fatalf("tres cambios dejaron %d avisos, se esperaban 3", len(events))
+	}
+
+	expected := []struct {
+		action string
+		title  string
+	}{
+		{store.ActionCreate, "Renombrada"},
+		{store.ActionUpdate, "Renombrada"},
+		{store.ActionClose, "Renombrada"},
+	}
+
+	for i, want := range expected {
+		if events[i].Action != want.action || events[i].Title != want.title {
+			t.Errorf("el aviso %d dice %q como %q, se esperaba %q como %q", i+1,
+				events[i].Action, events[i].Title, want.action, want.title)
+		}
+	}
+}
+
+// TestEvents_doNotGiveATagTheTitleOfTheTaskThatSharesItsNumber recorre el aviso
+// de una etiqueta sobre una base donde tarea y etiqueta llevan el mismo número
+// interno: el aviso de la etiqueta no habla de ninguna tarea, así que no tiene
+// título que tomar prestado.
+func TestEvents_doNotGiveATagTheTitleOfTheTaskThatSharesItsNumber(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "px")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "La tarea"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	tag, err := apply.CreateTag(ctx, "docs", "", "")
+	if err != nil {
+		t.Fatalf("creando la etiqueta: %v", err)
+	}
+
+	if task.ID != tag.ID {
+		t.Fatalf("la prueba necesita que tarea y etiqueta compartan número, son %d y %d", task.ID, tag.ID)
+	}
+
+	events, err := apply.Events(ctx, 0)
+	if err != nil {
+		t.Fatalf("Events devolvió %v", err)
+	}
+
+	if len(events) != 2 {
+		t.Fatalf("dos cambios dejaron %d avisos, se esperaban 2", len(events))
+	}
+
+	if events[0].Resource != store.ResourceTask || events[0].Title != "La tarea" {
+		t.Errorf("el aviso de la tarea es %+v, se esperaba la tarea con su título", events[0])
+	}
+
+	if events[1].Resource != store.ResourceTag || events[1].Title != "" {
+		t.Errorf("el aviso de la etiqueta es %+v, se esperaba una etiqueta sin título", events[1])
 	}
 }
 

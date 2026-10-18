@@ -58,7 +58,7 @@ func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 		return Tag{}, fmt.Errorf("reading the identity of the stored tag: %w", err)
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTag, id); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, id, ActionCreate); err != nil {
 		return Tag{}, err
 	}
 
@@ -163,7 +163,7 @@ func (s *Store) UpdateTag(ctx context.Context, name string, change func(Tag) (Ta
 		return Tag{}, fmt.Errorf("saving the change of tag %q: %w", name, err)
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID, ActionUpdate); err != nil {
 		return Tag{}, err
 	}
 
@@ -227,7 +227,7 @@ func (s *Store) DeleteTag(ctx context.Context, name string) (Tag, []int64, error
 		}
 	}
 
-	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID); err != nil {
+	if err := recordChange(ctx, tx, s.origin, ResourceTag, stored.ID, ActionDelete); err != nil {
 		return Tag{}, nil, err
 	}
 

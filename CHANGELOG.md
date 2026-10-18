@@ -7,6 +7,11 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Los avisos SSE conservan cada cambio de tarea**: crear, cerrar, actualizar y
+  comentar una tarea llevan su propia acción y título, aunque varias escrituras hayan
+  ocurrido dentro del mismo sondeo. Las bases existentes migran su historial sin
+  perder avisos; los avisos antiguos se presentan como actualizaciones.
+
 - **`init` avisa al completar una instalación con prefijo distinto**: cuando la base ya
   conserva referencias escritas con otro prefijo, completar `settings.json` e
   instrucciones mantiene la instalación y comunica que esas referencias dejan de

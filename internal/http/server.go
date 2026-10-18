@@ -58,8 +58,8 @@ type notice struct {
 	Changes  []taskChange `json:"changes,omitempty"`
 }
 
-// taskChange is one task a batch of notices touched, in the shape the toast of
-// the interface prints: su referencia visible, lo que le pasó y su título.
+// taskChange is one task the change touched, in the shape the toast of the
+// interface prints: su referencia visible, lo que le pasó y su título.
 type taskChange struct {
 	ID     string `json:"id"`
 	Action string `json:"action"`
@@ -75,10 +75,13 @@ const (
 )
 
 // noticeOf translates a change of the base into the notice the channel sends.
-// Las tareas descritas vienen del listado previo al lote: un aviso cuyo cambio
-// no está en él —el releído al reconectar— viaja sin ellas, y el aviso de una
-// etiqueta nunca las lleva, porque el aviso de la pantalla solo nombra tareas.
-func noticeOf(event core.Event, described map[string]taskChange) notice {
+// Lo que pasó lo dice la propia fila del cambio, escrito con el cambio: así dos
+// escrituras dentro del mismo intervalo de sondeo no acaban describiendo la
+// misma cosa, y un comentario tiene qué decir aunque la tarea no cambie de forma
+// visible. El título es el que la tarea lleva ahora. Un aviso que no habla de
+// ninguna tarea —el de una etiqueta, o el de la tarea de la que no queda título—
+// viaja sin ellas, porque el aviso de la pantalla solo nombra tareas.
+func noticeOf(event core.Event) notice {
 	resource := "tags"
 	if event.Resource == store.ResourceTask {
 		resource = "tasks"
@@ -86,67 +89,30 @@ func noticeOf(event core.Event, described map[string]taskChange) notice {
 
 	result := notice{Resource: resource}
 
-	if event.Resource == store.ResourceTask {
-		if change, ok := described[event.Ref]; ok {
-			result.Changes = []taskChange{change}
-		}
+	if event.Resource == store.ResourceTask && event.Title != "" {
+		result.Changes = []taskChange{{
+			ID:     event.Ref,
+			Action: actionWord(event.Action),
+			Title:  event.Title,
+		}}
 	}
 
 	return result
 }
 
-// describeChanges compares the listing the channel last saw with the one it
-// sees now and says, per task that changed, what happened to it: alta, cierre o
-// cambio. La baja no existe en el producto —ninguna superficie borra tareas—,
-// así que no hay acción que declare. Sin listado previo no hay nada que
-// comparar: el primer lote de una conexión que reconstruye el pasado viaja sin
-// descripción, igual que el servidor de referencia.
-func describeChanges(previous, current []core.Task) map[string]taskChange {
-	if previous == nil {
-		return nil
+// actionWord traduce la acción del aviso al vocabulario que la interfaz imprime:
+// creada, cerrada o actualizada. Lo que el aviso no dice —las filas escritas
+// antes de que cada aviso guardara su acción— se cuenta como un cambio: es lo
+// único que se puede afirmar de él.
+func actionWord(action string) string {
+	switch action {
+	case store.ActionCreate:
+		return actionCreated
+	case store.ActionClose:
+		return actionClosed
+	default:
+		return actionUpdated
 	}
-
-	before := make(map[int64]core.Task, len(previous))
-	for _, task := range previous {
-		before[task.ID] = task
-	}
-
-	described := make(map[string]taskChange)
-
-	for _, task := range current {
-		was, seen := before[task.ID]
-		if !seen {
-			described[task.Ref] = taskChange{ID: task.Ref, Action: actionCreated, Title: task.Title}
-
-			continue
-		}
-
-		if fingerprintOf(was) == fingerprintOf(task) {
-			continue
-		}
-
-		action := actionUpdated
-		if was.Status != "done" && task.Status == "done" {
-			action = actionClosed
-		}
-
-		described[task.Ref] = taskChange{ID: task.Ref, Action: action, Title: task.Title}
-	}
-
-	return described
-}
-
-// fingerprintOf freezes a task into one comparable line: lo que cambie en ella
-// cambia la línea, y lo que no, no.
-func fingerprintOf(task core.Task) string {
-	frozen, err := json.Marshal(task)
-	if err != nil {
-		// Una tarea de las que el núcleo devuelve siempre se compone en JSON:
-		// no hay camino a este error con campos que todos son datos.
-		return ""
-	}
-
-	return string(frozen)
 }
 
 // Los estados que un cambio de estado puede pedir: cerrar lleva su motivo y va
@@ -580,15 +546,6 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 	w.WriteHeader(nethttp.StatusOK)
 
-	// El punto de partida del comparador: sin el listado de ahora, el primer
-	// lote con cambios no podría decir qué tarea cambió ni cómo.
-	previous, err := s.core.Tasks(r.Context())
-	if err != nil {
-		s.log.Warn("reading the tasks for the channel", "error", err.Error())
-
-		previous = nil
-	}
-
 	for {
 		events, err := s.core.Events(r.Context(), after)
 		if err != nil {
@@ -597,12 +554,8 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 			return
 		}
 
-		described, seen := s.describeBatch(r, previous, events)
-
-		previous = seen
-
 		for _, event := range events {
-			payload, err := json.Marshal(noticeOf(event, described))
+			payload, err := json.Marshal(noticeOf(event))
 			if err != nil {
 				s.log.Warn("preparing the notice of the channel", "error", err.Error())
 
@@ -627,24 +580,6 @@ func (s *Server) events(w nethttp.ResponseWriter, r *nethttp.Request) {
 		case <-time.After(pollInterval):
 		}
 	}
-}
-
-// describeBatch says what happened to the tasks a batch touched: compara el
-// listado que el canal vio la última vez con el que ve ahora y deja el nuevo
-// como punto de partida del lote siguiente.
-func (s *Server) describeBatch(r *nethttp.Request, previous []core.Task, events []core.Event) (map[string]taskChange, []core.Task) {
-	if len(events) == 0 {
-		return nil, previous
-	}
-
-	current, err := s.core.Tasks(r.Context())
-	if err != nil {
-		s.log.Warn("reading the tasks for the channel", "error", err.Error())
-
-		return nil, previous
-	}
-
-	return describeChanges(previous, current), current
 }
 
 // startOfStream says where the channel starts: where the reader left off, or

@@ -2,6 +2,7 @@ package http_test
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -59,7 +60,11 @@ func TestServer_createsAndReadsTasksThroughTheCore(t *testing.T) {
 // createsATaskThroughTheAPI crea una tarea por la API y comprueba que llega
 // firstRef es la referencia visible que el producto da a la primera tarea de un
 // proyecto: las pruebas la comparan con lo que el servidor devuelve.
-const firstRef = "tk-1"
+const (
+	firstRef      = "tk-1"
+	renamedTitle  = "Renombrada"
+	updatedAction = "actualizada"
+)
 
 // taskResource es el recurso en plural que la interfaz compara en los avisos de
 // cambio de tarea.
@@ -536,8 +541,8 @@ func TestServer_reportsTheStatusOfTheProduct(t *testing.T) {
 
 	decode(t, body, &reported)
 
-	if reported.Version != core.Version || reported.Schema != 4 || reported.Prefix != "tk" {
-		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 4 y el prefijo tk", reported)
+	if reported.Version != core.Version || reported.Schema != 5 || reported.Prefix != "tk" {
+		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 5 y el prefijo tk", reported)
 	}
 }
 
@@ -720,12 +725,12 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 		t.Errorf("el aviso de la alta dice %+v, se esperaba tk-1 creada como “Avisada”", created.Changes)
 	}
 
-	if _, err := apply.UpdateTask(t.Context(), firstRef, core.Changes{Title: new("Renombrada")}); err != nil {
+	if _, err := apply.UpdateTask(t.Context(), firstRef, core.Changes{Title: new(renamedTitle)}); err != nil {
 		t.Fatalf("cambiando la tarea por el núcleo: %v", err)
 	}
 
 	updated := readNotice(t, readRawEvent(t, events))
-	if len(updated.Changes) != 1 || updated.Changes[0] != (taskChange{ID: firstRef, Action: "actualizada", Title: "Renombrada"}) {
+	if len(updated.Changes) != 1 || updated.Changes[0] != (taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}) {
 		t.Errorf("el aviso del cambio dice %+v, se esperaba tk-1 actualizada como “Renombrada”", updated.Changes)
 	}
 
@@ -734,8 +739,145 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 	}
 
 	closed := readNotice(t, readRawEvent(t, events))
-	if len(closed.Changes) != 1 || closed.Changes[0] != (taskChange{ID: firstRef, Action: "cerrada", Title: "Renombrada"}) {
+	if len(closed.Changes) != 1 || closed.Changes[0] != (taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}) {
 		t.Errorf("el aviso del cierre dice %+v, se esperaba tk-1 cerrada como “Renombrada”", closed.Changes)
+	}
+
+	// Un comentario también es un cambio de la tarea: su aviso la nombra con su
+	// referencia, lo que le pasó y su título, como cualquier otro.
+	if _, err := apply.AddComment(t.Context(), firstRef, "una decisión"); err != nil {
+		t.Fatalf("comentando la tarea por el núcleo: %v", err)
+	}
+
+	commented := readNotice(t, readRawEvent(t, events))
+	if len(commented.Changes) != 1 || commented.Changes[0] != (taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}) {
+		t.Errorf("el aviso del comentario dice %+v, se esperaba tk-1 actualizada como “Renombrada”", commented.Changes)
+	}
+}
+
+// TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing recorre las
+// escrituras que caben en un solo sondeo: cuatro cambios de la misma tarea que
+// llegan juntos. Cada aviso lleva su identidad y dice lo que pasó en su propio
+// cambio —alta, cambio, cierre, comentario—, no el mismo para los cuatro ni
+// ninguno. La tarea se crea con un título y se renombra: los cuatro avisos
+// siguen llevando el título de ahora.
+func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testing.T) {
+	t.Parallel()
+
+	server, base := newServer(t)
+	apply := core.New(base, "tk")
+	ctx := t.Context()
+
+	if _, err := apply.CreateTask(ctx, core.NewTask{Title: "Con historia"}); err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	if _, err := apply.UpdateTask(ctx, firstRef, core.Changes{Title: new(renamedTitle)}); err != nil {
+		t.Fatalf("cambiando la tarea: %v", err)
+	}
+
+	if _, err := apply.CloseTask(ctx, firstRef, "done"); err != nil {
+		t.Fatalf("cerrando la tarea: %v", err)
+	}
+
+	if _, err := apply.AddComment(ctx, firstRef, "una decisión"); err != nil {
+		t.Fatalf("comentando la tarea: %v", err)
+	}
+
+	// Los cuatro avisos ya están escritos cuando se abre el canal: los cuatro
+	// caben en el primer lote que el canal manda.
+	next := eventReader(t, openEvents(t, server+"/api/events?after=0"))
+
+	expected := []struct {
+		identity string
+		change   taskChange
+	}{
+		// El título que lleva cada aviso es el que la tarea tiene ahora, no el de
+		// cuando ocurrió: el producto compone el aviso al leerlo.
+		{"id: 1\n", taskChange{ID: firstRef, Action: "creada", Title: renamedTitle}},
+		{"id: 2\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
+		{"id: 3\n", taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}},
+		{"id: 4\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
+	}
+
+	for i, want := range expected {
+		raw := next()
+
+		if !strings.Contains(raw, want.identity) {
+			t.Errorf("el aviso %d no lleva su identidad delante (%q): %q", i+1, want.identity, raw)
+		}
+
+		if notice := readNotice(t, raw); len(notice.Changes) != 1 || notice.Changes[0] != want.change {
+			t.Errorf("el aviso %d dice %+v, se esperaba %+v", i+1, notice.Changes, want.change)
+		}
+	}
+}
+
+// TestServer_aNoticeWrittenBeforeItsActionStillSaysWhatChanged recorre la base
+// de una versión anterior por la interfaz pública: sus avisos no guardan acción,
+// y el canal los describe como un cambio de la tarea, con el título que lleva
+// ahora, en vez de dejarlos sin descripción.
+func TestServer_aNoticeWrittenBeforeItsActionStillSaysWhatChanged(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	first, err := store.OpenAs(t.Context(), path, store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	if _, err := core.New(first, "tk").CreateTask(t.Context(), core.NewTask{Title: "De antes"}); err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	if err := first.Close(); err != nil {
+		t.Fatalf("cerrando la base: %v", err)
+	}
+
+	stripNoticeActions(t, path)
+
+	again, err := store.OpenAs(t.Context(), path, store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base de antes: %v", err)
+	}
+
+	t.Cleanup(func() { _ = again.Close() })
+
+	server := newTestServer(t, core.New(again, "tk"), slog.New(slog.DiscardHandler))
+
+	raw := readRawEvent(t, openEvents(t, server+"/api/events?after=0"))
+
+	if !strings.Contains(raw, "id: 1\n") {
+		t.Errorf("el aviso de antes no lleva su identidad delante: %q", raw)
+	}
+
+	if notice := readNotice(t, raw); len(notice.Changes) != 1 ||
+		notice.Changes[0] != (taskChange{ID: firstRef, Action: updatedAction, Title: "De antes"}) {
+		t.Errorf("el aviso de antes dice %+v, se esperaba tk-1 actualizada como “De antes”", notice.Changes)
+	}
+}
+
+// stripNoticeActions deja la base como estaba antes de que cada aviso guardara
+// su acción: quita la columna y vuelve atrás la versión del esquema, que es como
+// llega una base de una versión anterior.
+func stripNoticeActions(t *testing.T, path string) {
+	t.Helper()
+
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la base por debajo de la store: %v", err)
+	}
+
+	defer raw.Close() //nolint:errcheck // la aserción de quien llama ya decide el resultado
+
+	for _, statement := range []string{
+		`ALTER TABLE changes DROP COLUMN action`,
+		`UPDATE meta SET value = '4' WHERE key = 'schema_version'`,
+	} {
+		if _, err := raw.ExecContext(t.Context(), statement); err != nil {
+			t.Fatalf("dejando la base sin la acción de los avisos: %v", err)
+		}
 	}
 }
 
@@ -824,27 +966,42 @@ func TestServer_aSessionOpenedNowDoesNotReceiveTheChangesOfBefore(t *testing.T) 
 func readRawEvent(t *testing.T, events io.Reader) string {
 	t.Helper()
 
+	return eventReader(t, events)()
+}
+
+// eventReader lee el canal aviso a aviso y devuelve la función que trae el
+// siguiente: un aviso se ve como un bloque terminado en una línea vacía. Se
+// necesita un solo lector por canal —varios avisos seguidos con un lector nuevo
+// por aviso perderían lo que el primero ya trajo.
+func eventReader(t *testing.T, events io.Reader) func() string {
+	t.Helper()
+
 	scanner := bufio.NewScanner(events)
 
 	var block strings.Builder
 
-	for scanner.Scan() {
-		line := scanner.Text()
+	return func() string {
+		for scanner.Scan() {
+			line := scanner.Text()
 
-		block.WriteString(line + "\n")
+			block.WriteString(line + "\n")
 
-		if line == "" {
-			return block.String()
+			if line == "" {
+				notice := block.String()
+				block.Reset()
+
+				return notice
+			}
 		}
+
+		if err := scanner.Err(); err != nil {
+			t.Fatalf("leyendo el canal de eventos: %v", err)
+		}
+
+		t.Fatal("el canal se cerró sin avisar de ningún cambio")
+
+		return ""
 	}
-
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("leyendo el canal de eventos: %v", err)
-	}
-
-	t.Fatal("el canal se cerró sin avisar de ningún cambio")
-
-	return ""
 }
 
 func expect(t *testing.T, status int, body string, expected int, message string) {

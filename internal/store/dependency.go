@@ -49,7 +49,8 @@ func (s *Store) changeBlock(ctx context.Context, taskID, blockerID int64, statem
 
 // recordWhenWritten deja el aviso del cambio solo cuando la instrucción tocó
 // alguna fila: repetir un bloqueo o retirar el que ya no está no cambia nada y
-// no deja aviso.
+// no deja aviso. Un bloqueo cambia la tarea —está o no está bloqueada—, así que
+// su aviso la cuenta como cambiada.
 func recordWhenWritten(ctx context.Context, tx *sql.Tx, origin string, result sql.Result, taskID int64) error {
 	written, err := result.RowsAffected()
 	if err != nil {
@@ -60,7 +61,7 @@ func recordWhenWritten(ctx context.Context, tx *sql.Tx, origin string, result sq
 		return nil
 	}
 
-	return recordChange(ctx, tx, origin, ResourceTask, taskID)
+	return recordChange(ctx, tx, origin, ResourceTask, taskID, ActionUpdate)
 }
 
 // HasOpenBlocker tells whether the task has a blocker that is not done: the

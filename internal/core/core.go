@@ -253,12 +253,16 @@ func (c *Core) Tasks(ctx context.Context) ([]Task, error) {
 }
 
 // Event is a change of the project as it crosses the boundary: el aviso viajó
-// por el número interno, y aquí se compone la referencia que se muestra ahora.
+// por el número interno, y aquí se compone la referencia que se muestra ahora,
+// con el título que la tarea tiene hoy. Action es lo que el cambio anotó sobre
+// sí mismo; está vacío en los avisos escritos antes de que eso se guardara.
 type Event struct {
 	ID       int64     `json:"id"`
 	Resource string    `json:"resource"`
 	Ref      string    `json:"ref"`
 	Origin   string    `json:"origin"`
+	Action   string    `json:"action"`
+	Title    string    `json:"title"`
 	At       time.Time `json:"at"`
 }
 
@@ -275,12 +279,18 @@ func (c *Core) LastEventID(ctx context.Context) (int64, error) {
 }
 
 // Events reads the changes that happened after the notice id given, with the
-// reference of each changed resource composed the way it is shown now: quien
-// lee continúa donde se quedó pasando el último aviso que vio.
+// reference of each changed resource composed the way it is shown now and the
+// title the task carries today: quien lee continúa donde se quedó pasando el
+// último aviso que vio.
 func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 	changes, err := c.store.Changes(ctx, after)
 	if err != nil {
 		return nil, fmt.Errorf("reading the change notices: %w", err)
+	}
+
+	titles, err := c.titlesOf(ctx, changes)
+	if err != nil {
+		return nil, err
 	}
 
 	events := make([]Event, 0, len(changes))
@@ -290,7 +300,14 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 			ID:       change.ID,
 			Resource: change.Resource,
 			Origin:   change.Origin,
+			Action:   change.Action,
 			At:       change.HappenedAt.UTC(),
+		}
+
+		// El aviso de una etiqueta no habla de ninguna tarea, y una tarea que ya
+		// no está no tiene título que nombrar: el aviso sale sin él.
+		if change.Resource == store.ResourceTask {
+			event.Title = titles[change.ResourceID]
 		}
 
 		if event.Ref, err = c.referenceOf(ctx, change); err != nil {
@@ -301,6 +318,25 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 	}
 
 	return events, nil
+}
+
+// titlesOf lee, en una sola consulta, el título que tienen ahora las tareas de
+// las que hablan los avisos: lo que el lote necesita, no una pregunta por aviso.
+func (c *Core) titlesOf(ctx context.Context, changes []store.Change) (map[int64]string, error) {
+	asked := make([]int64, 0, len(changes))
+
+	for _, change := range changes {
+		if change.Resource == store.ResourceTask {
+			asked = append(asked, change.ResourceID)
+		}
+	}
+
+	titles, err := c.store.TaskTitles(ctx, asked)
+	if err != nil {
+		return nil, fmt.Errorf("reading the titles of the changes: %w", err)
+	}
+
+	return titles, nil
 }
 
 // referenceOf composes the reference a notice speaks of: la tarea se nombra con

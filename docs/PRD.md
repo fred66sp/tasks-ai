@@ -71,6 +71,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Alta | Crear tarea y subtarea con título, descripción, prioridad, etiquetas y tarea padre |
 | Detalle | Consultar y editar título, descripción, notas y responsable |
 | Estado y prioridad | Cambiarlos desde el listado y desde el detalle |
+| Padre de la tarea | Cambiar el padre de una tarea tras crearla: asignar, mover a otro padre o quitarlo |
 | Cierre | Cerrar con motivo y comentario de cierre |
 | Dependencias | Alta y baja de bloqueos, y ver qué bloquea a qué |
 | Comentarios | Historial de cada tarea con identidad propia: añadir, leer y editar el cuerpo |
@@ -109,6 +110,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-09 | Los errores de la API se comunican con el código de estado que corresponde, no dentro de una respuesta correcta |
 | RF-10 | El CLI y el servidor son el mismo programa: un solo binario, que levanta el servidor de la interfaz con un comando |
 | RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio y fuera del binario, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
+| RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
 
 ### Reglas de negocio
 
@@ -123,6 +125,8 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-07 | La marca de épica la pone quien crea la tarea; el producto no la añade sola |
 | RN-08 | La prioridad tiene un rango válido, y el valor que se salga de él se rechaza |
 | RN-09 | Cada comentario lleva una identidad estable dentro de su tarea y la fecha en que se añadió: editar su cuerpo no cambia ninguna de las dos |
+| RN-10 | Una tarea no puede ser hija de una de sus descendientes: el cambio de padre que formaría un ciclo se rechaza sin escribir nada |
+| RN-11 | El cambio de padre ajusta solo la etiqueta estructural `task`: entra al asignar o mover a un padre, sale al quitarlo; las demás etiquetas no se tocan |
 
 ### No funcionales
 
@@ -155,3 +159,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-11 | El servidor de la interfaz se arranca desde el propio CLI, sin instalar nada aparte |
 | CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |
 | CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |
+| CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol, el recuento de épica y la etiqueta `task` reflejan siempre el padre vigente |

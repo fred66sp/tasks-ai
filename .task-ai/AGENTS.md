@@ -94,6 +94,8 @@ este archivo, así que aquí se corrige lo que haga falta.
    leer después.
 5. Se cierra con su motivo cuando el resultado y sus comprobaciones se han observado, y
    no antes. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
+6. Quien delega es quien cierra: un subagente trabaja la tarea y devuelve evidencia, pero
+   no la cierra ni escribe el cierre. Lo cierra quien delegó, después de comprobarlo.
 
 ### Lo que no se escribe en el tablero
 

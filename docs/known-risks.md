@@ -64,6 +64,18 @@ toque el CLI comprueba también la extensión y las dos juntas, no solo las prue
 producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
 el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
 
+### RX-9 La base del tablero es un binario que no se fusiona
+
+La base viaja en el repositorio para llevarla a otra máquina. Un binario en Git no se
+fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve
+eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
+historia del repositorio.
+
+**Cobertura:** el tablero se mueve desde una máquina cada vez; antes de integrar se
+comprueba que la otra no tiene tareas nuevas, y una tarea creada en la máquina que se
+queda se vuelve a crear a mano si el conflicto ya ocurrió. Cuando moleste de verdad, la
+salida es un volcado de texto exportable, no la base binaria.
+
 ## Resueltos
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas

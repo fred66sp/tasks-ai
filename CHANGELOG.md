@@ -36,6 +36,14 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **El tablero y el estado de Pi viajan en el repositorio**: `.task-ai/tasks.db` y `.pi/`
+  se versionan para que otra máquina arranque con las tareas y el agente de delegación ya
+  puestos. El agente vive solo en `.pi/agents/`, que es donde Pi lo lee, sin una copia que
+  mantener sincronizada. La base se publica con el contenido del WAL integrado, y
+  `tasks.db-wal` y `tasks.db-shm` no viajan porque son transitorios y copiarlos corrompe
+  lecturas. Un binario no se fusiona: el conflicto entre dos máquinas está en
+  `docs/known-risks.md`.
+
 - **Los settings nuevos quedan privados**: la escritura atómica usa permisos `0600`
   cuando todavía no existe un archivo y conserva los permisos de uno existente.
 

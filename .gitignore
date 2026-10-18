@@ -7,8 +7,8 @@ node_modules/
 .codegraph/
 .playwright-cli/
 
-# Estado local del arnés y de la memoria
-.pi/
+# Estado del arnés: se versiona para llevarlo a otra máquina
+#   .pi/  el paquete de Pi instalado en el proyecto y el agente de delegación
 .engram/*
 !.engram/config.json
 
@@ -32,9 +32,9 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Bases de datos locales: nunca se versionan
-#   .task-ai/tasks.db  las tareas del proyecto; la base no viaja
-.task-ai/tasks.db
+# Base del tablero: se versiona para llevarla a otra máquina, con el contenido del
+# WAL ya integrado. Sus archivos transitorios no viajan: copiarlos corrompe lecturas.
+#   .task-ai/tasks.db  las tareas del proyecto
 .task-ai/tasks.db-wal
 .task-ai/tasks.db-shm
 

@@ -11,7 +11,8 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
   ramas, commits, verificación, integración, CHANGELOG y versionado.
 
 - No se deben crear ni modificar archivos dentro de `odd/tasks/`: el tablero de
-  `tasks-ai` es la única fuente de tareas del repositorio.
+  `tasks-ai` es la única fuente de tareas del repositorio. Tampoco se mantiene un espejo
+  del trabajo fuera de él: ni documentos de tareas ni una lista de tareas paralela.
 - Si una instrucción genérica contradice una regla de este repositorio, hay que detenerse
   y pedir aclaración; no se duplican sistemas de seguimiento.
 
@@ -59,10 +60,11 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 
 - Se hace lo que pide el encargo, con el mínimo que lo resuelve. Sin puertas,
   candados, permisos ni comprobaciones de adorno que nadie pidió.
-- El trabajo se delega en encargos acotados: el criterio citado literalmente, las
-  pruebas escritas antes del código, una lista cerrada de archivos que se pueden
-  tocar, y la evidencia de lo comprobado. Quien orquesta revisa, comprueba el
-  criterio contra el binario real y entrega.
+- El trabajo se delega en encargos acotados: la referencia de la tarea del tablero, el
+  criterio leído de ella con `tasks_show` —no copiado a mano en el encargo—, las pruebas
+  escritas antes del código, una lista cerrada de archivos que se pueden tocar y la
+  evidencia de lo comprobado. Quien orquesta revisa, comprueba el criterio contra el
+  binario real y entrega.
 - Una tarea se cierra cuando su resultado y sus comprobaciones se han observado. Lo
   que se comprueba es el criterio, no la impresión de quien hizo el trabajo.
 - Una unidad a la vez sobre el mismo código: dos tareas listas no se trabajan en
@@ -76,7 +78,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 |---|---|
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
-| `.task-ai/` | El tablero del proyecto; la base no se versiona |
+| `.task-ai/` | El tablero del proyecto; su base viaja en el repositorio para llevarla a otra máquina |
 | `skills/` | Las skills del proyecto, copiadas del taller; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.

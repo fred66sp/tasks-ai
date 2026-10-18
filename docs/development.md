@@ -18,6 +18,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `internal/` | El núcleo del producto y sus superficies |
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
 | `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
+| `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
@@ -27,7 +28,7 @@ repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
 La extensión no viaja en el binario: es un paquete de Pi que vive en el repositorio y se
 instala en el proyecto con los comandos del host, que dejan su ruta relativa en el archivo
-de ajustes de Pi del proyecto, que Git ignora (`.pi/settings.json`):
+de ajustes de Pi del proyecto, versionado (`.pi/settings.json`):
 
 ```bash
 pi install -l ./extensions/pi              # instala el paquete en el proyecto

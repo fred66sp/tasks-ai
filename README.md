@@ -88,7 +88,8 @@ además del comando `/board` y una línea de estado con la tarea en curso.
 
 No forma parte del binario: es un paquete de Pi que vive en el repositorio, y se instala
 en el proyecto con los comandos del host, que dejan su ruta relativa en
-`.pi/settings.json` —que Git ignora— sin copiar el fuente fuera:
+`.pi/settings.json` —versionado, para que otra máquina arranque igual— sin copiar el
+fuente fuera:
 
 ```bash
 pi install -l ./extensions/pi              # instala el paquete en el proyecto
@@ -100,6 +101,17 @@ el tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que 
 ejecuta el binario del proyecto (`bin/tasks-ai`) o, si falta, el que esté en el `PATH`. En
 un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
 sigue.
+
+### El agente de delegación
+
+`.pi/agents/tasks-ai-worker.md` es el subagente que trabaja una tarea del tablero: lee su
+resultado y su criterio con `tasks_show`, toca solo los archivos que el encargo declara y
+devuelve evidencia. Vive en el proyecto, que es donde Pi busca agentes, y viaja en el
+repositorio: otra máquina lo tiene al clonar, sin copiar nada.
+
+El modelo del agente no se configura en el repositorio: se elige con `/gentle:models`,
+que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de cambiar
+ese archivo, porque el arnés congela su configuración al inicio.
 
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 

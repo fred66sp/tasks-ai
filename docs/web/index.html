@@ -1104,7 +1104,7 @@
       <p data-i18n="api.29">El cuerpo de un error es siempre <code>{"error": "..."}</code>, con el código que corresponde, y nunca un error dentro de una respuesta correcta. Cada petición de escritura contiene un único valor JSON: cualquier contenido posterior es entrada inválida y no modifica el proyecto. El estado del producto se consulta con una petición y responde la versión, la versión del esquema y el prefijo en uso:</p>
       <div class="code">
         <pre><code>curl -s http://127.0.0.1:8891/api/status
-# {"version":"0.1.0","schema":5,"prefix":"tk"}</code></pre>
+# {"version":"0.1.0","schema":6,"prefix":"tk"}</code></pre>
       </div>
       <h3 data-i18n="api.30">El canal de cambios</h3>
       <p data-i18n="api.31"><code>GET /api/events</code> mantiene un canal abierto y emite un evento por aviso, en el orden en que ocurrieron. Cada evento lleva el nombre <code>workspace.changed</code> y el aviso en JSON: el recurso que cambió, sin decir quién lo pidió.</p>

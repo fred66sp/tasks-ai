@@ -139,6 +139,15 @@ var migrations = []migration{
 			`ALTER TABLE changes ADD COLUMN action TEXT NOT NULL DEFAULT ''`,
 		},
 	},
+	{
+		// Las consultas de detalle buscan por estas dos columnas. El índice de la
+		// clave primaria de dependencies ya cubre task_id, pero no blocker_id.
+		version: 6,
+		statements: []string{
+			`CREATE INDEX comments_task_id_idx ON comments (task_id)`,
+			`CREATE INDEX dependencies_blocker_id_idx ON dependencies (blocker_id)`,
+		},
+	},
 }
 
 // migration is one schema change, applied as a whole.

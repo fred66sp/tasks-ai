@@ -20,8 +20,8 @@ func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 5 {
-		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 5", version)
+	if version != 6 {
+		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 6", version)
 	}
 }
 
@@ -51,9 +51,92 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 5 {
-		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 5", version)
+	if version != 6 {
+		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 6", version)
 	}
+}
+
+//nolint:gocyclo // migration test checks schema, data, and both indexes together
+func TestOpen_migratesIndexesWithoutLosingCommentsOrDependencies(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	base, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base: %v", err)
+	}
+
+	task, err := base.CreateTask(t.Context(), newTask("Con comentario"))
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	blocker, err := base.CreateTask(t.Context(), newTask("Bloqueante"))
+	if err != nil {
+		t.Fatalf("creando el bloqueante: %v", err)
+	}
+
+	if err := base.AddBlock(t.Context(), task.ID, blocker.ID); err != nil {
+		t.Fatalf("añadiendo la dependencia: %v", err)
+	}
+
+	if _, err := base.AddComment(t.Context(), task.ID, "conservar"); err != nil {
+		t.Fatalf("añadiendo el comentario: %v", err)
+	}
+
+	if err := base.Close(); err != nil {
+		t.Fatalf("cerrando la base: %v", err)
+	}
+
+	// Simula una base de esquema 5 que todavía no conoce los índices nuevos.
+	rawBase(t, path, "DROP INDEX comments_task_id_idx")
+	rawBase(t, path, "DROP INDEX dependencies_blocker_id_idx")
+	rawBase(t, path, "UPDATE meta SET value = '5' WHERE key = 'schema_version'")
+
+	again, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("migrando la base: %v", err)
+	}
+	defer again.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
+
+	if version, err := again.SchemaVersion(t.Context()); err != nil || version != 6 {
+		t.Errorf("la base migrada quedó en el esquema %d (%v), se esperaba el 6", version, err)
+	}
+
+	comments, err := again.Comments(t.Context(), task.ID)
+	if err != nil || len(comments) != 1 || comments[0].Body != "conservar" {
+		t.Errorf("los comentarios tras migrar son %+v (%v), se esperaba conservarlos", comments, err)
+	}
+
+	blocked, err := again.HasOpenBlocker(t.Context(), task.ID)
+	if err != nil || !blocked {
+		t.Errorf("la dependencia tras migrar es %t (%v), se esperaba abierta", blocked, err)
+	}
+
+	for _, index := range []string{"comments_task_id_idx", "dependencies_blocker_id_idx"} {
+		if !indexExists(t, path, index) {
+			t.Errorf("la migración no creó el índice %q", index)
+		}
+	}
+}
+
+func indexExists(t *testing.T, path, wanted string) bool {
+	t.Helper()
+
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la base para mirar sus índices: %v", err)
+	}
+	defer raw.Close() //nolint:errcheck // la aserción del índice ya decide el resultado
+
+	var found string
+
+	err = raw.QueryRowContext(t.Context(),
+		"SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?", wanted,
+	).Scan(&found)
+
+	return err == nil && found == wanted
 }
 
 func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T) {
@@ -97,8 +180,8 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 5 {
-		t.Errorf("la base quedó en el esquema %d, se esperaba el 5", version)
+	if version != 6 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 6", version)
 	}
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {
@@ -771,6 +854,8 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 	// La base se deja como estaba antes de la columna: sin ella y con el
 	// esquema 4 anotado, que es como llega una base de una versión anterior.
 	rawBase(t, path, `ALTER TABLE changes DROP COLUMN action`)
+	rawBase(t, path, `DROP INDEX comments_task_id_idx`)
+	rawBase(t, path, `DROP INDEX dependencies_blocker_id_idx`)
 	rawBase(t, path, `UPDATE meta SET value = '4' WHERE key = 'schema_version'`)
 
 	again, err := store.Open(t.Context(), path)
@@ -787,8 +872,8 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 5 {
-		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 5", version)
+	if version != 6 {
+		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 6", version)
 	}
 
 	changes, err := again.Changes(ctx, 0)

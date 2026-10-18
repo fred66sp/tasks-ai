@@ -590,8 +590,8 @@ func TestServer_reportsTheStatusOfTheProduct(t *testing.T) {
 
 	decode(t, body, &reported)
 
-	if reported.Version != core.Version || reported.Schema != 5 || reported.Prefix != "tk" {
-		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 5 y el prefijo tk", reported)
+	if reported.Version != core.Version || reported.Schema != 6 || reported.Prefix != "tk" {
+		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 6 y el prefijo tk", reported)
 	}
 }
 
@@ -922,6 +922,8 @@ func stripNoticeActions(t *testing.T, path string) {
 
 	for _, statement := range []string{
 		`ALTER TABLE changes DROP COLUMN action`,
+		`DROP INDEX comments_task_id_idx`,
+		`DROP INDEX dependencies_blocker_id_idx`,
 		`UPDATE meta SET value = '4' WHERE key = 'schema_version'`,
 	} {
 		if _, err := raw.ExecContext(t.Context(), statement); err != nil {

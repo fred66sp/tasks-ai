@@ -7,6 +7,10 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **Las bases existentes crean índices para las consultas de detalle**: la migración
+  añade índices sobre `comments.task_id` y `dependencies.blocker_id` sin alterar los
+  comentarios, dependencias ni respuestas existentes.
+
 - **La API rechaza contenido posterior al JSON de una escritura**: un cuerpo debe
   contener un único valor JSON; si trae basura o un segundo valor, la operación
   responde con error sin modificar el proyecto.

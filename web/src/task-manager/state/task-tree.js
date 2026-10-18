@@ -126,6 +126,15 @@ export const taskTree = {
       const task = this.detail || listed || {};
       return { ...mapTask(task), status: listed?.status || task.status || 'open' };
     },
+    // El detalle trae el padre como numero interno; la lista lo trae ya
+    // traducido a su referencia visible. La navegacion vale la referencia.
+    selectedParentTask() {
+      const listed = this.mappedTasks.find((task) => task.id === this.selectedTaskId);
+      const parentId = listed?.parentId || this.selectedTask.parentId;
+      if (!parentId) return null;
+      const parent = this.mappedTasks.find((task) => task.id === parentId);
+      return parent ? { id: parent.id, title: parent.title } : null;
+    },
     hasSelection() {
       return Boolean(this.selectedTaskId && this.selectedTask.id);
     },

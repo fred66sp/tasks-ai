@@ -19,6 +19,7 @@ export const inspectorState = {
       return {
         hasSelection: this.hasSelection,
         task: this.selectedTask,
+        parentTask: this.selectedParentTask,
         menuOpen: this.isInspectorMenuOpen,
         busy: this.isBusy,
         statusBadgeClass: this.statusBadgeClass,

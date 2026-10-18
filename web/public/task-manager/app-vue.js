@@ -15,6 +15,7 @@
         return {
           hasSelection: this.hasSelection,
           task: this.selectedTask,
+          parentTask: this.selectedParentTask,
           menuOpen: this.isInspectorMenuOpen,
           busy: this.isBusy,
           statusBadgeClass: this.statusBadgeClass,
@@ -1069,6 +1070,15 @@
         const task = this.detail || listed || {};
         return { ...mapTask(task), status: listed?.status || task.status || "open" };
       },
+      // El detalle trae el padre como numero interno; la lista lo trae ya
+      // traducido a su referencia visible. La navegacion vale la referencia.
+      selectedParentTask() {
+        const listed = this.mappedTasks.find((task) => task.id === this.selectedTaskId);
+        const parentId = listed?.parentId || this.selectedTask.parentId;
+        if (!parentId) return null;
+        const parent = this.mappedTasks.find((task) => task.id === parentId);
+        return parent ? { id: parent.id, title: parent.title } : null;
+      },
       hasSelection() {
         return Boolean(this.selectedTaskId && this.selectedTask.id);
       },
@@ -2061,6 +2071,7 @@
       mobileOpen: { type: Boolean, required: true },
       hasSelection: { type: Boolean, required: true },
       task: { type: Object, required: true },
+      parentTask: { type: Object, default: null },
       activeTab: { type: String, required: true },
       menuOpen: { type: Boolean, required: true },
       busy: { type: Function, required: true },
@@ -2123,7 +2134,9 @@
       <div class="task-inspector__heading-row">
         <div class="task-inspector__heading"><button class="task-mobile-back tk-button tk-button--ghost" type="button"
             @click="$emit('update:mobileOpen', false)">Volver a tareas</button>
-          <div class="task-inspector__kicker">{{ task.id }} \xB7 {{ task.type }}</div>
+          <div class="task-inspector__kicker">{{ task.id }} \xB7 {{ task.type }}<template v-if="parentTask"> de <button
+              class="task-parent-link" type="button" :title="parentTask.title"
+              @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
           <h1 class="task-inspector__title">{{ task.title }}</h1>
           <p class="task-inspector__description tk-scrollable-text">{{ task.description || 'Sin descripci\xF3n.' }}</p>
         </div>
@@ -2171,7 +2184,9 @@
             <div class="property-grid">
               <div class="property-card">
                 <div class="property-card__label">Tipo</div>
-                <div class="property-card__value">{{ task.type }}</div>
+                <div class="property-card__value">{{ task.type }}<template v-if="parentTask"> de <button
+                    class="task-parent-link" type="button" :title="parentTask.title"
+                    @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
               </div>
               <div class="property-card">
                 <div class="property-card__label">Etiquetas</div>

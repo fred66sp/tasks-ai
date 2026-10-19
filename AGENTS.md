@@ -41,12 +41,15 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   trabajo es una subtarea con padre y la etiqueta `task`. El trabajo del registro ODD
   lleva `ODD`, y cada tarea un tipo principal: `docs`, `feat`, `fix`, `test`, `chore`,
   `refactor`, `style` o `improvement`.
-- Ciclo: leer el tablero antes de crear, crear o seleccionar la tarea antes de tocar
-  archivos, marcarla en curso, mantener las notas y los comentarios al día y cerrarla con
-  su motivo tras verificar.
+- Ciclo: leer el tablero antes de crear, proponer la tarea y esperar a que la persona la
+  confirme, marcarla en curso antes de tocar archivos, mantener las notas y los
+  comentarios al día y cerrarla con su motivo tras verificar.
+- Ninguna tarea la crea el agente por su cuenta: la propone con el resultado que cierra y
+  el criterio con el que se comprueba, y espera la confirmación de la persona.
 - Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
-  arreglo, una decisión, una duda— se anota como tarea antes de tocarlo.
+  arreglo, una decisión, una duda— se propone como tarea antes de tocarlo, y se espera la
+  confirmación.
 - Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización y relevo—
   lo gobierna [`.task-ai/AGENTS.md`](.task-ai/AGENTS.md).
 - Cada tarea declara **el resultado que cierra** y **el criterio con el que se
@@ -55,8 +58,10 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 - Cuando el tablero o sus instrucciones no digan algo que haga falta, se corrige ahí en
   el momento: si algo cuesta entenderlo, el hueco es de la documentación, no de quien lo
   sufre.
-- No se registra en el tablero el estado de Git ni el del proceso de revisión: cada
-  uno vive donde vive.
+- No se registra en el tablero el estado de las tareas, ni el de Git, ni el del proceso
+  de revisión: los estados los marca la herramienta y Git se consulta con Git. Tampoco
+  referencias que envejecen —un número de línea, un número de comentario, un recuento, un
+  «hoy»—: se enuncia el hecho.
 <!-- task-ai: instructions -->
 
 ## Alcance del trabajo

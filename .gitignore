@@ -9,6 +9,8 @@ node_modules/
 
 # Estado del arnés: se versiona para llevarlo a otra máquina
 #   .pi/  el paquete de Pi instalado en el proyecto y el agente de delegación
+# El modelo elegido para el subagente con /gentle:models no viaja: es de esta máquina.
+.pi/subagents.json
 .engram/*
 !.engram/config.json
 

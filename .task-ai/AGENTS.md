@@ -97,7 +97,10 @@ este archivo, así que aquí se corrige lo que haga falta.
    cuerpo (`tasks_comment_edit`) y no se borran, así que se escribe lo que se querrá
    leer después.
 6. Se cierra con su motivo cuando el resultado y sus comprobaciones se han observado, y
-   no antes. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
+   no antes. El commit va primero: se commitea el trabajo, se comprueba que el commit fue
+   bien y entonces se cierra. El cierre escribe en la base del tablero, así que cerrar
+   antes deja ese cambio suelto o mezclado con el trabajo que venga, y el commit deja de
+   contar qué se entregó. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
 7. Quien delega es quien cierra: un subagente trabaja la tarea y devuelve evidencia, pero
    no la cierra ni escribe el cierre. Lo cierra quien delegó, después de comprobarlo.
 

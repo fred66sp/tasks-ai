@@ -43,7 +43,8 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   `refactor`, `style` o `improvement`.
 - Ciclo: leer el tablero antes de crear, proponer la tarea y esperar a que la persona la
   confirme, marcarla en curso antes de tocar archivos, mantener las notas y los
-  comentarios al día y cerrarla con su motivo tras verificar.
+  comentarios al día, commitear el trabajo y comprobar que el commit fue bien, y entonces
+  cerrarla con su motivo.
 - Ninguna tarea la crea el agente por su cuenta: la propone con el resultado que cierra y
   el criterio con el que se comprueba, y espera la confirmación de la persona.
 - Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de

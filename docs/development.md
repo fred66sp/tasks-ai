@@ -84,8 +84,8 @@ el `README.md`; la forma y el riesgo, en `ADR-012`.
    persona la haya confirmado.
 2. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
    documentación al día en cada una.
-3. Antes de cerrar: las pruebas del proyecto y las comprobaciones del contrato de
-   documentación.
+3. Antes de cerrar: las pruebas del proyecto, las comprobaciones del contrato de
+   documentación y el commit del trabajo, comprobado. El cierre de la tarea es lo último.
 4. Un cambio de diseño se documenta antes de implementarlo, y su documento de decisión
    explica qué se descartó.
 

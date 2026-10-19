@@ -1,0 +1,3 @@
+# El fin de línea es del repositorio, no de la configuración de cada máquina: el Git
+# de Windows trae autocrlf=true y, sin esta regla, escribe todo el árbol con CRLF.
+* text=auto eol=lf

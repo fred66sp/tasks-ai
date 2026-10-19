@@ -63,6 +63,8 @@ el `README.md`; la forma y el riesgo, en `ADR-012`.
   texto de la interfaz web, en español; la ayuda, los errores y los avisos del
   producto, en inglés (`ADR-011`).
 - Los mensajes de commit van en inglés, con el formato del contrato de flujo.
+- El fin de línea lo fija el repositorio en `.gitattributes`, no la configuración de Git
+  de cada máquina: los archivos de texto se guardan y se escriben con LF.
 - Los identificadores de los registros son de solo añadir: requisitos en `PRD.md`,
   riesgos en `known-risks.md` y decisiones en sus documentos.
 

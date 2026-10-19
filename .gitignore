@@ -42,3 +42,5 @@ npm-debug.log*
 bin/
 coverage/
 dist/
+#   .run/  el pid y el registro del servidor que levanta serve.sh
+.run/

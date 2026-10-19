@@ -17,7 +17,9 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
   y pedir aclaración; no se duplican sistemas de seguimiento.
 - Un flujo genérico que pida abrir un documento de tareas propio no se sigue aquí: el
   tablero es ese documento, con sus tareas y su relevo. Y el commit que sostiene una tarea
-  no se anota en el tablero: vive en Git, y se consulta con Git.
+  no se anota en el tablero: vive en Git. El commit lleva el remitente `Refs: tk-<n>` y la
+  pregunta se resuelve ahí, con `git log --format='%h %s' --grep='Refs: tk-<n>'`, que
+  contesta con lo que hay y no con lo que se recuerda.
 
 <!-- task-ai: instructions -->
 ## Tablero del trabajo

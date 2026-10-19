@@ -117,7 +117,10 @@ este archivo, así que aquí se corrige lo que haga falta.
   `tasks_update`, `tasks_close` y `tasks_block`, y su estado, su motivo de cierre y sus
   bloqueos ya lo dicen. Ni «pendiente», ni «a la espera», ni «abierta» o «cerrada», ni
   «reabierta».
-- El estado de Git: ramas, hashes, commits pendientes. Se consulta con Git.
+- El estado de Git: ramas, hashes, commits pendientes. Se consulta con Git. La atadura
+  entre una tarea y sus commits va en el mensaje del commit, con `Refs: tk-<n>`, y se
+  resuelve con `git log --grep='Refs: tk-<n>'`: el tablero no hospeda hashes porque para
+  decir qué se entregó le basta ese remitente.
 - Las referencias que envejecen: un número de línea, el número de un comentario, un
   recuento o un «hoy» dejan de ser ciertos sin que nadie los corrija y hacen creer que el
   trabajo está donde no está. Se enuncia el hecho: qué fichero, qué función, qué se

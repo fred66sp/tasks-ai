@@ -187,6 +187,15 @@ tipo: descripción breve
 
 Tipos habituales: `feat`, `fix`, `docs`, `refactor`, `test`, `build` y `chore`.
 
+El cuerpo del commit nombra la tarea que lo sostiene con un remitente `Refs: tk-<n>`, uno
+por tarea cuando el commit sirve a varias. Esa es la única atadura entre tarea y commit, y
+va en esta dirección: el tablero no apunta hashes. Para saber qué commits sostienen una
+tarea se pregunta a Git, que responde con lo que hay y no con lo que se recuerda:
+
+```bash
+git log --format='%h %s' --grep='Refs: tk-141'
+```
+
 Los mensajes de commit y de etiqueta se escribirán en inglés. El resto del proyecto seguirá el idioma que corresponda al proyecto, normalmente español de España.
 
 ## ROOT-22 7. Verificación proporcional

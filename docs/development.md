@@ -22,9 +22,19 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
-Las pruebas de la extensión se ejecutan con `cd extensions/pi && npm test`, que usa el runner
-de Node y construye el binario si falta. Ninguna prueba escribe en el tablero del
-repositorio: cada una monta su proyecto temporal y lo borra al terminar.
+Las pruebas de la extensión necesitan sus dependencias en el disco: se instalan una vez con
+`npm install` y quedan en `extensions/pi/node_modules/`, que no se versiona. Hacen falta
+porque `index.ts` importa `typebox`, que en el paquete es `peerDependency` —lo inyecta Pi al
+cargar la extensión, no Node al probarla—, y sin él la suite no arranca.
+
+```bash
+cd extensions/pi
+npm install
+npm test
+```
+
+`npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
+el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
 La extensión no viaja en el binario: es un paquete de Pi que vive en el repositorio y se
 instala en el proyecto con los comandos del host, que dejan su ruta relativa en el archivo
@@ -70,11 +80,14 @@ el `README.md`; la forma y el riesgo, en `ADR-012`.
 
 ## Cómo se trabaja
 
-1. La tarea en el tablero antes de tocar archivos.
+1. La tarea en el tablero antes de tocar archivos, y ninguna tarea se crea sin que la
+   persona la haya confirmado.
 2. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
    documentación al día en cada una.
-3. Antes de cerrar: las pruebas del proyecto y las comprobaciones del contrato de
-   documentación.
+3. Antes del commit: la tarea entera leída —descripción, notas y comentarios—, con su
+   criterio repasado; las pruebas del proyecto; las comprobaciones del contrato de
+   documentación; y el contrato de Git repasado. Después se commitea, se comprueba que el
+   commit fue bien y se cierra la tarea, que es lo último.
 4. Un cambio de diseño se documenta antes de implementarlo, y su documento de decisión
    explica qué se descartó.
 

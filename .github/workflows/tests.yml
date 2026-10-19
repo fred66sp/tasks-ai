@@ -5,8 +5,9 @@ name: Pruebas
 
 on:
   push:
-    # La rama por defecto del repositorio: un nombre que no exista deja los envíos sin comprobar.
-    branches: [feat/product-base]
+    # La rama por defecto del repositorio, que es `main`: un nombre que no exista deja los
+    # envíos sin comprobar.
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -44,15 +45,21 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
+      # La 24 ejecuta TypeScript sin banderas, que es lo que necesita la extensión para
+      # probarse; la interfaz web se construye con la misma.
       - name: Preparar Node
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Comprobar que la interfaz construida esté al día
         run: |
           (cd web && npm ci && npm run build)
           git diff --exit-code -- web/public
+
+      - name: Pasar las pruebas de la extensión
+        run: |
+          (cd extensions/pi && npm ci && npm test)
 
       - name: Compilar
         run: go build ./...

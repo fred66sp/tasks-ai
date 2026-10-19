@@ -4,8 +4,9 @@ name: Seguridad
 
 on:
   push:
-    # La rama por defecto del repositorio: un nombre que no exista deja los envíos sin comprobar.
-    branches: [feat/product-base]
+    # La rama por defecto del repositorio, que es `main`: un nombre que no exista deja los
+    # envíos sin comprobar.
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

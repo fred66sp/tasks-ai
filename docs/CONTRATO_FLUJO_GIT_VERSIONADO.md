@@ -137,6 +137,11 @@ Se crearán varios commits solo cuando exista una razón clara, por ejemplo:
 
 No se harán commits intermedios únicamente para demostrar actividad o cumplir una regla formal.
 
+El commit de una tarea se hace antes de cerrarla en el tablero. El cierre escribe en la
+base del tablero, que se versiona: cerrar antes de commitear deja ese cambio suelto o
+mezclado con el trabajo que venga, y el commit deja de decir qué se entregó. El ciclo del
+tablero, con su orden, lo gobierna `.task-ai/AGENTS.md`.
+
 ### ROOT-21 6.2. Confirmación de commits
 
 La skill `commit-preparation` aplica la confirmación configurada en
@@ -308,6 +313,9 @@ Estado del árbol: limpio / contiene cambios pendientes
 No es necesario informar de cada comando ejecutado.
 
 ## ROOT-29 14. Flujo operativo resumido
+
+En los tres, el commit se hace y se comprueba, y después se cierra la tarea en el
+tablero; nunca al revés.
 
 ### ROOT-30 Tarea pequeña
 

@@ -15,6 +15,9 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
   del trabajo fuera de él: ni documentos de tareas ni una lista de tareas paralela.
 - Si una instrucción genérica contradice una regla de este repositorio, hay que detenerse
   y pedir aclaración; no se duplican sistemas de seguimiento.
+- Un flujo genérico que pida abrir un documento de tareas propio no se sigue aquí: el
+  tablero es ese documento, con sus tareas y su relevo. Y el commit que sostiene una tarea
+  no se anota en el tablero: vive en Git, y se consulta con Git.
 
 <!-- task-ai: instructions -->
 ## Tablero del trabajo

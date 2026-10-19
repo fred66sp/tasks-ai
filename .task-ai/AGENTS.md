@@ -96,11 +96,18 @@ este archivo, así que aquí se corrige lo que haga falta.
 5. Los **comentarios** son decisiones, hallazgos y evidencias. Se corrigen editando su
    cuerpo (`tasks_comment_edit`) y no se borran, así que se escribe lo que se querrá
    leer después.
-6. Se cierra con su motivo cuando el resultado y sus comprobaciones se han observado, y
-   no antes. El commit va primero: se commitea el trabajo, se comprueba que el commit fue
-   bien y entonces se cierra. El cierre escribe en la base del tablero, así que cerrar
-   antes deja ese cambio suelto o mezclado con el trabajo que venga, y el commit deja de
-   contar qué se entregó. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
+6. Antes del commit se comprueba que la tarea está terminada, revisada y correcta: se lee
+   la tarea entera —descripción, notas y comentarios—, se repasa el criterio punto por
+   punto sobre lo entregado y no sobre lo que se recuerda, y se repasa el contrato de Git
+   (`docs/CONTRATO_FLUJO_GIT_VERSIONADO.md`): la rama, la unidad de commit, la
+   confirmación, la verificación y el CHANGELOG. El criterio es el mínimo: lo que se
+   prometió en una nota o en un comentario y no se hizo, se hace. Nada se declara fuera de
+   alcance, ni se abre una tarea nueva, sin la conformidad y la autorización de la persona.
+   Solo entonces se commitea; después se comprueba que el commit fue bien y se cierra con
+   su motivo. Commitear algo que no está terminado obliga a enmendarlo con otro commit y a
+   abrir tareas para lo que debió estar dentro, y eso no se hace. El cierre escribe además
+   en la base del tablero, así que cerrar antes deja ese cambio suelto o mezclado con el
+   trabajo que venga. Cerrar una tarea con subtareas abiertas lo rechaza el producto.
 7. Quien delega es quien cierra: un subagente trabaja la tarea y devuelve evidencia, pero
    no la cierra ni escribe el cierre. Lo cierra quien delegó, después de comprobarlo.
 

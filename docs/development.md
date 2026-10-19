@@ -22,9 +22,19 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
-Las pruebas de la extensión se ejecutan con `cd extensions/pi && npm test`, que usa el runner
-de Node y construye el binario si falta. Ninguna prueba escribe en el tablero del
-repositorio: cada una monta su proyecto temporal y lo borra al terminar.
+Las pruebas de la extensión necesitan sus dependencias en el disco: se instalan una vez con
+`npm install` y quedan en `extensions/pi/node_modules/`, que no se versiona. Hacen falta
+porque `index.ts` importa `typebox`, que en el paquete es `peerDependency` —lo inyecta Pi al
+cargar la extensión, no Node al probarla—, y sin él la suite no arranca.
+
+```bash
+cd extensions/pi
+npm install
+npm test
+```
+
+`npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
+el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
 La extensión no viaja en el binario: es un paquete de Pi que vive en el repositorio y se
 instala en el proyecto con los comandos del host, que dejan su ruta relativa en el archivo

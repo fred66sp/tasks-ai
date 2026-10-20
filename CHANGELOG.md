@@ -38,10 +38,17 @@ Changelog* y el versionado es semántico.
   inspector los presenta con el formato que traigan —énfasis, listas, enlaces, tablas—
   en lugar de mostrar sus etiquetas, y conserva sus saltos de línea. Lo que ejecuta o
   carga algo se descarta antes de dibujarlo, con una lista blanca de etiquetas y
-  atributos, porque la base del tablero viaja en el repositorio. Está en la interfaz
+  atributos, porque el texto llega de cualquier sitio: se pega, se escribe por el CLI o
+  se manda por la API. Está en la interfaz
   web: la descripción y las notas del detalle y el cuerpo de cada comentario.
 
 ### Modificado
+
+- **El tablero deja de viajar en el repositorio**: `.task-ai/tasks.db` sale del índice y
+  el `.gitignore` la deja fuera, así que cada máquina tiene su base y el conflicto de un
+  binario de SQLite deja de ser posible. Las instrucciones del producto siguen
+  versionadas; lo que viaja con el trabajo nuevo es el código, no las tareas. Llevar el
+  tablero a otra máquina pasa a ser un traslado manual, que todavía no tiene volcado.
 
 - **El tablero y el estado de Pi viajan en el repositorio**: `.task-ai/tasks.db` y `.pi/`
   se versionan para que otra máquina arranque con las tareas y el agente de delegación ya

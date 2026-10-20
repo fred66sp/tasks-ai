@@ -64,24 +64,12 @@ toque el CLI comprueba también la extensión y las dos juntas, no solo las prue
 producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
 el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
 
-### RX-9 La base del tablero es un binario que no se fusiona
-
-La base viaja en el repositorio para llevarla a otra máquina. Un binario en Git no se
-fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve
-eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
-historia del repositorio.
-
-**Cobertura:** el tablero se mueve desde una máquina cada vez; antes de integrar se
-comprueba que la otra no tiene tareas nuevas, y una tarea creada en la máquina que se
-queda se vuelve a crear a mano si el conflicto ya ocurrió. Cuando moleste de verdad, la
-salida es un volcado de texto exportable, no la base binaria.
-
 ### RX-10 El texto de una tarea se dibuja como HTML
 
 La descripción, las notas y el cuerpo de los comentarios se escriben libremente y la
 interfaz los dibuja con `v-html`, así que un formato que la lista blanca deje pasar
-llega al navegador. La base del tablero viaja en el repositorio: lo que escriba otra
-máquina se dibuja aquí.
+llega al navegador. El texto entra por el CLI, por la API y por el pegado en la propia
+pantalla: no hay una sola boca que lo valide.
 
 **Cobertura:** `web/src/shared/tasks/rich-text.js` filtra el contenido con una lista
 blanca de etiquetas y atributos antes de que Vue lo inserte, y una dirección sólo pasa
@@ -90,6 +78,23 @@ con `onerror`, `iframe`, un manejador en un párrafo y un enlace `javascript:`, 
 llegó a dibujarse ni ejecutó nada.
 
 ## Resueltos
+
+### RX-9 La base del tablero es un binario que no se fusiona
+
+La base viajaba en el repositorio para llevarla a otra máquina, y un binario en Git no se
+fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve
+eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
+historia.
+
+**Qué resultó:** la base dejó de viajar. `.task-ai/tasks.db` sale del índice y el
+`.gitignore` la deja fuera, así que cada máquina tiene su tablero y el conflicto no
+existe; lo que viaja con el trabajo nuevo es el código. Los commits anteriores a ese
+cambio conservan la base, y llevar el tablero a otra máquina es ahora un traslado manual
+que todavía no tiene volcado.
+
+**Lección:** la cobertura de esta entrada prometía un volcado de texto «cuando moleste»,
+y al molestar se eligió la salida más barata —retirar la base del repositorio— en vez de
+escribirlo. El volcado sigue faltando.
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas
 

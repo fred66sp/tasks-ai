@@ -34,9 +34,10 @@ npm-debug.log*
 .env.local
 .env.*.local
 
-# Base del tablero: se versiona para llevarla a otra máquina, con el contenido del
-# WAL ya integrado. Sus archivos transitorios no viajan: copiarlos corrompe lecturas.
-#   .task-ai/tasks.db  las tareas del proyecto
+# Base del tablero: vive en esta máquina y no viaja. Un binario de SQLite no se
+# fusiona, así que cada máquina tiene el suyo y el repositorio guarda solo las
+# instrucciones. Sus transitorios tampoco viajan: copiarlos corrompe lecturas.
+.task-ai/tasks.db
 .task-ai/tasks.db-wal
 .task-ai/tasks.db-shm
 

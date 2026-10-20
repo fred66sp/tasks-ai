@@ -1,9 +1,9 @@
 /**
  * El texto de una tarea —descripción, notas y comentarios— se escribe libremente
  * y se dibuja como HTML para que traiga su formato. Esta es la lista blanca de
- * lo que sobrevive: la base del tablero viaja en el repositorio, así que un
- * texto pegado de fuera no puede ejecutar nada ni llevarse por delante la
- * pantalla (tk-59 cerró ese mismo agujero en los avisos).
+ * lo que sobrevive: el texto entra por el CLI, por la API y pegado en la propia
+ * pantalla, así que no puede ejecutar nada ni llevarse por delante la pantalla
+ * (tk-59 cerró ese mismo agujero en los avisos).
  */
 const ALLOWED_TAGS = new Set([
   'A', 'B', 'BLOCKQUOTE', 'BR', 'CODE', 'DD', 'DEL', 'DIV', 'DL', 'DT', 'EM',

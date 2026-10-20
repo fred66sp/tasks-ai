@@ -1,6 +1,7 @@
 import { OverflowMenu } from './overflow-menu.js';
 import { TagPickerField } from './tag-picker-field.js';
 import { TaskBadge } from '../../shared/tasks/task-badge.js';
+import { richTextHtml, isPlainText } from '../../shared/tasks/rich-text.js';
 
 export const TaskInspector = {
   name: 'TaskInspector',
@@ -55,6 +56,19 @@ export const TaskInspector = {
       if (tab === 'edit') this.emitAction('edit.open');
       else this.$emit('update:activeTab', tab);
     },
+    // El texto libre se dibuja con su formato: el saneado lo hace rich-text.js.
+    descriptionHtml() {
+      return richTextHtml(this.task.description) || 'Sin descripción.';
+    },
+    notesHtml() {
+      return richTextHtml(this.task.notes) || 'Sin notas.';
+    },
+    commentHtml(body) {
+      return richTextHtml(body);
+    },
+    plainText(value) {
+      return isPlainText(value);
+    },
     commentMeta(comment) {
       return ['#' + comment.id, comment.createdAt && new Date(comment.createdAt).toLocaleString('es')].filter(Boolean).join(' · ');
     }
@@ -77,7 +91,8 @@ export const TaskInspector = {
               class="task-parent-link" type="button" :title="parentTask.title"
               @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
           <h1 class="task-inspector__title">{{ task.title }}</h1>
-          <p class="task-inspector__description tk-scrollable-text">{{ task.description || 'Sin descripción.' }}</p>
+          <div class="task-inspector__description tk-rich-text tk-scrollable-text"
+            :class="{ 'tk-rich-text--plain': plainText(task.description) }" v-html="descriptionHtml()"></div>
         </div>
         <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
             aria-label="Editar tarea" @click="emitAction('edit.open')">✎</button>
@@ -146,7 +161,8 @@ export const TaskInspector = {
           <header class="tk-panel__header">
             <h3>Notas</h3>
           </header>
-          <div class="tk-panel__content pre-wrap tk-scrollable-text">{{ task.notes || 'Sin notas.' }}</div>
+          <div class="tk-panel__content tk-rich-text tk-scrollable-text"
+            :class="{ 'tk-rich-text--plain': plainText(task.notes) }" v-html="notesHtml()"></div>
         </section>
       </div>
       <div v-show="activeTab === 'edit'" class="tk-panel-stack">
@@ -254,7 +270,8 @@ export const TaskInspector = {
                   </div>
                 </template>
                 <template v-else>
-                  <p class="tk-scrollable-text">{{ comment.body }}</p>
+                  <div class="tk-rich-text tk-scrollable-text"
+                    :class="{ 'tk-rich-text--plain': plainText(comment.body) }" v-html="commentHtml(comment.body)"></div>
                   <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
                       class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
                       :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"

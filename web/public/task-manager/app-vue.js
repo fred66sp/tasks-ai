@@ -2098,6 +2098,104 @@
     template: `<span :class="['tk-badge', badgeClass]">{{ label }}</span>`
   };
 
+  // src/shared/tasks/rich-text.js
+  var ALLOWED_TAGS = /* @__PURE__ */ new Set([
+    "A",
+    "B",
+    "BLOCKQUOTE",
+    "BR",
+    "CODE",
+    "DD",
+    "DEL",
+    "DIV",
+    "DL",
+    "DT",
+    "EM",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "H6",
+    "HR",
+    "I",
+    "LI",
+    "MARK",
+    "OL",
+    "P",
+    "PRE",
+    "S",
+    "SMALL",
+    "SPAN",
+    "STRIKE",
+    "STRONG",
+    "SUB",
+    "SUP",
+    "TABLE",
+    "TBODY",
+    "TD",
+    "TH",
+    "THEAD",
+    "TR",
+    "U",
+    "UL"
+  ]);
+  var DROPPED_TAGS = /* @__PURE__ */ new Set([
+    "APPLET",
+    "BASE",
+    "EMBED",
+    "FORM",
+    "IFRAME",
+    "INPUT",
+    "LINK",
+    "MATH",
+    "META",
+    "NOSCRIPT",
+    "OBJECT",
+    "SCRIPT",
+    "STYLE",
+    "SVG",
+    "TEMPLATE",
+    "TEXTAREA"
+  ]);
+  var ALLOWED_ATTRIBUTES = /* @__PURE__ */ new Set(["href", "title"]);
+  var SAFE_URL = /^(https?:|mailto:|#|\/)/i;
+  var parser = null;
+  function clean(node) {
+    for (const child of Array.from(node.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) continue;
+      if (child.nodeType !== Node.ELEMENT_NODE) {
+        child.remove();
+        continue;
+      }
+      const tag = child.tagName.toUpperCase();
+      if (DROPPED_TAGS.has(tag)) {
+        child.remove();
+        continue;
+      }
+      if (!ALLOWED_TAGS.has(tag)) {
+        clean(child);
+        while (child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
+        child.remove();
+        continue;
+      }
+      for (const attribute of Array.from(child.attributes)) {
+        const name = attribute.name.toLowerCase();
+        const safe = ALLOWED_ATTRIBUTES.has(name) && (name !== "href" || SAFE_URL.test(attribute.value.trim()));
+        if (!safe) child.removeAttribute(attribute.name);
+      }
+      clean(child);
+    }
+  }
+  function richTextHtml(value) {
+    const source = String(value ?? "");
+    if (!source) return "";
+    parser = parser || new DOMParser();
+    const doc = parser.parseFromString(source, "text/html");
+    clean(doc.body);
+    return doc.body.innerHTML;
+  }
+
   // src/task-manager/components/task-inspector.js
   var TaskInspector = {
     name: "TaskInspector",
@@ -2152,6 +2250,16 @@
         if (tab === "edit") this.emitAction("edit.open");
         else this.$emit("update:activeTab", tab);
       },
+      // El texto libre se dibuja con su formato: el saneado lo hace rich-text.js.
+      descriptionHtml() {
+        return richTextHtml(this.task.description) || "Sin descripci\xF3n.";
+      },
+      notesHtml() {
+        return richTextHtml(this.task.notes) || "Sin notas.";
+      },
+      commentHtml(body) {
+        return richTextHtml(body);
+      },
       commentMeta(comment) {
         return ["#" + comment.id, comment.createdAt && new Date(comment.createdAt).toLocaleString("es")].filter(Boolean).join(" \xB7 ");
       }
@@ -2174,7 +2282,7 @@
               class="task-parent-link" type="button" :title="parentTask.title"
               @click="emitAction('task.select', { id: parentTask.id })">{{ parentTask.id }}</button></template></div>
           <h1 class="task-inspector__title">{{ task.title }}</h1>
-          <p class="task-inspector__description tk-scrollable-text">{{ task.description || 'Sin descripci\xF3n.' }}</p>
+          <div class="task-inspector__description tk-rich-text tk-scrollable-text" v-html="descriptionHtml()"></div>
         </div>
         <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
             aria-label="Editar tarea" @click="emitAction('edit.open')">\u270E</button>
@@ -2243,7 +2351,7 @@
           <header class="tk-panel__header">
             <h3>Notas</h3>
           </header>
-          <div class="tk-panel__content pre-wrap tk-scrollable-text">{{ task.notes || 'Sin notas.' }}</div>
+          <div class="tk-panel__content pre-wrap tk-rich-text tk-scrollable-text" v-html="notesHtml()"></div>
         </section>
       </div>
       <div v-show="activeTab === 'edit'" class="tk-panel-stack">
@@ -2351,7 +2459,7 @@
                   </div>
                 </template>
                 <template v-else>
-                  <p class="tk-scrollable-text">{{ comment.body }}</p>
+                  <div class="tk-rich-text tk-scrollable-text" v-html="commentHtml(comment.body)"></div>
                   <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
                       class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
                       :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"

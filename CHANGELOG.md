@@ -34,6 +34,13 @@ Changelog* y el versionado es semántico.
   desde el inspector) y la extensión de Pi (`tasks_comment_list` y
   `tasks_comment_edit`).
 
+- **La descripción, las notas y los comentarios se dibujan con su formato**: el
+  inspector los presenta con el formato que traigan —énfasis, listas, enlaces, tablas—
+  en lugar de mostrar sus etiquetas, y conserva sus saltos de línea. Lo que ejecuta o
+  carga algo se descarta antes de dibujarlo, con una lista blanca de etiquetas y
+  atributos, porque la base del tablero viaja en el repositorio. Está en la interfaz
+  web: la descripción y las notas del detalle y el cuerpo de cada comentario.
+
 ### Modificado
 
 - **El tablero y el estado de Pi viajan en el repositorio**: `.task-ai/tasks.db` y `.pi/`

@@ -1586,6 +1586,20 @@ textarea:focus-visible {
   color: var(--tk-color-text-secondary);
   white-space: pre-wrap;
 }
+.tk-rich-text {
+  white-space: pre-wrap;
+}
+.tk-rich-text :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0 0 var(--tk-space-2);
+  font-size: 1.05em;
+  line-height: 1.3;
+}
+.tk-rich-text :is(p, ul, ol, blockquote, pre, table) {
+  margin: 0 0 var(--tk-space-2);
+}
+.tk-rich-text :is(ul, ol) {
+  padding-left: var(--tk-space-5);
+}
 .tk-scrollable-text {
   max-height: 150px;
   overflow-y: auto;
@@ -1628,10 +1642,9 @@ textarea:focus-visible {
   min-width: 0;
   display: block;
 }
-.comment-card p {
+.comment-card .tk-rich-text {
   margin: 0;
   color: var(--tk-color-text-secondary);
-  white-space: pre-wrap;
 }
 .comment-card__actions {
   display: flex;

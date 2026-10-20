@@ -76,6 +76,19 @@ comprueba que la otra no tiene tareas nuevas, y una tarea creada en la máquina 
 queda se vuelve a crear a mano si el conflicto ya ocurrió. Cuando moleste de verdad, la
 salida es un volcado de texto exportable, no la base binaria.
 
+### RX-10 El texto de una tarea se dibuja como HTML
+
+La descripción, las notas y el cuerpo de los comentarios se escriben libremente y la
+interfaz los dibuja con `v-html`, así que un formato que la lista blanca deje pasar
+llega al navegador. La base del tablero viaja en el repositorio: lo que escriba otra
+máquina se dibuja aquí.
+
+**Cobertura:** `web/src/shared/tasks/rich-text.js` filtra el contenido con una lista
+blanca de etiquetas y atributos antes de que Vue lo inserte, y una dirección sólo pasa
+con un esquema que no ejecuta nada. Se comprobó con un texto que lleva `script`, `img`
+con `onerror`, `iframe`, un manejador en un párrafo y un enlace `javascript:`, y ninguno
+llegó a dibujarse ni ejecutó nada.
+
 ## Resueltos
 
 ### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas

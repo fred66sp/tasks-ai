@@ -70,6 +70,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 |---|---|
 | Alta | Crear tarea y subtarea con título, descripción, prioridad, etiquetas y tarea padre |
 | Detalle | Consultar y editar título, descripción, notas y responsable |
+| Texto con formato | La descripción, las notas y el cuerpo de los comentarios se dibujan con el formato que traigan —énfasis, listas, enlaces, tablas— en lugar de mostrar sus etiquetas, y conservan sus saltos de línea. Lo que ejecuta o carga algo no llega a dibujarse |
 | Estado y prioridad | Cambiarlos desde el listado y desde el detalle |
 | Padre de la tarea | Cambiar el padre de una tarea tras crearla: asignar, mover a otro padre o quitarlo |
 | Cierre | Cerrar con motivo y comentario de cierre |

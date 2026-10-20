@@ -57,6 +57,15 @@ function clean(node) {
   }
 }
 
+/**
+ * El texto llano conserva sus saltos de línea; el que trae etiquetas se dibuja
+ * como HTML, y entonces los saltos y las sangrías de la maquetación no cuentan.
+ */
+export function isPlainText(value) {
+  const source = String(value ?? '');
+  return source !== '' && !/<[a-z][a-z0-9-]*[\s/>]/i.test(source);
+}
+
 export function richTextHtml(value) {
   const source = String(value ?? '');
   if (!source) return '';

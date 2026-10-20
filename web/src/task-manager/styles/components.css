@@ -1503,9 +1503,14 @@
         white-space: pre-wrap;
       }
       /* El texto de una tarea trae su propio formato; se dibuja sin que las
-         etiquetas manden sobre la jerarquía y el ritmo de la pantalla, y sin
-         perder los saltos de línea de lo que se escribió como texto llano. */
+         etiquetas manden sobre la jerarquía y el ritmo de la pantalla. Los saltos
+         de línea de la maquetación no cuentan: con formato, los espacios del
+         código no son parte del texto. */
       .tk-rich-text {
+        color: var(--tk-color-text-secondary);
+      }
+      /* Lo que se escribió como texto llano conserva sus saltos de línea. */
+      .tk-rich-text--plain {
         white-space: pre-wrap;
       }
       .tk-rich-text :is(h1, h2, h3, h4, h5, h6) {

@@ -1587,6 +1587,9 @@ textarea:focus-visible {
   white-space: pre-wrap;
 }
 .tk-rich-text {
+  color: var(--tk-color-text-secondary);
+}
+.tk-rich-text--plain {
   white-space: pre-wrap;
 }
 .tk-rich-text :is(h1, h2, h3, h4, h5, h6) {

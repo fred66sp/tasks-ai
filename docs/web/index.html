@@ -670,7 +670,7 @@
             <tr><td><code>parent_id</code></td><td data-i18n="modelo.24">entero</td><td data-i18n="modelo.25">El número interno del padre. La referencia del padre se compone con el prefijo.</td></tr>
             <tr><td data-i18n="modelo.26"><code>created_at</code>, <code>updated_at</code></td><td data-i18n="modelo.27">fecha</td><td data-i18n="modelo.28">En UTC. Cambian solos.</td></tr>
             <tr><td><code>close_reason</code></td><td data-i18n="modelo.29">enumerado</td><td data-i18n="modelo.30">El motivo del cierre, o nulo si la tarea no está cerrada.</td></tr>
-            <tr><td><code>notes</code></td><td data-i18n="modelo.31">texto</td><td data-i18n="modelo.32">Relevo de quien trabaja: es un solo texto y se sobrescribe.</td></tr>
+            <tr><td><code>notes</code></td><td data-i18n="modelo.31">texto</td><td data-i18n="modelo.32">El plan del trabajo: es un solo texto y se sobrescribe.</td></tr>
           </tbody>
         </table>
       </div>
@@ -685,7 +685,7 @@
       <h3 data-i18n="modelo.39">La dependencia</h3>
       <p data-i18n="modelo.40">Una dependencia dice que una tarea espera a otra: mientras la segunda no esté cerrada, la primera aparece bloqueada. No hay estado «bloqueada» guardado, así que quitar el bloqueo devuelve la tarea a su estado real sin tocar nada más. Bloquear la misma pareja dos veces no cambia nada, y retirar un bloqueo que no está tampoco.</p>
       <h3 data-i18n="modelo.41">El comentario</h3>
-      <p data-i18n="modelo.42">Un comentario es identidad, cuerpo y fecha. El cuerpo se puede editar: la identidad con la que se añadió y su fecha de creación se quedan como estaban. Se leen del primero al último. Es el sitio para las decisiones y las evidencias; las notas son el sitio para el relevo.</p>
+      <p data-i18n="modelo.42">Un comentario es identidad, cuerpo y fecha. El cuerpo se puede editar: la identidad con la que se añadió y su fecha de creación se quedan como estaban. Se leen del primero al último. Es el sitio para las decisiones y las evidencias; las notas son el sitio para el plan.</p>
     </section>
 
     <section id="comandos">
@@ -721,7 +721,7 @@
           <tbody>
             <tr><td><code>-t</code>, <code>--title</code></td><td data-i18n="comandos.11">Título. Obligatorio.</td></tr>
             <tr><td><code>-d</code>, <code>--description</code></td><td data-i18n="comandos.13">Descripción.</td></tr>
-            <tr><td><code>--notes</code></td><td data-i18n="comandos.14">Notas del relevo.</td></tr>
+            <tr><td><code>--notes</code></td><td data-i18n="comandos.14">Notas: el plan del trabajo.</td></tr>
             <tr><td><code>--priority</code></td><td data-i18n="comandos.15">Entero de <code>0</code> a <code>3</code>. Por omisión <code>2</code>.</td></tr>
             <tr><td><code>--assignee</code></td><td data-i18n="comandos.16">Persona responsable.</td></tr>
             <tr><td><code>--parent</code></td><td data-i18n="comandos.17">Referencia del padre: la tarea nace como subtarea.</td></tr>
@@ -967,7 +967,7 @@
         <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
 # { "error": "cannot close task \"tk-1\": it has open subtasks" }   exit 1</code></pre>
       </div>
-      <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y sirve de relevo: qué falta y cuál es el siguiente paso. Los comentarios son el histórico de la tarea —cada uno con su identidad y su fecha, y con el cuerpo editable— y sirven para lo que no debe perderse: la petición, la decisión y la evidencia.</p></div>
+      <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y guarda el plan —los pasos y lo que hay que tener presente al retomar la tarea—, no el estado: el estado lo dicen la propia tarea, sus bloqueos y Git. Los comentarios son el histórico de la tarea —cada uno con su identidad y su fecha, y con el cuerpo editable— y sirven para lo que no debe perderse: la petición, la decisión con su razón y la evidencia.</p></div>
     </section>
 
     <section id="recetas">
@@ -1014,12 +1014,12 @@
       </div>
 
       <h3 data-i18n="recetas.10">Dejar constancia de una decisión</h3>
-      <p data-i18n="recetas.11">Lo que hay que poder releer meses después va en un comentario; el relevo del día va en las notas, que se pueden sustituir sin miedo.</p>
+      <p data-i18n="recetas.11">Lo que hay que poder releer meses después va en un comentario; el plan de la tarea va en las notas, que se pueden sustituir sin miedo.</p>
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai comment --body "Se descarta el PDF: el informe se entrega en HTML." tk-1
-./tasks-ai update --notes "Falta la revisión de tono; sigue con tk-2." tk-1</code></pre>
+./tasks-ai update --notes "Revisar el tono de la introducción; después, el índice." tk-1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai comment --body "PDF is out: the report ships as HTML." tk-1
-./tasks-ai update --notes "Tone review still missing; continue with tk-2." tk-1</code></pre>
+./tasks-ai update --notes "Review the tone of the introduction; then the index." tk-1</code></pre>
       </div>
 
       <h3 data-i18n="recetas.12">Trabajar con un agente</h3>
@@ -1390,7 +1390,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "modelo.29": "enum",
  "modelo.30": "The close reason, or null if the task is not closed.",
  "modelo.31": "text",
- "modelo.32": "The working handover: it is a single text and it is overwritten.",
+ "modelo.32": "The plan for the work: it is a single text and it is overwritten.",
  "modelo.33": "<strong>Priority means nothing beyond its order.</strong> The product validates the range and nothing else: it does not sort, does not interpret it and does not change how any command behaves. What <code>0</code> means is your call, and it belongs in the project rules.",
  "modelo.34": "The tag",
  "modelo.35": "The catalogue belongs to the project, not to each task: a tag has a name, a colour and a description, and tasks carry it by its internal number. That is why <strong>renaming a tag touches no task</strong>, and deleting it leaves its tasks without it.",
@@ -1400,7 +1400,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "modelo.39": "The dependency",
  "modelo.40": "A dependency says one task waits for another: while the second is not closed, the first shows as blocked. There is no stored \"blocked\" status, so removing the blocker returns the task to its real state without touching anything else. Blocking the same pair twice changes nothing, and removing a blocker that is not there does nothing either.",
  "modelo.41": "The comment",
- "modelo.42": "A comment is an identity, a body and a timestamp. The body can be edited: the identity it was added with and its creation timestamp stay as they were. They read from first to last. It is the place for decisions and evidence; notes are the place for the handover.",
+ "modelo.42": "A comment is an identity, a body and a timestamp. The body can be edited: the identity it was added with and its creation timestamp stay as they were. They read from first to last. It is the place for decisions and evidence; notes are the place for the plan.",
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
@@ -1411,7 +1411,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.9": "What it does",
  "comandos.11": "Title. Mandatory.",
  "comandos.13": "Description.",
- "comandos.14": "Handover notes.",
+ "comandos.14": "Notes: the plan for the work.",
  "comandos.15": "Integer from <code>0</code> to <code>3</code>. Defaults to <code>2</code>.",
  "comandos.16": "The person responsible.",
  "comandos.17": "The parent reference: the task is born as a subtask.",
@@ -1495,7 +1495,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "ciclo.26": "The two rules that are computed",
  "ciclo.27": "<strong>Blocked.</strong> A task is blocked while it has any blocker that is not closed. It is not a stored status: it is computed on every read, which is why removing the blocker returns it to what it was without touching the database.",
  "ciclo.28": "<strong>Cascading closes do not exist.</strong> Closing a subtask does not close its parent, and closing a parent with open subtasks is rejected without writing anything. Whoever closes decides what gets closed.",
- "ciclo.29": "<strong>Notes and comments are not the same thing.</strong> <code>notes</code> is a single text that is overwritten and serves as the handover: what is missing and what comes next. Comments are the history of the task —each one with its identity and its timestamp, and with an editable body— and are for what must not be lost: the request, the decision and the evidence.",
+ "ciclo.29": "<strong>Notes and comments are not the same thing.</strong> <code>notes</code> is a single text that is overwritten and holds the plan —the steps and what must be kept in mind when picking the task up—, not the state: the task itself, its blockers and Git say the state. Comments are the history of the task —each one with its identity and its timestamp, and with an editable body— and are for what must not be lost: the request, the decision with its reason and the evidence.",
  "recetas.2": "Recipes",
  "recetas.3": "Five ways of working the product does well, with the commands in order.",
  "recetas.4": "An epic with subtasks",
@@ -1505,7 +1505,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "recetas.8": "Ordering work with tags",
  "recetas.9": "The catalogue is created once and tasks carry it by name. A tag with a colour and a description reads better on screen, and renaming it breaks no task.",
  "recetas.10": "Recording a decision",
- "recetas.11": "What has to be readable months later goes in a comment; the day's handover goes in the notes, which can be replaced without fear.",
+ "recetas.11": "What has to be readable months later goes in a comment; the plan for the task goes in the notes, which can be replaced without fear.",
  "recetas.12": "Working with an agent",
  "recetas.13": "The product folder carries its own instructions. The agent finds them if the project links them, and from there it uses the same commands a person does: there is no separate surface for it.",
  "recetas.14": "<strong>A task stops being \"the agent's\" the moment it writes one.</strong> The assignee is free text: if you want to tell who did what, write it with <code>--assignee</code> or leave it in the comments. The product does not store an author per operation.",

@@ -7,6 +7,16 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **El texto de una tarea no guarda el estado**: el título, la descripción, las notas y el
+  cuerpo de un comentario se rechazan si nombran un hash de commit, una rama o una
+  referencia a un remoto, o si declaran el estado de la tarea o de la entrega con la forma
+  que el producto reconoce. El núcleo comprueba el texto antes de escribir, así que el
+  rechazo no deja nada guardado y una creación rechazada no crea la tarea: sale con la
+  salida `2` por el CLI, con `400` por la API y como error de la herramienta en la
+  extensión del agente, con el mismo mensaje que nombra el campo y el fragmento. Lo
+  entrecomillado no exime. Las listas cerradas están en `docs/contracts.md`, lo que queda
+  fuera de ellas en `docs/known-risks.md`, y la decisión en `ADR-013`.
+
 - **El padre de una tarea se puede cambiar después de crearla**: `update --parent <ref>`
   la asigna, la mueve a otro padre o, con el valor vacío, la deja en su nivel. Un ciclo
   —tomar como padre a la propia tarea o a una de sus descendientes— y una referencia que

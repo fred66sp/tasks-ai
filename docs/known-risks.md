@@ -77,6 +77,21 @@ con un esquema que no ejecuta nada. Se comprobó con un texto que lleva `script`
 con `onerror`, `iframe`, un manejador en un párrafo y un enlace `javascript:`, y ninguno
 llegó a dibujarse ni ejecutó nada.
 
+### RX-11 El validador del texto no alcanza todo lo que escribe el estado
+
+Las listas del apartado 8 de [`contracts.md`](contracts.md) son léxicas: reconocen una
+forma, no la intención de quien escribe. Se les escapa un hash escrito solo con dígitos, el
+nombre de una rama que no lleva uno de los prefijos del contrato de Git —uno que también es
+una carpeta del repositorio—, una declaración de estado en prosa sin marcador, y toda
+escritura que no pase por el producto. Y la regla cuesta también en el otro sentido: lo
+entrecomillado no exime, así que un texto que cita la frase rechazada se rechaza igual, y
+el tablero no puede guardar el ejemplo de lo que prohíbe.
+
+**Cobertura:** la revisión de quien escribe, que es la que había antes de la regla, y la
+enmienda de las listas cuando una forma demuestra el mismo daño y no aparece en ningún
+texto legítimo (`ADR-013`). Una escritura que no pasa por el producto solo la ve quien
+lee la base.
+
 ## Resueltos
 
 ### RX-9 La base del tablero es un binario que no se fusiona

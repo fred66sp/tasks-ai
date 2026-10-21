@@ -78,6 +78,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Alta | Crear tarea y subtarea con título, descripción, prioridad, etiquetas y tarea padre |
 | Detalle | Consultar y editar título, descripción, notas y responsable |
 | Texto con formato | La descripción, las notas y el cuerpo de los comentarios se dibujan con el formato que traigan —énfasis, listas, enlaces, tablas— en lugar de mostrar sus etiquetas, y conservan sus saltos de línea. Lo que ejecuta o carga algo no llega a dibujarse |
+| Texto sin estado | El título, la descripción, las notas y el cuerpo de un comentario no guardan el estado del trabajo: el texto que lo escribe se rechaza y no llega a guardarse |
 | Estado y prioridad | Cambiarlos desde el listado y desde el detalle |
 | Padre de la tarea | Cambiar el padre de una tarea tras crearla: asignar, mover a otro padre o quitarlo |
 | Cierre | Cerrar con motivo y comentario de cierre |
@@ -136,6 +137,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-09 | Cada comentario lleva una identidad estable dentro de su tarea y la fecha en que se añadió: editar su cuerpo no cambia ninguna de las dos |
 | RN-10 | Una tarea no puede ser hija de una de sus descendientes: el cambio de padre que formaría un ciclo se rechaza sin escribir nada |
 | RN-11 | El cambio de padre ajusta solo la etiqueta estructural `task`: entra al asignar o mover a un padre, sale al quitarlo; las demás etiquetas no se tocan |
+| RN-12 | El texto de una tarea no guarda el estado del trabajo: el título, la descripción, las notas y el cuerpo de un comentario que lo escriben se rechazan sin escribir nada, y lo rechazan las tres superficies que escriben —CLI, API HTTP y extensión del agente— |
 
 ### No funcionales
 
@@ -170,3 +172,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |
 | CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol, el recuento de épica y la etiqueta `task` reflejan siempre el padre vigente |
 | CA-15 | El texto buscado en la interfaz lista la tarea que lo lleva en el título, la referencia, una etiqueta, la descripción, las notas o un comentario, y no lista nada cuando el texto no aparece en ninguno de esos campos |
+| CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por la extensión del agente con el mismo mensaje, y la tarea queda como estaba |

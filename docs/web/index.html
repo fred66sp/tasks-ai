@@ -675,6 +675,7 @@
         </table>
       </div>
       <div class="note"><p data-i18n="modelo.33"><strong>La prioridad no tiene más significado que su orden.</strong> El producto valida el rango y nada más: no la ordena, no la interpreta y no cambia el comportamiento de ninguna orden. Lo que signifique <code>0</code> lo decides tú y lo escribes en las reglas del proyecto.</p></div>
+      <div class="note"><p data-i18n="modelo.43"><strong>El texto no guarda el estado.</strong> El título, la descripción, las notas y el cuerpo de un comentario no dicen en qué punto está el trabajo ni qué queda por entregar: el estado lo dicen la tarea y sus bloqueos, y Git lo que se entregó. El producto lo comprueba antes de escribir y rechaza el texto que nombra un hash de commit, una rama o una referencia a un remoto, o que declara el estado de la tarea o de la entrega con la forma que reconoce; el rechazo no guarda nada y nombra el campo y el fragmento. Entrecomillar no exime: un texto que cita la frase prohibida se rechaza igual.</p></div>
       <h3 data-i18n="modelo.34">La etiqueta</h3>
       <p data-i18n="modelo.35">El catálogo es del proyecto, no de cada tarea: una etiqueta tiene nombre, color y descripción, y las tareas la llevan por su número interno. Por eso <strong>renombrar una etiqueta no toca ninguna tarea</strong>, y borrarla deja a sus tareas sin ella.</p>
       <ul class="plain">
@@ -1254,6 +1255,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
             <tr><td><code>priority 9 is outside the range 0-3</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.10">Usar un entero de <code>0</code> a <code>3</code>.</td></tr>
             <tr><td><code>the close reason is missing: use --reason with one of done, duplicate, absorbed, stale, superseded</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.12">Añadir <code>--reason</code> con uno de los cinco.</td></tr>
             <tr><td><code>status "done" is not set here: closing goes through close, with its reason</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.14">Usar <code>close --reason</code>.</td></tr>
+            <tr><td><code>the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-N</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.32">Escribir el hecho sin el hash: el commit llega a su tarea por el mensaje del commit, con <code>Refs: tk-N</code>. La misma regla rechaza el nombre de una rama, una referencia a un remoto y una frase que declara el estado.</td></tr>
             <tr><td><code>color "verde" is not valid: use one of blue, purple, green, yellow, orange, red</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.16">Escribir el color en inglés, tal como sale en la lista.</td></tr>
             <tr><td><code>task "tk-1" cannot be blocked by itself</code></td><td><span class="sev sev-warn">2</span></td><td data-i18n="errores.18">Bloquear contra otra tarea.</td></tr>
             <tr><td><code>there is no task with reference "tk-99"</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.20">Revisar la referencia con <code>list</code>. Si el prefijo cambió, la referencia vieja ya no resuelve.</td></tr>
@@ -1401,6 +1403,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "modelo.40": "A dependency says one task waits for another: while the second is not closed, the first shows as blocked. There is no stored \"blocked\" status, so removing the blocker returns the task to its real state without touching anything else. Blocking the same pair twice changes nothing, and removing a blocker that is not there does nothing either.",
  "modelo.41": "The comment",
  "modelo.42": "A comment is an identity, a body and a timestamp. The body can be edited: the identity it was added with and its creation timestamp stay as they were. They read from first to last. It is the place for decisions and evidence; notes are the place for the plan.",
+ "modelo.43": "<strong>The text carries no state.</strong> The title, the description, the notes and the body of a comment do not say where the work stands or what is left to deliver: the state is said by the task and its blockers, and by Git what was delivered. The product checks it before writing and refuses a text that names a commit hash, a branch or a remote reference, or that declares the state of the task or of the delivery in the form it recognises; the refusal stores nothing and names the field and the fragment. Quoting does not exempt: a text that cites the forbidden phrase is refused all the same.",
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
@@ -1648,6 +1651,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "errores.29": "When the command never runs",
  "errores.30": "If the error is not JSON, the problem comes before the product: the binary does not run. A binary copied without execute permission answers <code>EACCES</code> from the interface and <code>Permission denied</code> from the terminal, and a permission fixes it, not another command:",
  "errores.31": "If the command runs but does not find the project, there is no <code>.task-ai/</code> folder in the path: <code>init</code> creates it, and it runs from inside the project.",
+ "errores.32": "Write the fact without the hash: a commit reaches its task through the commit message, with <code>Refs: tk-N</code>. The same rule refuses a branch name, a remote reference and a phrase that declares the state.",
  "preguntas.2": "Short answers",
  "preguntas.3": "For whoever arrives with one specific doubt and does not want to re-read the whole page.",
  "preguntas.4": "Where are my tasks?",

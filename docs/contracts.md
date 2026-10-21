@@ -463,3 +463,9 @@ escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra e
 | `R3` | `the comment names a remote reference: "origin/HEAD"; the board does not store Git` |
 | `R4` | `the title declares the state of the task: "Hecho:"; state what was done, found or decided instead` |
 | `R5` | `the notes declare the state of the delivery: "sin commitear"; the board does not store Git` |
+
+El rechazo llega como entrada inválida, no como un fallo: el CLI sale con `2` y la API
+responde `400`, con este mismo objeto `{"error": "..."}` y este mismo texto. La extensión
+del agente entrega ese mensaje como error de su herramienta, sin reescribirlo. El rechazo
+no escribe nada: la tarea queda con los campos que tenía, y una creación
+rechazada no crea la tarea.

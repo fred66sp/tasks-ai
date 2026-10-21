@@ -367,3 +367,105 @@ quien lea su JSON recibe la tarea completa.
   del producto.
 - Un servidor MCP: la forma elegida es la extensión (`ADR-012`), y su condición de
   revisión está en esa decisión.
+
+## 8. El texto de las tareas
+
+El título, la descripción, las notas y el cuerpo de un comentario no escriben el estado:
+ni el de Git ni el de la propia tarea. Lo marcan la tarea —con sus bloqueos— y Git. El
+núcleo lo comprueba antes de escribir, con las listas cerradas de este apartado,
+tanto al crear y cambiar la tarea como al añadir y editar un comentario: lo que cae en
+ellas es entrada inválida, la escritura no ocurre y la base queda igual.
+
+Lo entrecomillado no exime. La regla se cita nombrando lo que se rechaza —un hash de
+commit, el nombre de una rama, la frase que declara el cierre—, y los ejemplos concretos,
+los que enseñan qué se rechaza, viven en este documento, que el validador no mira.
+
+### Lo que se rechaza
+
+Las listas se leen sobre el texto tal como se escribe, sin distinguir mayúsculas. Los
+ejemplos que se rechazan son textos que el tablero guardó y hubo que reescribir, salvo el
+nombre de rama, que es el que el repositorio usó; los que se aceptan son textos que el
+tablero ya lleva y la comprobación deja pasar.
+
+**`R1` — un hash de commit.** De siete a cuarenta caracteres hexadecimales, con al menos
+una letra.
+
+```text
+\b(?=[0-9a-fA-F]*[a-fA-F])[0-9a-fA-F]{7,40}\b
+```
+
+- Se rechaza: `acd789f`.
+- Se acepta: `hashes de commit, nombres de rama, referencias a commits pendientes`.
+
+**`R2` — el nombre de una rama.** Uno de los prefijos de rama del contrato de Git seguido
+de su nombre.
+
+```text
+\b(?:feat|feature|fix|hotfix|release|refactor|chore)/[a-z0-9][a-z0-9._-]*
+```
+
+- Se rechaza: `feat/rich-task-text`.
+- Se acepta: `Decidir la proteccion de rama del repositorio`.
+
+**`R3` — una referencia a un remoto.**
+
+```text
+\borigin/[a-z0-9][a-z0-9._-]*
+```
+
+- Se rechaza: `origin/HEAD`.
+- Se acepta: `sin referencias de Git`.
+
+**`R4` — una declaración de estado con su marcador.** El marcador va al principio del
+texto o detrás de un signo de puntuación, seguido de dos puntos.
+
+```text
+(?:^|[.:;!?\n]\s*)(?:estado|hecho|hecha|terminad[oa]|cerrad[oa]|abiert[oa]|reabiert[oa]|en curso|pendiente|bloquead[oa]|a la espera|siguiente paso|próximo paso|status|done|pending|in progress|next step)\s*:
+```
+
+- Se rechaza: `Hecho: el criterio comprobado contra el binario real`.
+- Se acepta: `El modelo tiene tres estados (abierta, en curso y cerrada)`.
+
+**`R5` — una declaración del estado de la entrega.**
+
+```text
+\b(?:sin commitear|sin subir|sin fusionar|pendientes? de commit|pendientes? de push)\b
+```
+
+- Se rechaza: `sin commitear`.
+- Se acepta: `no se entrega mientras se verifica`.
+
+La lista cubre el plural donde la frase lo admite. Se quedan fuera, y es a
+propósito, las formas que no distinguen el estado de la entrega de un texto
+legítimo: la que nombra la sección del CHANGELOG (`sin publicar`, con corchetes y
+en mayúscula en el documento que la lleva), la que describe el registro de la base
+(`sin integrar`, hablando del WAL) y la que aparece citada al contar una limpieza
+(`sin push`). El tablero usa las tres así, y añadirlas rechazaría esos textos.
+
+Si un texto cae en más de una lista, manda la primera que lo alcanza en el orden de este
+apartado.
+
+Una palabra suelta dentro de una frase no cae en `R4`, y es a propósito: la misma prosa
+describe lo que el producto hace —«cerrar una tarea con subtareas abiertas se rechaza»— y
+el validador no distingue una especificación de un estado. Lo que las listas no alcanzan
+está en `docs/known-risks.md`.
+
+### El mensaje del rechazo
+
+Nombra el campo, el fragmento y lo que hay que escribir en su lugar, para que quien lo
+escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra el producto:
+`title`, `description`, `notes` o `comment`.
+
+| Regla | Mensaje |
+|---|---|
+| `R1` | `the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-N` |
+| `R2` | `the notes name a branch: "feat/rich-task-text"; the board does not store Git` |
+| `R3` | `the comment names a remote reference: "origin/HEAD"; the board does not store Git` |
+| `R4` | `the title declares the state of the task: "Hecho:"; state what was done, found or decided instead` |
+| `R5` | `the notes declare the state of the delivery: "sin commitear"; the board does not store Git` |
+
+El rechazo llega como entrada inválida, no como un fallo: el CLI sale con `2` y la API
+responde `400`, con este mismo objeto `{"error": "..."}` y este mismo texto. La extensión
+del agente entrega ese mensaje como error de su herramienta, sin reescribirlo. El rechazo
+no escribe nada: la tarea queda con los campos que tenía, y una creación
+rechazada no crea la tarea.

@@ -82,6 +82,9 @@ este archivo, así que aquí se corrige lo que haga falta.
 - Toda tarea declara en su descripción **el resultado que la cierra** y **el criterio con
   el que se comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
   empieza: se escribe primero.
+- Además del resultado y el criterio, la tarea lleva los pasos con los que se aborda y,
+  como comentarios, los hallazgos y las decisiones con su razón. Eso es lo que no caduca;
+  el estado caduca siempre.
 
 ### El ciclo
 
@@ -92,10 +95,12 @@ este archivo, así que aquí se corrige lo que haga falta.
    igual para lo que aparezca por el camino —un arreglo, una decisión, una duda—: se
    propone y se espera; no se anota por cuenta propia.
 3. La tarea existe y está en curso antes de tocar archivos.
-4. Las **notas** son el relevo: qué falta y cuál es el siguiente paso. Se sobrescriben.
-5. Los **comentarios** son decisiones, hallazgos y evidencias. Se corrigen editando su
-   cuerpo (`tasks_comment_edit`) y no se borran, así que se escribe lo que se querrá
-   leer después.
+4. Las **notas** son el plan de la tarea: los pasos con los que se aborda y lo que hay que
+   tener presente al retomarla. No guardan el estado —ni lo hecho, ni lo que queda, ni lo
+   que sigue—: eso lo dicen la propia tarea, Git y la sesión del agente. Se sobrescriben.
+5. Los **comentarios** son decisiones con su razón, hallazgos y evidencias. Se corrigen
+   editando su cuerpo (`tasks_comment_edit`) y no se borran, así que se escribe lo que se
+   querrá leer después.
 6. Antes del commit se comprueba que la tarea está terminada, revisada y correcta: se lee
    la tarea entera —descripción, notas y comentarios—, se repasa el criterio punto por
    punto sobre lo entregado y no sobre lo que se recuerda, y se repasa el contrato de Git
@@ -116,7 +121,8 @@ este archivo, así que aquí se corrige lo que haga falta.
 - El estado de la tarea: lo marca la herramienta y no se escribe. Se cambia con
   `tasks_update`, `tasks_close` y `tasks_block`, y su estado, su motivo de cierre y sus
   bloqueos ya lo dicen. Ni «pendiente», ni «a la espera», ni «abierta» o «cerrada», ni
-  «reabierta».
+  «reabierta». Una copia en prosa envejece sin que nadie la corrija y hace creer que el
+  trabajo está donde no está.
 - El estado de Git: ramas, hashes, commits pendientes. Se consulta con Git. La atadura
   entre una tarea y sus commits va en el mensaje del commit, con `Refs: tk-<n>`, y se
   resuelve con `git log --grep='Refs: tk-<n>'`: el tablero no hospeda hashes porque para

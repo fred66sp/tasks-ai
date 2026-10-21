@@ -30,7 +30,8 @@ func newUpdateCommand() *cobra.Command {
 			"With --status the status changes: open or in_progress.\n" +
 			"Closing does not go through here: use close, with its reason.\n" +
 			"With --parent the parent changes: a reference assigns it or moves it, and an\n" +
-			"empty value leaves the task without one, on its own level.",
+			"empty value leaves the task without one, on its own level.\n" +
+			textRuleNote,
 		Args: usage(cobra.ExactArgs(1)),
 		RunE: func(command *cobra.Command, args []string) error {
 			changes := core.Changes{}

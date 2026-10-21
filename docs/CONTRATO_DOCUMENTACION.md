@@ -39,7 +39,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 
 | Dato | Dueño | Cómo se consulta |
 |---|---|---|
-| Estado del trabajo: qué se hace, relevo, evidencias | Tablero del proyecto (`.task-ai/`) | `./bin/tasks-ai list`, `show` y `serve` sobre `.task-ai/tasks.db` |
+| Estado del trabajo: qué trabajo hay, su especificación y sus evidencias | Tablero del proyecto (`.task-ai/`) | `./bin/tasks-ai list`, `show` y `serve` sobre `.task-ai/tasks.db` |
 | Historia de la entrega: qué se entregó y cuándo | Git y `CHANGELOG.md` | `git log`, `CHANGELOG.md` |
 | Requisitos, alcance y criterios de aceptación | `PRD.md` | `PRD.md` |
 | Decisiones durables: contexto, alternativas, consecuencias | `docs/decisions/` (un ADR por decisión) | `docs/decisions/` |
@@ -84,7 +84,7 @@ proyecto sigue la regla.
 | `docs/development.md` | Cómo trabajar en el código | Estructura, convenciones, flujo de trabajo, mapa de ficheros vigente | Historia de la extracción, cifras de la suite, estado |
 | `docs/known-risks.md` | Qué riesgo y qué deuda existen y cómo se cubren | Riesgos vivos con su cobertura, los resueltos y su lección, deuda aceptada | Requisitos, planes, estado del trabajo |
 | `docs/decisions/` | Por qué se decidió algo y qué se descartó | Un ADR por decisión: contexto, decisión, alternativas y consecuencias | Requisitos, cifras, estado |
-| Tablero del proyecto (`.task-ai/`) | Qué se está haciendo | Tareas y partes de épica, relevo y evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, el estado de las tareas, ni el de Git ni el del proceso de revisión, ni referencias que envejecen |
+| Tablero del proyecto (`.task-ai/`) | Qué se está haciendo | Tareas y partes de épica, la especificación de cada una —resultado y criterio, y los pasos— y la evidencia funcional en frases cortas | Documentación: misiones, resúmenes, métricas, cifras, listas de ficheros, el estado de las tareas, ni el de Git ni el del proceso de revisión, ni referencias que envejecen |
 | `docs/web/index.html` | Enseñar a manejar el producto de principio a fin: el recorrido completo, de la instalación al uso diario | El recorrido con las órdenes, sus opciones, sus ejemplos y sus respuestas; los ciclos, las recetas, la interfaz, la API, la configuración, los límites y los errores. La página está en español y en inglés, y cada ejemplo lleva su versión en los dos idiomas, datos incluidos; lo que el producto imprime —mensajes, avisos y el texto que devuelve— se reproduce tal cual, en el idioma en que lo imprime, que es el inglés de la ayuda y de los errores (`ADR-011`). Su identidad visual se toma de `docs/tasks-ai-brand/`: la paleta, las tipografías y el símbolo de la marca, dentro del propio archivo | Requisitos, decisiones, estado del trabajo ni cifras; tampoco es la fuente de verdad de lo que ya tiene dueño: reproduce lo justo para enseñar y se actualiza en el mismo cambio que toque una orden, una opción o un mensaje |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y cómo se usa | El símbolo aprobado y sus iconos, la paleta y las tipografías con sus tokens, y las normas de uso y fidelidad del arte | Arte nuevo o reinterpretado, requisitos del producto ni el contenido de la guía: la guía lo enlaza y reproduce la identidad dentro de su propio archivo |
 
@@ -113,7 +113,8 @@ los definió: en su lugar se enuncia el hecho.
 8. **Afirmaciones sobre el presente que nadie actualizará** («hoy», «vigente»,
    «actualmente») salvo que formen parte de un requisito.
 9. **Métricas y resúmenes en el tablero `tk`.** El tablero no es un documento vivo:
-   no se redacta en él. Se anotan el relevo y, como comentarios, la evidencia
+   no se redacta en él. Se anotan lo que hace falta para hacer la tarea —su
+   especificación y sus pasos— y, como comentarios, la evidencia
    funcional del trabajo; ni informes de estado, ni recuentos de lo que se ha
    tocado, ni resúmenes del proyecto.
 
@@ -208,7 +209,7 @@ cambio
 ¿riesgo?                   → known-risks.md
 ¿comando, estructura?      → README.md / operations.md / development.md
    ↓
-tk: tarea, relevo y evidencia funcional
+tk: tarea, especificación y evidencia funcional
    ↓
 CHANGELOG.md en [Sin publicar]
    ↓

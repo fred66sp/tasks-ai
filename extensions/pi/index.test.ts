@@ -485,6 +485,58 @@ describe("la extensión", () => {
 		assert.deepEqual(cli("list"), before);
 	});
 
+	it("las herramientas devuelven el rechazo del texto tal cual y no escriben nada", async () => {
+		cli("create", "--title", "Base", "--description", "Decidir la proteccion de rama del repositorio");
+		await execute("tasks_comment", { ref: "tk-1", body: "cuerpo legitimo" });
+		const before = cli("show", "tk-1");
+
+		const scenarios: { name: string; args: string[]; tool: string; params: Record<string, unknown> }[] = [
+			{
+				name: "la descripción de una tarea nueva nombra un commit",
+				args: ["create", "--title", "Otra", "--description", "el commit acd789f lo hizo"],
+				tool: "tasks_create", params: { title: "Otra", description: "el commit acd789f lo hizo" },
+			},
+			{
+				name: "las notas de una tarea nueva nombran una rama",
+				args: ["create", "--title", "Otra", "--notes", "ver feat/rich-task-text"],
+				tool: "tasks_create", params: { title: "Otra", notes: "ver feat/rich-task-text" },
+			},
+			{
+				name: "la descripción de un cambio declara el estado de la tarea",
+				args: ["update", "tk-1", "--description", "estado: pendiente"],
+				tool: "tasks_update", params: { ref: "tk-1", description: "estado: pendiente" },
+			},
+			{
+				name: "las notas de un cambio declaran el estado de la entrega",
+				args: ["update", "tk-1", "--notes", "sin commitear"],
+				tool: "tasks_update", params: { ref: "tk-1", notes: "sin commitear" },
+			},
+			{
+				name: "el cuerpo de un comentario nombra un remoto",
+				args: ["comment", "tk-1", "--body", "origin/HEAD es la referencia"],
+				tool: "tasks_comment", params: { ref: "tk-1", body: "origin/HEAD es la referencia" },
+			},
+			{
+				name: "el cuerpo editado de un comentario declara el estado",
+				args: ["comment", "edit", "tk-1", "1", "--body", "Hecho: el criterio"],
+				tool: "tasks_comment_edit", params: { ref: "tk-1", id: 1, body: "Hecho: el criterio" },
+			},
+		];
+
+		for (const scenario of scenarios) {
+			const rejected = spawnSync(binary, scenario.args, { cwd: project, encoding: "utf8" });
+			assert.equal(rejected.status, 2, scenario.name);
+			const message = JSON.parse(rejected.stderr || rejected.stdout).error;
+			assert.match(message, /^(the (description|notes|comment) (names|name|declares|declare) )/, scenario.name);
+			await assert.rejects(() => execute(scenario.tool, scenario.params),
+				(error: Error) => error.message === message, scenario.name);
+		}
+
+		// Ningún rechazo dejó rastro: la misma tarea, con su descripción y su comentario.
+		assert.deepEqual(cli("show", "tk-1"), before);
+		assert.equal(cli("list").length, 1);
+	});
+
 	it("tasks_close conserva abierta una tarea con hijas abiertas y propaga el rechazo", async () => {
 		cli("create", "--title", "padre");
 		cli("create", "--title", "hija", "--parent", "tk-1");

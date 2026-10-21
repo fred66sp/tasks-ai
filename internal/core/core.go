@@ -226,6 +226,14 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		return Task{}, err
 	}
 
+	if err := checkText(fieldDescription, task.Description); err != nil {
+		return Task{}, err
+	}
+
+	if err := checkText(fieldNotes, task.Notes); err != nil {
+		return Task{}, err
+	}
+
 	parentID, err := c.parentID(ctx, task.Parent)
 	if err != nil {
 		return Task{}, err
@@ -506,10 +514,18 @@ func changed(task store.Task, changes Changes, parent *int64) (store.Task, error
 	}
 
 	if changes.Description != nil {
+		if err := checkText(fieldDescription, *changes.Description); err != nil {
+			return store.Task{}, err
+		}
+
 		task.Description = optional(*changes.Description)
 	}
 
 	if changes.Notes != nil {
+		if err := checkText(fieldNotes, *changes.Notes); err != nil {
+			return store.Task{}, err
+		}
+
 		task.Notes = optional(*changes.Notes)
 	}
 
@@ -949,12 +965,16 @@ func (c *Core) EditComment(ctx context.Context, ref string, commentID int64, bod
 	return c.Task(ctx, ref)
 }
 
-// commentBody is the rule every surface shares: a comment is written with a body,
-// stored without the spaces at its sides.
+// commentBody is the rule every surface shares: a comment is written with a body
+// that does not write the state of Git, stored without the spaces at its sides.
 func commentBody(body string) (string, error) {
 	text := strings.TrimSpace(body)
 	if text == "" {
 		return "", invalid("the comment body is missing: use --body")
+	}
+
+	if err := checkText(fieldComment, text); err != nil {
+		return "", err
 	}
 
 	return text, nil
@@ -1004,11 +1024,16 @@ func (c *Core) missing(ref string) error {
 	return notFound("there is no task with reference %q", strings.TrimSpace(ref))
 }
 
-// checkTitle refuses an empty title and returns it trimmed.
+// checkTitle refuses a title without text and a title that writes the state of
+// Git, and returns it trimmed.
 func checkTitle(text string) (string, error) {
 	title := strings.TrimSpace(text)
 	if title == "" {
 		return "", invalid("the task needs a title")
+	}
+
+	if err := checkText(fieldTitle, title); err != nil {
+		return "", err
 	}
 
 	return title, nil

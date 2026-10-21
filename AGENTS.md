@@ -17,15 +17,18 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
 - Si una instrucción genérica contradice una regla de este repositorio, hay que detenerse
   y pedir aclaración; no se duplican sistemas de seguimiento.
 - Un flujo genérico que pida abrir un documento de tareas propio no se sigue aquí: el
-  tablero es ese documento, con sus tareas y su relevo. Y el commit que sostiene una tarea
-  no se anota en el tablero: vive en Git. El commit lleva el remitente `Refs: tk-<n>` y la
-  pregunta se resuelve ahí, con `git log --format='%h %s' --grep='Refs: tk-<n>'`, que
-  contesta con lo que hay y no con lo que se recuerda.
+  tablero es ese documento, con sus tareas, su especificación y sus hallazgos. Y el commit
+  que sostiene una tarea no se anota en el tablero: vive en Git. El commit lleva el
+  remitente `Refs: tk-<n>` y la pregunta se resuelve ahí, con
+  `git log --format='%h %s' --grep='Refs: tk-<n>'`, que contesta con lo que hay y no con
+  lo que se recuerda.
 
 <!-- task-ai: instructions -->
 ## Tablero del trabajo
 
 El trabajo se registra en el tablero del propio producto, instalado en `.task-ai/`.
+El tablero dice qué trabajo existe y en qué punto está, y cada tarea lleva escrito lo que
+hay que saber para hacerla y lo que se aprendió al hacerla.
 Con la extensión de Pi cargada, el agente lo opera con sus herramientas —`tasks_board`,
 `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`, `tasks_reopen`,
 `tasks_block`, `tasks_unblock` y `tasks_comment`—, que envuelven el CLI y devuelven su
@@ -54,8 +57,8 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
   arreglo, una decisión, una duda— se propone como tarea antes de tocarlo, y se espera la
   confirmación.
-- Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización y relevo—
-  lo gobierna [`.task-ai/AGENTS.md`](.task-ai/AGENTS.md).
+- Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización y qué
+  guarda cada campo— lo gobierna [`.task-ai/AGENTS.md`](.task-ai/AGENTS.md).
 - Cada tarea declara **el resultado que cierra** y **el criterio con el que se
   comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
   empieza: se escribe primero.

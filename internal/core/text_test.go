@@ -19,6 +19,7 @@ const (
 
 	commitText   = "acd789f"
 	deliveryText = "sin commitear"
+	stateText    = "Hecho: el criterio comprobado contra el binario real"
 	openStatus   = "open"
 )
 
@@ -47,8 +48,8 @@ type aState struct {
 	remedy   string
 }
 
-// theRejectedStates are the examples of the lists `R1`, `R2`, `R3` and `R5` del
-// contrato, con la frase que cada mensaje añade después del campo y el fragmento.
+// theRejectedStates are the examples of the lists of the contract, con la frase
+// que cada mensaje añade después del campo y el fragmento que nombra.
 var theRejectedStates = []aState{
 	{
 		name:     "a commit",
@@ -64,6 +65,11 @@ var theRejectedStates = []aState{
 		name:     "a remote reference",
 		fragment: "origin/HEAD",
 		remedy:   "the board does not store Git",
+	},
+	{
+		name:     "the state of the task",
+		fragment: "Hecho:",
+		remedy:   "state what was done, found or decided instead",
 	},
 	{
 		name:     "the state of the delivery",
@@ -108,6 +114,14 @@ func TestText_rejectsTheExamplesOfTheContractWithTheirMessage(t *testing.T) {
 			field: fieldComment,
 			text:  "origin/HEAD",
 			want:  `the comment names a remote reference: "origin/HEAD"; the board does not store Git`,
+		},
+		{
+			name:  "the state of the task in the description",
+			write: theWrites[0],
+			field: fieldDescription,
+			text:  stateText,
+			want: `the description declares the state of the task: "Hecho:"; ` +
+				`state what was done, found or decided instead`,
 		},
 		{
 			name:  "the state of the delivery in the notes",
@@ -164,6 +178,13 @@ func TestText_namesTheFirstListThatCatchesTheText(t *testing.T) {
 			field: fieldNotes,
 			text:  "feat/rich-task-text sin commitear",
 			want:  `the notes name a branch: "feat/rich-task-text"; the board does not store Git`,
+		},
+		{
+			name:  "un marcador y una entrega",
+			write: theWrites[0],
+			field: fieldNotes,
+			text:  "Estado: pendiente de commit",
+			want:  `the notes declare the state of the task: "Estado:"; state what was done, found or decided instead`,
 		},
 		{
 			name:  "un remoto y una entrega",
@@ -269,6 +290,9 @@ func TestText_leavesTheAcceptedTextsAsTheyWereWritten(t *testing.T) {
 		"Una decisión sobre ramas y una convención de mensajes de commit",
 		// El hueco conocido del contrato: siete dígitos no son un hash.
 		"20261019",
+		// Las mismas palabras nombran lo que el producto hace, y no se rechazan.
+		"El modelo tiene tres estados (abierta, en curso y cerrada)",
+		"Cerrar con subtareas abiertas se rechaza y la tarea sigue abierta",
 	}
 
 	for _, text := range accepted {

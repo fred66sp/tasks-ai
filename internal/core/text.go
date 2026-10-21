@@ -23,6 +23,7 @@ var (
 	hexRunPattern   = regexp.MustCompile(`(?i)\b[0-9a-f]{7,40}\b`)
 	branchPattern   = regexp.MustCompile(`(?i)\b(?:feat|feature|fix|hotfix|release|refactor|chore)/[a-z0-9][a-z0-9._-]*`)
 	remotePattern   = regexp.MustCompile(`(?i)\borigin/[a-z0-9][a-z0-9._-]*`)
+	statePattern    = regexp.MustCompile(`(?i)(?:^|[.:;!?\n]\s*)((?:estado|hecho|hecha|terminad[oa]|cerrad[oa]|abiert[oa]|reabiert[oa]|en curso|pendiente|bloquead[oa]|a la espera|siguiente paso|próximo paso|status|done|pending|in progress|next step)\s*:)`)
 	deliveryPattern = regexp.MustCompile(`(?i)\b(?:sin commitear|sin subir|sin fusionar|pendiente de commit|pendiente de push)\b`)
 )
 
@@ -42,8 +43,7 @@ type textRule struct {
 	remedy string
 }
 
-// textRules are the lists `R1`, `R2`, `R3` and `R5` of the contract, en su
-// orden.
+// textRules are the lists `R1` to `R5` of the contract, en su orden.
 var textRules = []textRule{
 	{
 		find:   commitHash,
@@ -64,6 +64,12 @@ var textRules = []textRule{
 		remedy: "the board does not store Git",
 	},
 	{
+		find:   stateMarker,
+		verb:   "declare",
+		what:   "the state of the task",
+		remedy: "state what was done, found or decided instead",
+	},
+	{
 		find:   deliveryPattern.FindString,
 		verb:   "declare",
 		what:   "the state of the delivery",
@@ -71,9 +77,23 @@ var textRules = []textRule{
 	},
 }
 
-// checkText refuses a text that writes the state of Git into the field named,
-// venga de la superficie que venga: el título, la descripción, las notas y el
-// cuerpo de un comentario. Rechazarlo es no escribir nada.
+// stateMarker finds a declaration of the state of the task: el marcador con sus
+// dos puntos, sin la puntuación que lo precede. La lista solo lo reconoce al
+// principio del texto o detrás de un signo de puntuación, porque las mismas
+// palabras describen lo que el producto hace.
+func stateMarker(text string) string {
+	found := statePattern.FindStringSubmatch(text)
+	if len(found) < 2 {
+		return ""
+	}
+
+	return strings.TrimSpace(found[1])
+}
+
+// checkText refuses a text that writes the state of Git or the state of the task
+// into the field named, venga de la superficie que venga: el título, la
+// descripción, las notas y el cuerpo de un comentario. Rechazarlo es no escribir
+// nada.
 func checkText(field, text string) error {
 	for _, rule := range textRules {
 		fragment := rule.find(text)

@@ -23,6 +23,13 @@ hay dos superficies: un CLI con salida JSON, pensado para agentes, y una interfa
 con su API HTTP, pensada para la persona. Todo lo del producto vive en una sola
 carpeta dentro del proyecto, de modo que el proyecto no se ensucia.
 
+El tablero del proyecto es el registro del trabajo: dice qué tareas existen, cómo se
+anidan y en qué punto de su ciclo están. Cada tarea guarda la especificación de su
+trabajo —el resultado que la cierra y el criterio con el que se comprueba—, los pasos con
+los que se aborda y, como comentarios, lo que se aprende al hacerlo: los hallazgos y las
+decisiones con su razón. El estado no se escribe en el texto de la tarea: lo marcan la
+propia tarea, sus bloqueos y Git.
+
 Tacks es la referencia funcional del producto. Inspira el modelo de tareas; no obliga
 a conservar su compatibilidad ni a traducir su implementación.
 

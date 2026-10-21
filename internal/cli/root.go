@@ -17,6 +17,11 @@ import (
 // Name is how the product's command is called.
 const Name = "tasks-ai"
 
+// textRuleNote es la regla del texto en una línea: la llevan las ayudas de los
+// comandos que escriben texto, para que --help la nombre.
+const textRuleNote = "The text writes no state: the title, the description, the notes " +
+	"and the comment body name neither Git nor the state of the task or of the delivery."
+
 // usageError marks an error as the misuse of the command line, which answers
 // with its own exit code.
 type usageError struct {

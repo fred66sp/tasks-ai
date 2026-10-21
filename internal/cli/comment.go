@@ -17,7 +17,8 @@ func newCommentCommand() *cobra.Command {
 		"Adds a comment to the task and returns the task as it is in JSON. The body is\n"+
 			"required and is stored without the spaces at its sides. Use comment list to\n"+
 			"read the comments of the task and comment edit to change the body of one of\n"+
-			"them.",
+			"them.\n"+
+			textRuleNote,
 		"body",
 		"comment body (required)",
 		(*core.Core).AddComment,
@@ -51,7 +52,8 @@ func newCommentEditCommand() *cobra.Command {
 		Short: "Changes the body of a comment",
 		Long: "Changes the body of the comment of the task that carries the number given, and\n" +
 			"returns the task as it is left in JSON. The identity and the creation date of\n" +
-			"the comment are kept; a body is required.",
+			"the comment are kept; a body is required.\n" +
+			textRuleNote,
 		Args: usage(cobra.ExactArgs(2)),
 		RunE: func(command *cobra.Command, args []string) error {
 			id, err := strconv.ParseInt(args[1], 10, 64)

@@ -23,8 +23,9 @@ func newCreateCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Creates a task",
-		Long:  "Creates a task in the project and returns its JSON, with its internal identity and its reference.",
-		Args:  usage(cobra.NoArgs),
+		Long: "Creates a task in the project and returns its JSON, with its internal identity and its reference.\n" +
+			textRuleNote,
+		Args: usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			if strings.TrimSpace(title) == "" {
 				return &usageError{err: errors.New("the task title is missing: use --title")}

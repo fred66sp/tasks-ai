@@ -50,7 +50,10 @@ superficies que escriben —CLI, API HTTP y extensión del agente— la reciban 
 - Lo que se rechaza deja de escribirse: lo aprendido se enuncia como hecho, no como
   estado. Algunas fórmulas cómodas dejan de caber en el tablero.
 - Las listas son cerradas y finitas: se leen, se enmiendan y se prueban como el resto del
-  contrato, y su enmienda es un cambio visible, no un criterio que se mueva solo.
+  contrato, y su enmienda es un cambio visible, no un criterio que se mueva solo. Una
+  forma entra cuando demuestra el mismo daño y no aparece en ningún texto legítimo; la
+  primera enmienda fue la tolerancia al plural del estado de la entrega, y las formas que
+  se midieron como legítimas se quedaron fuera, con su motivo escrito en el contrato.
 - Queda fuera lo que no se parece ni a un hash ni a un marcador: un hash escrito solo con
   dígitos, un nombre de rama con un prefijo que también es una carpeta del repositorio y
   una declaración de estado sin marcador, escrita en prosa. Lo que las listas no alcanzan

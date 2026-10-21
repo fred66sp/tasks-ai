@@ -24,7 +24,7 @@ var (
 	branchPattern   = regexp.MustCompile(`(?i)\b(?:feat|feature|fix|hotfix|release|refactor|chore)/[a-z0-9][a-z0-9._-]*`)
 	remotePattern   = regexp.MustCompile(`(?i)\borigin/[a-z0-9][a-z0-9._-]*`)
 	statePattern    = regexp.MustCompile(`(?i)(?:^|[.:;!?\n]\s*)((?:estado|hecho|hecha|terminad[oa]|cerrad[oa]|abiert[oa]|reabiert[oa]|en curso|pendiente|bloquead[oa]|a la espera|siguiente paso|próximo paso|status|done|pending|in progress|next step)\s*:)`)
-	deliveryPattern = regexp.MustCompile(`(?i)\b(?:sin commitear|sin subir|sin fusionar|pendiente de commit|pendiente de push)\b`)
+	deliveryPattern = regexp.MustCompile(`(?i)\b(?:sin commitear|sin subir|sin fusionar|pendientes? de commit|pendientes? de push)\b`)
 )
 
 // textRule is one of the lists of the contract: what finds the fragment that

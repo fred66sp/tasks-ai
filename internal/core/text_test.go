@@ -19,6 +19,7 @@ const (
 
 	commitText   = "acd789f"
 	deliveryText = "sin commitear"
+	noGitRemedy  = "the board does not store Git"
 	stateText    = "Hecho: el criterio comprobado contra el binario real"
 	openStatus   = "open"
 )
@@ -59,12 +60,12 @@ var theRejectedStates = []aState{
 	{
 		name:     "a branch",
 		fragment: "feat/rich-task-text",
-		remedy:   "the board does not store Git",
+		remedy:   noGitRemedy,
 	},
 	{
 		name:     "a remote reference",
 		fragment: "origin/HEAD",
-		remedy:   "the board does not store Git",
+		remedy:   noGitRemedy,
 	},
 	{
 		name:     "the state of the task",
@@ -74,7 +75,12 @@ var theRejectedStates = []aState{
 	{
 		name:     "the state of the delivery",
 		fragment: deliveryText,
-		remedy:   "the board does not store Git",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "the state of the delivery in the plural",
+		fragment: "pendientes de commit",
+		remedy:   noGitRemedy,
 	},
 }
 
@@ -293,6 +299,11 @@ func TestText_leavesTheAcceptedTextsAsTheyWereWritten(t *testing.T) {
 		// Las mismas palabras nombran lo que el producto hace, y no se rechazan.
 		"El modelo tiene tres estados (abierta, en curso y cerrada)",
 		"Cerrar con subtareas abiertas se rechaza y la tarea sigue abierta",
+		// Formas del estado de la entrega que el contrato deja fuera: nombran la
+		// sección del CHANGELOG, el registro de la base o una limpieza.
+		"El CHANGELOG ya lo cuenta en [Sin publicar]",
+		"La base tenía el WAL sin integrar",
+		"Se quitó la mención de si algo estaba sin push",
 	}
 
 	for _, text := range accepted {

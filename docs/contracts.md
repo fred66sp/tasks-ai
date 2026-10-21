@@ -429,11 +429,18 @@ texto o detrás de un signo de puntuación, seguido de dos puntos.
 **`R5` — una declaración del estado de la entrega.**
 
 ```text
-\b(?:sin commitear|sin subir|sin fusionar|pendiente de commit|pendiente de push)\b
+\b(?:sin commitear|sin subir|sin fusionar|pendientes? de commit|pendientes? de push)\b
 ```
 
 - Se rechaza: `sin commitear`.
 - Se acepta: `no se entrega mientras se verifica`.
+
+La lista cubre el plural donde la frase lo admite. Se quedan fuera, y es a
+propósito, las formas que no distinguen el estado de la entrega de un texto
+legítimo: la que nombra la sección del CHANGELOG (`sin publicar`, con corchetes y
+en mayúscula en el documento que la lleva), la que describe el registro de la base
+(`sin integrar`, hablando del WAL) y la que aparece citada al contar una limpieza
+(`sin push`). El tablero usa las tres así, y añadirlas rechazaría esos textos.
 
 Si un texto cae en más de una lista, manda la primera que lo alcanza en el orden de este
 apartado.

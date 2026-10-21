@@ -451,7 +451,7 @@ escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra e
 
 | Regla | Mensaje |
 |---|---|
-| `R1` | `the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-<n>` |
+| `R1` | `the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-N` |
 | `R2` | `the notes name a branch: "feat/rich-task-text"; the board does not store Git` |
 | `R3` | `the comment names a remote reference: "origin/HEAD"; the board does not store Git` |
 | `R4` | `the title declares the state of the task: "Hecho:"; state what was done, found or decided instead` |

@@ -270,7 +270,7 @@ Changelog* y el versionado es semántico.
   pantalla empieza en el cambio siguiente: no recibe el historial de lo que ya estaba
   antes de abrirla.
 - **El tablero del proyecto es el producto**: el trabajo se registra en `.tasks-ai/`, la
-  carpeta que instala el propio binario, y se opera con `./bin/tasks-ai` y `serve`. La
+  carpeta que instala el propio binario, y se opera con `.tasks-ai/bin/tasks-ai` y `serve`. La
   herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró del
   repositorio, y sus 58 tareas se importaron en este tablero con sus descripciones,
   etiquetas, comentarios y dependencias.

@@ -686,11 +686,18 @@
     done: "tk-badge--success",
     blocked: "tk-badge--danger"
   })[status] || "tk-badge--neutral";
-  function mapTask(task = {}) {
+  var TASK_KINDS = {
+    epic: { type: "\xC9pica", icon: "E" },
+    subtask: { type: "Subtarea", icon: "S" },
+    task: { type: "Tarea", icon: "T" }
+  };
+  var hasSubtasks = (task) => Array.isArray(task.children) ? task.children.length > 0 : Boolean(task.children);
+  function mapTask(task = {}, subtasks = hasSubtasks(task)) {
     const chips = Array.isArray(task.tags) ? task.tags : Array.isArray(task.chips) ? task.chips : [];
     const parentId = task.parent_id || task.parentId || null;
     const blocked = Boolean(task.blocked) && task.status !== "done";
-    const epic = chips.some((tag) => tag.toLocaleLowerCase("es") === "epic");
+    const epic = subtasks || chips.some((tag) => tag.toLocaleLowerCase("es") === "epic");
+    const kind = epic ? "epic" : parentId ? "subtask" : "task";
     const { parent_id: _parentId, tags: _tags, blockers = [], dependents = [], comments = [], ...rest } = task;
     return {
       ...rest,
@@ -701,9 +708,8 @@
       status: blocked ? "blocked" : task.status || "open",
       parentId,
       chips,
-      kind: epic ? "epic" : parentId ? "subtask" : "task",
-      type: epic ? "\xC9pica" : parentId ? "Subtarea" : "Tarea",
-      icon: epic ? "E" : parentId ? "S" : "T",
+      kind,
+      ...TASK_KINDS[kind],
       blockers: blockers.map((blocker) => mapRelation(blocker)),
       dependents: dependents.map((dependent) => mapRelation(dependent)),
       comments: comments.map(mapComment)
@@ -1037,11 +1043,10 @@
           seen.add(task.id);
           return levelFor(byId.get(task.parentId), seen) + 1;
         };
-        return source.map((task) => ({
-          ...task,
-          level: levelFor(task),
-          children: childrenByParent.has(task.id)
-        }));
+        return source.map((task) => {
+          const children = childrenByParent.has(task.id);
+          return { ...mapTask(task, children), level: levelFor(task), children };
+        });
       },
       filteredTaskIds() {
         const query = this.normalizeSearchText(this.taskSearchQuery);

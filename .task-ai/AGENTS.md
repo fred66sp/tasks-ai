@@ -72,10 +72,11 @@ este archivo, así que aquí se corrige lo que haga falta.
 
 ### Qué es una tarea
 
-- Una **épica** es una tarea de nivel superior con la etiqueta `epic`: un frente visible
-  del proyecto, no una unidad de trabajo.
-- Una **subtarea** es una tarea con padre y la etiqueta `task`: una unidad de trabajo que
-  puede atravesar sesiones.
+- Una **épica** es un frente de trabajo y lleva `epic`. Se reconoce por sus subtareas, no
+  por su nivel: una épica puede colgar de otra tarea.
+- Una **tarea** es una unidad de trabajo que puede atravesar sesiones y lleva `task`. No
+  tiene subtareas; tener padre o no es otra cosa y no cambia lo que es.
+- La etiqueta la pone quien crea la tarea: el producto no la añade ni la retira sola.
 - Cada tarea lleva además un único tipo principal. Las clases de etiquetas, su asignación
   y la gestión del catálogo las gobierna [`CONTRATO_ETIQUETAS.md`](CONTRATO_ETIQUETAS.md).
   El trabajo del registro ODD lleva `ODD`.

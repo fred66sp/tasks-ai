@@ -32,11 +32,15 @@ mano en el catálogo.
 
 ### 1.2 Estructurales — los pone la forma de la tarea
 
-No son elección de quien escribe la tarea; los dicta su forma en el tablero:
+No son una elección de tema: los dicta la forma de la tarea y los pone quien la escribe:
 
 - `ODD`: el trabajo que nace del registro ODD.
-- `epic`: las épicas, tareas de nivel superior.
-- `task`: las subtareas con padre.
+- `epic`: una tarea con subtareas.
+- `task`: una tarea sin subtareas.
+
+Las dos describen la forma de la tarea y no su nivel: una épica puede colgar de otra tarea
+y una tarea puede estar en el primer nivel. Las pone quien crea la tarea, y el producto no
+las añade ni las retira solo.
 
 No se usan para otra cosa y no se crean de nuevo: si faltan en el catálogo, es señal de
 que algo los retiró por error.

@@ -64,10 +64,12 @@ Reglas de nomenclatura:
 
 La asignación se hace con la lista entera: `tasks-ai update <ref> --tags "a,b,c"` pone
 esa lista completa, así que siempre se parte de las etiquetas actuales y se añade o
-retira sobre ellas, nunca se escribe la lista nueva de memoria.
+retira sobre ellas, nunca se escribe la lista nueva de memoria. Al crear se usa
+`tasks-ai create --tags "a,b,c"`, que deja la tarea con esa lista desde el primer
+momento.
 
-1. La tarea lleva **su tipo** desde que se crea, y no cambia salvo que el trabajo cambie
-   de naturaleza.
+1. La tarea lleva **su tipo** desde que se crea —con `--tags` en la creación, o después
+   con `update`—, y no cambia salvo que el trabajo cambie de naturaleza.
 2. Los **estructurales** los pone quien crea la tarea y, cuando su forma cambia, se
    ponen y se retiran a mano: el producto no los ajusta solo.
 3. Los **ámbitos** se añaden cuando la tarea apunta a una parte concreta del producto y

@@ -863,17 +863,13 @@
       async createTask() {
         const title = this.newTaskDraft.title.trim();
         if (!title) return;
-        const result = await this.mutate("create", async () => {
-          const created = await createTask({
-            title,
-            priority: Number(this.newTaskDraft.priority),
-            description: this.newTaskDraft.description.trim(),
-            parent: this.newTaskDraft.parent || void 0
-          });
-          const tags = [...this.newTaskDraft.tags];
-          if (created?.ref && tags.length) await updateTask(created.ref, { tags });
-          return created;
-        }, "Tarea creada.", "", { useResultId: true });
+        const result = await this.mutate("create", async () => createTask({
+          title,
+          priority: Number(this.newTaskDraft.priority),
+          description: this.newTaskDraft.description.trim(),
+          parent: this.newTaskDraft.parent || void 0,
+          tags: [...this.newTaskDraft.tags]
+        }), "Tarea creada.", "", { useResultId: true });
         if (result) {
           this.isNewTaskOpen = false;
           this.newTaskDraft = this.emptyTaskDraft();

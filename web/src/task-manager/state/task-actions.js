@@ -166,19 +166,13 @@ export const taskActions = {
     async createTask() {
       const title = this.newTaskDraft.title.trim();
       if (!title) return;
-      // La API no lleva etiquetas en la creación: se crea la tarea y, si el
-      // diálogo trae alguna, se le pone la lista entera por el cambio.
-      const result = await this.mutate('create', async () => {
-        const created = await requestTaskCreate({
-          title,
-          priority: Number(this.newTaskDraft.priority),
-          description: this.newTaskDraft.description.trim(),
-          parent: this.newTaskDraft.parent || undefined
-        });
-        const tags = [...this.newTaskDraft.tags];
-        if (created?.ref && tags.length) await updateTask(created.ref, { tags });
-        return created;
-      }, 'Tarea creada.', '', { useResultId: true });
+      const result = await this.mutate('create', async () => requestTaskCreate({
+        title,
+        priority: Number(this.newTaskDraft.priority),
+        description: this.newTaskDraft.description.trim(),
+        parent: this.newTaskDraft.parent || undefined,
+        tags: [...this.newTaskDraft.tags]
+      }), 'Tarea creada.', '', { useResultId: true });
       if (result) {
         this.isNewTaskOpen = false;
         this.newTaskDraft = this.emptyTaskDraft();

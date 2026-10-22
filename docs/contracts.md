@@ -169,7 +169,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 |---|---|
 | `GET /api/tasks` | Lista de tareas |
 | `GET /api/tasks/:ref` | Detalle con bloqueantes, dependientes, hijas y comentarios |
-| `POST /api/tasks` | Crear tarea o subtarea |
+| `POST /api/tasks` | Crear tarea o subtarea, con las etiquetas que se le den |
 | `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad, estado —`open` o `in_progress`— o padre —referencia visible del nuevo padre, o vacío para quitarlo; los rechazos son los del CLI—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
 | `POST /api/tasks/:ref/close` | Cerrar con motivo |
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
@@ -296,7 +296,7 @@ recompone un mensaje del producto.
 |---|---|---|---|
 | `tasks_board` | `list` | ninguno | el tablero derivado: contadores, en curso, listas para empezar y árbol |
 | `tasks_show` | `show` | `ref` | la tarea con sus hijas, sus bloqueantes, sus dependientes y sus comentarios |
-| `tasks_create` | `create` | `title` obligatorio; `description`, `notes`, `assignee`, `priority` y `parent` opcionales | la tarea creada |
+| `tasks_create` | `create` | `title` obligatorio; `description`, `notes`, `assignee`, `priority`, `tags` y `parent` opcionales | la tarea creada |
 | `tasks_update` | `update` | `ref`, más los campos que cambian entre `title`, `description`, `notes`, `assignee`, `priority`, `status`, `tags` y `parent` | la tarea tal como queda |
 | `tasks_close` | `close` | `ref` y `reason` | la tarea cerrada |
 | `tasks_reopen` | `reopen` | `ref` | la tarea reabierta |
@@ -310,7 +310,9 @@ recompone un mensaje del producto.
   con todos sus campos. La derivación es esta: contadores por estado; en curso, las que
   están en `in_progress`; listas para empezar, las `open` que no están bloqueadas; árbol,
   por `parent_id`.
-- `tasks_create` no acepta etiquetas, porque `create` no las tiene: se ponen después con
+- `tasks_create` acepta las etiquetas con las que la tarea nace, igual que `create --tags`: una
+  que falte en el catálogo se rechaza como cualquier nombre desconocido y no deja la tarea
+  escrita. Una tarea creada sin etiquetas se queda sin tipo hasta que se le ponga con
   `tasks_update`.
 - `tasks_unblock` acompaña a `tasks_block` porque el CLI tiene las dos y una herramienta
   sin su contraria deja el vocabulario a medias.

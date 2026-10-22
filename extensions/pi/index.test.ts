@@ -423,7 +423,8 @@ describe("la extensión", () => {
 		}
 		assert.deepEqual(tools.tasks_create.parameters.required, ["title"]);
 		assert.deepEqual(tools.tasks_update.parameters.required, ["ref"]);
-		assert.equal(tools.tasks_create.parameters.properties.tags, undefined);
+		assert.equal(tools.tasks_create.parameters.properties.tags.type, "array");
+		assert.equal((tools.tasks_create.parameters.properties.tags.items as { type: string }).type, "string");
 		const reasons = tools.tasks_close.parameters.properties.reason.anyOf as { const: string }[];
 		assert.deepEqual(reasons.map((value) => value.const), ["done", "duplicate", "absorbed", "stale", "superseded"]);
 		const statuses = tools.tasks_update.parameters.properties.status.anyOf as { const: string }[];
@@ -463,17 +464,20 @@ describe("la extensión", () => {
 	});
 
 	it("tasks_create crea una tarea y una subtarea visibles en el tablero", async () => {
+		cli("tag", "create", "--name", "docs");
 		const parent = await write("tasks_create", {
 			title: "padre\ncon detalle", description: "descripción privada", notes: "notas privadas",
-			assignee: "equipo", priority: 0,
+			assignee: "equipo", priority: 0, tags: ["docs"],
 		});
 		const stored = cli("show", parent.ref);
 		assert.equal(stored.description, "descripción privada");
 		assert.equal(stored.notes, "notas privadas");
 		assert.equal(stored.assignee, "equipo");
 		assert.equal(stored.priority, 0);
+		assert.deepEqual(stored.tags, ["docs"]);
 		const child = await write("tasks_create", { title: "hija", parent: " TK-1 " });
 		assert.equal(child.parent_id, parent.id);
+		assert.deepEqual(child.tags, []);
 		const board = await execute("tasks_board", {});
 		assert.match(board.content[0].text, /tareas: 2 \(abiertas 2/);
 		assert.match(board.content[0].text, /  - tk-2 · hija/);

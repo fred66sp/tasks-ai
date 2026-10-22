@@ -32,7 +32,7 @@ type Task struct {
 // CreateTask stores a new task and returns it with the identity the base gave
 // it. La tarea y el aviso de su nacimiento se escriben en la misma transacción:
 // un aviso sin la tarea de la que habla mentiría a quien lo lee.
-func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
+func (s *Store) CreateTask(ctx context.Context, task Task, tags []string) (Task, error) {
 	now := time.Now().UTC().Truncate(time.Second)
 	task.CreatedAt, task.UpdatedAt = now, now
 
@@ -68,6 +68,14 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionCreate); err != nil {
 		return Task{}, err
+	}
+
+	// Las etiquetas con las que la tarea nace entran en la misma transacción que
+	// la escribe: una que no exista en el catálogo se rechaza sin dejar rastro.
+	if tags != nil {
+		if err := replaceTaskTags(ctx, tx, id, tags); err != nil {
+			return Task{}, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {

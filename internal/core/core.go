@@ -208,6 +208,7 @@ type NewTask struct {
 	Notes       string
 	Priority    *int
 	Parent      string
+	Tags        []string
 }
 
 // CreateTask stores a new task and returns it as it crosses the boundary.
@@ -252,8 +253,12 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		Assignee:    optional(task.Assignee),
 		Notes:       optional(task.Notes),
 		ParentID:    storedParent,
-	})
+	}, task.Tags)
 	if err != nil {
+		if errors.Is(err, store.ErrUnknownTag) {
+			return Task{}, invalid("%v", err)
+		}
+
 		return Task{}, fmt.Errorf("saving the task: %w", err)
 	}
 

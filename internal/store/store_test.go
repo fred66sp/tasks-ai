@@ -36,7 +36,7 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("abriendo la base por primera vez: %v", err)
 	}
 
-	created, err := first.CreateTask(t.Context(), newTask("Se conserva"))
+	created, err := first.CreateTask(t.Context(), newTask("Se conserva"), nil)
 	if err != nil {
 		t.Fatalf("escribiendo antes de reabrir: %v", err)
 	}
@@ -78,12 +78,12 @@ func TestOpen_migratesIndexesWithoutLosingCommentsOrDependencies(t *testing.T) {
 		t.Fatalf("abriendo la base: %v", err)
 	}
 
-	task, err := base.CreateTask(t.Context(), newTask("Con comentario"))
+	task, err := base.CreateTask(t.Context(), newTask("Con comentario"), nil)
 	if err != nil {
 		t.Fatalf("creando la tarea: %v", err)
 	}
 
-	blocker, err := base.CreateTask(t.Context(), newTask("Bloqueante"))
+	blocker, err := base.CreateTask(t.Context(), newTask("Bloqueante"), nil)
 	if err != nil {
 		t.Fatalf("creando el bloqueante: %v", err)
 	}
@@ -350,12 +350,12 @@ func TestCreateTask_givesEachTaskItsOwnIdentity(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	first, err := base.CreateTask(ctx, newTask("Primera"))
+	first, err := base.CreateTask(ctx, newTask("Primera"), nil)
 	if err != nil {
 		t.Fatalf("guardando la primera tarea: %v", err)
 	}
 
-	second, err := base.CreateTask(ctx, newTask("Segunda"))
+	second, err := base.CreateTask(ctx, newTask("Segunda"), nil)
 	if err != nil {
 		t.Fatalf("guardando la segunda tarea: %v", err)
 	}
@@ -497,7 +497,7 @@ func storedTask(t *testing.T) (created, read store.Task) {
 		Description: &description,
 		Status:      "open",
 		Priority:    3,
-	})
+	}, nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
@@ -594,7 +594,7 @@ func TestCreateTask_annotatesTheChangeItMade(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	created, err := base.CreateTask(ctx, newTask("Primera tarea"))
+	created, err := base.CreateTask(ctx, newTask("Primera tarea"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
@@ -634,7 +634,7 @@ func TestCreateTask_namesTheIdentityInTheNoticeNeverTheReference(t *testing.T) {
 
 	defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
 
-	if _, err := base.CreateTask(t.Context(), newTask("Tarea sin rastro")); err != nil {
+	if _, err := base.CreateTask(t.Context(), newTask("Tarea sin rastro"), nil); err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
 
@@ -681,7 +681,7 @@ func TestOpenAs_recordsTheSurfaceThatAsksForTheChanges(t *testing.T) {
 
 	defer base.Close() //nolint:errcheck // la aserción de abajo ya decide el resultado
 
-	created, err := base.CreateTask(t.Context(), newTask("Pedida por el servidor"))
+	created, err := base.CreateTask(t.Context(), newTask("Pedida por el servidor"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
@@ -703,12 +703,12 @@ func TestAddBlock_annotatesTheChangeOnlyWhenSomethingChanges(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	blocked, err := base.CreateTask(ctx, newTask("Bloqueada"))
+	blocked, err := base.CreateTask(ctx, newTask("Bloqueada"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea bloqueada: %v", err)
 	}
 
-	blocker, err := base.CreateTask(ctx, newTask("Bloqueante"))
+	blocker, err := base.CreateTask(ctx, newTask("Bloqueante"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea bloqueante: %v", err)
 	}
@@ -767,7 +767,7 @@ func TestChangeOperations_eachLeaveTheirNotice(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	created, err := base.CreateTask(ctx, newTask("Con historia"))
+	created, err := base.CreateTask(ctx, newTask("Con historia"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
@@ -859,7 +859,7 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 		t.Fatalf("abriendo la base de prueba: %v", err)
 	}
 
-	created, err := base.CreateTask(t.Context(), newTask("De antes"))
+	created, err := base.CreateTask(t.Context(), newTask("De antes"), nil)
 	if err != nil {
 		t.Fatalf("guardando la tarea: %v", err)
 	}
@@ -936,12 +936,12 @@ func TestTaskTitles_returnsTheCurrentTitleOfEachTaskAskedFor(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	first, err := base.CreateTask(ctx, newTask("Primera"))
+	first, err := base.CreateTask(ctx, newTask("Primera"), nil)
 	if err != nil {
 		t.Fatalf("guardando la primera tarea: %v", err)
 	}
 
-	second, err := base.CreateTask(ctx, newTask("Segunda"))
+	second, err := base.CreateTask(ctx, newTask("Segunda"), nil)
 	if err != nil {
 		t.Fatalf("guardando la segunda tarea: %v", err)
 	}
@@ -983,12 +983,12 @@ func TestChanges_readsOnlyWhatHappenedAfter(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	first, err := base.CreateTask(ctx, newTask("Primera"))
+	first, err := base.CreateTask(ctx, newTask("Primera"), nil)
 	if err != nil {
 		t.Fatalf("guardando la primera tarea: %v", err)
 	}
 
-	if _, err := base.CreateTask(ctx, newTask("Segunda")); err != nil {
+	if _, err := base.CreateTask(ctx, newTask("Segunda"), nil); err != nil {
 		t.Fatalf("guardando la segunda tarea: %v", err)
 	}
 
@@ -1012,7 +1012,7 @@ func TestChanges_readsBoundedBatchesInTheOrderTheyHappened(t *testing.T) {
 	ctx := t.Context()
 
 	for _, title := range []string{"Uno", "Dos", "Tres", "Cuatro", "Cinco"} {
-		if _, err := base.CreateTask(ctx, newTask(title)); err != nil {
+		if _, err := base.CreateTask(ctx, newTask(title), nil); err != nil {
 			t.Fatalf("guardando la tarea %q: %v", title, err)
 		}
 	}
@@ -1115,12 +1115,12 @@ func TestComments_areStoredUnderTheirTaskAndReadFirstToLast(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	task, err := base.CreateTask(ctx, newTask("Con histórico"), nil)
 	if err != nil {
 		t.Fatalf("creando la tarea comentada: %v", err)
 	}
 
-	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"))
+	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"), nil)
 	if err != nil {
 		t.Fatalf("creando la otra tarea: %v", err)
 	}
@@ -1184,7 +1184,7 @@ func TestEditComment_changesOnlyTheBodyOfTheCommentItNames(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	task, err := base.CreateTask(ctx, newTask("Con histórico"), nil)
 	if err != nil {
 		t.Fatalf("creando la tarea: %v", err)
 	}
@@ -1260,12 +1260,12 @@ func TestEditComment_refusesWhatIsNotThereWithoutWriting(t *testing.T) {
 	base := openStore(t)
 	ctx := t.Context()
 
-	task, err := base.CreateTask(ctx, newTask("Con histórico"))
+	task, err := base.CreateTask(ctx, newTask("Con histórico"), nil)
 	if err != nil {
 		t.Fatalf("creando la tarea: %v", err)
 	}
 
-	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"))
+	elsewhere, err := base.CreateTask(ctx, newTask("Otra tarea"), nil)
 	if err != nil {
 		t.Fatalf("creando la otra tarea: %v", err)
 	}
@@ -1344,12 +1344,12 @@ func TestAllComments_listsEveryCommentOfTheProjectOrderedByTask(t *testing.T) {
 		t.Errorf("una base sin comentarios respondió %+v, se esperaba ninguno", none)
 	}
 
-	first, err := base.CreateTask(ctx, newTask("Con historial"))
+	first, err := base.CreateTask(ctx, newTask("Con historial"), nil)
 	if err != nil {
 		t.Fatalf("creando la primera tarea: %v", err)
 	}
 
-	second, err := base.CreateTask(ctx, newTask("Otra con historial"))
+	second, err := base.CreateTask(ctx, newTask("Otra con historial"), nil)
 	if err != nil {
 		t.Fatalf("creando la segunda tarea: %v", err)
 	}

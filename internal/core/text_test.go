@@ -457,7 +457,7 @@ func TestText_doesNotReadTheFieldsAChangeDoesNotWrite(t *testing.T) {
 		Status:      openStatus,
 		Priority:    core.DefaultPriority,
 		Notes:       &oldNotes,
-	})
+	}, nil)
 	if err != nil {
 		t.Fatalf("sembrando la tarea: %v", err)
 	}

@@ -18,6 +18,7 @@ func newCreateCommand() *cobra.Command {
 		notes       string
 		priority    int
 		parent      string
+		tags        string
 	)
 
 	command := &cobra.Command{
@@ -44,6 +45,10 @@ func newCreateCommand() *cobra.Command {
 
 			if command.Flags().Changed("parent") {
 				newTask.Parent = parent
+			}
+
+			if command.Flags().Changed("tags") {
+				newTask.Tags = splitTags(tags)
 			}
 
 			dir, err := workingDir()
@@ -73,6 +78,7 @@ func newCreateCommand() *cobra.Command {
 	command.Flags().StringVar(&notes, "notes", "", "loose notes of the task")
 	command.Flags().IntVar(&priority, "priority", core.DefaultPriority, "task priority, from 0 to 3")
 	command.Flags().StringVar(&parent, "parent", "", "reference of the parent task, to create a subtask")
+	command.Flags().StringVar(&tags, "tags", "", "tags of the new task, separated by commas; they must already be in the catalogue")
 
 	return command
 }

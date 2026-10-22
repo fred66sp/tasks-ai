@@ -7,6 +7,13 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **La creación lleva las etiquetas**: `create --tags "a,b"` deja la tarea con esa lista en
+  la misma transacción que la escribe, y lo mismo `POST /api/tasks` con `tags` y
+  `tasks_create` con `tags`, que hasta ahora las ponían en un segundo paso. Sin etiquetas,
+  la creación queda como estaba. Un nombre que falte en el catálogo se rechaza —salida `2`
+  en el CLI y `400` en la API— sin dejar la tarea escrita, igual que en el cambio, y crear
+  con padre no añade ninguna: la forma la escribe la persona.
+
 - **`init` completa una instalación anterior**: rechaza solo la que ya lo tiene todo
   —base, instrucciones, binario y extensión— y, a la que le falta el binario o la
   extensión, le añade lo que falta sin tocar lo que tiene. Es como migran los proyectos

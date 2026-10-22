@@ -177,16 +177,18 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_create",
 		label: "Crear tarea",
-		description: "Crea una tarea; usa parent para crear una subtarea de una tarea existente.",
+		description: "Crea una tarea; usa parent para crear una subtarea de una tarea existente y tags para darle las etiquetas desde el primer momento.",
 		parameters: Type.Object({
 			...taskFields,
 			title: Type.String({ pattern: "\\S", description: "el título de la tarea" }),
 			parent: Type.Optional(reference),
+			tags: Type.Optional(Type.Array(Type.String())),
 		}),
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			const args = ["create"];
-			for (const field of ["title", "description", "notes", "assignee", "priority", "parent"] as const) {
-				if (params[field] !== undefined) args.push(`--${field}`, String(params[field]));
+			for (const field of ["title", "description", "notes", "assignee", "priority", "parent", "tags"] as const) {
+				const value = params[field];
+				if (value !== undefined) args.push(`--${field}`, Array.isArray(value) ? value.join(",") : String(value));
 			}
 			return writeTask(args, "creada", ctx, signal);
 		},

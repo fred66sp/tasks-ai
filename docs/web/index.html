@@ -719,7 +719,7 @@
       </div>
 
       <h3 class="cmd" data-i18n="comandos.6"><code>create</code><span class="sig">— crea una tarea o una subtarea</span></h3>
-      <p data-i18n="comandos.7">El título es obligatorio. Con <code>--parent</code> la tarea nace como subtarea de la que se le da.</p>
+      <p data-i18n="comandos.7">El título es obligatorio. Con <code>--parent</code> la tarea nace como subtarea de la que se le da, y con <code>--tags</code> nace con sus etiquetas, separadas por comas.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th data-i18n="comandos.8">Opción</th><th data-i18n="comandos.9">Qué hace</th></tr></thead>
@@ -730,6 +730,7 @@
             <tr><td><code>--priority</code></td><td data-i18n="comandos.15">Entero de <code>0</code> a <code>3</code>. Por omisión <code>2</code>.</td></tr>
             <tr><td><code>--assignee</code></td><td data-i18n="comandos.16">Persona responsable.</td></tr>
             <tr><td><code>--parent</code></td><td data-i18n="comandos.17">Referencia del padre: la tarea nace como subtarea.</td></tr>
+            <tr><td><code>--tags</code></td><td data-i18n="comandos.77">Etiquetas con las que nace, separadas por comas. Una que no esté en el catálogo se rechaza y no deja la tarea escrita.</td></tr>
           </tbody>
         </table>
       </div>
@@ -737,10 +738,16 @@
         <pre data-lang="es"><code>./tasks-ai create --title "Revisar el tono del resumen" --parent tk-1 --priority 3
 # devuelve la tarea con "parent_id": 1
 
+./tasks-ai create --title "Arreglar el recuento" --tags "fix,cli"
+# devuelve la tarea con "tags": ["fix", "cli"]
+
 ./tasks-ai create --title "Probar" --priority 9
 # { "error": "priority 9 is outside the range 0-3" }   salida 2</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai create --title "Review the summary's tone" --parent tk-1 --priority 3
 # returns the task with "parent_id": 1
+
+./tasks-ai create --title "Fix the counter" --tags "fix,cli"
+# returns the task with "tags": ["fix", "cli"]
 
 ./tasks-ai create --title "Test" --priority 9
 # { "error": "priority 9 is outside the range 0-3" }   exit 2</code></pre>
@@ -1089,7 +1096,7 @@
           <tbody>
             <tr><td><code>GET /api/tasks</code></td><td data-i18n="api.6">El listado de tareas.</td></tr>
             <tr><td><code>GET /api/tasks/:ref</code></td><td data-i18n="api.7">El detalle con bloqueantes, dependientes, hijas y comentarios.</td></tr>
-            <tr><td><code>POST /api/tasks</code></td><td data-i18n="api.8">Crear una tarea o una subtarea.</td></tr>
+            <tr><td><code>POST /api/tasks</code></td><td data-i18n="api.8">Crear una tarea o una subtarea, con las etiquetas que se le den.</td></tr>
             <tr><td><code>PATCH /api/tasks/:ref</code></td><td data-i18n="api.9">Cambiar campos o el estado; el estado va solo en el cambio, sin otros campos.</td></tr>
             <tr><td><code>POST /api/tasks/:ref/close</code></td><td data-i18n="api.10">Cerrar con su motivo.</td></tr>
             <tr><td><code>POST /api/tasks/:ref/blockers</code></td><td data-i18n="api.11">Añadir un bloqueo.</td></tr>
@@ -1413,7 +1420,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
  "comandos.5": "Leaves <code>.tasks-ai/</code> and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
  "comandos.6": "<code>create</code><span class=\"sig\">— creates a task or a subtask</span>",
- "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given.",
+ "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given, and with <code>--tags</code> it is born with its tags, separated by commas.",
  "comandos.8": "Option",
  "comandos.9": "What it does",
  "comandos.11": "Title. Mandatory.",
@@ -1422,6 +1429,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.15": "Integer from <code>0</code> to <code>3</code>. Defaults to <code>2</code>.",
  "comandos.16": "The person responsible.",
  "comandos.17": "The parent reference: the task is born as a subtask.",
+ "comandos.77": "The tags it is born with, separated by commas. One that is not in the catalogue is refused and leaves no task written.",
  "comandos.18": "<code>list</code><span class=\"sig\">— every task in the project</span>",
  "comandos.19": "Returns the whole listing, closed tasks included, each with its reference, its status, its title and whether it is blocked. There are no filters and no paging: the listing is the project.",
  "comandos.20": "<code>show</code><span class=\"sig\">— one task with its surroundings</span>",
@@ -1541,7 +1549,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.5": "What it is for",
  "api.6": "The task listing.",
  "api.7": "The detail with blockers, dependents, children and comments.",
- "api.8": "Create a task or a subtask.",
+ "api.8": "Create a task or a subtask, with the tags it is given.",
  "api.9": "Change fields or the status; the status goes alone in the change, with no other fields.",
  "api.10": "Close with its reason.",
  "api.11": "Add a blocker.",

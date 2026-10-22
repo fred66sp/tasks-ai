@@ -231,12 +231,13 @@ func (s *Server) taskDetail(w nethttp.ResponseWriter, r *nethttp.Request) {
 // taskEntry is the body a creation speaks: what is left out does not reach the
 // core, and what the core refuses, it refuses with its own message.
 type taskEntry struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Assignee    string `json:"assignee"`
-	Notes       string `json:"notes"`
-	Priority    *int   `json:"priority"`
-	Parent      string `json:"parent"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Assignee    string    `json:"assignee"`
+	Notes       string    `json:"notes"`
+	Priority    *int      `json:"priority"`
+	Parent      string    `json:"parent"`
+	Tags        *[]string `json:"tags"`
 }
 
 // createTask creates a task, or a subtask when the entry names its parent.
@@ -258,6 +259,10 @@ func (s *Server) createTask(w nethttp.ResponseWriter, r *nethttp.Request) {
 
 	if entry.Priority != nil {
 		newTask.Priority = entry.Priority
+	}
+
+	if entry.Tags != nil {
+		newTask.Tags = *entry.Tags
 	}
 
 	task, err := s.core.CreateTask(r.Context(), newTask)

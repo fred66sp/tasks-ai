@@ -97,6 +97,7 @@ const (
 	createdAction = "creada"
 	updatedAction = "actualizada"
 	openStatus    = "open"
+	docsTag       = "docs"
 )
 
 // taskResource es el recurso en plural que la interfaz compara en los avisos de
@@ -178,9 +179,9 @@ func patchesWhatTheChangeAsks(t *testing.T, server string) {
 
 	do(t, server, http.MethodPost, "/api/tasks", `{"title": "Primera"}`)
 	do(t, server, http.MethodPost, "/api/tasks", `{"title": "Segunda"}`)
-	do(t, server, http.MethodPost, "/api/tags", `{"name": "docs"}`)
+	do(t, server, http.MethodPost, "/api/tags", `{"name": "`+docsTag+`"}`)
 
-	status, body := do(t, server, http.MethodPatch, "/api/tasks/tk-1", `{"priority": 1, "tags": ["docs"]}`)
+	status, body := do(t, server, http.MethodPatch, "/api/tasks/tk-1", `{"priority": 1, "tags": ["`+docsTag+`"]}`)
 	if status != http.StatusOK {
 		t.Fatalf("cambiar la tarea respondió %d: %s", status, body)
 	}
@@ -189,7 +190,7 @@ func patchesWhatTheChangeAsks(t *testing.T, server string) {
 
 	decode(t, body, &changed)
 
-	if changed.Priority != 1 || len(changed.Tags) != 1 || changed.Tags[0] != "docs" {
+	if changed.Priority != 1 || len(changed.Tags) != 1 || changed.Tags[0] != docsTag {
 		t.Errorf("la tarea quedó %+v, se esperaba prioridad 1 y la etiqueta docs", changed)
 	}
 }
@@ -475,7 +476,7 @@ func TestServer_servesTheCatalogueOfTags(t *testing.T) {
 
 	server, _ := newServer(t)
 
-	status, body := do(t, server, "POST", "/api/tags", `{"name": "docs"}`)
+	status, body := do(t, server, "POST", "/api/tags", `{"name": "`+docsTag+`"}`)
 	if status != http.StatusCreated {
 		t.Fatalf("crear la etiqueta respondió %d: %s", status, body)
 	}
@@ -484,7 +485,7 @@ func TestServer_servesTheCatalogueOfTags(t *testing.T) {
 
 	decode(t, body, &created)
 
-	if created.Name != "docs" || created.Color != core.DefaultTagColor {
+	if created.Name != docsTag || created.Color != core.DefaultTagColor {
 		t.Errorf("la etiqueta creada es %+v, se esperaba docs con el color por omisión", created)
 	}
 
@@ -515,7 +516,7 @@ func TestServer_servesTheCatalogueOfTags(t *testing.T) {
 
 	decode(t, body, &deleted)
 
-	if deleted.Name != "docs" {
+	if deleted.Name != docsTag {
 		t.Errorf("la respuesta del borrado trae %+v, se esperaba la etiqueta borrada", deleted)
 	}
 }
@@ -932,8 +933,8 @@ func errorTranslations() []errorTranslation {
 			steps: func(t *testing.T, server string) {
 				t.Helper()
 
-				do(t, server, "POST", "/api/tags", `{"name": "docs"}`)
-				status, body := do(t, server, "POST", "/api/tags", `{"name": "docs"}`)
+				do(t, server, "POST", "/api/tags", `{"name": "`+docsTag+`"}`)
+				status, body := do(t, server, "POST", "/api/tags", `{"name": "`+docsTag+`"}`)
 				expect(t, status, body, http.StatusConflict, "a tag with the name \"docs\" already exists")
 			},
 		},
@@ -1140,7 +1141,7 @@ func TestServer_aTagChangeAnnouncesItsResourceInThePluralTheInterfaceReads(t *te
 
 	events := openEvents(t, server+"/api/events")
 
-	if status, body := do(t, server, http.MethodPost, "/api/tags", `{"name": "docs"}`); status != http.StatusCreated {
+	if status, body := do(t, server, http.MethodPost, "/api/tags", `{"name": "`+docsTag+`"}`); status != http.StatusCreated {
 		t.Fatalf("crear la etiqueta respondió %d: %s", status, body)
 	}
 
@@ -1740,5 +1741,59 @@ func TestServer_listsEveryCommentForTheSearchIndex(t *testing.T) {
 
 	if listed[1].Ref != "tk-2" || listed[1].Body != "de la segunda" {
 		t.Errorf("el segundo comentario es %+v, se esperaba el de tk-2", listed[1])
+	}
+}
+
+// TestServer_createsATaskWithTheTagsItIsGiven recorre el quinto caso del
+// criterio de tk-170: la entrada de la creación lleva las etiquetas y la
+// lectura las devuelve.
+func TestServer_createsATaskWithTheTagsItIsGiven(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	if status, body := do(t, server, http.MethodPost, "/api/tags", `{"name": "`+docsTag+`"}`); status != http.StatusCreated {
+		t.Fatalf("crear la etiqueta respondió %d: %s", status, body)
+	}
+
+	created := createdTask(t, server, `{"title": "Con etiquetas", "tags": ["`+docsTag+`"]}`)
+
+	if len(created.Tags) != 1 || created.Tags[0] != docsTag {
+		t.Fatalf("la tarea creada lleva %v, se esperaba [docs]", created.Tags)
+	}
+
+	if read := readTask(t, server, created.Ref); len(read.Tags) != 1 || read.Tags[0] != docsTag {
+		t.Errorf("la tarea leída lleva %v, se esperaba [docs]", read.Tags)
+	}
+}
+
+// TestServer_refusesAnEntryWithAnUnknownTag cierra el quinto caso del criterio
+// por el lado del rechazo: la etiqueta que falta en el catálogo se nombra y no
+// deja la tarea escrita.
+func TestServer_refusesAnEntryWithAnUnknownTag(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title": "Con una que no existe", "tags": ["inventada"]}`)
+	if status != http.StatusBadRequest {
+		t.Fatalf("crear con una etiqueta desconocida respondió %d, se esperaba 400: %s", status, body)
+	}
+
+	if !strings.Contains(body, "unknown tag") {
+		t.Errorf("el error (%q) no dice que la etiqueta es desconocida", body)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/tasks", "")
+	if status != http.StatusOK {
+		t.Fatalf("listar respondió %d: %s", status, body)
+	}
+
+	var tasks []core.Task
+
+	decode(t, body, &tasks)
+
+	if len(tasks) != 0 {
+		t.Errorf("el rechazo dejó tareas escritas: %+v", tasks)
 	}
 }

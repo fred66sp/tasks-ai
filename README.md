@@ -45,6 +45,7 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai init --prefix tai     # instala con tai como prefijo de las referencias en vez de tk, y escribe las instrucciones con él
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
+./tasks-ai create --title "..." --tags "fix,cli"  # nace además con esas etiquetas, que han de estar en el catálogo
 ./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada
 ./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
 ./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado, etiquetas o padre

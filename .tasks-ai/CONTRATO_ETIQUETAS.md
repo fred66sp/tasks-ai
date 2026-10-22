@@ -30,17 +30,21 @@ adoptados aquí como vocabulario común. `improvement` es la extensión propia d
 Solo se estrena o se retira un tipo cambiando este contrato: no se estrena creándolo a
 mano en el catálogo.
 
-### 1.2 Estructurales — los pone la forma de la tarea
+### 1.2 Estructurales — los dicta la forma de la tarea
 
-No son una elección de tema: los dicta la forma de la tarea y los pone quien la escribe:
+No son una elección de tema: los dicta la forma de la tarea. Quién escribe cada una no es
+lo mismo:
 
-- `ODD`: el trabajo que nace del registro ODD.
-- `epic`: una tarea con subtareas.
-- `task`: una tarea sin subtareas.
+- `ODD`: el trabajo que nace del registro ODD. Se asigna a mano.
+- `epic`: una tarea con subtareas. La pone quien crea la tarea.
+- `task`: una tarea sin subtareas. La pone y la retira el producto.
 
-Las dos describen la forma de la tarea y no su nivel: una épica puede colgar de otra tarea
-y una tarea puede estar en el primer nivel. Las pone quien crea la tarea, y el producto no
-las añade ni las retira solo.
+`epic` y `task` describen la forma de la tarea y no su nivel: una épica puede colgar de
+otra tarea y una tarea puede estar en el primer nivel. De las dos, el producto solo escribe
+`task`, y solo dentro de la transacción que cambia la forma: entra al crear la tarea con
+padre y al asignárselo, y sale al quitárselo. `epic` no la añade ni la retira ninguna
+escritura del producto —ni al crear el padre, ni al mover, ni al cerrar—: la pone quien
+crea la tarea, aunque sus subtareas lleguen después, y nadie la reescribe por el camino.
 
 No se usan para otra cosa y no se crean de nuevo: si faltan en el catálogo, es señal de
 que algo los retiró por error.
@@ -64,7 +68,11 @@ retira sobre ellas, nunca se escribe la lista nueva de memoria.
 
 1. La tarea lleva **su tipo** desde que se crea, y no cambia salvo que el trabajo cambie
    de naturaleza.
-2. Los **estructurales** los pone el tablero; no se añaden ni se quitan a mano.
+2. Los **estructurales** no se escriben igual: `epic` la pone a mano quien crea la
+   tarea, y el producto no la toca; `task` la pone y la retira el producto al cambiar la
+   forma, y no se añade ni se quita a mano. Una lista de `--tags` que no cambie el padre
+   sustituye las etiquetas que la tarea tenía, `task` incluida, así que se parte de las
+   actuales (arriba) y se conserva la que ya esté.
 3. Los **ámbitos** se añaden cuando la tarea apunta a una parte concreta del producto y
    se retiran cuando dejan de describirla.
 4. Antes de asignar una etiqueta que no existe, vale la regla del catálogo (§3): si hace

@@ -190,6 +190,14 @@ Changelog* y el versionado es semántico.
 - Quedan fuera de la documentación lo obsoleto: la tabla de ajustes duplicada del PRD
   ahora se enlaza a `contracts.md`, la carpeta del producto ya no anuncia skills que
   la instalación no escribe, y `init` se dice no repetible y con el JSON que devuelve.
+- La guía de uso describe la línea de estado como la extensión la escribe: nombra la
+  última tarea cerrada —recortada a 100 caracteres— y, sin ninguna cerrada, lo dice con
+  una frase propia; las tareas en curso siguen en el bloque junto al editor. En español
+  y en inglés, con el diccionario de la página sin claves huérfanas.
+- El contrato de etiquetas reparte la autoría de las estructurales: `ODD` se asigna a
+  mano, `epic` la pone quien crea la tarea y el producto no la añade ni la retira, y
+  `task` la pone y la retira el producto al cambiar la forma. El documento dice también
+  que una lista `--tags` sin cambio de padre sustituye las etiquetas que la tarea tenía.
 
 ### Añadido
 

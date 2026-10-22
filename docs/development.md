@@ -110,8 +110,7 @@ ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo e
 Los comandos del día a día son objetivos de `make`, con su equivalente de `go`:
 
 ```bash
-make build      # go build -o bin/tasks-ai ./cmd/tasks-ai
-make install    # compila y refresca el binario y la extensión del tablero de este repositorio
+make install    # compila el binario donde el tablero lo ejecuta y refresca extensión y contrato
 make test       # go test ./...
 make test-race  # go test -race ./...
 make lint       # golangci-lint run ./...

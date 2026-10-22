@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Levanta el servidor de tasks-ai en segundo plano: compila el binario, arranca
+# Levanta el servidor de tasks-ai en segundo plano: compila el binario instalado, arranca
 # `serve` y deja su registro y su pid en .run/.
 #
 #   ./serve.sh          arranca el servidor si no está ya en marcha
@@ -11,7 +11,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-binary="$root/bin/tasks-ai"
+binary="$root/.tasks-ai/bin/tasks-ai"
 state="$root/.run"
 pidfile="$state/serve.pid"
 logfile="$state/serve.log"
@@ -41,7 +41,7 @@ start() {
 		return
 	fi
 
-	mkdir -p "$state"
+	mkdir -p "$state" "$(dirname "$binary")"
 	go build -o "$binary" ./cmd/tasks-ai
 	: >"$logfile"
 

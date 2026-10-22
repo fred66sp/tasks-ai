@@ -24,9 +24,9 @@ construirla antes de compilar el binario. Los comandos de su construcción está
 El trabajo del proyecto vive en `.tasks-ai/`, y se opera con el mismo binario:
 
 ```bash
-./bin/tasks-ai list        # todas las tareas, con su estado y si están bloqueadas
-./bin/tasks-ai show tk-1   # la tarea con sus hijas, sus bloqueos y sus comentarios
-./bin/tasks-ai serve       # la interfaz web y su API
+./.tasks-ai/bin/tasks-ai list        # todas las tareas, con su estado y si están bloqueadas
+./.tasks-ai/bin/tasks-ai show tk-1   # la tarea con sus hijas, sus bloqueos y sus comentarios
+./.tasks-ai/bin/tasks-ai serve       # la interfaz web y su API
 ```
 
 La herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró, y su

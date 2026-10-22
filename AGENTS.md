@@ -36,9 +36,9 @@ JSON con sus rechazos tal cual. El agente no escribe comandos del tablero a mano
 es el equivalente para la persona, que lo usa desde la terminal y responde en JSON:
 
 ```bash
-./bin/tasks-ai list              # todas las tareas, con su estado y si están bloqueadas
-./bin/tasks-ai show tk-1         # la tarea con sus hijas, sus bloqueos y sus comentarios
-./bin/tasks-ai tags              # el catálogo de etiquetas y su uso
+./.tasks-ai/bin/tasks-ai list              # todas las tareas, con su estado y si están bloqueadas
+./.tasks-ai/bin/tasks-ai show tk-1         # la tarea con sus hijas, sus bloqueos y sus comentarios
+./.tasks-ai/bin/tasks-ai tags              # el catálogo de etiquetas y su uso
 ```
 
 - La base de tareas vive en `.tasks-ai/tasks.db`. No se edita con SQL: solo por el CLI

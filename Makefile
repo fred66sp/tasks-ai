@@ -1,21 +1,17 @@
-# Atajos del proyecto. El binario se compila en bin/.
+# Atajos del proyecto. El binario se compila donde el tablero lo ejecuta.
 
 BINARY := tasks-ai
 GO     := go
 
-.PHONY: help build install test test-race coverage lint lint-fix fmt check-web clean
+.PHONY: help install test test-race coverage lint lint-fix fmt check-web clean
 
 help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/ → /'
 
-build: ## Compila el binario en bin/
-	$(GO) build -o bin/$(BINARY) ./cmd/$(BINARY)
-
-install: ## Compila y refresca el binario y la extensión del tablero de este repositorio
-	$(GO) build -o bin/$(BINARY) ./cmd/$(BINARY)
+install: ## Compila y refresca el binario, la extensión y el contrato del tablero de este repositorio
 	mkdir -p .tasks-ai/bin .tasks-ai/extensions/pi
-	cp bin/$(BINARY) .tasks-ai/bin/$(BINARY)
+	$(GO) build -o .tasks-ai/bin/$(BINARY) ./cmd/$(BINARY)
 	cp extensions/pi/index.ts extensions/pi/cli.ts extensions/pi/board.ts extensions/pi/package.json .tasks-ai/extensions/pi/
 	cp internal/install/contract_tags.md .tasks-ai/CONTRATO_ETIQUETAS.md
 	@test -d extensions/pi/node_modules || { echo "falta extensions/pi/node_modules: ejecuta 'npm install' en extensions/pi"; exit 1; }
@@ -45,5 +41,5 @@ check-web: ## Comprueba que la interfaz construida coincide con su fuente
 	cd web && npm run build
 	git diff --exit-code -- web/public
 
-clean: ## Retira lo compilado
-	rm -rf bin/
+clean: ## Retira lo que generan las pruebas
+	rm -rf coverage/

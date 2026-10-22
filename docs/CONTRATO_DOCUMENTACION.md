@@ -39,7 +39,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 
 | Dato | Dueño | Cómo se consulta |
 |---|---|---|
-| Estado del trabajo: qué trabajo hay, su especificación y sus evidencias | Tablero del proyecto (`.tasks-ai/`) | `./bin/tasks-ai list`, `show` y `serve` sobre `.tasks-ai/tasks.db` |
+| Estado del trabajo: qué trabajo hay, su especificación y sus evidencias | Tablero del proyecto (`.tasks-ai/`) | `./.tasks-ai/bin/tasks-ai list`, `show` y `serve` sobre `.tasks-ai/tasks.db` |
 | Historia de la entrega: qué se entregó y cuándo | Git y `CHANGELOG.md` | `git log`, `CHANGELOG.md` |
 | Requisitos, alcance y criterios de aceptación | `PRD.md` | `PRD.md` |
 | Decisiones durables: contexto, alternativas, consecuencias | `docs/decisions/` (un ADR por decisión) | `docs/decisions/` |

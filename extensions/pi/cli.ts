@@ -31,8 +31,13 @@ export function resolveBin(cwd: string): string {
 	if (process.env.TASKS_AI_BIN) return process.env.TASKS_AI_BIN;
 
 	const root = findProjectRoot(cwd);
-	const local = root === null ? null : path.join(root, "bin", "tasks-ai");
-	if (local !== null && existsSync(local)) return local;
+	if (root !== null) {
+		const installed = path.join(root, ".tasks-ai", "bin", "tasks-ai");
+		if (existsSync(installed)) return installed;
+
+		const local = path.join(root, "bin", "tasks-ai");
+		if (existsSync(local)) return local;
+	}
 
 	return "tasks-ai";
 }

@@ -1,6 +1,6 @@
 # ADR-012: La integración con el agente vive fuera del binario
 
-- **Estado:** Aceptada
+- **Estado:** Superada por [ADR-014](014-la-extension-se-distribuye-incrustada-y-el-install-la-copia.md)
 - **Fecha:** 2026-10-17
 
 ## Contexto
@@ -14,7 +14,7 @@ trabajo avanza.
 
 El CLI ya es una superficie de agente: responde JSON por la salida estándar, distingue el
 fallo del mal uso con códigos de salida propios y encuentra el proyecto subiendo desde el
-directorio de trabajo hasta `.task-ai/` (`RF-01`, `RF-04`, `RN-03`). Lo que falta no es
+directorio de trabajo hasta `.tasks-ai/` (`RF-01`, `RF-04`, `RN-03`). Lo que falta no es
 una superficie nueva, sino que el agente llegue a ella con parámetros validados y sin
 tener que escribir comandos.
 
@@ -30,7 +30,7 @@ elige su forma y su sitio.
 - **No toca SQLite y no reimplementa reglas**: cada herramienta ejecuta el comando que ya
   existe y devuelve su JSON; los rechazos del núcleo llegan tal cual, sin reinterpretar.
 - El proyecto lo encuentra **el CLI**, no la extensión: ella trabaja en el directorio de
-  la sesión y deja que el producto suba hasta `.task-ai/`. Tampoco compone referencias.
+  la sesión y deja que el producto suba hasta `.tasks-ai/`. Tampoco compone referencias.
 - **Una herramienta por operación que ya exista en el CLI**, y ninguna que no exista. El
   vocabulario del tablero no se amplía desde la extensión.
 - Las pruebas usan el runner que trae Node (`node --test`), que ejecuta TypeScript sin

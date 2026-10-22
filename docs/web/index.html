@@ -539,14 +539,14 @@
     <section id="que-es">
       <div class="section-head"><span class="section-num">1</span><h2 class="title" data-i18n="que-es.2">Qué es tasks-ai</h2></div>
       <p class="sub" data-i18n="que-es.3">Un gestor de tareas para el proyecto en el que estás, no un servicio al que te conectas. No hay servidor que mantener ni cuenta que crear: hay un binario y una carpeta.</p>
-      <p data-i18n="que-es.4">Las tareas viven en <code>.task-ai/tasks.db</code>, dentro del propio proyecto, y se usan de dos maneras con el mismo binario: por línea de órdenes, siempre en JSON, y por una interfaz web que el binario sirve cuando se le pide con <code>serve</code>. Las dos superficies hacen exactamente las mismas operaciones sobre los mismos datos, así que mover el proyecto de carpeta o de máquina no se lleva nada por delante salvo que olvides la carpeta <code>.task-ai/</code>.</p>
+      <p data-i18n="que-es.4">Las tareas viven en <code>.tasks-ai/tasks.db</code>, dentro del propio proyecto, y se usan de dos maneras con el mismo binario: por línea de órdenes, siempre en JSON, y por una interfaz web que el binario sirve cuando se le pide con <code>serve</code>. Las dos superficies hacen exactamente las mismas operaciones sobre los mismos datos, así que mover el proyecto de carpeta o de máquina no se lleva nada por delante salvo que olvides la carpeta <code>.tasks-ai/</code>.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th data-i18n="que-es.5">Ruta</th><th data-i18n="que-es.6">Qué es</th></tr></thead>
           <tbody>
-            <tr><td><code>.task-ai/tasks.db</code></td><td data-i18n="que-es.7">La base con las tareas, los bloqueos, los comentarios y las etiquetas.</td></tr>
-            <tr><td><code>.task-ai/settings.json</code></td><td data-i18n="que-es.8">El prefijo de las referencias, la base, la dirección y el puerto de la interfaz, y el nivel de registro.</td></tr>
-            <tr><td><code>.task-ai/AGENTS.md</code></td><td data-i18n="que-es.9">Las instrucciones para quien trabaja el proyecto, persona o agente.</td></tr>
+            <tr><td><code>.tasks-ai/tasks.db</code></td><td data-i18n="que-es.7">La base con las tareas, los bloqueos, los comentarios y las etiquetas.</td></tr>
+            <tr><td><code>.tasks-ai/settings.json</code></td><td data-i18n="que-es.8">El prefijo de las referencias, la base, la dirección y el puerto de la interfaz, y el nivel de registro.</td></tr>
+            <tr><td><code>.tasks-ai/AGENTS.md</code></td><td data-i18n="que-es.9">Las instrucciones para quien trabaja el proyecto, persona o agente.</td></tr>
             <tr><td><code>tasks-ai</code></td><td data-i18n="que-es.10">El binario. No necesita nada más para funcionar: la interfaz web viaja dentro.</td></tr>
           </tbody>
         </table>
@@ -570,24 +570,28 @@
         <pre data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
 ./tasks-ai init              # installs the product in the project you are in</code></pre>
       </div>
-      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.task-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo y el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
+      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones, el binario y la extensión del agente. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
       <div class="code">
         <pre data-lang="es"><code>{
-  "dir": "/home/ana/informes/.task-ai",
-  "db": "/home/ana/informes/.task-ai/tasks.db",
-  "instructions": "/home/ana/informes/.task-ai/AGENTS.md",
+  "dir": "/home/ana/informes/.tasks-ai",
+  "db": "/home/ana/informes/.tasks-ai/tasks.db",
+  "instructions": "/home/ana/informes/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.task-ai/AGENTS.md"
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md",
+  "binary": "/home/ana/informes/.tasks-ai/bin/tasks-ai",
+  "extension": "/home/ana/informes/.tasks-ai/extensions/pi"
 }</code></pre>
         <pre data-lang="en" hidden><code>{
-  "dir": "/home/ana/reports/.task-ai",
-  "db": "/home/ana/reports/.task-ai/tasks.db",
-  "instructions": "/home/ana/reports/.task-ai/AGENTS.md",
+  "dir": "/home/ana/reports/.tasks-ai",
+  "db": "/home/ana/reports/.tasks-ai/tasks.db",
+  "instructions": "/home/ana/reports/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.task-ai/AGENTS.md"
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md",
+  "binary": "/home/ana/reports/.tasks-ai/bin/tasks-ai",
+  "extension": "/home/ana/reports/.tasks-ai/extensions/pi"
 }</code></pre>
       </div>
-      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin esa línea en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.task-ai/AGENTS.md</code>. Añádela donde tu proyecto ya recibe instrucciones.</p></div>
+      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin esa línea en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.tasks-ai/AGENTS.md</code>. Añádela donde tu proyecto ya recibe instrucciones.</p></div>
       <h3 data-i18n="empezar.6">Qué deja escrito</h3>
       <div class="table-wrap">
         <table>
@@ -694,7 +698,7 @@
       <p class="sub" data-i18n="comandos.3">Todas responden en JSON. Los errores también son JSON, con un objeto <code>error</code>, y la salida distingue dos casos: <code>2</code> cuando el uso o la entrada no son válidos, y <code>1</code> en cualquier otro rechazo.</p>
 
       <h3 class="cmd" data-i18n="comandos.4"><code>init</code><span class="sig">— instala el producto en el proyecto</span></h3>
-      <p data-i18n="comandos.5">Deja <code>.task-ai/</code> y devuelve lo que dejó. Con <code>--prefix</code> el prefijo de las referencias se fija al instalar, y pedir uno distinto del que ya tienen los ajustes se rechaza. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada.</p>
+      <p data-i18n="comandos.5">Deja <code>.tasks-ai/</code> y devuelve lo que dejó. Con <code>--prefix</code> el prefijo de las referencias se fija al instalar, y pedir uno distinto del que ya tienen los ajustes se rechaza. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada.</p>
       <div class="code">
         <pre data-lang="es"><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
@@ -703,7 +707,7 @@
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tai", "pointer": "..." }
 
 ./tasks-ai init      # segunda vez sobre el mismo proyecto
-# { "error": "the project already has the product installed in /home/ana/informes/.task-ai" }   salida 1</code></pre>
+# { "error": "the project already has the product installed in /home/ana/informes/.tasks-ai" }   salida 1</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "..." }
 
@@ -711,7 +715,7 @@
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tai", "pointer": "..." }
 
 ./tasks-ai init      # second time on the same project
-# { "error": "the project already has the product installed in /home/ana/reports/.task-ai" }   exit 1</code></pre>
+# { "error": "the project already has the product installed in /home/ana/reports/.tasks-ai" }   exit 1</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.6"><code>create</code><span class="sig">— crea una tarea o una subtarea</span></h3>
@@ -1027,7 +1031,7 @@
       <p data-i18n="recetas.13">La carpeta del producto lleva sus propias instrucciones. El agente las encuentra si el proyecto las enlaza, y a partir de ahí usa las mismas órdenes que una persona: no hay una superficie distinta para él.</p>
       <div class="code">
         <pre data-lang="es"><code># en el archivo de instrucciones del proyecto
-@.task-ai/AGENTS.md
+@.tasks-ai/AGENTS.md
 
 # lo que el agente hace después, igual que una persona
 ./tasks-ai list
@@ -1035,7 +1039,7 @@
 ./tasks-ai comment --body "Prueba añadida y en verde." tk-2
 ./tasks-ai close --reason done tk-2</code></pre>
         <pre data-lang="en" hidden><code># in the project's instruction file
-@.task-ai/AGENTS.md
+@.tasks-ai/AGENTS.md
 
 # what the agent does next, same as a person
 ./tasks-ai list
@@ -1241,7 +1245,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
           </tbody>
         </table>
       </div>
-      <div class="note"><p data-i18n="limites.24"><strong>La carpeta del producto es el producto.</strong> Copiar <code>.task-ai/</code> a otro proyecto se lleva las tareas enteras; olvidarla al mover el proyecto se lleva la mitad de la historia.</p></div>
+      <div class="note"><p data-i18n="limites.24"><strong>La carpeta del producto es el producto.</strong> Copiar <code>.tasks-ai/</code> a otro proyecto se lleva las tareas enteras; olvidarla al mover el proyecto se lleva la mitad de la historia.</p></div>
     </section>
 
     <section id="errores">
@@ -1262,7 +1266,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
             <tr><td><code>cannot close task "tk-1": it has open subtasks</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.22">Cerrar o mover las subtareas primero; el padre no cierra en cascada.</td></tr>
             <tr><td><code>cannot reopen task "tk-1": it is not closed</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.24">Ya está pendiente o en curso: no hay nada que reabrir.</td></tr>
             <tr><td><code>a tag with the name "docs" already exists</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.26">Editar la que hay con <code>tag edit</code>, o usar otro nombre.</td></tr>
-            <tr><td><code>the project already has the product installed in .../.task-ai</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.28">No hace falta instalar otra vez: usa las órdenes directamente.</td></tr>
+            <tr><td><code>the project already has the product installed in .../.tasks-ai</code></td><td><span class="sev sev-info">1</span></td><td data-i18n="errores.28">No hace falta instalar otra vez: usa las órdenes directamente.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1278,19 +1282,19 @@ chmod +x tasks-ai                              # y vuelve a probar</code></pre>
 
 chmod +x tasks-ai                              # then try again</code></pre>
       </div>
-      <p data-i18n="errores.31">Si la orden llega pero no encuentra el proyecto, es que no hay carpeta <code>.task-ai/</code> en el camino: <code>init</code> la crea, y se ejecuta desde dentro del proyecto.</p>
+      <p data-i18n="errores.31">Si la orden llega pero no encuentra el proyecto, es que no hay carpeta <code>.tasks-ai/</code> en el camino: <code>init</code> la crea, y se ejecuta desde dentro del proyecto.</p>
     </section>
 
     <section id="preguntas">
       <div class="section-head"><span class="section-num">13</span><h2 class="title" data-i18n="preguntas.2">Preguntas cortas</h2></div>
       <p class="sub" data-i18n="preguntas.3">Para quien llega con una duda concreta y no quiere releer la página entera.</p>
-      <div class="qa"><h3 data-i18n="preguntas.4">¿Dónde están mis tareas?</h3><p data-i18n="preguntas.5">En <code>.task-ai/tasks.db</code>, dentro del proyecto. No hay nada fuera de esa carpeta: si la copias, te llevas las tareas; si la borras, no hay nada que recuperar.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.4">¿Dónde están mis tareas?</h3><p data-i18n="preguntas.5">En <code>.tasks-ai/tasks.db</code>, dentro del proyecto. No hay nada fuera de esa carpeta: si la copias, te llevas las tareas; si la borras, no hay nada que recuperar.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.6">¿Puedo borrar una tarea?</h3><p data-i18n="preguntas.7">No. Se cierra con un motivo —<code>done</code>, <code>duplicate</code>, <code>absorbed</code>, <code>stale</code> o <code>superseded</code>— y se queda en el listado. Se puede reabrir después.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.8">¿Necesito Node o algo más para usar la interfaz?</h3><p data-i18n="preguntas.9">No. La interfaz viaja dentro del binario: <code>serve</code> es lo único que hace falta. Node solo entra si trabajas en el código de la interfaz, no para usarla.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.10">¿Por qué todo responde en JSON?</h3><p data-i18n="preguntas.11">Porque la línea de órdenes y los agentes son consumidores de primera clase: un JSON se lee, se filtra y se encadena sin analizar texto pensado para ojos humanos. La interfaz web usa la API, que devuelve las mismas formas.</p></div>
-      <div class="qa"><h3 data-i18n="preguntas.12">¿Puedo tener dos proyectos con el gestor?</h3><p data-i18n="preguntas.13">Sí: cada proyecto tiene su propia carpeta <code>.task-ai/</code> y su propia base. No se ven entre ellos y no hay un listado común.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.12">¿Puedo tener dos proyectos con el gestor?</h3><p data-i18n="preguntas.13">Sí: cada proyecto tiene su propia carpeta <code>.tasks-ai/</code> y su propia base. No se ven entre ellos y no hay un listado común.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.14">¿Dos personas pueden trabajar a la vez?</h3><p data-i18n="preguntas.15">No está pensado para eso. La base es un archivo local y no se sincroniza; dos procesos escribiendo sobre la misma base no es una forma de trabajo soportada.</p></div>
-      <div class="qa"><h3 data-i18n="preguntas.16">¿Cómo sabe un agente que las tareas están aquí?</h3><p data-i18n="preguntas.17">Porque el archivo de instrucciones del proyecto enlaza <code>.task-ai/AGENTS.md</code>. <code>init</code> devuelve la línea exacta en <code>pointer</code>; sin ella, el agente no tiene por qué enterarse.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.16">¿Cómo sabe un agente que las tareas están aquí?</h3><p data-i18n="preguntas.17">Porque el archivo de instrucciones del proyecto enlaza <code>.tasks-ai/AGENTS.md</code>. <code>init</code> devuelve la línea exacta en <code>pointer</code>; sin ella, el agente no tiene por qué enterarse.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.18">¿Qué pasa si cambio el prefijo?</h3><p data-i18n="preguntas.19">Que las referencias nuevas lo usan y las viejas dejan de resolver. La base no se reescribe: los números internos son los mismos, y el aviso al arrancar lo dice.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.20">¿La prioridad 0 es la más alta?</h3><p data-i18n="preguntas.21">El producto no lo decide: solo valida el rango de <code>0</code> a <code>3</code>. La convención que uses es tuya, y conviene escribirla en las reglas del proyecto.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.22">¿Puedo usar solo la API, sin la interfaz?</h3><p data-i18n="preguntas.23">Sí. La API es la misma superficie que usa la interfaz. Lo que no hay es un modo sin <code>serve</code>: la API vive en ese proceso.</p></div>
@@ -1300,7 +1304,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
 
 <footer class="footer">
   <span data-i18n="footer.1">tasks-ai · gestor de tareas local-first escrito en Go</span>
-  <span data-i18n="footer.2">Una carpeta por proyecto · línea de órdenes, API e interfaz · <code>.task-ai/</code></span>
+  <span data-i18n="footer.2">Una carpeta por proyecto · línea de órdenes, API e interfaz · <code>.tasks-ai/</code></span>
 </footer>
 
 
@@ -1333,7 +1337,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "hero.21": "Every command, every option, every error message and every response on this page was copied from the real binary. Long responses are trimmed to the fields that matter, and the page says when they are.",
  "que-es.2": "What tasks-ai is",
  "que-es.3": "A task manager for the project you are in, not a service you connect to. There is no server to maintain and no account to create: there is a binary and a folder.",
- "que-es.4": "Tasks live in <code>.task-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.task-ai/</code> folder with it.",
+ "que-es.4": "Tasks live in <code>.tasks-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.tasks-ai/</code> folder with it.",
  "que-es.5": "Path",
  "que-es.6": "What it is",
  "que-es.7": "The database with tasks, blockers, comments and tags.",
@@ -1352,8 +1356,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.20": "<strong>The mental model.</strong> A task is a row with a stable identity; its visible reference —<code>tk-1</code>— is what you type and what you see. The database is a file, which is why there is nothing to start before you work.",
  "empezar.2": "Starting in a project",
  "empezar.3": "Compiling is the only step that needs Go. From there on, the binary does everything.",
- "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.task-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, and the text to add outside so that people and agents find the instructions. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
- "empezar.5": "<strong>The pointer is half the job.</strong> Without that line in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.task-ai/AGENTS.md</code>. Add it wherever your project already receives instructions.",
+ "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.tasks-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, and the text to add outside so that people and agents find the instructions. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
+ "empezar.5": "<strong>The pointer is half the job.</strong> Without that line in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.tasks-ai/AGENTS.md</code>. Add it wherever your project already receives instructions.",
  "empezar.6": "What it writes",
  "empezar.7": "File",
  "empezar.8": "What it holds",
@@ -1407,7 +1411,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
- "comandos.5": "Leaves <code>.task-ai/</code> and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
+ "comandos.5": "Leaves <code>.tasks-ai/</code> and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything.",
  "comandos.6": "<code>create</code><span class=\"sig\">— creates a task or a subtask</span>",
  "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given.",
  "comandos.8": "Option",
@@ -1631,7 +1635,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "limites.21": "The database is a local file. It neither syncs nor shares itself, and two processes writing to the same database is not a supported way of working.",
  "limites.22": "Version the project",
  "limites.23": "It knows nothing about Git or branches: it records no commits, no authors and no review states.",
- "limites.24": "<strong>The product folder is the product.</strong> Copying <code>.task-ai/</code> into another project takes the tasks with it; forgetting it when moving the project takes half the story.",
+ "limites.24": "<strong>The product folder is the product.</strong> Copying <code>.tasks-ai/</code> into another project takes the tasks with it; forgetting it when moving the project takes half the story.",
  "errores.2": "Errors and what they mean",
  "errores.3": "The real messages, with what to do about each one. They are all JSON with an <code>error</code> key and none of them writes anything.",
  "errores.4": "Message",
@@ -1650,12 +1654,12 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "errores.28": "There is no need to install again: use the commands directly.",
  "errores.29": "When the command never runs",
  "errores.30": "If the error is not JSON, the problem comes before the product: the binary does not run. A binary copied without execute permission answers <code>EACCES</code> from the interface and <code>Permission denied</code> from the terminal, and a permission fixes it, not another command:",
- "errores.31": "If the command runs but does not find the project, there is no <code>.task-ai/</code> folder in the path: <code>init</code> creates it, and it runs from inside the project.",
+ "errores.31": "If the command runs but does not find the project, there is no <code>.tasks-ai/</code> folder in the path: <code>init</code> creates it, and it runs from inside the project.",
  "errores.32": "Write the fact without the hash: a commit reaches its task through the commit message, with <code>Refs: tk-N</code>. The same rule refuses a branch name, a remote reference and a phrase that declares the state.",
  "preguntas.2": "Short answers",
  "preguntas.3": "For whoever arrives with one specific doubt and does not want to re-read the whole page.",
  "preguntas.4": "Where are my tasks?",
- "preguntas.5": "In <code>.task-ai/tasks.db</code>, inside the project. Nothing lives outside that folder: copy it and the tasks come along; delete it and there is nothing to recover.",
+ "preguntas.5": "In <code>.tasks-ai/tasks.db</code>, inside the project. Nothing lives outside that folder: copy it and the tasks come along; delete it and there is nothing to recover.",
  "preguntas.6": "Can I delete a task?",
  "preguntas.7": "No. It is closed with a reason —<code>done</code>, <code>duplicate</code>, <code>absorbed</code>, <code>stale</code> or <code>superseded</code>— and stays in the listing. It can be reopened later.",
  "preguntas.8": "Do I need Node or anything else for the interface?",
@@ -1663,11 +1667,11 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "preguntas.10": "Why does everything answer in JSON?",
  "preguntas.11": "Because the command line and agents are first-class consumers: JSON can be read, filtered and chained without parsing text meant for human eyes. The web interface uses the API, which returns the same shapes.",
  "preguntas.12": "Can I have two projects with the manager?",
- "preguntas.13": "Yes: each project has its own <code>.task-ai/</code> folder and its own database. They do not see each other and there is no shared listing.",
+ "preguntas.13": "Yes: each project has its own <code>.tasks-ai/</code> folder and its own database. They do not see each other and there is no shared listing.",
  "preguntas.14": "Can two people work at the same time?",
  "preguntas.15": "It is not designed for that. The database is a local file and does not sync; two processes writing to the same database is not a supported way of working.",
  "preguntas.16": "How does an agent know the tasks are here?",
- "preguntas.17": "Because the project's instruction file links <code>.task-ai/AGENTS.md</code>. <code>init</code> returns the exact line in <code>pointer</code>; without it, the agent has no reason to find out.",
+ "preguntas.17": "Because the project's instruction file links <code>.tasks-ai/AGENTS.md</code>. <code>init</code> returns the exact line in <code>pointer</code>; without it, the agent has no reason to find out.",
  "preguntas.18": "What happens if I change the prefix?",
  "preguntas.19": "New references use it and old ones stop resolving. The database is not rewritten: the internal numbers stay the same, and the warning on start says so.",
  "preguntas.20": "Is priority 0 the highest?",
@@ -1675,7 +1679,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "preguntas.22": "Can I use only the API, without the interface?",
  "preguntas.23": "Yes. The API is the same surface the interface uses. What does not exist is a mode without <code>serve</code>: the API lives in that process.",
  "footer.1": "tasks-ai · local-first task manager written in Go",
- "footer.2": "One folder per project · command line, API and interface · <code>.task-ai/</code>"
+ "footer.2": "One folder per project · command line, API and interface · <code>.tasks-ai/</code>"
 }
 </script>
 <script>

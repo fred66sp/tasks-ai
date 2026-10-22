@@ -7,6 +7,13 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **El install deja el proyecto autocontenido**: `init` copia el binario a
+  `.tasks-ai/bin/tasks-ai` y extrae la extensión del agente —incrustada en el binario con
+  `go:embed`— a `.tasks-ai/extensions/pi/`. El proyecto ya no depende de la ruta del
+  repositorio de origen: la extensión se instala con `pi install -l
+  .tasks-ai/extensions/pi` y el binario responde desde su propia carpeta. La decisión en
+  `ADR-014`, que supera a `ADR-012`.
+
 - **El texto de una tarea no guarda el estado**: el título, la descripción, las notas y el
   cuerpo de un comentario se rechazan si nombran un hash de commit, una rama o una
   referencia a un remoto, o si declaran el estado de la tarea o de la entrega con la forma

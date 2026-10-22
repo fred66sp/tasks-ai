@@ -9,7 +9,7 @@ está decidido en otro sitio.
 ```text
  persona ──> interfaz web ──HTTP──┐
                                   ├──> núcleo de negocio ──> SQLite
- agentes ──> CLI (JSON) ──────────┘                          .task-ai/
+ agentes ──> CLI (JSON) ──────────┘                          .tasks-ai/
 ```
 
 Un solo binario ofrece las dos superficies: los comandos del CLI y, cuando se le pide,
@@ -64,7 +64,7 @@ lo único que cambia es el idioma de entrada y de salida.
 
 ## 5. Dónde vive el estado
 
-Dentro de `.task-ai/`, en la raíz del proyecto:
+Dentro de `.tasks-ai/`, en la raíz del proyecto:
 
 | Elemento | Qué guarda |
 |---|---|
@@ -121,11 +121,12 @@ reparte las dos superficies sin depender de nada más (`ADR-010`).
 ## 10. Integración con el agente
 
 El agente que trabaja en el proyecto llega al tablero por una extensión del agente Pi,
-que vive en `extensions/pi/`, fuera del binario (`ADR-012`). No es una tercera
+que vive en `extensions/pi/` y se incrusta en el binario para que el install la copie
+(`ADR-012`, `ADR-014`). No es una tercera
 superficie del producto: envuelve el CLI, ejecuta sus comandos y devuelve su JSON.
 
 - No toca la base ni reimplementa reglas: lo que el núcleo rechaza llega rechazado.
-- El proyecto lo encuentra el CLI subiendo hasta `.task-ai/`, no la extensión.
+- El proyecto lo encuentra el CLI subiendo hasta `.tasks-ai/`, no la extensión.
 - Una herramienta por operación que el CLI ya tenga; ninguna que no exista.
 - Las etiquetas se asignan después de crear, porque `create` no las acepta.
 
@@ -147,4 +148,4 @@ superficie del producto: envuelve el CLI, ejecuta sus comandos y devuelve su JSO
 | Escrituras ordenadas por la base | `ADR-008` |
 | Forma del código y dependencias | `ADR-009` |
 | Interfaz en `web/`, incrustada en el binario | `ADR-010` |
-| Integración con el agente fuera del binario | `ADR-012` |
+| Integración con el agente: incrustada para distribuirla | `ADR-012`, `ADR-014` |

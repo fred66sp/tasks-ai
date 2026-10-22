@@ -9,8 +9,10 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	embedded "tasks-ai"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/settings"
 	"tasks-ai/internal/store"
@@ -36,6 +38,8 @@ type Result struct {
 	Instructions string `json:"instructions"`
 	Prefix       string `json:"prefix"`
 	Pointer      string `json:"pointer"`
+	Binary       string `json:"binary"`
+	Extension    string `json:"extension"`
 }
 
 // Root is the root of the project the folder dir belongs to: the enclosing
@@ -140,12 +144,24 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		_, _ = fmt.Fprintf(warning, "warning: %s\n", note)
 	}
 
+	binary, err := copyBinary(dir)
+	if err != nil {
+		return Result{}, err
+	}
+
+	extension, err := writeExtension(dir)
+	if err != nil {
+		return Result{}, err
+	}
+
 	return Result{
 		Dir:          dir,
 		DB:           dbPath,
 		Instructions: instructions,
 		Prefix:       cfg.Prefix,
 		Pointer:      pointer,
+		Binary:       binary,
+		Extension:    extension,
 	}, nil
 }
 
@@ -154,6 +170,88 @@ func exists(path string) bool {
 	_, err := os.Stat(path)
 
 	return err == nil
+}
+
+// binName is the name of the binary the install leaves inside the product folder.
+const binName = "tasks-ai"
+
+// copyBinary deja el producto en la carpeta del proyecto, copiado del que se está
+// ejecutando, para que el proyecto no dependa de dónde se compiló. Devuelve la ruta
+// del binario instalado.
+func copyBinary(dir string) (string, error) {
+	self, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("finding the running binary: %w", err)
+	}
+
+	target := filepath.Join(dir, "bin", binName)
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
+		return "", fmt.Errorf("creating %s: %w", filepath.Dir(target), err)
+	}
+
+	if err := copyFile(self, target, 0o755); err != nil {
+		return "", fmt.Errorf("copying the binary to %s: %w", target, err)
+	}
+
+	return target, nil
+}
+
+// writeExtension deja la extensión del agente dentro de la carpeta del producto,
+// extraída de los ficheros que el binario lleva incrustados, para que el proyecto
+// no dependa del repositorio de origen. Devuelve la ruta de la carpeta de la
+// extensión instalada.
+func writeExtension(dir string) (string, error) {
+	target := filepath.Join(dir, "extensions", "pi")
+
+	err := fs.WalkDir(embedded.Pi, ".", func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
+		if entry.IsDir() {
+			return nil
+		}
+
+		data, err := embedded.Pi.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		dest := filepath.Join(dir, filepath.FromSlash(path))
+		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
+			return fmt.Errorf("creating %s: %w", filepath.Dir(dest), err)
+		}
+
+		if err := os.WriteFile(dest, data, 0o644); err != nil { //nolint:gosec // los ficheros de la extensión se leen sin ejecutar
+			return fmt.Errorf("writing %s: %w", dest, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("writing the extension: %w", err)
+	}
+
+	return target, nil
+}
+
+// copyFile copia un fichero desde from hasta to, con los permisos dados.
+func copyFile(from, to string, mode os.FileMode) error {
+	src, err := os.Open(from) //nolint:gosec // el origen lo decide la instalación, no una entrada externa
+	if err != nil {
+		return err
+	}
+	defer func() { _ = src.Close() }()
+
+	dst, err := os.OpenFile(to, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, mode) //nolint:gosec // el destino lo decide la instalación, no una entrada externa
+	if err != nil {
+		return err
+	}
+	defer func() { _ = dst.Close() }()
+
+	_, err = io.Copy(dst, src)
+
+	return err
 }
 
 // prepare creates the product folder and leaves a settings file in it with the

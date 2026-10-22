@@ -17,7 +17,7 @@ API están en `contracts.md`; el diseño, en `architecture.md`.
 | `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
-| `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
+| `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
@@ -36,9 +36,10 @@ npm test
 `npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
 el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
-La extensión no viaja en el binario: es un paquete de Pi que vive en el repositorio y se
-instala en el proyecto con los comandos del host, que dejan su ruta relativa en el archivo
-de ajustes de Pi del proyecto, versionado (`.pi/settings.json`):
+La extensión viaja incrustada en el binario para que el `init` la copie al proyecto
+(`ADR-014`); en el desarrollo se instala desde el repositorio con los comandos del host,
+que dejan su ruta relativa en el archivo de ajustes de Pi del proyecto, versionado
+(`.pi/settings.json`):
 
 ```bash
 pi install -l ./extensions/pi              # instala el paquete en el proyecto
@@ -46,10 +47,10 @@ pi remove -l --approve ./extensions/pi     # lo retira y deja la configuración 
 ```
 
 Con el paquete instalado se arranca Pi desde la raíz del proyecto, y la extensión
-encuentra el tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que
+encuentra el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que
 el CLI, ejecutando el binario del proyecto (`bin/tasks-ai`) o, si falta, el del `PATH`. Sus
 herramientas y lo que llega al modelo están en `contracts.md`; qué se gana con ellas, en
-el `README.md`; la forma y el riesgo, en `ADR-012`.
+el `README.md`; la forma, en `ADR-012` y `ADR-014`.
 
 ## Fronteras del código
 

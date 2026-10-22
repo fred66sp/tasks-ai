@@ -98,7 +98,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | ID | No objetivo |
 |---|---|
 | NO-01 | Conservar la compatibilidad con Tacks: es referencia funcional, no una obligación de compatibilidad ni una traducción de Rust |
-| NO-02 | Sustituir o modificar el gestor con el que se desarrolló el producto: fue la herramienta de partida y son herramientas distintas. El tablero del proyecto es el propio producto, y la integración con el agente vive fuera del binario |
+| NO-02 | Sustituir o modificar el gestor con el que se desarrolló el producto: fue la herramienta de partida y son herramientas distintas. El tablero del proyecto es el propio producto, y la integración con el agente se distribuye incrustada en el binario |
 | NO-03 | Atender varios proyectos a la vez y mantener una configuración global: el producto tiene un único proyecto y un único ámbito de configuración |
 | NO-04 | Construir una interfaz nueva: se reutiliza la existente y solo se ajusta lo necesario |
 
@@ -110,15 +110,15 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 |---|---|
 | RF-01 | Toda operación del producto se puede ejecutar desde el CLI y devuelve JSON |
 | RF-02 | El CLI y la API HTTP comparten el mismo núcleo: ninguna regla de negocio vive en una sola de las dos superficies |
-| RF-03 | El producto se instala en el proyecto en una sola carpeta, `.task-ai/`, que guarda todo lo suyo |
-| RF-04 | El producto localiza el proyecto por su carpeta: desde cualquier punto de su interior encuentra `.task-ai/` |
+| RF-03 | El producto se instala en el proyecto en una sola carpeta, `.tasks-ai/`, que guarda todo lo suyo: la base, los ajustes, las instrucciones, el binario y la extensión del agente |
+| RF-04 | El producto localiza el proyecto por su carpeta: desde cualquier punto de su interior encuentra `.tasks-ai/` |
 | RF-05 | La base guarda las tareas, sus dependencias, sus comentarios y el catálogo de etiquetas con color y descripción |
 | RF-06 | La carpeta tiene un archivo de settings propio, y el producto lo escribe al instalar con valores por omisión |
 | RF-07 | Al cambiar el prefijo, el producto advierte de que las referencias citadas fuera del producto dejan de resolver |
 | RF-08 | La carpeta incluye instrucciones para personas y agentes, y el texto que hay que añadir fuera para apuntar a ellas |
 | RF-09 | Los errores de la API se comunican con el código de estado que corresponde, no dentro de una respuesta correcta |
 | RF-10 | El CLI y el servidor son el mismo programa: un solo binario, que levanta el servidor de la interfaz con un comando |
-| RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio y fuera del binario, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
+| RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio e incrustada en el binario para que el install la copie, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
 | RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
 | RF-13 | La búsqueda de la interfaz encuentra una tarea por el texto de su título, su referencia, sus etiquetas, su descripción, sus notas y sus comentarios |
 

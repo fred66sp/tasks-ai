@@ -7,7 +7,7 @@ interfaz responde en la raíz del servidor y la API conserva sus rutas `/api/...
 rutas, los códigos de estado y los avisos de cambio están en
 [`docs/contracts.md`](docs/contracts.md).
 
-Todo lo del producto vive en la carpeta `.task-ai/` del proyecto —la base, la
+Todo lo del producto vive en la carpeta `.tasks-ai/` del proyecto —la base, la
 configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 
 ## Mapa de carpetas
@@ -21,8 +21,8 @@ configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 | `cmd/` | El binario del producto |
 | `internal/` | Su núcleo y sus superficies |
 | `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |
-| `.task-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
-| `extensions/pi/` | La integración con el agente de Pi: envuelve el CLI, no forma parte del binario |
+| `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
+| `extensions/pi/` | La integración con el agente de Pi: envuelve el CLI y se incrusta en el binario para que el install la copie |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
 El contrato de documentación dice qué contiene cada documento de `docs/`.
@@ -41,7 +41,7 @@ Del producto:
 ```bash
 go build ./cmd/tasks-ai  # compila el binario
 
-./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .task-ai/ con la base, los ajustes y las instrucciones; no es repetible, un proyecto ya instalado lo rechaza
+./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .tasks-ai/ con la base, los ajustes y las instrucciones; no es repetible, un proyecto ya instalado lo rechaza
 ./tasks-ai init --prefix tai     # instala con tai como prefijo de las referencias en vez de tk, y escribe las instrucciones con él
 ./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
 ./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
@@ -81,25 +81,24 @@ cd web && npm run watch  # la reconstruye al cambiar
 `extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
 `tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
 `tasks_reopen`, `tasks_block`, `tasks_unblock`, `tasks_comment`, `tasks_comment_list` y
-`tasks_comment_edit` (`ADR-012`). El agente
+`tasks_comment_edit` (`ADR-012`, `ADR-014`). El agente
 deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
 está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
 además del comando `/board`, un bloque junto al editor con lo que está en curso y una
 línea de estado con la última tarea cerrada.
 
-No forma parte del binario: es un paquete de Pi que vive en el repositorio, y se instala
-en el proyecto con los comandos del host, que dejan su ruta relativa en
-`.pi/settings.json` —versionado, para que otra máquina arranque igual— sin copiar el
-fuente fuera:
+El `init` la deja instalada en el proyecto: incrustada en el binario (`ADR-014`), se
+extrae a `.tasks-ai/extensions/pi/` junto con el binario en `.tasks-ai/bin/tasks-ai`. El
+proyecto la carga desde su propia carpeta, sin depender del repositorio de origen:
 
 ```bash
-pi install -l ./extensions/pi              # instala el paquete en el proyecto
-pi remove -l --approve ./extensions/pi     # lo retira y deja la configuración como estaba
+pi install -l .tasks-ai/extensions/pi              # instala el paquete en el proyecto
+pi remove -l --approve .tasks-ai/extensions/pi     # lo retira y deja la configuración como estaba
 ```
 
 Con el paquete instalado se arranca Pi desde la raíz del proyecto: la extensión encuentra
-el tablero subiendo desde el directorio de trabajo hasta `.task-ai/`, igual que el CLI, y
-ejecuta el binario del proyecto (`bin/tasks-ai`) o, si falta, el que esté en el `PATH`. En
+el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que el CLI, y
+ejecuta el binario instalado (`.tasks-ai/bin/tasks-ai`) o, si falta, el del `PATH`. En
 un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
 sigue.
 
@@ -116,7 +115,7 @@ ese archivo, porque el arnés congela su configuración al inicio.
 
 De la herramienta de desarrollo —la de partida, que el producto sustituye—:
 
-Se retiró del repositorio al pasar el trabajo a `.task-ai/`. Era un servidor en Node sobre
+Se retiró del repositorio al pasar el trabajo a `.tasks-ai/`. Era un servidor en Node sobre
 el binario de terceros [tacks](https://github.com/srmccray/tacks) —`tk`—, con un catálogo
 de etiquetas propio. Su histórico de tareas se importó en el tablero del producto, y las
 decisiones que la describen viven en `ADR-005` y `ADR-010`. No queda nada que arrancar.

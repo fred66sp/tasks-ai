@@ -110,6 +110,45 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 	}
 }
 
+func TestRun_leavesTheBinaryAndTheExtension(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("Run devolvió %v", err)
+	}
+
+	product := filepath.Join(dir, install.DirName)
+
+	bin := filepath.Join(product, "bin", "tasks-ai")
+
+	info, err := os.Stat(bin)
+	if err != nil {
+		t.Fatalf("la instalación no dejó el binario: %v", err)
+	}
+
+	if info.Mode()&0o111 == 0 {
+		t.Errorf("el binario instalado no es ejecutable: %v", info.Mode())
+	}
+
+	if result.Binary != bin {
+		t.Errorf("la instalación devolvió el binario %q, se esperaba %q", result.Binary, bin)
+	}
+
+	extension := filepath.Join(product, "extensions", "pi")
+	if result.Extension != extension {
+		t.Errorf("la instalación devolvió la extensión %q, se esperaba %q", result.Extension, extension)
+	}
+
+	for _, name := range []string{"index.ts", "board.ts", "cli.ts", "package.json"} {
+		if _, err := os.Stat(filepath.Join(extension, name)); err != nil {
+			t.Errorf("la instalación no dejó la extensión %s: %v", name, err)
+		}
+	}
+}
+
 func TestRun_refusesToInstallOverAnInstallation(t *testing.T) {
 	t.Parallel()
 

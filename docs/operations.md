@@ -10,7 +10,7 @@ formas de datos y de API están en `contracts.md`.
 | `go build ./cmd/...` | Compila el binario del producto |
 | `go test ./...` | Ejecuta las pruebas |
 | `go vet ./...` | Comprobaciones estáticas |
-| `./tasks-ai init` | Instala el producto en el proyecto: crea `.task-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
+| `./tasks-ai init` | Instala el producto en el proyecto: crea `.tasks-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
 | `./tasks-ai serve` | Arranca la API y la interfaz web en la dirección y el puerto del settings: la interfaz responde en la raíz del servidor y la API en sus rutas `/api/...` |
 | `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
 | `./serve.sh` | Deja el servidor en segundo plano: compila el binario, lo arranca con `serve`, escribe su registro y su pid en `.run/` e informa de la dirección. `./serve.sh status` dice si está en marcha y `./serve.sh stop` lo para |
@@ -21,7 +21,7 @@ construirla antes de compilar el binario. Los comandos de su construcción está
 
 ## El tablero del trabajo
 
-El trabajo del proyecto vive en `.task-ai/`, y se opera con el mismo binario:
+El trabajo del proyecto vive en `.tasks-ai/`, y se opera con el mismo binario:
 
 ```bash
 ./bin/tasks-ai list        # todas las tareas, con su estado y si están bloqueadas

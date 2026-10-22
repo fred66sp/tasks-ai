@@ -37,9 +37,9 @@ npm-debug.log*
 # Base del tablero: vive en esta máquina y no viaja. Un binario de SQLite no se
 # fusiona, así que cada máquina tiene el suyo y el repositorio guarda solo las
 # instrucciones. Sus transitorios tampoco viajan: copiarlos corrompe lecturas.
-.task-ai/tasks.db
-.task-ai/tasks.db-wal
-.task-ai/tasks.db-shm
+.tasks-ai/tasks.db
+.tasks-ai/tasks.db-wal
+.tasks-ai/tasks.db-shm
 
 # Salidas generadas
 bin/

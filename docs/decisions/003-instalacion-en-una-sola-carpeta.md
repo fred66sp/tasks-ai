@@ -16,12 +16,12 @@ se le entregue ya escrito.
 
 ## Decisión
 
-- Todo lo del producto vive en `.task-ai/`, en la raíz del proyecto.
+- Todo lo del producto vive en `.tasks-ai/`, en la raíz del proyecto.
 - Dentro están la base, el archivo de settings y las instrucciones.
 - La base guarda las tareas, sus dependencias, sus comentarios y el catálogo de
   etiquetas con color y descripción.
 - El producto localiza el proyecto por su carpeta: desde cualquier punto de su
-  interior encuentra `.task-ai/`.
+  interior encuentra `.tasks-ai/`.
 - Las instrucciones incluyen un `AGENTS.md` y, si hacen falta, skills.
 - Fuera de esa carpeta solo va lo que el usuario decida añadir, con el texto
   preparado que el producto le ofrezca, por ejemplo un puntero en su `AGENTS.md`.

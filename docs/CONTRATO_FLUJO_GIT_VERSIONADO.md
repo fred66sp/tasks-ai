@@ -140,7 +140,7 @@ No se harán commits intermedios únicamente para demostrar actividad o cumplir 
 El commit de una tarea se hace antes de cerrarla en el tablero. El cierre escribe en la
 base del tablero, que se versiona: cerrar antes de commitear deja ese cambio suelto o
 mezclado con el trabajo que venga, y el commit deja de decir qué se entregó. El ciclo del
-tablero, con su orden, lo gobierna `.task-ai/AGENTS.md`.
+tablero, con su orden, lo gobierna `.tasks-ai/AGENTS.md`.
 
 ### ROOT-21 6.2. Confirmación de commits
 

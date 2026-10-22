@@ -16,7 +16,7 @@ export type Outcome = { ok: true; data: unknown } | { ok: false; code: number; m
 export function findProjectRoot(from: string): string | null {
 	let current = path.resolve(from);
 	for (;;) {
-		if (existsSync(path.join(current, ".task-ai"))) return current;
+		if (existsSync(path.join(current, ".tasks-ai"))) return current;
 		const parent = path.dirname(current);
 		if (parent === current) return null;
 		current = parent;

@@ -7,7 +7,7 @@
 #   ./serve.sh status   dice si está en marcha y dónde escucha
 #   ./serve.sh stop     lo para
 #
-# La dirección y el puerto son los del settings del proyecto (.task-ai/settings.json).
+# La dirección y el puerto son los del settings del proyecto (.tasks-ai/settings.json).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

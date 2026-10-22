@@ -101,7 +101,7 @@ fusiona: dos máquinas que muevan el tablero producen un conflicto que no se res
 eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
 historia.
 
-**Qué resultó:** la base dejó de viajar. `.task-ai/tasks.db` sale del índice y el
+**Qué resultó:** la base dejó de viajar. `.tasks-ai/tasks.db` sale del índice y el
 `.gitignore` la deja fuera, así que cada máquina tiene su tablero y el conflicto no
 existe; lo que viaja con el trabajo nuevo es el código. Los commits anteriores a ese
 cambio conservan la base, y llevar el tablero a otra máquina es ahora un traslado manual

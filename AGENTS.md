@@ -23,10 +23,10 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
   `git log --format='%h %s' --grep='Refs: tk-<n>'`, que contesta con lo que hay y no con
   lo que se recuerda.
 
-<!-- task-ai: instructions -->
+<!-- tasks-ai: instructions -->
 ## Tablero del trabajo
 
-El trabajo se registra en el tablero del propio producto, instalado en `.task-ai/`.
+El trabajo se registra en el tablero del propio producto, instalado en `.tasks-ai/`.
 El tablero dice qué trabajo existe y en qué punto está, y cada tarea lleva escrito lo que
 hay que saber para hacerla y lo que se aprendió al hacerla.
 Con la extensión de Pi cargada, el agente lo opera con sus herramientas —`tasks_board`,
@@ -41,7 +41,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 ./bin/tasks-ai tags              # el catálogo de etiquetas y su uso
 ```
 
-- La base de tareas vive en `.task-ai/tasks.db`. No se edita con SQL: solo por el CLI
+- La base de tareas vive en `.tasks-ai/tasks.db`. No se edita con SQL: solo por el CLI
   del producto, y con la extensión cargada, por sus herramientas.
 - Un frente visible es una tarea con la etiqueta `epic`, y se reconoce por sus subtareas,
   no por su nivel en el árbol; una unidad de trabajo es una tarea con la etiqueta `task`,
@@ -59,7 +59,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   arreglo, una decisión, una duda— se propone como tarea antes de tocarlo, y se espera la
   confirmación.
 - Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización y qué
-  guarda cada campo— lo gobierna [`.task-ai/AGENTS.md`](.task-ai/AGENTS.md).
+  guarda cada campo— lo gobierna [`.tasks-ai/AGENTS.md`](.tasks-ai/AGENTS.md).
 - Cada tarea declara **el resultado que cierra** y **el criterio con el que se
   comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
   empieza: se escribe primero.
@@ -70,7 +70,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   de revisión: los estados los marca la herramienta y Git se consulta con Git. Tampoco
   referencias que envejecen —un número de línea, un número de comentario, un recuento, un
   «hoy»—: se enuncia el hecho.
-<!-- task-ai: instructions -->
+<!-- tasks-ai: instructions -->
 
 ## Alcance del trabajo
 
@@ -94,7 +94,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 |---|---|
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
-| `.task-ai/` | El tablero del proyecto; su base vive en esta máquina y no viaja |
+| `.tasks-ai/` | El tablero del proyecto; su base vive en esta máquina y no viaja |
 | `skills/` | Las skills del proyecto, copiadas del taller; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.

@@ -54,19 +54,23 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **La carpeta del producto se llama `.tasks-ai/`**: se corrige la errata del nombre —le
+  faltaba la letra ese— en el código, los documentos y las instalaciones. El producto
+  busca y crea `.tasks-ai/`, y las carpetas existentes se renombran en consecuencia.
+
 - **La línea de estado del agente enseña la última tarea cerrada**: la extensión de Pi
   deja de repetir en el estado del TUI lo que ya enseña el bloque del tablero, y nombra
   la tarea cerrada más reciente —`🦊 última cerrada: tk-158 · título`—, con «sin tarea
   cerrada» mientras no haya ninguna. El bloque junto al editor y `tasks_board` siguen
   enseñando lo que está en curso, que es el trabajo abierto.
 
-- **El tablero deja de viajar en el repositorio**: `.task-ai/tasks.db` sale del índice y
+- **El tablero deja de viajar en el repositorio**: `.tasks-ai/tasks.db` sale del índice y
   el `.gitignore` la deja fuera, así que cada máquina tiene su base y el conflicto de un
   binario de SQLite deja de ser posible. Las instrucciones del producto siguen
   versionadas; lo que viaja con el trabajo nuevo es el código, no las tareas. Llevar el
   tablero a otra máquina pasa a ser un traslado manual, que todavía no tiene volcado.
 
-- **El tablero y el estado de Pi viajan en el repositorio**: `.task-ai/tasks.db` y `.pi/`
+- **El tablero y el estado de Pi viajan en el repositorio**: `.tasks-ai/tasks.db` y `.pi/`
   se versionan para que otra máquina arranque con las tareas y el agente de delegación ya
   puestos. El agente vive solo en `.pi/agents/`, que es donde Pi lo lee, sin una copia que
   mantener sincronizada. La base se publica con el contenido del WAL integrado, y
@@ -234,7 +238,7 @@ Changelog* y el versionado es semántico.
   recibir el aviso de la otra, sea el CLI o la propia API. Quien abre o recarga la
   pantalla empieza en el cambio siguiente: no recibe el historial de lo que ya estaba
   antes de abrirla.
-- **El tablero del proyecto es el producto**: el trabajo se registra en `.task-ai/`, la
+- **El tablero del proyecto es el producto**: el trabajo se registra en `.tasks-ai/`, la
   carpeta que instala el propio binario, y se opera con `./bin/tasks-ai` y `serve`. La
   herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró del
   repositorio, y sus 58 tareas se importaron en este tablero con sus descripciones,

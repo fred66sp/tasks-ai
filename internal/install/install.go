@@ -17,7 +17,7 @@ import (
 )
 
 // DirName is the folder the product keeps inside a project.
-const DirName = ".task-ai"
+const DirName = ".tasks-ai"
 
 // instructionsName is the file with the instructions for people and agents.
 const instructionsName = "AGENTS.md"

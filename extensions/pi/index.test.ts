@@ -140,24 +140,26 @@ describe("la extensión", () => {
 		assert.equal(calls, 0);
 	});
 
-	it("el estado muestra la tarea en curso al iniciar y se limpia al descargar", async () => {
-		cli("create", "--title", "09 comando /board");
-		cli("update", "tk-1", "--status", "in_progress");
+	it("el estado muestra la última tarea cerrada al iniciar y se limpia al descargar", async () => {
+		cli("create", "--title", "09 cerrada primero");
+		cli("create", "--title", "10 cerrada después");
+		cli("close", "tk-1", "--reason", "done");
+		cli("close", "tk-2", "--reason", "done");
 		const extension = harness();
 		await extension.handlers.session_start({}, extension.context(project));
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · 09 comando /board"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 última cerrada: tk-2 · 10 cerrada después"]);
 		await extension.handlers.session_shutdown({}, extension.context(project));
 		assert.equal(extension.statuses.size, 0);
 	});
 
-	it("el estado nombra todas las tareas en curso", async () => {
+	it("sin cerradas el estado lo dice y no nombra la que está en curso", async () => {
 		cli("create", "--title", "primera en curso");
 		cli("create", "--title", "segunda en curso");
 		cli("update", "tk-1", "--status", "in_progress");
 		cli("update", "tk-2", "--status", "in_progress");
 		const extension = harness();
 		await extension.handlers.session_start({}, extension.context(project));
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: 2 en curso · tk-1 · primera en curso, tk-2 · segunda en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 	});
 
 	it("el tablero se ve como bloque con una línea por tarea en curso", async () => {
@@ -199,7 +201,7 @@ describe("la extensión", () => {
 		await extension.commands.board.handler("", ctx);
 		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
 		assert.equal(lists, 1);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 	});
 
 	it("/board en print y json no usa UI ni lee el CLI", async () => {
@@ -223,7 +225,7 @@ describe("la extensión", () => {
 		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: no disponible"]);
 		await extension.commands.board.handler("", ctx);
 		assert.equal(calls, 2);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 	});
 
 	it("el estado y el bloque se actualizan tras escribir y al comenzar un turno", async (t) => {
@@ -233,25 +235,26 @@ describe("la extensión", () => {
 		const extension = harness();
 		const ctx = extension.context(project);
 		await extension.handlers.session_start({}, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
 		await extension.registered.tasks_update.execute("id", { ref: "tk-1", status: "in_progress" }, undefined, undefined, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · tarea actual"]);
+		// lo que está en curso no entra en la línea: el bloque es quien lo enseña
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-1 · tarea actual"]);
-		cli("update", "tk-1", "--status", "open");
-		cli("update", "tk-1", "--status", "in_progress");
+		await extension.registered.tasks_close.execute("id", { ref: "tk-1", reason: "done" }, undefined, undefined, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 última cerrada: tk-1 · tarea actual"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
 		cli("create", "--title", "otra");
 		cli("update", "tk-2", "--status", "in_progress");
-		cli("update", "tk-1", "--status", "open");
 		// La siguiente lectura debe ver también cambios externos una vez caducada la caché.
 		now = 1000;
 		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-2 · otra"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 última cerrada: tk-1 · tarea actual"]);
 		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-2 · otra"]);
 		cli("close", "tk-2", "--reason", "done");
 		now = 2000;
 		await extension.handlers.before_agent_start({ systemPromptOptions: { sections: {} } }, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea en curso"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 última cerrada: tk-2 · otra"]);
 		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
 	});
 
@@ -266,8 +269,13 @@ describe("la extensión", () => {
 		cli("update", "tk-1", "--status", "in_progress");
 		now = 1000;
 		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
-		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: tk-1 · primera"]);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 tablero: sin tarea cerrada"]);
 		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ tk-1 · primera"]);
+		cli("close", "tk-1", "--reason", "done");
+		now = 2000;
+		await extension.registered.tasks_board.execute("id", {}, undefined, undefined, ctx);
+		assert.deepEqual([...extension.statuses.values()], ["🦊 última cerrada: tk-1 · primera"]);
+		assert.deepEqual(extension.widgets.get("tasks_board"), ["🦊 Tasks-ai tablero:", "  ○ sin tarea en curso"]);
 	});
 
 	it("añade al prompt un resumen corto, sin mensaje ni detalles privados", async () => {

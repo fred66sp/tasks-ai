@@ -12,6 +12,8 @@ export interface Task {
 	priority: number;
 	parent_id: number | null;
 	tags: string[];
+	/** Momento del último cambio, que en una tarea cerrada es el de su cierre. */
+	updated_at: string;
 }
 
 /** Un comentario tal como lo devuelve `show` o `comment list`. */
@@ -42,6 +44,7 @@ export interface Board {
 	counts: { open: number; in_progress: number; done: number; total: number };
 	inProgress: Task[];
 	ready: Task[];
+	lastClosed?: Task;
 	tree: TreeNode[];
 }
 
@@ -86,8 +89,33 @@ export function deriveBoard(tasks: Task[]): Board {
 		counts,
 		inProgress: tasks.filter((task) => task.status === "in_progress"),
 		ready: tasks.filter((task) => task.status === "open" && !task.blocked),
+		lastClosed: lastClosedOf(tasks),
 		tree: roots.map(node),
 	};
+}
+
+/**
+ * La última tarea cerrada: la del momento de cierre más reciente y, cuando dos
+ * comparten segundo —que es como viaja la base—, la de número interno mayor.
+ */
+function lastClosedOf(tasks: Task[]): Task | undefined {
+	let last: Task | undefined;
+	for (const task of tasks) {
+		if (task.status !== "done") continue;
+		if (!last) {
+			last = task;
+			continue;
+		}
+		const at = moment(task), before = moment(last);
+		if (at > before || (at === before && task.id > last.id)) last = task;
+	}
+	return last;
+}
+
+/** Un momento que se puede comparar; el que no se puede leer queda como el más antiguo. */
+function moment(task: Task): number {
+	const at = Date.parse(task.updated_at);
+	return Number.isNaN(at) ? 0 : at;
 }
 
 /** Compone el texto que lee el modelo: contadores, dos listas cortas y el árbol recortado. */

@@ -10,6 +10,7 @@ function task(over: Partial<Task> & { id: number; ref: string }): Task {
 		priority: 2,
 		parent_id: null,
 		tags: [],
+		updated_at: "2026-01-01T00:00:00Z",
 		...over,
 	};
 }
@@ -29,6 +30,26 @@ describe("deriveBoard", () => {
 		assert.deepEqual(board.inProgress.map((t) => t.ref), ["tk-3"]);
 		// la bloqueada no se puede empezar, y la que está en curso ya se empezó
 		assert.deepEqual(board.ready.map((t) => t.ref), ["tk-1"]);
+	});
+
+	it("elige como última cerrada la del momento de cierre más reciente", () => {
+		const tasks = [
+			task({ id: 1, ref: "tk-1", status: "done", updated_at: "2026-10-20T10:00:00Z" }),
+			task({ id: 2, ref: "tk-2", status: "done", updated_at: "2026-10-21T09:00:00Z" }),
+			task({ id: 3, ref: "tk-3", status: "in_progress", updated_at: "2026-10-22T09:00:00Z" }),
+		];
+
+		// la que está en curso tiene el momento más reciente y aun así no es una tarea cerrada
+		assert.equal(deriveBoard(tasks).lastClosed?.ref, "tk-2");
+	});
+
+	it("a igualdad de momento deja la de número interno mayor", () => {
+		const tasks = [
+			task({ id: 7, ref: "tk-7", status: "done", updated_at: "2026-10-22T09:00:00Z" }),
+			task({ id: 9, ref: "tk-9", status: "done", updated_at: "2026-10-22T09:00:00Z" }),
+		];
+
+		assert.equal(deriveBoard(tasks).lastClosed?.ref, "tk-9");
 	});
 
 	it("anida por padre y deja como raíz la hija cuyo padre no está en la lista", () => {
@@ -52,6 +73,7 @@ describe("deriveBoard", () => {
 			counts: { open: 0, in_progress: 0, done: 0, total: 0 },
 			inProgress: [],
 			ready: [],
+			lastClosed: undefined,
 			tree: [],
 		});
 	});

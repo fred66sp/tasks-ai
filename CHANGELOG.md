@@ -54,6 +54,12 @@ Changelog* y el versionado es semántico.
 
 ### Modificado
 
+- **La línea de estado del agente enseña la última tarea cerrada**: la extensión de Pi
+  deja de repetir en el estado del TUI lo que ya enseña el bloque del tablero, y nombra
+  la tarea cerrada más reciente —`🦊 última cerrada: tk-158 · título`—, con «sin tarea
+  cerrada» mientras no haya ninguna. El bloque junto al editor y `tasks_board` siguen
+  enseñando lo que está en curso, que es el trabajo abierto.
+
 - **El tablero deja de viajar en el repositorio**: `.task-ai/tasks.db` sale del índice y
   el `.gitignore` la deja fuera, así que cada máquina tiene su base y el conflicto de un
   binario de SQLite deja de ser posible. Las instrucciones del producto siguen

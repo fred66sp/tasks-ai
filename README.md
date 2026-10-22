@@ -84,7 +84,8 @@ cd web && npm run watch  # la reconstruye al cambiar
 `tasks_comment_edit` (`ADR-012`). El agente
 deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
 está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
-además del comando `/board` y una línea de estado con la tarea en curso.
+además del comando `/board`, un bloque junto al editor con lo que está en curso y una
+línea de estado con la última tarea cerrada.
 
 No forma parte del binario: es un paquete de Pi que vive en el repositorio, y se instala
 en el proyecto con los comandos del host, que dejan su ruta relativa en

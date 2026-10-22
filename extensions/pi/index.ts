@@ -56,13 +56,14 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 
 	function setBoardStatus(ctx: ExtensionContext, board?: Board, message = "no hay tablero instalado en este proyecto") {
 		if (ctx.mode !== "tui" || !ctx.hasUI) return;
-		const running = (board?.inProgress ?? []).map((task) => `${task.ref} · ${task.title.replace(/\s+/g, " ").trim()}`);
+		// La línea de estado nombra lo último que se cerró; lo que está en curso
+		// espera en el bloque, que es donde se sigue el trabajo abierto.
+		const last = board?.lastClosed;
 		const text = !board ? message
-			: running.length === 0 ? "sin tarea en curso"
-				: running.length === 1 ? running[0]
-					: `${running.length} en curso · ${running.join(", ")}`;
+			: last ? `${last.ref} · ${last.title.replace(/\s+/g, " ").trim()}`
+				: "sin tarea cerrada";
 		statusUI = ctx.ui;
-		ctx.ui.setStatus("tasks_board", `🦊 tablero: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
+		ctx.ui.setStatus("tasks_board", `🦊 ${last ? "última cerrada" : "tablero"}: ${text.length > 100 ? `${text.slice(0, 99)}…` : text}`);
 	}
 
 	/** El tablero como bloque junto al editor: el título y una línea por tarea en curso. */

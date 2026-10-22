@@ -43,10 +43,11 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 
 - La base de tareas vive en `.task-ai/tasks.db`. No se edita con SQL: solo por el CLI
   del producto, y con la extensión cargada, por sus herramientas.
-- Un frente visible es una tarea de nivel superior con la etiqueta `epic`; una unidad de
-  trabajo es una subtarea con padre y la etiqueta `task`. El trabajo del registro ODD
-  lleva `ODD`, y cada tarea un tipo principal: `docs`, `feat`, `fix`, `test`, `chore`,
-  `refactor`, `style` o `improvement`.
+- Un frente visible es una tarea con la etiqueta `epic`, y se reconoce por sus subtareas,
+  no por su nivel en el árbol; una unidad de trabajo es una tarea con la etiqueta `task`,
+  sin subtareas. Las dos las pone quien crea la tarea: el producto no las añade ni las
+  retira. El trabajo del registro ODD lleva `ODD`, y cada tarea un tipo principal: `docs`,
+  `feat`, `fix`, `test`, `chore`, `refactor`, `style` o `improvement`.
 - Ciclo: leer el tablero antes de crear, proponer la tarea y esperar a que la persona la
   confirme, marcarla en curso antes de tocar archivos, mantener las notas y los
   comentarios al día, y al terminar comprobar la tarea entera y el contrato de Git antes

@@ -86,7 +86,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Comentarios | Historial de cada tarea con identidad propia: añadir, leer y editar el cuerpo |
 | Etiquetas | Catálogo con color y descripción: alta, renombrado y borrado, con aviso del uso antes de borrar |
 | Listado | Árbol con jerarquía visible, filtros por estado, prioridad y etiqueta, búsqueda por el título, la referencia, las etiquetas, la descripción, las notas y los comentarios, y vista por periodo |
-| Épicas | Marcar frentes de nivel superior y mostrar su progreso |
+| Épicas | Frentes de trabajo —las tareas con subtareas— y el progreso de sus subtareas |
 | Recuento | Trabajo abierto del proyecto |
 | Preferencias | Recordar en el navegador lo último que miró la persona |
 | Avisos | Avisar cuando los datos cambian desde fuera de la interfaz |

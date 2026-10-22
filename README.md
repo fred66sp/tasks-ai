@@ -64,6 +64,7 @@ go build ./cmd/tasks-ai  # compila el binario
 ./tasks-ai comment list <referencia>  # devuelve los comentarios de la tarea, del primero al último, cada uno con su identidad
 ./tasks-ai comment edit <referencia> <id> --body "..."  # cambia el cuerpo del comentario: conserva su identidad y su fecha de creación
 ./tasks-ai serve                # arranca la API HTTP y la interfaz en la dirección y el puerto del settings: la interfaz responde en la raíz, y los cambios se anuncian por un canal abierto
+./serve.sh                      # deja ese servidor en segundo plano: ./serve.sh status dice si está en marcha y ./serve.sh stop lo para, lo arrancara el script o el binario a mano
 ```
 
 La interfaz se reconstruye —`npm run build` dentro de `web/`— y el binario se vuelve

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Levanta el servidor de tasks-ai en segundo plano: compila el binario instalado, arranca
+# Deja el servidor de tasks-ai en segundo plano: compila el binario instalado, arranca
 # `serve` y deja su registro y su pid en .run/.
 #
 #   ./serve.sh          arranca el servidor si no está ya en marcha
@@ -8,38 +8,84 @@
 #   ./serve.sh stop     lo para
 #
 # La dirección y el puerto son los del settings del proyecto (.tasks-ai/settings.json).
+# El servidor se reconoce por el puerto en el que escucha, no por el pid que guardó este
+# script: si se arrancó a mano con `tasks-ai serve`, también se ve y se para desde aquí.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$root"
+
 binary="$root/.tasks-ai/bin/tasks-ai"
 state="$root/.run"
 pidfile="$state/serve.pid"
 logfile="$state/serve.log"
+settings="$root/.tasks-ai/settings.json"
 
-cd "$root"
+host="$(sed -n 's/.*"host"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$settings" | head -1)"
+port="$(sed -n 's/.*"port"[[:space:]]*:[[:space:]]*\([0-9]\+\).*/\1/p' "$settings" | head -1)"
+port="${port:-8890}"
+address="http://${host:-127.0.0.1}:$port"
 
-# running dice si el proceso del pid guardado sigue vivo.
-running() {
-	[[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null
+# listening devuelve el pid que escucha en el puerto del settings, o nada.
+listening() {
+	local out=""
+	if command -v ss >/dev/null 2>&1; then
+		out="$(ss -lptnH "sport = :$port" 2>/dev/null | grep -o 'pid=[0-9]*' | head -1 | cut -d= -f2 || true)"
+	fi
+	if [[ -z "$out" ]] && command -v lsof >/dev/null 2>&1; then
+		out="$(lsof -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null | head -1 || true)"
+	fi
+	printf '%s' "$out"
 }
 
-# address devuelve la dirección que el servidor anunció al arrancar.
-address() {
-	grep -o -m1 'http://[^"]*' "$logfile" 2>/dev/null || echo "(todavía sin dirección)"
+# ours dice si el pid es el servidor de este proyecto y no otro proceso: el pid de un
+# fichero que envejeció puede ser de cualquiera, y matarlo sería el error.
+ours() {
+	local pid="${1:-}"
+	[[ -n "$pid" ]] || return 1
+	ps -p "$pid" -o args= 2>/dev/null | grep -q '[.]tasks-ai/bin/tasks-ai serve'
+}
+
+# server devuelve el pid del servidor en marcha, lo arrancara quien lo arrancara.
+server() {
+	local pid
+	pid="$(cat "$pidfile" 2>/dev/null || true)"
+	if ours "$pid"; then
+		printf '%s' "$pid"
+		return 0
+	fi
+	pid="$(listening)"
+	if ours "$pid"; then
+		printf '%s' "$pid"
+	fi
+	return 0
+}
+
+# busy nombra al proceso que ocupa el puerto sin ser el servidor. No se toca: se dice.
+busy() {
+	local pid
+	pid="$(listening)"
+	[[ -n "$pid" ]] || return 1
+	echo "El puerto $port lo ocupa otro proceso (pid $pid: $(ps -p "$pid" -o args= 2>/dev/null)): no se toca." >&2
+	return 0
 }
 
 # failed cuenta por qué no arrancó y retira el pid que ya no vale.
 failed() {
 	echo "El servidor no arrancó. Registro:" >&2
-	cat "$logfile" >&2
+	cat "$logfile" >&2 2>/dev/null || true
 	rm -f "$pidfile"
 }
 
 start() {
-	if running; then
-		echo "El servidor ya está en marcha (pid $(cat "$pidfile")): $(address)"
+	local pid
+	pid="$(server)"
+	if [[ -n "$pid" ]]; then
+		echo "El servidor ya está en marcha (pid $pid): $address"
 		return
 	fi
+
+	busy && return 1
 
 	mkdir -p "$state" "$(dirname "$binary")"
 	go build -o "$binary" ./cmd/tasks-ai
@@ -52,29 +98,27 @@ start() {
 	# el aviso sale antes de atender, así que un puerto ocupado solo se descubre
 	# un momento más tarde.
 	for _ in {1..50}; do
-		running || { failed; return 1; }
-		if grep -q 'listening on' "$logfile"; then
-			sleep 0.2
-			break
-		fi
+		kill -0 "$(cat "$pidfile")" 2>/dev/null || { failed; return 1; }
+		grep -q 'listening on' "$logfile" && break
 		sleep 0.1
 	done
+	sleep 0.2
+	kill -0 "$(cat "$pidfile")" 2>/dev/null || { failed; return 1; }
 
-	running || { failed; return 1; }
-
-	echo "Servidor en marcha (pid $(cat "$pidfile")): $(address)"
+	echo "Servidor en marcha (pid $(cat "$pidfile")): $address"
 	echo "Registro: $logfile"
 }
 
 stop() {
-	if ! running; then
+	local pid
+	pid="$(server)"
+	if [[ -z "$pid" ]]; then
 		rm -f "$pidfile"
+		busy && return 1
 		echo "El servidor no está en marcha."
 		return
 	fi
 
-	local pid
-	pid="$(cat "$pidfile")"
 	kill "$pid" 2>/dev/null || true
 
 	# El servidor atiende la señal y cierra su canal de avisos: se le da tiempo
@@ -90,8 +134,10 @@ stop() {
 }
 
 status() {
-	if running; then
-		echo "En marcha (pid $(cat "$pidfile")): $(address)"
+	local pid
+	pid="$(server)"
+	if [[ -n "$pid" ]]; then
+		echo "En marcha (pid $pid): $address"
 	else
 		echo "Parado."
 	fi

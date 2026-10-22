@@ -299,3 +299,7 @@ Changelog* y el versionado es semántico.
   van también el Vue de desarrollo, que no lo cargaba ninguna página, y las órdenes del
   manifiesto de la herramienta que apuntaban a un `src/` y unos `tests/` que no están en
   el repositorio, con sus dependencias.
+- **El tipo de una tarea en la interfaz mira su forma, no solo su etiqueta**
+  (`tk-159`): una tarea con subtareas se presenta como «Épica» aunque nadie le ponga
+  `epic`, y una con la etiqueta y sin subtareas sigue siendo «Épica». El padre distingue
+  la subtarea de la tarea suelta, y el rótulo, el icono y el inspector dicen lo mismo.

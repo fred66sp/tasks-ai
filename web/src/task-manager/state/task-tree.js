@@ -55,11 +55,12 @@ export const taskTree = {
         seen.add(task.id);
         return levelFor(byId.get(task.parentId), seen) + 1;
       };
-      return source.map((task) => ({
-        ...task,
-        level: levelFor(task),
-        children: childrenByParent.has(task.id)
-      }));
+      // El listado no trae las hijas: el árbol las cuenta y vuelve a clasificar
+      // cada tarea con esa forma, que es la que la fila presenta.
+      return source.map((task) => {
+        const children = childrenByParent.has(task.id);
+        return { ...mapTask(task, children), level: levelFor(task), children };
+      });
     },
     filteredTaskIds() {
       const query = this.normalizeSearchText(this.taskSearchQuery);

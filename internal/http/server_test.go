@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 	"tasks-ai/internal/core"
@@ -602,8 +601,7 @@ func TestServer_putsATaskInProgressThroughThePatch(t *testing.T) {
 
 // TestServer_changesTheParentOfATaskThroughThePatch recorre el ciclo del padre
 // por el cambio de la API: la tarea sin padre recibe uno, se mueve a otro y
-// vuelve a su nivel. La etiqueta estructural entra y sale con el padre, porque
-// el ajuste lo hace el producto y la API no lo repite.
+// vuelve a su nivel. Las etiquetas no se tocan: las pone quien crea la tarea.
 func TestServer_changesTheParentOfATaskThroughThePatch(t *testing.T) {
 	t.Parallel()
 
@@ -618,8 +616,8 @@ func TestServer_changesTheParentOfATaskThroughThePatch(t *testing.T) {
 		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", assigned.ParentID, epicA.ID)
 	}
 
-	if !slices.Contains(assigned.Tags, "task") {
-		t.Errorf("la tarea con padre debe llevar la etiqueta task, lleva %v", assigned.Tags)
+	if len(assigned.Tags) != 0 {
+		t.Errorf("la tarea con padre debe quedar sin etiquetas, lleva %v", assigned.Tags)
 	}
 
 	moved := patchesTheParent(t, server, child.Ref, epicB.Ref)
@@ -632,8 +630,8 @@ func TestServer_changesTheParentOfATaskThroughThePatch(t *testing.T) {
 		t.Errorf("la tarea quedó con padre %+v, se esperaba sin padre", alone.ParentID)
 	}
 
-	if slices.Contains(alone.Tags, "task") {
-		t.Errorf("la tarea sin padre no debe llevar la etiqueta task, lleva %v", alone.Tags)
+	if len(alone.Tags) != 0 {
+		t.Errorf("la tarea sin padre debe quedar sin etiquetas, lleva %v", alone.Tags)
 	}
 }
 
@@ -702,8 +700,8 @@ func TestServer_refusesTheParentChangesTheContractRefuses(t *testing.T) {
 		t.Errorf("un cambio de padre rechazado dejó escrito un padre: %+v", after.ParentID)
 	}
 
-	if slices.Contains(after.Tags, "task") {
-		t.Errorf("un cambio de padre rechazado dejó escrita la etiqueta task: %v", after.Tags)
+	if len(after.Tags) != 0 {
+		t.Errorf("un cambio de padre rechazado dejó escrita alguna etiqueta: %v", after.Tags)
 	}
 
 	if kept := readTask(t, server, child.Ref); kept.ParentID == nil || *kept.ParentID != epic.ID {

@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-// TestRun_updateAssignsTheParent recorre el primer caso del criterio de tk-117
-// por la interfaz pública: --parent le da padre a una tarea que no lo tenía,
-// con la etiqueta estructural puesta y sin tocar las demás etiquetas.
+// TestRun_updateAssignsTheParent recorre el primer caso del criterio de tk-158
+// por la interfaz pública: --parent le da padre a una tarea que no lo tenía y
+// no le toca las etiquetas, que las pone quien crea la tarea.
 func TestRun_updateAssignsTheParent(t *testing.T) {
 	t.Chdir(t.TempDir())
 	installProject(t)
@@ -20,18 +20,11 @@ func TestRun_updateAssignsTheParent(t *testing.T) {
 	task := updateTask(t, loose.Ref, "--parent", parent.Ref)
 
 	assertParent(t, task, &parent.ID)
-
-	if !slices.Contains(task.Tags, "task") {
-		t.Errorf("la tarea con padre lleva las etiquetas %v, falta task", task.Tags)
-	}
-
-	if !slices.Contains(task.Tags, "docs") {
-		t.Errorf("la etiqueta docs se perdió: %v", task.Tags)
-	}
+	assertTags(t, task, "docs")
 }
 
 // TestRun_updateMovesTheParent recorre el segundo caso del criterio: --parent
-// mueve al padre que la tarea ya tenía al que se le da.
+// mueve al padre que la tarea ya tenía al que se le da, sin tocar etiquetas.
 func TestRun_updateMovesTheParent(t *testing.T) {
 	t.Chdir(t.TempDir())
 	installProject(t)
@@ -43,15 +36,11 @@ func TestRun_updateMovesTheParent(t *testing.T) {
 	task := updateTask(t, child.Ref, "--parent", second.Ref)
 
 	assertParent(t, task, &second.ID)
-
-	if !slices.Contains(task.Tags, "task") {
-		t.Errorf("la tarea movida lleva las etiquetas %v, falta task", task.Tags)
-	}
+	assertTags(t, task)
 }
 
 // TestRun_updateRemovesTheParent recorre el tercer caso del criterio: un valor
-// vacío quita el padre, deja la tarea en su nivel y le retira la etiqueta
-// estructural sin tocar las demás.
+// vacío quita el padre, deja la tarea en su nivel y no toca las etiquetas.
 func TestRun_updateRemovesTheParent(t *testing.T) {
 	t.Chdir(t.TempDir())
 	installProject(t)
@@ -66,25 +55,46 @@ func TestRun_updateRemovesTheParent(t *testing.T) {
 		t.Fatalf("la hija quedó con el padre %v, se esperaba %d", task.ParentID, parent.ID)
 	}
 
-	// El hijo nace sin la etiqueta estructural: moverlo es lo que se la pone, y
-	// quitarlo le deja comprobarla de verdad.
 	task = updateTask(t, child.Ref, "--parent", other.Ref)
 
-	if !slices.Contains(task.Tags, "task") {
-		t.Fatalf("la hija movida lleva las etiquetas %v, falta task", task.Tags)
-	}
+	assertTags(t, task, "docs")
 
 	task = updateTask(t, child.Ref, "--parent", "")
 
 	assertParent(t, task, nil)
+	assertTags(t, task, "docs")
+}
 
-	if slices.Contains(task.Tags, "task") {
-		t.Errorf("la tarea sin padre conserva la etiqueta task: %v", task.Tags)
+// TestRun_updateTreatsTheStructuralTagLikeAnyOther recorre el tercer caso del
+// criterio: el producto no tiene etiquetas de primera, así que una estructural
+// que falta en el catálogo se rechaza como cualquier nombre desconocido y, con
+// ella creada, se asigna como las demás.
+func TestRun_updateTreatsTheStructuralTagLikeAnyOther(t *testing.T) {
+	t.Chdir(t.TempDir())
+	installProject(t)
+
+	task := createTask(t, "La que lleva épica")
+
+	code, out, errOut := run(t, "update", task.Ref, "--tags", "epic")
+	if code != 2 {
+		t.Fatalf("update --tags epic salió con %d, se esperaba 2: %s", code, errOut)
 	}
 
-	if !slices.Contains(task.Tags, "docs") {
-		t.Errorf("la etiqueta docs se perdió al quitar el padre: %v", task.Tags)
+	if out != "" {
+		t.Errorf("un error no debe escribir en la salida: %q", out)
 	}
+
+	if message := errorText(t, errOut); !strings.Contains(message, "unknown tag") {
+		t.Errorf("el error (%q) no dice que la etiqueta es desconocida", message)
+	}
+
+	assertTags(t, showTask(t, task.Ref))
+
+	if code, _, errOut := run(t, "tag", "create", "--name", "epic"); code != 0 {
+		t.Fatalf("tag create epic salió con %d: %s", code, errOut)
+	}
+
+	assertTags(t, updateTask(t, task.Ref, "--tags", "epic"), "epic")
 }
 
 // TestRun_updateRefusesAParentThatDoesNotResolve comprueba el primer rechazo del
@@ -177,6 +187,16 @@ func TestRun_updateHelpDocumentsTheParentFlag(t *testing.T) {
 
 	if !strings.Contains(out, "--parent") {
 		t.Errorf("la ayuda de update no documenta --parent:\n%s", out)
+	}
+}
+
+// assertTags compara las etiquetas de una tarea con las que se esperan, ninguna
+// cuando no se pasa.
+func assertTags(t *testing.T, task core.Task, want ...string) {
+	t.Helper()
+
+	if !slices.Equal(slices.Sorted(slices.Values(task.Tags)), slices.Sorted(slices.Values(want))) {
+		t.Errorf("la tarea %q lleva %v, se esperaba %v", task.Ref, task.Tags, want)
 	}
 }
 

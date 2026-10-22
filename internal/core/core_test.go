@@ -1110,8 +1110,7 @@ func assertTags(t *testing.T, task core.Task, want ...string) {
 
 // TestUpdateTask_assignsMovesAndRemovesTheParent recorre el ciclo completo del
 // cambio de padre: una tarea sin padre recibe uno, se mueve a otro y vuelve a
-// su nivel. La etiqueta estructural task entra y sale con el padre, y las
-// demás etiquetas no se tocan.
+// su nivel. Las etiquetas no se tocan: las pone quien crea la tarea.
 func TestUpdateTask_assignsMovesAndRemovesTheParent(t *testing.T) {
 	t.Parallel()
 
@@ -1139,7 +1138,7 @@ func TestUpdateTask_assignsMovesAndRemovesTheParent(t *testing.T) {
 		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, epicA.ID)
 	}
 
-	assertTags(t, moved, "docs", "task")
+	assertTags(t, moved, "docs")
 
 	moved = changeParent(t, apply, child.Ref, epicB.Ref)
 
@@ -1147,7 +1146,7 @@ func TestUpdateTask_assignsMovesAndRemovesTheParent(t *testing.T) {
 		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, epicB.ID)
 	}
 
-	assertTags(t, moved, "docs", "task")
+	assertTags(t, moved, "docs")
 
 	alone := changeParent(t, apply, child.Ref, "")
 
@@ -1170,10 +1169,10 @@ func TestUpdateTask_assignsMovesAndRemovesTheParent(t *testing.T) {
 	assertTags(t, intact)
 }
 
-// TestUpdateTask_createsTheStructuralTagWhenTheCatalogueLacksIt comprueba que el
-// ajuste de la etiqueta estructural no depende de que alguien la haya creado:
-// un catálogo vacío no impide asignar un padre.
-func TestUpdateTask_createsTheStructuralTagWhenTheCatalogueLacksIt(t *testing.T) {
+// TestUpdateTask_leavesTheCatalogueAlone comprueba que el cambio de padre no
+// escribe en el catálogo: el producto no pone etiquetas estructurales, así que
+// un catálogo vacío se queda vacío por muchos padres que se asignen.
+func TestUpdateTask_leavesTheCatalogueAlone(t *testing.T) {
 	t.Parallel()
 
 	apply := core.New(openStore(t), "tk")
@@ -1186,23 +1185,13 @@ func TestUpdateTask_createsTheStructuralTagWhenTheCatalogueLacksIt(t *testing.T)
 
 	moved, err := apply.UpdateTask(ctx, child.Ref, core.Changes{Parent: &assign})
 	if err != nil {
-		t.Fatalf("asignando el padre sin la etiqueta en el catálogo: %v", err)
+		t.Fatalf("asignando el padre sobre un catálogo vacío: %v", err)
 	}
 
-	if !slices.Contains(moved.Tags, "task") {
-		t.Errorf("la tarea con padre debe llevar la etiqueta task, lleva %v", moved.Tags)
-	}
+	assertTags(t, moved)
 
-	uses := false
-
-	for _, tag := range catalogTags(t, apply) {
-		if tag.Name == "task" && tag.Uses == 1 {
-			uses = true
-		}
-	}
-
-	if !uses {
-		t.Errorf("la etiqueta task debe quedar en el catálogo con su uso, el catálogo es %v", catalogTags(t, apply))
+	if tags := catalogTags(t, apply); len(tags) != 0 {
+		t.Errorf("el cambio de padre creó etiquetas en el catálogo: %v", tags)
 	}
 }
 
@@ -1252,9 +1241,7 @@ func TestUpdateTask_refusesTheParentChangesTheRulesRefuse(t *testing.T) {
 		t.Errorf("un cambio de padre rechazado dejó escrito un padre: %+v", after.ParentID)
 	}
 
-	if slices.Contains(after.Tags, "task") {
-		t.Errorf("un cambio de padre rechazado dejó escrita la etiqueta task: %v", after.Tags)
-	}
+	assertTags(t, after)
 }
 
 // catalogTags devuelve el catálogo de etiquetas tal como lo responde el núcleo.
@@ -1298,7 +1285,7 @@ func TestUpdateTask_allowsAClosedParent(t *testing.T) {
 		t.Errorf("la tarea quedó con padre %+v, se esperaba %d", moved.ParentID, closed.ID)
 	}
 
-	assertTags(t, moved, "task")
+	assertTags(t, moved)
 
 	parent, err := apply.Task(ctx, closed.Ref)
 	if err != nil {
@@ -1310,10 +1297,10 @@ func TestUpdateTask_allowsAClosedParent(t *testing.T) {
 	}
 }
 
-// TestCreateTask_withAParentCarriesTheStructuralTag deja escrito que la tarea
-// que nace con padre lleva la etiqueta task desde el primer momento, igual
-// que la que lo gana después: la misma regla en las dos entradas.
-func TestCreateTask_withAParentCarriesTheStructuralTag(t *testing.T) {
+// TestCreateTask_withAParentCarriesNoTags deja escrito que la tarea que nace
+// con padre no recibe etiqueta ninguna: la estructural la pone quien crea la
+// tarea, igual que la que lo gana después.
+func TestCreateTask_withAParentCarriesNoTags(t *testing.T) {
 	t.Parallel()
 
 	apply := core.New(openStore(t), "tk")
@@ -1328,18 +1315,9 @@ func TestCreateTask_withAParentCarriesTheStructuralTag(t *testing.T) {
 
 	created := listedTask(t, listedTasks(t, apply), child.Ref)
 
-	if !slices.Contains(created.Tags, "task") {
-		t.Errorf("la subtarea nacida con padre debe llevar la etiqueta task, lleva %v", created.Tags)
-	}
+	assertTags(t, created)
 
-	loose, err := apply.CreateTask(ctx, core.NewTask{Title: "Suelta"})
-	if err != nil {
-		t.Fatalf("creando la tarea sin padre: %v", err)
-	}
-
-	without := listedTask(t, listedTasks(t, apply), loose.Ref)
-
-	if slices.Contains(without.Tags, "task") {
-		t.Errorf("la tarea sin padre no debe llevar la etiqueta task, lleva %v", without.Tags)
+	if tags := catalogTags(t, apply); len(tags) != 0 {
+		t.Errorf("la creación con padre creó etiquetas en el catálogo: %v", tags)
 	}
 }

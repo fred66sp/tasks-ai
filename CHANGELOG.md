@@ -20,15 +20,11 @@ Changelog* y el versionado es semántico.
 - **El padre de una tarea se puede cambiar después de crearla**: `update --parent <ref>`
   la asigna, la mueve a otro padre o, con el valor vacío, la deja en su nivel. Un ciclo
   —tomar como padre a la propia tarea o a una de sus descendientes— y una referencia que
-  no resuelve se rechazan sin escribir nada. Al quedar con padre la tarea lleva la
-  etiqueta `task` y al quedarse sin padre la pierde; si el catálogo no la tiene, el
-  producto la crea con el color por omisión. El padre puede estar cerrado: colgar una
+  no resuelve se rechazan sin escribir nada. El cambio de padre no toca las etiquetas.
+  El padre puede estar cerrado: colgar una
   subtarea de una tarea hecha está permitido. Está en el CLI (`update --parent`), la API
   (`PATCH /api/tasks/:ref` con `parent`), la interfaz web (campo «Tarea padre» en la
   edición del inspector) y la extensión de Pi (`tasks_update` con `parent`).
-- **La tarea que nace con padre lleva su etiqueta `task` desde el primer momento**:
-  `create --parent` la asigna en la misma creación —creándola en el catálogo si falta—,
-  igual que el cambio de padre la ajusta después.
 
 - **El buscador de la interfaz encuentra tareas por su contenido**: además del título,
   el identificador y las etiquetas, la búsqueda cubre la descripción, las notas y los
@@ -251,6 +247,12 @@ Changelog* y el versionado es semántico.
   para que el árbol anide y cada épica muestre el progreso de sus subtareas.
 
 ### Corregido
+
+- **El producto ya no pone las etiquetas estructurales**: `create --parent` y el cambio
+  de padre no añaden ni retiran `task`, y el catálogo no recibe una etiqueta que nadie
+  creó con su descripción. Las marcas de forma —`epic` y `task`— las pone quien escribe la
+  tarea, como ya decía el contrato de etiquetas, y el producto deja de contradecirlo. Un
+  tablero que ya existe conserva las etiquetas que tiene.
 
 - **La extensión no deja al agente sin sitio donde anotar**: en un proyecto sin tablero
   ya no retira la herramienta `todo` del arnés; la deja en su sitio y el resumen lo dice

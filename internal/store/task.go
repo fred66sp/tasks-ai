@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"slices"
 	"time"
 )
 
@@ -69,18 +68,6 @@ func (s *Store) CreateTask(ctx context.Context, task Task) (Task, error) {
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionCreate); err != nil {
 		return Task{}, err
-	}
-
-	// La subtarea nace con su etiqueta estructural: la misma regla que el
-	// cambio de padre, dentro de la misma transacción que la crea.
-	if task.ParentID != nil {
-		if err := ensureTaskTag(ctx, tx, s.origin); err != nil {
-			return Task{}, err
-		}
-
-		if err := replaceTaskTags(ctx, tx, id, []string{structuralTaskTag}); err != nil {
-			return Task{}, err
-		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -277,8 +264,12 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 		return Task{}, fmt.Errorf("saving the change of task %d: %w", id, err)
 	}
 
-	if err := syncTaskTags(ctx, tx, s.origin, id, tags, parentChanged, changed.ParentID); err != nil {
-		return Task{}, err
+	// Las etiquetas son de quien escribe la tarea: el producto no pone ni
+	// retira ninguna, tampoco las que marcan la forma.
+	if tags != nil {
+		if err := replaceTaskTags(ctx, tx, id, tags); err != nil {
+			return Task{}, err
+		}
 	}
 
 	if err := recordChange(ctx, tx, s.origin, ResourceTask, id, ActionUpdate); err != nil {
@@ -290,49 +281,6 @@ func (s *Store) UpdateTask(ctx context.Context, id int64, change func(Task) (Tas
 	}
 
 	return changed, nil
-}
-
-// syncTaskTags leaves the task with the tags its change asks for, inside the
-// transaction that holds the write lock. When the change touched the parent,
-// the structural tag follows it — with a parent the task carries it, without
-// one it loses it — and the rest of the tags keep what the change asked for
-// them, or what the task already had when no list was given. A change that
-// names neither the tags nor the parent leaves the tags as they are.
-func syncTaskTags(ctx context.Context, within *sql.Tx, origin string, taskID int64, given []string, parentChanged bool, parent *int64) error {
-	if given == nil && !parentChanged {
-		return nil
-	}
-
-	names := given
-
-	if names == nil {
-		read, err := readTaskTagNames(ctx, within, taskID)
-		if err != nil {
-			return err
-		}
-
-		names = read
-	}
-
-	if !parentChanged {
-		return replaceTaskTags(ctx, within, taskID, names)
-	}
-
-	if parent != nil {
-		if !slices.Contains(names, structuralTaskTag) {
-			if err := ensureTaskTag(ctx, within, origin); err != nil {
-				return err
-			}
-
-			names = append(slices.Clone(names), structuralTaskTag)
-		}
-	} else {
-		names = slices.DeleteFunc(slices.Clone(names), func(name string) bool {
-			return name == structuralTaskTag
-		})
-	}
-
-	return replaceTaskTags(ctx, within, taskID, names)
 }
 
 // CloseTask closes the task with the reason given. The refusal and the write

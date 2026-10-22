@@ -411,30 +411,3 @@ func replaceTaskTags(ctx context.Context, within *sql.Tx, taskID int64, names []
 func isConstraint(err error) bool {
 	return isCode(err, sqlite3.SQLITE_CONSTRAINT)
 }
-
-// ensureTaskTag leaves the structural tag of the subtasks in the catalogue,
-// inside the transaction that holds the write lock: the change of parent needs
-// it, and a catalogue without it —a fresh one, or one where it was deleted—
-// cannot be a reason to refuse the change. Creating it records its own change
-// like CreateTag does, so the surfaces reload when it appears.
-func ensureTaskTag(ctx context.Context, within *sql.Tx, origin string) error {
-	if _, err := readTag(ctx, within, structuralTaskTag); err == nil {
-		return nil
-	} else if !errors.Is(err, ErrNotFound) {
-		return fmt.Errorf("looking up the structural tag %q: %w", structuralTaskTag, err)
-	}
-
-	result, err := within.ExecContext(ctx,
-		`INSERT INTO tags (name, color, description) VALUES (?, ?, ?)`,
-		structuralTaskTag, DefaultTagColor, nil)
-	if err != nil {
-		return fmt.Errorf("creating the structural tag %q: %w", structuralTaskTag, err)
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("reading the identity of the structural tag: %w", err)
-	}
-
-	return recordChange(ctx, within, origin, ResourceTag, id, ActionCreate)
-}

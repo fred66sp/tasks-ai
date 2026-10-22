@@ -113,9 +113,8 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `update --tags "uno,dos"` pone la lista entera de etiquetas de la tarea, separadas
   por comas: una lista vacía la deja sin ninguna, y un nombre que no está en el
   catálogo es entrada inválida que no toca la tarea.
-- `create --parent <ref>` nace con la etiqueta `task` puesta —creándola en el catálogo
-  con el color por omisión si todavía no está—: la tarea que nace con padre y la que lo
-  gana después llevan la misma marca.
+- `create --parent <ref>` nace sin etiquetas, igual que la que se crea sin padre: las
+  pone quien crea la tarea y el producto no añade ninguna por su cuenta.
 - `update --status` cambia el estado: `in_progress` pone la tarea en curso y solo
   cabe desde `open`, y `open` la devuelve a pendiente —desde `done` es reabrir, y le
   quita el motivo de cierre—. `done` no se pone por el cambio: cerrar va por `close`,
@@ -126,13 +125,10 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   deja la tarea en su nivel. Una referencia que no resuelve —ni la del padre ni, en
   su caso, la de la tarea— se rechaza con el código `1`, y el cambio que formaría un
   ciclo —tomar como padre a la propia tarea o a una de sus descendientes— se rechaza
-  como entrada inválida con el código `2`; en los dos casos no se escribe nada. Al
-  quedar con padre, la tarea pasa a llevar la etiqueta `task`, y al quedarse sin
-  padre la pierde: el producto la ajusta dentro del mismo cambio y las demás etiquetas
-  no se tocan. Si el catálogo no tiene todavía la etiqueta `task`, el cambio la crea
-  con el color por omisión: un catálogo vacío no es motivo para rechazar un padre. El
-  padre puede estar cerrado: una tarea cerrada admite subtareas nuevas igual que conserva
-  las que ya tenía, y colgar de ella no la reabre.
+  como entrada inválida con el código `2`; en los dos casos no se escribe nada. El cambio
+  de padre no toca las etiquetas: las deja como estaban, y solo cambian si el mismo
+  cambio las nombra con `--tags`. El padre puede estar cerrado: una tarea cerrada admite
+  subtareas nuevas igual que conserva las que ya tenía, y colgar de ella no la reabre.
 - `list` responde todas las tareas del proyecto con la forma de arriba —las cerradas
   también—, cada una con su referencia visible, su estado y su `blocked`, que es
   verdadero mientras alguna de sus bloqueantes siga sin cerrar.

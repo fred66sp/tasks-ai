@@ -59,10 +59,6 @@ var ErrCycle = errors.New("the change would make the task its own descendant")
 // DefaultTagColor es el color que lleva una etiqueta a la que nadie dio uno.
 const DefaultTagColor = "blue"
 
-// structuralTaskTag es la etiqueta que marca una subtarea: entra cuando la
-// tarea tiene padre y sale cuando se queda sin él.
-const structuralTaskTag = "task"
-
 // driverName is the engine this package registers with database/sql.
 const driverName = "sqlite"
 

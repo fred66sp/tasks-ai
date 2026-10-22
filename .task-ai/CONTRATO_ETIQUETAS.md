@@ -64,7 +64,8 @@ retira sobre ellas, nunca se escribe la lista nueva de memoria.
 
 1. La tarea lleva **su tipo** desde que se crea, y no cambia salvo que el trabajo cambie
    de naturaleza.
-2. Los **estructurales** los pone el tablero; no se añaden ni se quitan a mano.
+2. Los **estructurales** los pone quien crea la tarea y, cuando su forma cambia, se
+   ponen y se retiran a mano: el producto no los ajusta solo.
 3. Los **ámbitos** se añaden cuando la tarea apunta a una parte concreta del producto y
    se retiran cuando dejan de describirla.
 4. Antes de asignar una etiqueta que no existe, vale la regla del catálogo (§3): si hace

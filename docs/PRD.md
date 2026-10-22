@@ -132,11 +132,11 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-04 | El estado bloqueado se calcula desde las dependencias y no se almacena |
 | RN-05 | Una tarea con subtareas abiertas no se puede cerrar |
 | RN-06 | Cerrar una subtarea no cierra su tarea padre |
-| RN-07 | La marca de épica la pone quien crea la tarea; el producto no la añade sola |
+| RN-07 | Las marcas estructurales de una tarea las pone quien la crea: el producto no añade ni retira ninguna, tampoco la de épica |
 | RN-08 | La prioridad tiene un rango válido, y el valor que se salga de él se rechaza |
 | RN-09 | Cada comentario lleva una identidad estable dentro de su tarea y la fecha en que se añadió: editar su cuerpo no cambia ninguna de las dos |
 | RN-10 | Una tarea no puede ser hija de una de sus descendientes: el cambio de padre que formaría un ciclo se rechaza sin escribir nada |
-| RN-11 | El cambio de padre ajusta solo la etiqueta estructural `task`: entra al asignar o mover a un padre, sale al quitarlo; las demás etiquetas no se tocan |
+| RN-11 | El cambio de padre no toca las etiquetas de la tarea: las deja como estaban y solo cambian cuando el mismo cambio las nombra |
 | RN-12 | El texto de una tarea no guarda el estado del trabajo: el título, la descripción, las notas y el cuerpo de un comentario que lo escriben se rechazan sin escribir nada, y lo rechazan las tres superficies que escriben —CLI, API HTTP y extensión del agente— |
 
 ### No funcionales
@@ -170,6 +170,6 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-11 | El servidor de la interfaz se arranca desde el propio CLI, sin instalar nada aparte |
 | CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |
 | CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |
-| CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol, el recuento de épica y la etiqueta `task` reflejan siempre el padre vigente |
+| CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol y el recuento de épica reflejan siempre el padre vigente |
 | CA-15 | El texto buscado en la interfaz lista la tarea que lo lleva en el título, la referencia, una etiqueta, la descripción, las notas o un comentario, y no lista nada cuando el texto no aparece en ninguno de esos campos |
 | CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por la extensión del agente con el mismo mensaje, y la tarea queda como estaba |

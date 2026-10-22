@@ -9,6 +9,7 @@ Este proyecto guarda sus tareas con el gestor local que vive en esta carpeta.
 | `tasks.db` | Las tareas del proyecto |
 | `settings.json` | El prefijo de las referencias, la base y los ajustes de la interfaz |
 | `AGENTS.md` | Estas instrucciones |
+| `CONTRATO_ETIQUETAS.md` | El contrato de las etiquetas: clases, asignación y gestión del catálogo |
 
 ## Cómo se usa
 
@@ -45,7 +46,9 @@ al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no 
 bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
 dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
-Las etiquetas se gestionan por su nombre en el catálogo de `tags`. El color, si se da,
+Las etiquetas se gestionan por su nombre en el catálogo de `tags`; el vocabulario con el
+que nace el proyecto y las reglas para asignarlo están en
+[`CONTRATO_ETIQUETAS.md`](CONTRATO_ETIQUETAS.md). El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create
 --help`); un color que falte es `blue` y un color desconocido se rechaza. Renombrar una
 etiqueta cambia el nombre que muestran las tareas sin tocar su fila guardada, y borrar

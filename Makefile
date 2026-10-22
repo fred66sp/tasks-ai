@@ -17,6 +17,7 @@ install: ## Compila y refresca el binario y la extensión del tablero de este re
 	mkdir -p .tasks-ai/bin .tasks-ai/extensions/pi
 	cp bin/$(BINARY) .tasks-ai/bin/$(BINARY)
 	cp extensions/pi/index.ts extensions/pi/cli.ts extensions/pi/board.ts extensions/pi/package.json .tasks-ai/extensions/pi/
+	cp internal/install/contract_tags.md .tasks-ai/CONTRATO_ETIQUETAS.md
 	@test -d extensions/pi/node_modules || { echo "falta extensions/pi/node_modules: ejecuta 'npm install' en extensions/pi"; exit 1; }
 	ln -sfn ../../../extensions/pi/node_modules .tasks-ai/extensions/pi/node_modules
 

@@ -28,8 +28,14 @@ const instructionsName = "AGENTS.md"
 const pointer = "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, " +
 	"añade esta línea al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName
 
+// contractName is the file with the contract of the labels.
+const contractName = "CONTRATO_ETIQUETAS.md"
+
 //go:embed agent.md
 var instructions []byte
+
+//go:embed contract_tags.md
+var contract []byte
 
 // Result is what an installation left behind.
 type Result struct {
@@ -40,6 +46,7 @@ type Result struct {
 	Pointer      string `json:"pointer"`
 	Binary       string `json:"binary"`
 	Extension    string `json:"extension"`
+	Contract     string `json:"contract"`
 }
 
 // Root is the root of the project the folder dir belongs to: the enclosing
@@ -126,12 +133,20 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		return Result{}, err
 	}
 
+	if err := writeContract(dir); err != nil {
+		return Result{}, err
+	}
+
 	base, err := store.Open(ctx, dbPath)
 	if err != nil {
 		return Result{}, err
 	}
 
 	defer func() { _ = base.Close() }()
+
+	if err := base.SeedTags(ctx, catalogue()); err != nil {
+		return Result{}, err
+	}
 
 	note, err := core.New(base, cfg.Prefix).CheckPrefix(ctx)
 	if err != nil {
@@ -162,7 +177,25 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		Pointer:      pointer,
 		Binary:       binary,
 		Extension:    extension,
+		Contract:     filepath.Join(dir, contractName),
 	}, nil
+}
+
+// writeContract deja el contrato de las etiquetas dentro de la carpeta del
+// producto. Lo que el proyecto ya tenga escrito no se pisa: la instalación
+// completa lo que falta, igual que con las instrucciones.
+func writeContract(dir string) error {
+	path := filepath.Join(dir, contractName)
+
+	if exists(path) {
+		return nil
+	}
+
+	if err := os.WriteFile(path, contract, 0o644); err != nil { //nolint:gosec // el contrato se escribe con los permisos de lectura del proyecto
+		return fmt.Errorf("writing %s: %w", path, err)
+	}
+
+	return nil
 }
 
 // exists says whether there is a file at path.
@@ -179,7 +212,7 @@ const binName = "tasks-ai"
 // leaves. An installation made by an older version, without the binary or the
 // extension, is not complete: init completes it without touching what it has.
 func complete(dir, dbPath, instructions string) bool {
-	return exists(dbPath) && exists(instructions) &&
+	return exists(dbPath) && exists(instructions) && exists(filepath.Join(dir, contractName)) &&
 		exists(filepath.Join(dir, "bin", binName)) &&
 		exists(filepath.Join(dir, "extensions", "pi"))
 }

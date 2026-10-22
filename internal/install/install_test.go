@@ -1,8 +1,10 @@
 package install_test
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
@@ -417,4 +419,143 @@ func mkdir(t *testing.T, path string) {
 	if err := os.MkdirAll(path, 0o755); err != nil { //nolint:gosec // la carpeta de prueba usa los permisos del producto real
 		t.Fatalf("creando %s: %v", path, err)
 	}
+}
+
+func TestRun_leavesTheCatalogueAndTheTagsContract(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("Run devolvió %v", err)
+	}
+
+	if _, err := os.Stat(result.Contract); err != nil {
+		t.Errorf("el contrato de etiquetas que anuncia la instalación no está: %v", err)
+	}
+
+	names := make([]string, 0)
+
+	for _, tag := range tagsOf(t, result.DB) {
+		names = append(names, tag.Name)
+
+		if tag.Description == nil || strings.TrimSpace(*tag.Description) == "" {
+			t.Errorf("la etiqueta %q nace sin descripción", tag.Name)
+		}
+	}
+
+	slices.Sort(names)
+
+	want := []string{"ODD", "chore", "docs", "epic", "feat", "fix", "improvement", "refactor", "style", "task", "test"}
+	if !slices.Equal(names, want) {
+		t.Errorf("la instalación dejó %v, se esperaba %v", names, want)
+	}
+}
+
+func TestRun_keepsTheCatalogueAnInstallationAlreadyHas(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	first, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("Run devolvió %v", err)
+	}
+
+	// La persona cambia una etiqueta y el contrato desaparece: completar la
+	// instalación no puede pisar ni repetir lo que ya está.
+	base, err := store.Open(t.Context(), first.DB)
+	if err != nil {
+		t.Fatalf("abriendo la base: %v", err)
+	}
+
+	mine := "la que yo quiero"
+
+	if _, err := base.UpdateTag(t.Context(), "feat", func(tag store.Tag) (store.Tag, error) {
+		tag.Color = "red"
+		tag.Description = &mine
+
+		return tag, nil
+	}); err != nil {
+		t.Fatalf("cambiando la etiqueta: %v", err)
+	}
+
+	_ = base.Close()
+
+	if err := os.Remove(first.Contract); err != nil {
+		t.Fatalf("retirando el contrato: %v", err)
+	}
+
+	if _, err := install.Run(t.Context(), dir, ""); err != nil {
+		t.Fatalf("completar la instalación devolvió %v", err)
+	}
+
+	catalogue := tagsOf(t, first.DB)
+	if len(catalogue) != 11 {
+		t.Errorf("el catálogo quedó con %d etiquetas, se esperaban 11", len(catalogue))
+	}
+
+	for _, tag := range catalogue {
+		if tag.Name != "feat" {
+			continue
+		}
+
+		if tag.Color != "red" || tag.Description == nil || *tag.Description != mine {
+			t.Errorf("la etiqueta feat quedó en %q y %v, se esperaba respetar el cambio de la persona", tag.Color, tag.Description)
+		}
+	}
+}
+
+func TestRun_writesTheContractTheProductShips(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	result, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("Run devolvió %v", err)
+	}
+
+	written, err := os.ReadFile(result.Contract)
+	if err != nil {
+		t.Fatalf("leyendo el contrato instalado: %v", err)
+	}
+
+	shipped, err := os.ReadFile("contract_tags.md")
+	if err != nil {
+		t.Fatalf("leyendo el contrato que viaja en el binario: %v", err)
+	}
+
+	if !bytes.Equal(written, shipped) {
+		t.Errorf("el contrato instalado no es el que viaja en el binario")
+	}
+
+	repository, err := os.ReadFile(filepath.Join("..", "..", ".tasks-ai", "CONTRATO_ETIQUETAS.md"))
+	if err != nil {
+		t.Fatalf("leyendo el contrato del repositorio: %v", err)
+	}
+
+	if !bytes.Equal(shipped, repository) {
+		t.Errorf("el contrato del repositorio no es el que viaja en el binario")
+	}
+}
+
+// tagsOf abre la base de una instalación y devuelve su catálogo.
+func tagsOf(t *testing.T, dbPath string) []store.TagUse {
+	t.Helper()
+
+	base, err := store.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("abriendo la base %s: %v", dbPath, err)
+	}
+
+	t.Cleanup(func() { _ = base.Close() })
+
+	catalogue, err := base.Tags(t.Context())
+	if err != nil {
+		t.Fatalf("leyendo el catálogo: %v", err)
+	}
+
+	return catalogue
 }

@@ -7,6 +7,14 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **La instalación deja el vocabulario de etiquetas puesto**: `init` crea en el catálogo
+  los ocho tipos y las tres marcas de forma del contrato, cada una con su descripción,
+  para que una tarea pueda llevar su tipo desde la primera escritura sin preparar nada a
+  mano. Deja también el contrato en `.tasks-ai/CONTRATO_ETIQUETAS.md` y lo devuelve en el
+  JSON de la instalación. Lo que el proyecto ya tenga no se pisa: una etiqueta existente
+  conserva su color, su descripción y sus asignaciones, y completar una instalación
+  anterior añade solo lo que falta.
+
 - **La creación lleva las etiquetas**: `create --tags "a,b"` deja la tarea con esa lista en
   la misma transacción que la escribe, y lo mismo `POST /api/tasks` con `tags` y
   `tasks_create` con `tags`, que hasta ahora las ponían en un segundo paso. Sin etiquetas,

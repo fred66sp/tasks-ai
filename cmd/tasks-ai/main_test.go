@@ -1536,6 +1536,10 @@ func wantNamedIn(t *testing.T, warning string, mentioned, absent []string) {
 // TestTagsListsTheCatalogueOrderedByNameWithItsUses: el comando tags responde
 // el catálogo ordenado por nombre, y cada etiqueta con su nombre, su color, su
 // descripción y cuántas tareas la usan.
+// seededTags es el vocabulario con el que la instalación deja el catálogo: los
+// ocho tipos del contrato y sus tres marcas de forma.
+var seededTags = []string{"ODD", "chore", "docs", "epic", "feat", "fix", "improvement", "refactor", "style", "task", "test"}
+
 func TestTagsListsTheCatalogueOrderedByNameWithItsUses(t *testing.T) {
 	t.Parallel()
 
@@ -1555,29 +1559,43 @@ func TestTagsListsTheCatalogueOrderedByNameWithItsUses(t *testing.T) {
 
 	catalogue := listTags(t, project)
 
-	if len(catalogue) != 3 {
-		t.Fatalf("el catálogo es %+v, se esperaban tres etiquetas", catalogue)
+	if len(catalogue) != len(seededTags)+3 {
+		t.Fatalf("el catálogo tiene %d etiquetas, se esperaban las del vocabulario y tres más", len(catalogue))
 	}
 
-	if catalogue[0].Name != "alpha" || catalogue[1].Name != "media" || catalogue[2].Name != "zeta" {
-		t.Errorf("el catálogo está en el orden %v, se esperaba alpha, media, zeta",
-			[]string{catalogue[0].Name, catalogue[1].Name, catalogue[2].Name})
+	byName := map[string]tagBody{}
+
+	for _, tag := range catalogue {
+		byName[tag.Name] = tag
 	}
 
-	if catalogue[0].Uses != 2 {
-		t.Errorf("alpha aparece usada %d veces, se esperaban 2", catalogue[0].Uses)
+	for _, name := range seededTags {
+		if _, found := byName[name]; !found {
+			t.Errorf("el catálogo no trae la etiqueta %q que deja la instalación", name)
+		}
 	}
 
-	if catalogue[2].Uses != 0 {
-		t.Errorf("zeta aparece usada %d veces, se esperaban 0", catalogue[2].Uses)
+	for i := 1; i < len(catalogue); i++ {
+		if catalogue[i-1].Name > catalogue[i].Name {
+			t.Errorf("el catálogo no está ordenado por nombre: %q antes de %q",
+				catalogue[i-1].Name, catalogue[i].Name)
+		}
 	}
 
-	if catalogue[0].Color != greenColor {
-		t.Errorf("alpha quedó con el color %q, se esperaba green", catalogue[0].Color)
+	if byName["alpha"].Uses != 2 {
+		t.Errorf("alpha aparece usada %d veces, se esperaban 2", byName["alpha"].Uses)
 	}
 
-	if catalogue[0].Description == nil || *catalogue[0].Description != description {
-		t.Errorf("alpha quedó con la descripción %v, se esperaba %q", catalogue[0].Description, description)
+	if byName["zeta"].Uses != 0 {
+		t.Errorf("zeta aparece usada %d veces, se esperaban 0", byName["zeta"].Uses)
+	}
+
+	if byName["alpha"].Color != greenColor {
+		t.Errorf("alpha quedó con el color %q, se esperaba green", byName["alpha"].Color)
+	}
+
+	if byName["alpha"].Description == nil || *byName["alpha"].Description != description {
+		t.Errorf("alpha quedó con la descripción %v, se esperaba %q", byName["alpha"].Description, description)
 	}
 }
 
@@ -1697,8 +1715,9 @@ func TestTagEditChangesOnlyWhatItIsGiven(t *testing.T) {
 
 	wantTag(t, changed, tagBody{Name: "nueva", Color: greenColor, Description: &description})
 
-	if catalogue := listTags(t, project); len(catalogue) != 1 || catalogue[0].Name != "nueva" {
-		t.Errorf("el catálogo es %+v, se esperaba una sola etiqueta nueva", catalogue)
+	if names := tagNames(t, project); slices.Contains(names, "media") || !slices.Contains(names, "nueva") ||
+		len(names) != len(seededTags)+1 {
+		t.Errorf("el catálogo es %v, se esperaba nueva en lugar de media y el vocabulario intacto", names)
 	}
 
 	code, out, errOut = run(t, project, tagCmd, "edit", "nueva")
@@ -1797,13 +1816,13 @@ func TestRenamingATagChangesNoTask(t *testing.T) {
 	project := t.TempDir()
 	installProject(t, project)
 
-	createTag(t, project, "--name", "docs")
+	createTag(t, project, "--name", "urgente")
 	task := createTask(t, project)
-	setTags(t, project, task.Ref, "docs")
+	setTags(t, project, task.Ref, "urgente")
 
 	before := readTask(t, project, task.Ref)
 
-	code, out, errOut := run(t, project, tagCmd, "edit", "docs", "--name", "documentacion")
+	code, out, errOut := run(t, project, tagCmd, "edit", "urgente", "--name", "urgentisima")
 	if code != 0 {
 		t.Fatalf("tag edit salió con %d: %s", code, errOut)
 	}
@@ -1811,8 +1830,8 @@ func TestRenamingATagChangesNoTask(t *testing.T) {
 	var edited tagBody
 	decode(t, out, &edited)
 
-	if edited.Name != "documentacion" {
-		t.Errorf("la etiqueta quedó con el nombre %q, se esperaba documentacion", edited.Name)
+	if edited.Name != "urgentisima" {
+		t.Errorf("la etiqueta quedó con el nombre %q, se esperaba urgentisima", edited.Name)
 	}
 
 	after := readTask(t, project, task.Ref)
@@ -1822,8 +1841,8 @@ func TestRenamingATagChangesNoTask(t *testing.T) {
 			before.UpdatedAt, after.UpdatedAt)
 	}
 
-	if !slices.Equal(after.Tags, []string{"documentacion"}) {
-		t.Errorf("la tarea muestra las etiquetas %v, se esperaba [documentacion]", after.Tags)
+	if !slices.Equal(after.Tags, []string{"urgentisima"}) {
+		t.Errorf("la tarea muestra las etiquetas %v, se esperaba [urgentisima]", after.Tags)
 	}
 }
 
@@ -1837,16 +1856,16 @@ func TestTagDeleteWarnsOfTheTasksThatUsedIt(t *testing.T) {
 	installProject(t, project)
 
 	description := "El de siempre"
-	createTag(t, project, "--name", "docs", "--color", greenColor, "--description", description)
+	createTag(t, project, "--name", "urgente", "--color", greenColor, "--description", description)
 	createTag(t, project, "--name", "otra")
 	first := createTask(t, project)
 	second := createTask(t, project)
 	other := createTask(t, project)
-	setTags(t, project, first.Ref, "docs")
-	setTags(t, project, second.Ref, "docs")
+	setTags(t, project, first.Ref, "urgente")
+	setTags(t, project, second.Ref, "urgente")
 	setTags(t, project, other.Ref, "otra")
 
-	code, out, errOut := run(t, project, tagCmd, "delete", "docs")
+	code, out, errOut := run(t, project, tagCmd, "delete", "urgente")
 
 	if code != 0 {
 		t.Fatalf("tag delete salió con %d: %s", code, errOut)
@@ -1855,7 +1874,7 @@ func TestTagDeleteWarnsOfTheTasksThatUsedIt(t *testing.T) {
 	var deleted tagBody
 	decode(t, out, &deleted)
 
-	wantTag(t, deleted, tagBody{Name: "docs", Color: greenColor, Description: &description})
+	wantTag(t, deleted, tagBody{Name: "urgente", Color: greenColor, Description: &description})
 	wantNamedIn(t, errOut, []string{first.Ref, second.Ref}, []string{other.Ref})
 
 	for _, ref := range []string{first.Ref, second.Ref} {
@@ -1864,10 +1883,10 @@ func TestTagDeleteWarnsOfTheTasksThatUsedIt(t *testing.T) {
 
 	wantTaskTags(t, project, other.Ref, "otra")
 
-	catalogue := listTags(t, project)
+	names := tagNames(t, project)
 
-	if len(catalogue) != 1 || catalogue[0].Name != "otra" {
-		t.Errorf("el catálogo es %+v, se esperaba solo la etiqueta otra", catalogue)
+	if slices.Contains(names, "urgente") || !slices.Contains(names, "otra") || len(names) != len(seededTags)+1 {
+		t.Errorf("el catálogo es %v, se esperaba otra sin urgente y el vocabulario intacto", names)
 	}
 }
 
@@ -1898,8 +1917,8 @@ func TestTagDeleteWithoutUsersWarnsNothing(t *testing.T) {
 		t.Errorf("la respuesta del borrado es %+v, se esperaba la etiqueta sola", deleted)
 	}
 
-	if catalogue := listTags(t, project); len(catalogue) != 0 {
-		t.Errorf("el catálogo es %+v, se esperaba vacío", catalogue)
+	if names := tagNames(t, project); slices.Contains(names, "sola") || len(names) != len(seededTags) {
+		t.Errorf("el catálogo es %v, se esperaba sin sola y con el vocabulario intacto", names)
 	}
 }
 
@@ -1980,4 +1999,17 @@ func TestTheTagsOfOneTaskAreUntouchedByAnotherTasksChange(t *testing.T) {
 	if tags := readTask(t, project, second.Ref).Tags; !slices.Equal(tags, []string{"otra"}) {
 		t.Errorf("las etiquetas de la segunda tarea son %v, se esperaba [otra]", tags)
 	}
+}
+
+// tagNames devuelve los nombres del catálogo del proyecto.
+func tagNames(t *testing.T, project string) []string {
+	t.Helper()
+
+	names := make([]string, 0)
+
+	for _, tag := range listTags(t, project) {
+		names = append(names, tag.Name)
+	}
+
+	return names
 }

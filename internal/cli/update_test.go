@@ -75,9 +75,9 @@ func TestRun_updateTreatsTheStructuralTagLikeAnyOther(t *testing.T) {
 
 	task := createTask(t, "La que lleva épica")
 
-	code, out, errOut := run(t, "update", task.Ref, "--tags", "epic")
+	code, out, errOut := run(t, "update", task.Ref, "--tags", "zona")
 	if code != 2 {
-		t.Fatalf("update --tags epic salió con %d, se esperaba 2: %s", code, errOut)
+		t.Fatalf("update --tags zona salió con %d, se esperaba 2: %s", code, errOut)
 	}
 
 	if out != "" {
@@ -90,10 +90,13 @@ func TestRun_updateTreatsTheStructuralTagLikeAnyOther(t *testing.T) {
 
 	assertTags(t, showTask(t, task.Ref))
 
-	if code, _, errOut := run(t, "tag", "create", "--name", "epic"); code != 0 {
-		t.Fatalf("tag create epic salió con %d: %s", code, errOut)
+	if code, _, errOut := run(t, "tag", "create", "--name", "zona"); code != 0 {
+		t.Fatalf("tag create zona salió con %d: %s", code, errOut)
 	}
 
+	assertTags(t, updateTask(t, task.Ref, "--tags", "zona"), "zona")
+
+	// La estructural que deja la instalación se asigna como cualquier otra.
 	assertTags(t, updateTask(t, task.Ref, "--tags", "epic"), "epic")
 }
 
@@ -254,9 +257,14 @@ func newTag(t *testing.T, names ...string) string {
 	t.Helper()
 
 	for _, name := range names {
-		if code, _, errOut := run(t, "tag", "create", "--name", name); code != 0 {
-			t.Fatalf("tag create %q salió con %d: %s", name, code, errOut)
+		code, _, errOut := run(t, "tag", "create", "--name", name)
+		if code == 0 || strings.Contains(errOut, "already exists") {
+			// La instalación deja el vocabulario del contrato: una etiqueta que
+			// ya existe vale igual, lo que importa es que esté en el catálogo.
+			continue
 		}
+
+		t.Fatalf("tag create %q salió con %d: %s", name, code, errOut)
 	}
 
 	return strings.Join(names, ",")

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"tasks-ai/internal/cli"
 	"tasks-ai/internal/core"
@@ -244,7 +245,7 @@ func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
 		t.Fatalf("init salió con %d, se esperaba 0: %s", code, errOut)
 	}
 
-	code, out, errOut := run(t, "tag", "create", "--name", "docs")
+	code, out, errOut := run(t, "tag", "create", "--name", "urgente")
 	if code != 0 {
 		t.Fatalf("tag create salió con %d: %s", code, errOut)
 	}
@@ -252,7 +253,7 @@ func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
 	var created core.Tag
 	decode(t, out, &created)
 
-	code, out, errOut = run(t, "tag", "edit", "docs", "--name", "documentacion")
+	code, out, errOut = run(t, "tag", "edit", "urgente", "--name", "urgentisima")
 	if code != 0 {
 		t.Fatalf("tag edit salió con %d: %s", code, errOut)
 	}
@@ -260,8 +261,8 @@ func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
 	var edited core.Tag
 	decode(t, out, &edited)
 
-	if edited.ID != created.ID || edited.Name != "documentacion" {
-		t.Errorf("la etiqueta editada es %+v, se esperaba la identidad %d y el nombre documentacion", edited, created.ID)
+	if edited.ID != created.ID || edited.Name != "urgentisima" {
+		t.Errorf("la etiqueta editada es %+v, se esperaba la identidad %d y el nombre urgentisima", edited, created.ID)
 	}
 
 	code, out, errOut = run(t, "tags")
@@ -272,11 +273,11 @@ func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
 	var catalogue []core.TagWithUses
 	decode(t, out, &catalogue)
 
-	if len(catalogue) != 1 || catalogue[0].Name != "documentacion" {
-		t.Errorf("el catálogo es %+v, se esperaba documentacion", catalogue)
+	if !slices.Contains(tagNames(t, catalogue), "urgentisima") || slices.Contains(tagNames(t, catalogue), "urgente") {
+		t.Errorf("el catálogo es %+v, se esperaba urgentisima y no urgente", catalogue)
 	}
 
-	code, out, errOut = run(t, "tag", "delete", "documentacion")
+	code, out, errOut = run(t, "tag", "delete", "urgentisima")
 	if code != 0 {
 		t.Fatalf("tag delete salió con %d: %s", code, errOut)
 	}
@@ -284,7 +285,7 @@ func TestRun_tagsCanBeCreatedEditedListedAndDeleted(t *testing.T) {
 	var deleted core.Tag
 	decode(t, out, &deleted)
 
-	if deleted.ID != created.ID || deleted.Name != "documentacion" {
+	if deleted.ID != created.ID || deleted.Name != "urgentisima" {
 		t.Errorf("la etiqueta borrada es %+v, se esperaba la creada", deleted)
 	}
 }
@@ -395,4 +396,17 @@ func errorText(t *testing.T, raw string) string {
 	decode(t, raw, &body)
 
 	return body.Error
+}
+
+// tagNames devuelve los nombres de un catálogo leído.
+func tagNames(t *testing.T, catalogue []core.TagWithUses) []string {
+	t.Helper()
+
+	names := make([]string, 0, len(catalogue))
+
+	for _, tag := range catalogue {
+		names = append(names, tag.Name)
+	}
+
+	return names
 }

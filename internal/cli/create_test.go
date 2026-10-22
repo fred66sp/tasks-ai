@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"slices"
 	"strings"
 	"tasks-ai/internal/core"
 	"testing"
@@ -13,21 +14,15 @@ func TestRun_createWithAParentLeavesTheTagsAlone(t *testing.T) {
 	t.Chdir(t.TempDir())
 	installProject(t)
 
+	before := catalogueOf(t)
+
 	parent := createTask(t, "Padre")
 	child := childOf(t, "Hija", parent.Ref)
 
 	assertTags(t, child)
 
-	code, out, errOut := run(t, "tags")
-	if code != 0 {
-		t.Fatalf("tags salió con %d: %s", code, errOut)
-	}
-
-	var catalog []core.TagWithUses
-	decode(t, out, &catalog)
-
-	if len(catalog) != 0 {
-		t.Errorf("el producto creó etiquetas en el catálogo al crear con padre: %v", catalog)
+	if after := catalogueOf(t); !slices.Equal(after, before) {
+		t.Errorf("el producto cambió el catálogo al crear con padre: %v, antes %v", after, before)
 	}
 }
 
@@ -124,4 +119,47 @@ func TestRun_createWithoutTagsStoresNone(t *testing.T) {
 	decode(t, out, &created)
 
 	assertTags(t, created)
+}
+
+// TestRun_createsWithATypeOnAFreshInstallation recorre el primer caso del
+// criterio de tk-172 por la interfaz pública: la instalación deja el catálogo,
+// así que una tarea nace con su tipo sin preparar nada a mano.
+func TestRun_createsWithATypeOnAFreshInstallation(t *testing.T) {
+	t.Chdir(t.TempDir())
+	installProject(t)
+
+	code, out, errOut := run(t, "create", "--title", "Con tipo", "--tags", "feat")
+	if code != 0 {
+		t.Fatalf("create --tags feat salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+
+	decode(t, out, &created)
+
+	assertTags(t, created, "feat")
+}
+
+// catalogueOf devuelve los nombres del catálogo, en orden.
+func catalogueOf(t *testing.T) []string {
+	t.Helper()
+
+	code, out, errOut := run(t, "tags")
+	if code != 0 {
+		t.Fatalf("tags salió con %d: %s", code, errOut)
+	}
+
+	var catalog []core.TagWithUses
+
+	decode(t, out, &catalog)
+
+	names := make([]string, 0, len(catalog))
+
+	for _, tag := range catalog {
+		names = append(names, tag.Name+" ("+tag.Color+")")
+	}
+
+	slices.Sort(names)
+
+	return names
 }

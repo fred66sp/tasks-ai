@@ -464,17 +464,17 @@ describe("la extensión", () => {
 	});
 
 	it("tasks_create crea una tarea y una subtarea visibles en el tablero", async () => {
-		cli("tag", "create", "--name", "docs");
+		cli("tag", "create", "--name", "urgente");
 		const parent = await write("tasks_create", {
 			title: "padre\ncon detalle", description: "descripción privada", notes: "notas privadas",
-			assignee: "equipo", priority: 0, tags: ["docs"],
+			assignee: "equipo", priority: 0, tags: ["urgente"],
 		});
 		const stored = cli("show", parent.ref);
 		assert.equal(stored.description, "descripción privada");
 		assert.equal(stored.notes, "notas privadas");
 		assert.equal(stored.assignee, "equipo");
 		assert.equal(stored.priority, 0);
-		assert.deepEqual(stored.tags, ["docs"]);
+		assert.deepEqual(stored.tags, ["urgente"]);
 		const child = await write("tasks_create", { title: "hija", parent: " TK-1 " });
 		assert.equal(child.parent_id, parent.id);
 		assert.deepEqual(child.tags, []);
@@ -577,13 +577,13 @@ describe("la extensión", () => {
 	it("tasks_update solo cambia los campos pedidos y pone o quita etiquetas", async () => {
 		cli("create", "--title", "original", "--description", "descripción", "--notes", "notas",
 			"--assignee", "equipo", "--priority", "0");
-		cli("tag", "create", "--name", "docs");
+		cli("tag", "create", "--name", "urgente");
 		cli("update", "tk-1", "--status", "in_progress");
 		const before = cli("list")[0];
 		const renamed = await write("tasks_update", { ref: " TK-1 ", title: "renombrada" });
 		assert.deepEqual({ ...renamed, title: before.title, updated_at: before.updated_at }, before);
-		const tagged = await write("tasks_update", { ref: "tk-1", tags: ["docs"] });
-		assert.deepEqual(tagged.tags, ["docs"]);
+		const tagged = await write("tasks_update", { ref: "tk-1", tags: ["urgente"] });
+		assert.deepEqual(tagged.tags, ["urgente"]);
 		const cleared = await write("tasks_update", {
 			ref: "tk-1", tags: [], description: "", notes: "", assignee: "", priority: 3,
 		});

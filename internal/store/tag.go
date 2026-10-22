@@ -71,6 +71,53 @@ func (s *Store) CreateTag(ctx context.Context, tag Tag) (Tag, error) {
 	return tag, nil
 }
 
+// SeedTags deja en el catálogo las etiquetas que no estén y no toca ninguna de
+// las que ya están: ni su color, ni su descripción, ni sus asignaciones. Es lo
+// que hace una instalación para que el vocabulario del contrato exista desde el
+// principio, sin pisar lo que el proyecto haya cambiado.
+func (s *Store) SeedTags(ctx context.Context, tags []Tag) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("opening the seed transaction: %w", err)
+	}
+
+	defer func() { _ = tx.Rollback() }()
+
+	for _, tag := range tags {
+		result, err := tx.ExecContext(ctx,
+			`INSERT INTO tags (name, color, description)
+			 SELECT ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM tags WHERE name = ?)`,
+			tag.Name, tag.Color, tag.Description, tag.Name)
+		if err != nil {
+			return fmt.Errorf("saving tag %q: %w", tag.Name, err)
+		}
+
+		affected, err := result.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("reading the result of tag %q: %w", tag.Name, err)
+		}
+
+		if affected == 0 {
+			continue
+		}
+
+		id, err := result.LastInsertId()
+		if err != nil {
+			return fmt.Errorf("reading the identity of tag %q: %w", tag.Name, err)
+		}
+
+		if err := recordChange(ctx, tx, s.origin, ResourceTag, id, ActionCreate); err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("closing the seed transaction of the catalogue: %w", err)
+	}
+
+	return nil
+}
+
 // Tags devuelve el catálogo entero con el número de tareas que usa cada
 // etiqueta, ordenado por nombre.
 func (s *Store) Tags(ctx context.Context) ([]TagUse, error) {

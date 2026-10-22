@@ -43,8 +43,12 @@ que es la que Pi carga. Los dos son copias de lo que hay en el repositorio, así
 refrescan con una orden —recompila el binario y vuelve a copiar la extensión—:
 
 ```bash
-make install                               # refresca el binario y la extensión del tablero
+make install                               # refresca el binario, la extensión y el contrato
 ```
+
+`make install` copia también el contrato de etiquetas del repositorio, que tiene su
+original en `internal/install/contract_tags.md` y viaja incrustado en el binario; una
+prueba comprueba que las dos copias y la del proyecto son el mismo texto.
 
 La copia de la extensión resuelve su dependencia `typebox` por un enlace a
 `extensions/pi/node_modules`, que `make install` también deja puesto; sin él la extensión

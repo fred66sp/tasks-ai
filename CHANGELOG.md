@@ -7,6 +7,11 @@ Changelog* y el versionado es semántico.
 
 ### Añadido
 
+- **`init` completa una instalación anterior**: rechaza solo la que ya lo tiene todo
+  —base, instrucciones, binario y extensión— y, a la que le falta el binario o la
+  extensión, le añade lo que falta sin tocar lo que tiene. Es como migran los proyectos
+  instalados antes de que el producto dejara esas dos piezas dentro de su carpeta.
+
 - **El install deja el proyecto autocontenido**: `init` copia el binario a
   `.tasks-ai/bin/tasks-ai` y extrae la extensión del agente —incrustada en el binario con
   `go:embed`— a `.tasks-ai/extensions/pi/`. El proyecto ya no depende de la ruta del

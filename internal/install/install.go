@@ -116,7 +116,7 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 	dbPath := settings.DatabasePath(dir, cfg)
 	instructions := filepath.Join(dir, instructionsName)
 
-	if exists(dbPath) && exists(instructions) {
+	if complete(dir, dbPath, instructions) {
 		return Result{}, fmt.Errorf("the project already has the product installed in %s", dir)
 	}
 
@@ -174,6 +174,15 @@ func exists(path string) bool {
 
 // binName is the name of the binary the install leaves inside the product folder.
 const binName = "tasks-ai"
+
+// complete says whether the installation already has everything the product
+// leaves. An installation made by an older version, without the binary or the
+// extension, is not complete: init completes it without touching what it has.
+func complete(dir, dbPath, instructions string) bool {
+	return exists(dbPath) && exists(instructions) &&
+		exists(filepath.Join(dir, "bin", binName)) &&
+		exists(filepath.Join(dir, "extensions", "pi"))
+}
 
 // copyBinary deja el producto en la carpeta del proyecto, copiado del que se está
 // ejecutando, para que el proyecto no dependa de dónde se compiló. Devuelve la ruta

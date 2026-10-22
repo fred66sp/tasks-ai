@@ -149,6 +149,34 @@ func TestRun_leavesTheBinaryAndTheExtension(t *testing.T) {
 	}
 }
 
+func TestRun_completesAnInstallationFromAnOlderVersion(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	if _, err := install.Run(t.Context(), dir, ""); err != nil {
+		t.Fatalf("la primera instalación devolvió %v", err)
+	}
+
+	product := filepath.Join(dir, install.DirName)
+	for _, name := range []string{"bin", "extensions"} {
+		if err := os.RemoveAll(filepath.Join(product, name)); err != nil {
+			t.Fatalf("retirando %s: %v", name, err)
+		}
+	}
+
+	result, err := install.Run(t.Context(), dir, "")
+	if err != nil {
+		t.Fatalf("completar una instalación anterior devolvió %v", err)
+	}
+
+	for _, path := range []string{result.Binary, result.Extension} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("completar la instalación no restituyó %s: %v", path, err)
+		}
+	}
+}
+
 func TestRun_refusesToInstallOverAnInstallation(t *testing.T) {
 	t.Parallel()
 

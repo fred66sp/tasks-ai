@@ -41,6 +41,11 @@ npm-debug.log*
 .tasks-ai/tasks.db-wal
 .tasks-ai/tasks.db-shm
 
+# Las piezas que el producto instala en un proyecto: el binario y la extensión
+# salen de este mismo repositorio, así que `make install` las regenera y no
+# viajan. El binario ya queda cubierto por `bin/`.
+.tasks-ai/extensions/
+
 # Salidas generadas
 bin/
 coverage/

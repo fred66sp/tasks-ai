@@ -3,7 +3,7 @@
 BINARY := tasks-ai
 GO     := go
 
-.PHONY: help build test test-race coverage lint lint-fix fmt check-web clean
+.PHONY: help build install test test-race coverage lint lint-fix fmt check-web clean
 
 help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
@@ -11,6 +11,14 @@ help: ## Muestra los objetivos disponibles
 
 build: ## Compila el binario en bin/
 	$(GO) build -o bin/$(BINARY) ./cmd/$(BINARY)
+
+install: ## Compila y refresca el binario y la extensión del tablero de este repositorio
+	$(GO) build -o bin/$(BINARY) ./cmd/$(BINARY)
+	mkdir -p .tasks-ai/bin .tasks-ai/extensions/pi
+	cp bin/$(BINARY) .tasks-ai/bin/$(BINARY)
+	cp extensions/pi/index.ts extensions/pi/cli.ts extensions/pi/board.ts extensions/pi/package.json .tasks-ai/extensions/pi/
+	@test -d extensions/pi/node_modules || { echo "falta extensions/pi/node_modules: ejecuta 'npm install' en extensions/pi"; exit 1; }
+	ln -sfn ../../../extensions/pi/node_modules .tasks-ai/extensions/pi/node_modules
 
 test: ## Ejecuta las pruebas del proyecto
 	$(GO) test ./...

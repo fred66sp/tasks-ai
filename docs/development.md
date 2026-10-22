@@ -37,20 +37,31 @@ npm test
 el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
 La extensión viaja incrustada en el binario para que el `init` la copie al proyecto
-(`ADR-014`); en el desarrollo se instala desde el repositorio con los comandos del host,
-que dejan su ruta relativa en el archivo de ajustes de Pi del proyecto, versionado
-(`.pi/settings.json`):
+(`ADR-014`). Este repositorio es también su propio tablero, y lo lleva con una instalación
+real: el binario en `.tasks-ai/bin/tasks-ai` y la extensión en `.tasks-ai/extensions/pi`,
+que es la que Pi carga. Los dos son copias de lo que hay en el repositorio, así que se
+refrescan con una orden —recompila el binario y vuelve a copiar la extensión—:
 
 ```bash
-pi install -l ./extensions/pi              # instala el paquete en el proyecto
-pi remove -l --approve ./extensions/pi     # lo retira y deja la configuración como estaba
+make install                               # refresca el binario y la extensión del tablero
 ```
 
-Con el paquete instalado se arranca Pi desde la raíz del proyecto, y la extensión
-encuentra el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que
-el CLI, ejecutando el binario del proyecto (`bin/tasks-ai`) o, si falta, el del `PATH`. Sus
-herramientas y lo que llega al modelo están en `contracts.md`; qué se gana con ellas, en
-el `README.md`; la forma, en `ADR-012` y `ADR-014`.
+La copia de la extensión resuelve su dependencia `typebox` por un enlace a
+`extensions/pi/node_modules`, que `make install` también deja puesto; sin él la extensión
+no arranca. El paquete se registra en el archivo de ajustes de Pi del proyecto, versionado
+(`.pi/settings.json`), con los comandos del host:
+
+```bash
+pi install -l .tasks-ai/extensions/pi      # registra la extensión instalada
+pi remove -l --approve .tasks-ai/extensions/pi  # lo retira y deja la configuración como estaba
+```
+
+Con el paquete registrado se arranca Pi desde la raíz del proyecto —una sesión nueva, que
+las que ya están abiertas siguen con la extensión que cargaron— y la extensión encuentra
+el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que el CLI,
+ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo están en
+`contracts.md`; qué se gana con ellas, en el `README.md`; la forma, en `ADR-012` y
+`ADR-014`.
 
 ## Fronteras del código
 
@@ -96,6 +107,7 @@ Los comandos del día a día son objetivos de `make`, con su equivalente de `go`
 
 ```bash
 make build      # go build -o bin/tasks-ai ./cmd/tasks-ai
+make install    # compila y refresca el binario y la extensión del tablero de este repositorio
 make test       # go test ./...
 make test-race  # go test -race ./...
 make lint       # golangci-lint run ./...

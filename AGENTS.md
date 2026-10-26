@@ -95,7 +95,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
 | `.tasks-ai/` | El tablero del proyecto; su base vive en esta máquina y no viaja |
-| `skills/` | Las skills del proyecto, copiadas del taller; su origen, en `skills/README.md` |
+| `skills/` | Las skills del proyecto que no instala el arnés; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.
 - No se traduce la referencia funcional ni se copia su código.
@@ -119,7 +119,9 @@ documentación.
 El proyecto lleva dentro las skills que necesita, copiadas del taller
 `workshop-golang`: su origen, sus licencias y cómo volver a copiarlas están en
 [`skills/README.md`](skills/README.md). Se leen por su ruta relativa al proyecto, así que
-no hace falta tener el taller al lado.
+no hace falta tener el taller al lado. El procedimiento de Git y el de documentación no
+se copian: los ponen las skills que instala el arnés, `git-flow-management` y
+`document-management-software`.
 
 Antes de escribir, revisar o depurar código Go, lee `skills/golang-how-to/SKILL.md`, que
 es el orquestador: de la petición saca qué skills cargar y en qué combinación. Las que
@@ -135,9 +137,7 @@ más se usan en este producto:
 | `skills/golang-code-style/SKILL.md` | Forma del código y de los comentarios |
 | `skills/golang-lint/SKILL.md` | `golangci-lint` y sus reglas |
 | `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
-| `skills/git-flow/SKILL.md` | Ramas, commits y revisión de documentación viva |
 | `skills/adr-skill/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
-| `skills/software-documentalist/SKILL.md` | Documentación rigurosa antes de cerrar un cambio |
 
 Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Las skills
 `prd-writing`, `prd-to-plan` y `prd-to-issue` están para escribir requisitos y partirlos

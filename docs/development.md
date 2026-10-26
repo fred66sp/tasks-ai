@@ -1,7 +1,7 @@
 # Desarrollo
 
-Cómo está organizado el repositorio y cómo se trabaja en él. Las formas de datos y de
-API están en `contracts.md`; el diseño, en `architecture.md`.
+Cómo está organizado el repositorio, cómo se trabaja en él y cómo se ejecuta el producto.
+Las formas de datos y de API están en `contracts.md`; el diseño, en `architecture.md`.
 
 ## Estructura
 
@@ -130,6 +130,15 @@ cd web && npm ci         # instala su herramienta de construcción
 cd web && npm run build  # deja el artefacto en web/public/task-manager/
 cd web && npm run watch  # la reconstruye al cambiar
 ```
+
+## Ejecutar
+
+| Comando | Qué hace |
+|---|---|
+| `./tasks-ai init` | Instala el producto en el proyecto: crea `.tasks-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
+| `./tasks-ai serve` | Arranca la API y la interfaz web en la dirección y el puerto del settings: la interfaz responde en la raíz del servidor y la API en sus rutas `/api/...` |
+| `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
+| `./serve.sh` | Deja el servidor en segundo plano: compila el binario, lo arranca con `serve`, escribe su registro y su pid en `.run/` e informa de la dirección. `./serve.sh status` dice si está en marcha y `./serve.sh stop` lo para. Reconoce el servidor por el puerto que fija el settings, así que también lo ve y lo para si se arrancó a mano con `./tasks-ai serve`; un proceso ajeno en ese puerto no se toca: se nombra con su pid y su línea de órdenes, y el script sale con error |
 
 ## Lo que no se hace
 

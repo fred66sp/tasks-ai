@@ -68,12 +68,15 @@ Dentro de `.tasks-ai/`, en la raíz del proyecto:
 
 | Elemento | Qué guarda |
 |---|---|
-| `tasks.db` | Tareas, dependencias, comentarios y el catálogo de etiquetas con color y descripción |
+| `tasks.db` | Tareas, dependencias, comentarios, el catálogo de etiquetas con color y descripción, y los ADR con su cuerpo |
 | `settings.json` | Prefijo, ruta de la base, dirección y puerto de la interfaz, y registro |
 | `AGENTS.md` | Instrucciones para las personas y los agentes que trabajan en el proyecto |
 
-Fuera de esa carpeta el producto no escribe: solo ofrece el texto que el usuario pueda
-querer añadir en sus propios archivos.
+Fuera de esa carpeta el producto solo escribe la exportación de los ADR, en el directorio
+que se le nombra (`adr export --dir`), y ofrece el texto que el usuario pueda querer
+añadir en sus propios archivos. `docs/decisions/` no es estado del producto: es un espejo
+generado desde la base, versionado para que Git guarde su revisión y la puerta de
+`adr-software` lo revise (`ADR-016`).
 
 ## 6. Almacén
 
@@ -96,6 +99,9 @@ querer añadir en sus propios archivos.
   una persona se compone la referencia.
 - Cambiar el prefijo no toca ninguna fila: cambia lo que se escribe, no lo que se
   guarda (`ADR-004`).
+- Un ADR tiene su propio número, correlativo desde `1` y no reutilizado, que no depende
+  del prefijo del proyecto: se presenta como `ADR-NNN` y su `slug` es el nombre del
+  archivo exportado (`ADR-016`).
 
 ## 8. Superficie HTTP
 
@@ -117,6 +123,11 @@ la misma base.
 Su código vive en `web/` y su construcción es suya, no del compilador de Go: el
 artefacto construido se versiona y viaja incrustado en el binario, de modo que `serve`
 reparte las dos superficies sin depender de nada más (`ADR-010`).
+
+La vista de decisiones es un frente de la misma interfaz: se abre desde la cabecera, a
+pantalla completa, con el listado a un lado y el ADR entero al otro, y desde ella se
+crea, se edita y se sustituye. No tiene router ni URLs propias: es otra capa de la misma
+página, como el gestor de etiquetas.
 
 ## 10. Integración con el agente
 

@@ -70,6 +70,34 @@ fecha y, empatados, por identidad.
 Parejas de clave y valor dentro de la base, entre ellas la versión del esquema y el
 prefijo con el que se compusieron las referencias de sus tareas.
 
+### ADR
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | entero | Clave. Identidad interna, no se presenta |
+| `number` | entero | Correlativo desde `1`, único y no reutilizado. Se compone como referencia `ADR-NNN` |
+| `slug` | texto | Único e inmutable. Es el nombre del archivo exportado |
+| `title` | texto | Obligatorio |
+| `status` | enumerado | `proposed`, `accepted`, `rejected`, `deprecated`, `superseded` |
+| `date` | fecha | Día del último cambio de estado, `AAAA-MM-DD` |
+| `deciders` | texto | Obligatorio |
+| `context` | texto | El contexto y el problema |
+| `decision` | texto | Lo que se decide, con su alcance |
+| `consequences` | texto | Lo que se vuelve más fácil y más difícil |
+| `alternatives` | texto | Opcional: las alternativas y por qué se rechazaron |
+| `more_info` | texto | Opcional. Es la única sección que admite añadidos tras `proposed` |
+| `superseded_by` | texto | Referencia `ADR-NNN` del sustituto, presente solo en `superseded` |
+| `created_at` | fecha y hora | En UTC |
+| `updated_at` | fecha y hora | En UTC |
+
+El número se asigna dentro de la transacción que crea el ADR y no se reutiliza; el
+`slug` y el número no cambian nunca. No hay borrado. Un ADR pasa a `superseded` con un
+sustituto que existe, que no es él mismo y que no lo sustituye ya: la cadena de
+sustituciones no admite ciclos, y un rechazo no escribe nada. El cuerpo —título,
+`context`, `decision`, `consequences` y `alternatives`— se congela al salir de
+`proposed`: después solo se admiten cambios de estado y añadidos fechados en
+`more_info`. Un cambio de decisión se publica como ADR nuevo que sustituye al anterior.
+
 ## 2. Salida en JSON
 
 Toda operación del CLI devuelve JSON. Una tarea se presenta así:
@@ -163,6 +191,57 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   API responde con `400`—, y `1` en cualquier otro caso. El texto de `error`, como la
   ayuda de los comandos, va en inglés (`ADR-011`).
 
+Un ADR se presenta así:
+
+```json
+{
+  "number": 16,
+  "ref": "ADR-016",
+  "slug": "los-adr-viven-en-la-base-y-se-exportan-a-texto",
+  "title": "Los ADR viven en la base y se exportan a texto",
+  "status": "accepted",
+  "date": "2026-10-26",
+  "deciders": "Alfredo González Portero",
+  "context": "…",
+  "decision": "…",
+  "consequences": "…",
+  "alternatives": "…",
+  "more_info": null,
+  "superseded_by": null,
+  "created_at": "2026-10-26T10:00:00Z",
+  "updated_at": "2026-10-26T10:00:00Z"
+}
+```
+
+- `adr list` responde los ADR por número, cada uno con `number`, `ref`, `slug`, `title`,
+  `status` y `date`: sin cuerpos.
+- `adr show <número>` responde el ADR completo, con la forma de arriba. El número se
+  escribe suelto o como referencia `ADR-016`, y una que no existe se rechaza con el
+  código `1`.
+- `adr create --title … --deciders …` crea un ADR en `proposed` con la fecha del día y
+  responde con él. El `slug` sale del título —minúsculas, guiones y sin acentos— y no
+  cambia después. `--status`, `--context`, `--decision`, `--consequences` y
+  `--alternatives` acompañan a la creación; lo que falte se escribe con `adr edit`
+  mientras el ADR siga en `proposed`.
+- `adr edit <número>` cambia solo lo que nombra, como `update` cambia una tarea. `--note`
+  añade una entrada fechada a «Más información»; es la única forma de escribir en el
+  cuerpo de un ADR que ya no está en `proposed`, y pedir cualquier otro campo del cuerpo
+  se rechaza como entrada inválida —código `2`— sin escribir nada. `--status` cambia el
+  estado y actualiza `date`; un estado desconocido es entrada inválida, y
+  `--status superseded` exige `--superseded-by` con un ADR que exista —si no existe, la
+  salida es `1`—, que no sea él mismo y que no forme un ciclo. Un cambio sin ningún
+  campo es entrada inválida.
+- `adr import --dir <directorio>` lee los archivos markdown de ese directorio y guarda
+  los ADR que aún no están en la base, conservando número, título, estado, fecha,
+  decisores, secciones y la relación de sustitución. Es idempotente por número:
+  repetirlo no duplica ni reescribe. Los archivos que no son ADR —el índice— se
+  ignoran.
+- `adr export --dir <directorio>` genera un archivo `NNN-slug.md` por ADR y el índice
+  del directorio desde la base, y no toca nada más. `--check` no escribe: informa de la
+  deriva entre la base y el directorio y sale con `1` cuando la hay.
+- El cuerpo de un ADR no pasa por el validador de texto del apartado 8: una decisión cita
+  Git y el estado del trabajo porque de eso trata, y el registro no guarda hashes.
+
 ## 3. API HTTP
 
 | Método y ruta | Para qué |
@@ -182,6 +261,10 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 | `POST /api/tags` | Crear etiqueta |
 | `PATCH /api/tags/:name` | Renombrar, recolorear o describir |
 | `DELETE /api/tags/:name` | Borrar etiqueta |
+| `GET /api/adrs` | Los ADR del proyecto, por número y sin cuerpos |
+| `GET /api/adrs/:number` | Un ADR completo |
+| `POST /api/adrs` | Crear un ADR |
+| `PATCH /api/adrs/:number` | Cambiar lo que nombre: el cuerpo mientras el ADR siga en `proposed`, un añadido a `more_info`, el estado y su sustituto; los rechazos son los del CLI |
 | `GET /api/events` | Canal de cambios |
 | `GET /api/status` | Estado del producto: versión, esquema y prefijo en uso |
 
@@ -192,7 +275,7 @@ Códigos de estado:
 | `200` | Operación resuelta |
 | `201` | Recurso creado |
 | `400` | Entrada inválida: prioridad fuera de rango, motivo de cierre desconocido, campos que faltan |
-| `404` | La referencia no corresponde a ninguna tarea o etiqueta |
+| `404` | La referencia o el número no corresponde a ninguna tarea, etiqueta o ADR |
 | `409` | La regla lo impide: cerrar una tarea con subtareas abiertas |
 | `500` | Fallo interno |
 
@@ -200,6 +283,10 @@ Crear y editar un comentario responden con `200` y la tarea tal como queda, igua
 CLI; `GET /api/tasks/:ref/comments` responde la lista con la forma de la sección 1. El
 `id` de la ruta es el número del comentario dentro de la tarea de la ruta: un número que
 no pertenece a esa tarea es `404`, y un cuerpo vacío es `400`.
+
+Crear un ADR responde `201` y leerlo o editarlo, `200`; un número que no existe es `404`.
+Un cuerpo congelado, un estado desconocido y una sustitución sin sustituto son entrada
+inválida —`400`—, como en el CLI, y un sustituto que no existe es `404`.
 
 El cuerpo de un error es `{"error": "..."}` con el código que corresponde, nunca un
 error dentro de una respuesta correcta. Cada petición de escritura contiene un único
@@ -222,7 +309,7 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
 ```
 
 - `id` es el número del aviso y `data` es el aviso en JSON: el recurso que cambió
-  con el nombre en plural que la interfaz compara (`tasks` o `tags`). El aviso no
+  con el nombre en plural que la interfaz compara (`tasks`, `tags` o `adrs`). El aviso no
   dice quién pidió el cambio: el estado y el aviso son los mismos venga de donde
   venga, y la ventana que hizo el cambio no repite el suyo, lo evita con su propio
   estado local.
@@ -234,6 +321,9 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
   `actualizada`: lo es tanto cuando se añade como cuando se edita su cuerpo. Leer los
   comentarios no deja ningún aviso. El aviso de una etiqueta no lleva `changes`; los avisos
   antiguos escritos antes de guardar la acción se publican como `actualizada`.
+- El aviso de un ADR lleva la misma forma: `changes` nombra su referencia (`ADR-016`),
+  su acción y su título. La interfaz recarga sus decisiones con él y no lo presenta como
+  un cambio de tarea.
 - Quien lee continúa donde se quedó: en la primera lectura pide `?after=<id>` en la
   consulta, y al reconectar retoma del aviso que trae la cabecera `Last-Event-ID`.
   Sin ninguna de las dos, el canal empieza por el cambio siguiente: quien acaba de
@@ -258,6 +348,8 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
 - Se resuelven dentro del proyecto; el prefijo sale del settings.
 - Aceptan un espacio alrededor y se comparan sin distinguir mayúsculas.
 - Un cambio de prefijo no toca la base: cambia lo que se escribe.
+- La referencia de un ADR es `ADR-NNN`, con tres dígitos, y no depende del prefijo del
+  proyecto: el número lo es del registro entero y se escribe suelto o con la referencia.
 
 ## 6. Settings
 

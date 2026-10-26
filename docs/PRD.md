@@ -24,7 +24,9 @@ con su API HTTP, pensada para la persona. Todo lo del producto vive en una sola
 carpeta dentro del proyecto, de modo que el proyecto no se ensucia.
 
 El tablero del proyecto es el registro del trabajo: dice qué tareas existen, cómo se
-anidan y en qué punto de su ciclo están. Cada tarea guarda la especificación de su
+anidan y en qué punto de su ciclo están. Guarda también las decisiones durables del
+proyecto —los ADR— como un recurso más, y las exporta a texto para que Git guarde su
+revisión. Cada tarea guarda la especificación de su
 trabajo —el resultado que la cierra y el criterio con el que se comprueba—, los pasos con
 los que se aborda y, como comentarios, lo que se aprende al hacerlo: los hallazgos y las
 decisiones con su razón. El estado no se escribe en el texto de la tarea: lo marcan la
@@ -92,6 +94,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Avisos | Avisar cuando los datos cambian desde fuera de la interfaz |
 | Doble superficie | Ofrecer cada capacidad por CLI con JSON y por la interfaz |
 | Integración con el agente | El tablero como herramientas del agente de Pi: ver el estado del proyecto y crear, mover, cerrar, reabrir, bloquear y comentar tareas |
+| Decisiones | Los ADR del proyecto en la base: listarlos, leerlos, crearlos, editarlos y sustituirlos desde el CLI, la API y la interfaz, y exportarlos a `docs/decisions/` |
 
 ### No objetivos
 
@@ -122,6 +125,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
 | RF-13 | La búsqueda de la interfaz encuentra una tarea por el texto de su título, su referencia, sus etiquetas, su descripción, sus notas y sus comentarios |
 | RF-14 | El producto se acompaña también de un plugin del agente OpenCode, versionado en el repositorio e incrustado en el binario para que el install la copie, que ofrece las mismas operaciones del tablero sobre el CLI del producto: no toca la base, no reimplementa reglas y no mantiene una lista de tareas paralela |
+| RF-15 | La base guarda los ADR del proyecto —número correlativo, referencia `ADR-NNN`, título, estado, fecha, decisores y su cuerpo por secciones— y el CLI, la API HTTP y la interfaz web los listan, leen, crean, editan y sustituyen; `docs/decisions/` es una exportación generada desde la base, versionada, que conserva la revisión en Git y la puerta de `adr-software` |
 
 ### Reglas de negocio
 
@@ -177,3 +181,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por la extensión del agente con el mismo mensaje, y la tarea queda como estaba |
 | CA-17 | Un proyecto recién instalado trae el vocabulario de etiquetas del contrato con sus descripciones y su contrato escrito, de modo que una tarea se crea con su tipo sin preparar nada antes |
 | CA-18 | El agente completa el ciclo de trabajo de una tarea desde las herramientas del plugin de OpenCode, y el tablero queda como lo dejaría el CLI |
+| CA-19 | Un ADR creado o editado por el CLI, por la API o por la interfaz queda igual en las tres superficies; el cuerpo de uno que deja de estar `proposed` no se puede reescribir; un ADR sustituido enlaza a su sustituto, y `adr export --check` no encuentra deriva entre la base y `docs/decisions/` |

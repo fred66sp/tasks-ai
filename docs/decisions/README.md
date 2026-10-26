@@ -27,3 +27,4 @@ decisiones.
 - [ADR-013: El validador del texto de las tareas es léxico](013-el-validador-del-texto-de-las-tareas-es-lexico.md) (accepted, 2026-10-21)
 - [ADR-014: La extensión se distribuye incrustada y el install la copia](014-la-extension-se-distribuye-incrustada-y-el-install-la-copia.md) (accepted, 2026-10-22)
 - [ADR-015: El adaptador de OpenCode envuelve el CLI](015-the-opencode-adapter-wraps-the-cli.md) (accepted, 2026-10-26)
+- [ADR-016: Los ADR viven en la base y se exportan a texto](016-los-adr-viven-en-la-base-y-se-exportan-a-texto.md) (accepted, 2026-10-26)

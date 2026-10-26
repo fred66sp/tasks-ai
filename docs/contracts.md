@@ -342,6 +342,9 @@ decida, no para que lo lea entero.
 - Las listas de en curso y de lo que se puede empezar se recortan a 8, con su recuento.
 - El detalle de una tarea trae su descripción entera y los 10 comentarios más recientes,
   con el total a la vista.
+- Los comentarios que salen —en `tasks_comment_list` y en el detalle— llevan su cuerpo
+  entero, con sus líneas: lo que se lee se puede volver a escribir en
+  `tasks_comment_edit` sin perder nada.
 
 Los límites viven en la extensión, no en el producto: el CLI sigue devolviendo todo, y
 quien lea su JSON recibe la tarea completa.

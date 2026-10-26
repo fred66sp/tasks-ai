@@ -107,9 +107,10 @@ describe("renderBoard", () => {
 
 describe("renderDetail", () => {
 	it("trae la descripción entera y solo los 10 comentarios más recientes, con identidad y fecha", () => {
+		const long = `${"a".repeat(700)}\n\n## Sección\n${"b".repeat(600)}`;
 		const comments = Array.from({ length: 26 }, (_, index) => ({
 			id: index + 1,
-			body: `comentario ${index + 1}`,
+			body: index === 16 ? long : `comentario ${index + 1}`,
 			created_at: `2026-10-18T12:0${index % 10}:00Z`,
 		}));
 
@@ -128,24 +129,25 @@ describe("renderDetail", () => {
 		});
 
 		assert.match(text, /una descripción larga/);
-		assert.match(text, /comentario 17/);
+		assert.match(text, /comentario 18/);
 		assert.doesNotMatch(text, /comentario 16\n/);
 		assert.match(text, /comentarios \(26, los 10 últimos\)/);
 		assert.match(text, /tk-2 · hija/);
-		assert.match(text, /#17 · 2026-10-18T12:06:00Z · comentario 17/);
+		assert.match(text, /#17 · 2026-10-18T12:06:00Z\n/);
+		assert.ok(text.includes(long), "el detalle tampoco recorta ni recompone el cuerpo");
 		assert.doesNotMatch(text, /#16 ·/);
 	});
 
-	it("renderComments lista los comentarios con su identidad y avisa de que no hay", () => {
+	it("renderComments lista los comentarios con su identidad y devuelve el cuerpo entero", () => {
 		assert.equal(renderComments([]), "Sin comentarios.");
 
+		const long = `${"a".repeat(700)}\n\n## Sección\n${"b".repeat(600)}`;
 		const text = renderComments([
 			{ id: 1, body: "primero", created_at: "2026-10-18T12:00:00Z" },
-			{ id: 2, body: "segundo\nlargo", created_at: "2026-10-18T12:01:00Z" },
+			{ id: 2, body: long, created_at: "2026-10-18T12:01:00Z" },
 		]);
 
-		assert.match(text, /#1 · 2026-10-18T12:00:00Z · primero/);
-		assert.match(text, /#2 · 2026-10-18T12:01:00Z · segundo largo/);
-		assert.doesNotMatch(text, /\n\n/);
+		assert.match(text, /#1 · 2026-10-18T12:00:00Z\nprimero/);
+		assert.ok(text.includes(long), "el cuerpo largo se devuelve sin recortar ni recomponer");
 	});
 });

@@ -463,6 +463,24 @@ describe("la extensión", () => {
 		);
 	});
 
+	it("tasks_comment_list devuelve el cuerpo entero y editarlo con lo leído lo conserva", async () => {
+		const task = await write("tasks_create", { title: "con un comentario largo" });
+		const body = `${"a".repeat(700)}\n\n## Sección\n\n${"b".repeat(600)}`;
+		await write("tasks_comment", { ref: task.ref, body });
+
+		const listed = await execute("tasks_comment_list", { ref: task.ref });
+		const [header, ...rest] = listed.content[0].text.split("\n");
+
+		assert.match(header, /^\- #\d+ · \d{4}-/);
+		assert.equal(rest.join("\n"), body, "el cuerpo llega entero, con sus líneas");
+
+		const id = Number((header.match(/#(\d+)/) ?? [])[1]);
+		await write("tasks_comment_edit", { ref: task.ref, id, body: rest.join("\n") });
+
+		const [stored] = cli("comment", "list", task.ref) as { body: string }[];
+		assert.equal(stored.body, body);
+	});
+
 	it("tasks_create crea una tarea y una subtarea visibles en el tablero", async () => {
 		cli("tag", "create", "--name", "urgente");
 		const parent = await write("tasks_create", {
@@ -748,7 +766,7 @@ describe("la extensión", () => {
 		const shown = await execute("tasks_show", { ref: "tk-1" });
 		const comment = (cli("show", "tk-1") as Detail).comments[0];
 
-		assert.match(shown.content[0].text, new RegExp(`#${comment.id} · ${comment.created_at.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} · con identidad`));
+		assert.match(shown.content[0].text, new RegExp(`#${comment.id} · ${comment.created_at.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\ncon identidad`));
 	});
 
 	it("sin tablero instalado la herramienta falla con el mensaje del producto", async () => {

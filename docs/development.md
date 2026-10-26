@@ -140,6 +140,9 @@ cd web && npm run watch  # la reconstruye al cambiar
 | `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
 | `./serve.sh` | Deja el servidor en segundo plano: compila el binario, lo arranca con `serve`, escribe su registro y su pid en `.run/` e informa de la dirección. `./serve.sh status` dice si está en marcha y `./serve.sh stop` lo para. Reconoce el servidor por el puerto que fija el settings, así que también lo ve y lo para si se arrancó a mano con `./tasks-ai serve`; un proceso ajeno en ese puerto no se toca: se nombra con su pid y su línea de órdenes, y el script sale con error |
 
+El tablero del trabajo se opera con el mismo binario: sus comandos y sus reglas están
+en [`AGENTS.md`](../AGENTS.md) y en [`.tasks-ai/AGENTS.md`](../.tasks-ai/AGENTS.md).
+
 ## Lo que no se hace
 
 - No se edita la base de tareas con SQL.

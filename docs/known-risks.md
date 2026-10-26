@@ -11,18 +11,18 @@ Los requisitos, la arquitectura y los contratos se escriben antes que el código
 cumple, así que lo documentado puede separarse de lo implementado.
 
 **Cobertura:** el requisito que cambia se corrige en el mismo cambio que lo cambia, y el
-cambio se cierra con las comprobaciones del contrato de documentación y su entrada en el
-registro de verificaciones de [`operations.md`](operations.md).
+cambio se cierra con las comprobaciones de [`development.md`](development.md) y la
+evidencia en la tarea.
 
 ### RX-2 Nada comprueba lo escrito
 
-Ninguna herramienta comprueba la coherencia de los documentos: no se compilan ni se
-prueban, y su conjunto se sostiene en revisiones manuales. El código no entra en este
+Ninguna herramienta comprueba la coherencia de los documentos: sus enlaces y sus títulos
+los revisa una prueba, pero el resto se sostiene en revisiones manuales. El código no entra en este
 riesgo: su suite y sus flujos de comprobación corren solos en cada envío de trabajo, con
 un suelo de cobertura que impide bajarla.
 
-**Cobertura:** las comprobaciones del contrato de documentación, hechas a mano, con su
-entrada en el registro de verificaciones de [`operations.md`](operations.md).
+**Cobertura:** las comprobaciones de [`development.md`](development.md), hechas a mano, y
+la prueba que revisa enlaces y títulos de los documentos.
 
 ### RX-3 La auditoría de la interfaz de partida es de segunda mano
 
@@ -30,8 +30,7 @@ El análisis de la interfaz se hizo leyendo el código de otro repositorio y se 
 muestreo. Puede haber capacidades o acoplamientos que no se vieran.
 
 **Cobertura:** al integrarla, sus rutas y su ciclo se compararon con el código del que
-venía y se ejercitaron contra el binario real, con su entrada en el registro de
-verificaciones. Sus pruebas propias no viven en este repositorio, así que no corren con
+venía y se ejercitaron contra el binario real; la evidencia vive en la tarea. Sus pruebas propias no viven en este repositorio, así que no corren con
 las nuestras.
 
 ### RX-4 El contrato de flujo cita un perfil que no existe aquí
@@ -94,46 +93,24 @@ lee la base.
 
 ## Resueltos
 
-### RX-9 La base del tablero es un binario que no se fusiona
+- **RX-9 La base del tablero es un binario que no se fusiona.** La base viajaba en el
+  repositorio y un binario en Git no se fusiona: dos máquinas que muevan el tablero
+  producen un conflicto que no se resuelve sin perder las tareas de una de ellas. La base
+  salió del índice y cada máquina tiene su tablero; llevar el tablero a otra máquina es un
+  traslado manual que no tiene volcado. **Lección:** la cobertura prometía un volcado
+  «cuando moleste» y, al molestar, se eligió la salida más barata. El volcado sigue
+  faltando.
 
-La base viajaba en el repositorio para llevarla a otra máquina, y un binario en Git no se
-fusiona: dos máquinas que muevan el tablero producen un conflicto que no se resuelve
-eligiendo un lado sin perder las tareas del otro, y cada cambio de tarea engorda la
-historia.
+- **RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas.** El catálogo
+  vivía en el servidor anterior y no tenía pruebas nuestras. Las escribió la fase que lo
+  implementó: renombrar una etiqueta no toca ninguna tarea, borrar una avisa de las tareas
+  que la usaban, y cambiar las etiquetas de una tarea no toca las de otra. **Lección:** una
+  cobertura prometida para una fase futura hay que releerla cuando esa fase llega.
 
-**Qué resultó:** la base dejó de viajar. `.tasks-ai/tasks.db` sale del índice y el
-`.gitignore` la deja fuera, así que cada máquina tiene su tablero y el conflicto no
-existe; lo que viaja con el trabajo nuevo es el código. Los commits anteriores a ese
-cambio conservan la base, y llevar el tablero a otra máquina es ahora un traslado manual
-que todavía no tiene volcado.
-
-**Lección:** la cobertura de esta entrada prometía un volcado de texto «cuando moleste»,
-y al molestar se eligió la salida más barata —retirar la base del repositorio— en vez de
-escribirlo. El volcado sigue faltando.
-
-### RX-5 El catálogo de etiquetas se reimplementaba sin pruebas heredadas
-
-El catálogo con color, descripción y aviso de uso vivía en el servidor anterior, y se
-dudaba de su cascada al renombrar o borrar, que no tenía pruebas nuestras.
-
-**Qué resultó:** la fase que lo implementó escribió sus pruebas, y la duda quedó
-respondida por ellas: renombrar una etiqueta no toca ninguna tarea, borrar una avisa de
-las tareas que la usaban, y cambiar las etiquetas de una tarea no toca las de otra.
-
-**Lección:** una cobertura que se promete para una fase futura hay que releerla cuando esa
-fase llega, o el registro sigue anunciando un hueco que ya no existe.
-
-### RX-6 El trabajo vivía sólo en esta máquina
-
-El registro aceptaba como deuda que el repositorio no estaba en ningún remoto y que el
-trabajo vivía sólo en local.
-
-**Qué resultó:** dejó de ser cierto cuando el proyecto pasó a tener su remoto y el trabajo
-a vivir allí.
-
-**Lección:** la entrada dejó de ser cierta y nadie la corrigió, así que el registro mintió
-hasta que se volvió a leer entero. Lo que deja de ser cierto se corrige en el mismo
-cambio que lo dejó obsoleto, o se retira.
+- **RX-6 El trabajo vivía sólo en local.** El registro aceptaba como deuda que el
+  repositorio no estaba en ningún remoto. El proyecto pasó a tener remoto y el trabajo a
+  vivir allí. **Lección:** lo que deja de ser cierto se corrige en el mismo cambio que lo
+  dejó obsoleto, o se retira; el registro mintió hasta que se volvió a leer entero.
 
 ## Deuda aceptada
 

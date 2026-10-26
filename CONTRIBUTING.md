@@ -49,18 +49,9 @@ git log --format='%h %s' --grep='Refs: tk-1'
 - Ningún commit con cabos sueltos: lo que se descubre al prepararlo se arregla o se
   pregunta antes, no en un commit de corrección inmediata.
 - Sin firmas de IA ni líneas `Co-Authored-By` salvo petición expresa.
-
-## Antes de commitear
-
-1. Revisar el diff.
-2. Leer la tarea entera —descripción, notas y comentarios— y repasar su criterio punto por
-   punto sobre lo entregado.
-3. Revisar la documentación viva: `README.md`, `CHANGELOG.md` y los documentos que
-   describan lo cambiado.
-4. Ejecutar las comprobaciones de [`docs/development.md`](docs/development.md).
-5. Presentar qué entra, el mensaje, las comprobaciones y el alcance.
-6. Esperar confirmación explícita. Cubre lo presentado; un cambio de alcance pide otra.
-7. Crear el commit, comprobar que fue bien y cerrar la tarea.
+- Ningún commit se crea sin confirmación explícita: cubre lo presentado, y un cambio de
+  alcance pide otra. El orden del cierre y las comprobaciones están en
+  [`docs/development.md`](docs/development.md).
 
 ## Verificación
 

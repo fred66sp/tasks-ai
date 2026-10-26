@@ -31,9 +31,3 @@ El trabajo del proyecto vive en `.tasks-ai/`, y se opera con el mismo binario:
 
 La herramienta de desarrollo anterior —un servidor en Node sobre `tk`— se retiró, y su
 histórico se importó en este tablero (`ADR-005`).
-
-## Comprobaciones antes de cerrar un cambio
-
-- Las pruebas del proyecto (`go test ./...`).
-- Las comprobaciones de documentación de [`development.md`](development.md), que se ejecutan a mano.
-- `make check-web`: que la interfaz construida coincida con su fuente.

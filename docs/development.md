@@ -100,12 +100,17 @@ ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo e
    persona la haya confirmado.
 2. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
    documentación al día en cada una.
-3. Antes del commit: la tarea entera leída —descripción, notas y comentarios—, con su
-   criterio repasado; las pruebas del proyecto; las comprobaciones de documentación de este
-documento; y el contrato de Git repasado. Después se commitea, se comprueba que el
-   commit fue bien y se cierra la tarea, que es lo último.
-4. Un cambio de diseño se documenta antes de implementarlo, y su documento de decisión
-   explica qué se descartó.
+3. Antes del commit: se lee la tarea entera —descripción, notas y comentarios— y se repasa
+   su criterio punto por punto sobre lo entregado; se revisan el diff y la documentación
+   viva; y se ejecutan las comprobaciones:
+   - `go test ./...`, que incluye la prueba de enlaces y títulos de los documentos;
+   - `make lint`;
+   - `make check-web`, si cambió la interfaz.
+4. Se presenta el informe, se espera la confirmación y se crea el commit con
+   `Refs: tk-<n>`. Se comprueba que el commit fue bien y se cierra la tarea con su motivo:
+   el cierre es lo último.
+5. Un cambio de diseño se documenta antes de implementarlo, y su ADR explica qué se
+   descartó.
 
 Los comandos del día a día son objetivos de `make`, con su equivalente de `go`:
 

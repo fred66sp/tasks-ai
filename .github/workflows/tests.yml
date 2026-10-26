@@ -57,9 +57,10 @@ jobs:
           (cd web && npm ci && npm run build)
           git diff --exit-code -- web/public
 
-      - name: Pasar las pruebas de la extensión
+      - name: Pasar las pruebas de las extensiones
         run: |
           (cd extensions/pi && npm ci && npm test)
+          (cd extensions/opencode && npm test)
 
       - name: Compilar
         run: go build ./...

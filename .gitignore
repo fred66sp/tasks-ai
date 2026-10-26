@@ -6,6 +6,9 @@ node_modules/
 .atl/
 .codegraph/
 .playwright-cli/
+# Estado de la misión del arnés de OpenCode: es de la máquina, no del repositorio.
+# El adaptador del tablero vive en .tasks-ai/extensions/opencode.
+.opencode/
 
 # Estado del arnés: se versiona para llevarlo a otra máquina
 #   .pi/  el paquete de Pi instalado en el proyecto y el agente de delegación

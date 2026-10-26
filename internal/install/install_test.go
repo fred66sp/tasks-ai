@@ -112,7 +112,7 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 	}
 }
 
-func TestRun_leavesTheBinaryAndTheExtension(t *testing.T) {
+func TestRun_leavesTheBinaryAndTheExtensions(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -147,6 +147,17 @@ func TestRun_leavesTheBinaryAndTheExtension(t *testing.T) {
 	for _, name := range []string{"index.ts", "board.ts", "cli.ts", "package.json"} {
 		if _, err := os.Stat(filepath.Join(extension, name)); err != nil {
 			t.Errorf("la instalación no dejó la extensión %s: %v", name, err)
+		}
+	}
+
+	opencode := filepath.Join(product, "extensions", "opencode")
+	if result.OpenCode != opencode {
+		t.Errorf("la instalación devolvió el plugin de OpenCode %q, se esperaba %q", result.OpenCode, opencode)
+	}
+
+	for _, name := range []string{"index.ts", "tasks.ts", "package.json"} {
+		if _, err := os.Stat(filepath.Join(opencode, name)); err != nil {
+			t.Errorf("la instalación no dejó el plugin de OpenCode %s: %v", name, err)
 		}
 	}
 }

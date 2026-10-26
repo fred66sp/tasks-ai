@@ -54,7 +54,9 @@ banderas. El recorrido completo, con ejemplos y respuestas, está en la guía de
 [`docs/web/index.html`](docs/web/index.html). Construir la interfaz y refrescar el binario
 está en [`docs/development.md`](docs/development.md).
 
-## Integración con el agente de Pi
+## Integración con los agentes
+
+### Pi
 
 `extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
 `tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
@@ -79,6 +81,22 @@ el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que
 ejecuta el binario instalado (`.tasks-ai/bin/tasks-ai`) o, si falta, el del `PATH`. En
 un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
 sigue.
+
+### OpenCode
+
+`extensions/opencode/` registra las mismas herramientas en OpenCode y añade el resumen del
+tablero al sistema de cada petición (`ADR-015`). El `init` la deja, como la de Pi, en
+`.tasks-ai/extensions/opencode/`, y el proyecto la carga desde su `opencode.jsonc`:
+
+```jsonc
+{
+  "plugins": ["./.tasks-ai/extensions/opencode"]
+}
+```
+
+No hay `/board` ni bloque del TUI: el plugin de servidor de OpenCode no los ofrece. El
+TODO del arnés no sustituye al tablero: la misión nombra su `tk-N` y el tablero sigue
+siendo la única fuente de tareas.
 
 ### El agente de delegación
 

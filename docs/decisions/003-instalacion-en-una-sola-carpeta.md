@@ -1,7 +1,10 @@
-# ADR-003: Instalación en una sola carpeta del proyecto
+---
+status: accepted
+date: 2026-10-16
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-16
+# ADR-003: Instalación en una sola carpeta del proyecto
 
 ## Contexto
 

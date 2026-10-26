@@ -1,7 +1,10 @@
-# ADR-013: El validador del texto de las tareas es léxico
+---
+status: accepted
+date: 2026-10-21
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-21
+# ADR-013: El validador del texto de las tareas es léxico
 
 ## Contexto
 

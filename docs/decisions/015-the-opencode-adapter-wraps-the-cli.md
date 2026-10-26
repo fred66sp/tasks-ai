@@ -1,7 +1,10 @@
-# ADR-015: El adaptador de OpenCode envuelve el CLI
+---
+status: accepted
+date: 2026-10-26
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-26
+# ADR-015: El adaptador de OpenCode envuelve el CLI
 
 ## Contexto
 

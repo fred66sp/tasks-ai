@@ -1,7 +1,10 @@
-# ADR-010: La interfaz vive en `web/` y viaja en el binario
+---
+status: accepted
+date: 2026-10-16
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-16
+# ADR-010: La interfaz vive en `web/` y viaja en el binario
 
 ## Contexto
 

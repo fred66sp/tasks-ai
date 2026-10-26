@@ -1,7 +1,10 @@
-# ADR-006: Reglas heredadas de la referencia funcional
+---
+status: accepted
+date: 2026-10-16
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-16
+# ADR-006: Reglas heredadas de la referencia funcional
 
 ## Contexto
 

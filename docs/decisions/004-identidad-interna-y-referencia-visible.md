@@ -1,7 +1,10 @@
-# ADR-004: Identidad interna y referencia visible
+---
+status: accepted
+date: 2026-10-16
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-16
+# ADR-004: Identidad interna y referencia visible
 
 ## Contexto
 

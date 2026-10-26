@@ -1,7 +1,10 @@
-# ADR-011: Las superficies del producto hablan inglés
+---
+status: accepted
+date: 2026-10-17
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-17
+# ADR-011: Las superficies del producto hablan inglés
 
 ## Contexto
 

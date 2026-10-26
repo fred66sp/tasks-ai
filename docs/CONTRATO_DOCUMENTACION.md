@@ -48,7 +48,7 @@ quedar obsoleto sin que nadie lo edite está mal escrito.*
 | Cómo se construye, se prueba y se entrega | `docs/operations.md` | `docs/operations.md` |
 | Estructura de ficheros y convenciones de trabajo | `docs/development.md` | `docs/development.md` |
 | Riesgos, deuda y su cobertura de pruebas | `docs/known-risks.md` | `docs/known-risks.md` |
-| Flujo de Git, CHANGELOG y versionado | `CONTRATO_FLUJO_GIT_VERSIONADO.md` | ese contrato |
+| Flujo de Git, CHANGELOG y versionado | `CONTRIBUTING.md` | ese documento |
 | Reglas que valen en cada turno para agentes | `AGENTS.md` y reglas de carpeta | `AGENTS.md`, `.tasks-ai/AGENTS.md` |
 | Reglas de etiquetas del tablero: clases, asignación y gestión del catálogo | `.tasks-ai/CONTRATO_ETIQUETAS.md` | ese contrato |
 | Presentación del producto y puesta en marcha | `README.md` | `README.md` |
@@ -75,7 +75,7 @@ proyecto sigue la regla.
 | `PRD.md` | Lo que el producto debe cumplir | Requisitos, alcance, no objetivos, casos de uso, contratos de datos y criterios de aceptación | Estado, cifras, verificaciones, progreso, decisiones, inventarios de ficheros ni historia de la extracción |
 | `README.md` | Qué es el proyecto y cómo se arranca | Descripción, requisitos de entorno, instalación, comandos, mapa de carpetas | Progreso, fases, recuentos ni estado |
 | `AGENTS.md` | Lo que vale en cada turno dentro del repositorio | Reglas, enrutado al detalle canónico, comandos | Estado, planes, cifras |
-| `CONTRATO_FLUJO_GIT_VERSIONADO.md` | Cómo se versiona y se integra el trabajo | Ramas, commits, verificación, integración, CHANGELOG, etiquetas, autorizaciones | Estado del producto |
+| `CONTRIBUTING.md` | Cómo se versiona y se integra el trabajo | Ramas, commits, verificación, integración, CHANGELOG, etiquetas, autorizaciones | Estado del producto |
 | `CONTRATO_DOCUMENTACION.md` (este) | Dónde vive cada dato y qué escribe cada documento | Misiones, propiedad de los datos, prohibiciones y procedimiento | Estado, cifras, contenido duplicado de otros documentos |
 | `CHANGELOG.md` | Qué cambió entre versiones | Cambios por versión, con su fecha y su tipo; `[Sin publicar]` acumula lo pendiente de publicar | Planes, requisitos, estado del trabajo |
 | `docs/architecture.md` | Cómo está construido y por qué | Capas, fronteras, flujos, invariantes y el motivo de cada elección de diseño | Listas de pendientes, progreso, cifras |

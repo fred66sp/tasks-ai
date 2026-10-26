@@ -105,7 +105,7 @@ este archivo, así que aquí se corrige lo que haga falta.
 6. Antes del commit se comprueba que la tarea está terminada, revisada y correcta: se lee
    la tarea entera —descripción, notas y comentarios—, se repasa el criterio punto por
    punto sobre lo entregado y no sobre lo que se recuerda, y se repasa el contrato de Git
-   (`docs/CONTRATO_FLUJO_GIT_VERSIONADO.md`): la rama, la unidad de commit, la
+   (`CONTRIBUTING.md`): la rama, la unidad de commit, la
    confirmación, la verificación y el CHANGELOG. El criterio es el mínimo: lo que se
    prometió en una nota o en un comentario y no se hizo, se hace. Nada se declara fuera de
    alcance, ni se abre una tarea nueva, sin la conformidad y la autorización de la persona.

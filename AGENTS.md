@@ -9,8 +9,8 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
 
 - [`docs/CONTRATO_DOCUMENTACION.md`](docs/CONTRATO_DOCUMENTACION.md): qué escribe cada
   documento y dónde vive cada dato.
-- [`docs/CONTRATO_FLUJO_GIT_VERSIONADO.md`](docs/CONTRATO_FLUJO_GIT_VERSIONADO.md):
-  ramas, commits, verificación, integración, CHANGELOG y versionado.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): ramas, commits, verificación, integración,
+  CHANGELOG y versionado.
 
 - No se deben crear ni modificar archivos dentro de `odd/tasks/`: el tablero de
   `tasks-ai` es la única fuente de tareas del repositorio. Tampoco se utilizarán ni documentos de tareas ni una lista de tareas paralela.

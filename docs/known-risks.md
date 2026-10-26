@@ -33,15 +33,6 @@ muestreo. Puede haber capacidades o acoplamientos que no se vieran.
 venía y se ejercitaron contra el binario real; la evidencia vive en la tarea. Sus pruebas propias no viven en este repositorio, así que no corren con
 las nuestras.
 
-### RX-4 El contrato de flujo cita un perfil que no existe aquí
-
-El contrato de flujo nombra `strict_confirmation`, un valor de un perfil de confirmación
-que este repositorio no tiene, y la skill `commit-preparation`, que tampoco vive aquí. El
-contrato de documentación no cita nada de fuera.
-
-**Cobertura:** deuda aceptada. Se revisa al usarlo y, si estorba, se decide si se adapta o
-se retira, con su documento de decisión.
-
 ### RX-7 La interfaz lleva un parche sobre un fichero de terceros
 
 `web/public/vendor/toast-anchor.mjs` es código de terceros, minificado, y lleva un parche

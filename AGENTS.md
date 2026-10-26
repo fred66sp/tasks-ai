@@ -159,9 +159,11 @@ más se usan en este producto:
 | `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
 | `skills/adr-software/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
 | `skills/prd-cartographer/SKILL.md` | Escribir o revisar el PRD: evidencia, métricas y huecos declarados |
+| `skills/typescript-idiomatic-style/SKILL.md` | Tipos, módulos y forma de la CLI de TypeScript de las extensiones |
+| `skills/typescript-testing-and-verification/SKILL.md` | Validar la frontera, escribir las pruebas y correr la puerta de las extensiones |
 
-Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Partir el PRD
-en trabajo no es tarea de una skill: cada unidad se propone como tarea del tablero.
+Partir el PRD en trabajo no es tarea de una skill: cada unidad se propone como tarea del
+tablero.
 
 ## Idioma
 

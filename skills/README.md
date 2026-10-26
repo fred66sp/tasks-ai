@@ -1,10 +1,10 @@
 # SKILLS-1 Las skills del proyecto
 
 Este proyecto lleva dentro las skills que necesita, copiadas de su origen: el taller
-`workshop-golang`, para las de Go y la de TypeScript de la extensión, y el repositorio
-propio `SKILLS-AGP`, para las de ADR y PRD. Viven en `skills/` y se leen por su ruta
-relativa al proyecto, así que ningún trabajo depende de que el origen esté al lado. Git y
-la documentación no viven aquí: su procedimiento lo ponen las skills que instala el arnés.
+`workshop-golang`, para las de Go, y el repositorio propio `SKILLS-AGP`, para las de ADR,
+PRD y TypeScript. Viven en `skills/` y se leen por su ruta relativa al proyecto, así que
+ningún trabajo depende de que el origen esté al lado. Git y la documentación no viven aquí:
+su procedimiento lo ponen las skills que instala el arnés.
 
 Cada skill es un directorio con su `SKILL.md`, y algunas traen `references/`, `assets/`,
 `scripts/` o el agente de su interfaz.
@@ -22,9 +22,10 @@ Cada skill es un directorio con su `SKILL.md`, y algunas traen `references/`, `a
 | `golang-code-style` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
 | `golang-lint` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
 | `golang-naming` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `typescript` | [`terminal-skills`](https://github.com/terminal-skills) | Apache-2.0 |
 | `adr-software` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
 | `prd-cartographer` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
+| `typescript-idiomatic-style` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
+| `typescript-testing-and-verification` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
 
 Las skills de terceros conservan en su frontmatter el autor, la página de metadatos y la
 licencia con los que vinieron; las de desarrollo propio declaran su versión. Las skills no
@@ -47,7 +48,7 @@ corrige en su origen y se trae después. Para rehacer la copia, desde la raíz d
 ```bash
 for s in golang-how-to golang-project-layout golang-cli golang-database \
          golang-testing golang-error-handling golang-code-style golang-lint \
-         golang-naming typescript; do
+         golang-naming; do
   cp -r "skills/$s" "projects-out/tasks-ai/skills/"
 done
 ```
@@ -55,7 +56,8 @@ done
 Y las de `SKILLS-AGP`, desde la raíz de ese repositorio, con la ruta del proyecto a mano:
 
 ```bash
-for s in adr-software prd-cartographer; do
+for s in adr-software prd-cartographer typescript-idiomatic-style \
+         typescript-testing-and-verification; do
   cp -r "src/$s" <proyecto>/skills/
 done
 ```

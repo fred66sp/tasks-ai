@@ -101,8 +101,8 @@ ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo e
 2. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
    documentación al día en cada una.
 3. Antes del commit: la tarea entera leída —descripción, notas y comentarios—, con su
-   criterio repasado; las pruebas del proyecto; las comprobaciones del contrato de
-   documentación; y el contrato de Git repasado. Después se commitea, se comprueba que el
+   criterio repasado; las pruebas del proyecto; las comprobaciones de documentación de este
+documento; y el contrato de Git repasado. Después se commitea, se comprueba que el
    commit fue bien y se cierra la tarea, que es lo último.
 4. Un cambio de diseño se documenta antes de implementarlo, y su documento de decisión
    explica qué se descartó.

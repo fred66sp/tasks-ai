@@ -35,5 +35,5 @@ histórico se importó en este tablero (`ADR-005`).
 ## Comprobaciones antes de cerrar un cambio
 
 - Las pruebas del proyecto (`go test ./...`).
-- Las comprobaciones del contrato de documentación, que se ejecutan a mano: ninguna herramienta las automatiza.
+- Las comprobaciones de documentación de [`development.md`](development.md), que se ejecutan a mano.
 - `make check-web`: que la interfaz construida coincida con su fuente.

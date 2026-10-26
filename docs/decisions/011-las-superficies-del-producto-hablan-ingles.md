@@ -12,7 +12,7 @@ errores y el cuerpo `error` de la API se escribían en español, igual que la
 documentación y el texto de la interfaz web.
 
 El idioma de los mensajes no estaba en el `PRD.md`: la convención vivía en
-`docs/development.md` y en el contrato de documentación, y decía que todo el texto que
+`docs/development.md` y en las reglas de documentación, y decía que todo el texto que
 ve una persona va en español. Un agente que lee la ayuda y los errores del CLI paga una
 traducción en cada llamada, y sus propias interfaces ya están en inglés; los
 identificadores del código y los mensajes de commit también lo están.
@@ -33,8 +33,8 @@ identificadores del código y los mensajes de commit también lo están.
 
 ## Consecuencias
 
-- `RNF-04` del `PRD.md` fija la regla, y el contrato de documentación y
-  `docs/development.md` la recogen para el texto nuevo.
+- `RNF-04` del `PRD.md` fija la regla, y las reglas de documentación de `AGENTS.md`
+  y `docs/development.md` la recogen para el texto nuevo.
 - Los mensajes de error los compone el núcleo y los dos públicos los leen igual: el
   idioma no se decide en cada superficie, se decide al escribir el mensaje.
 - Los ejemplos de `docs/web/index.html` reproducen lo que imprime el binario; cuando el

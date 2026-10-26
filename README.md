@@ -10,22 +10,27 @@ rutas, los códigos de estado y los avisos de cambio están en
 Todo lo del producto vive en la carpeta `.tasks-ai/` del proyecto —la base, la
 configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 
-## Mapa de carpetas
+## Documentación
 
-| Ruta | Qué es |
-|---|---|
-| `docs/` | La documentación del producto |
-| `docs/decisions/` | Una decisión durable por documento |
-| `docs/tasks-ai-brand/` | La identidad visual aprobada: el símbolo, los iconos, los tokens de color y tipografía, y sus normas de uso |
-| `docs/web/` | La guía de uso del producto, en una página web |
-| `cmd/` | El binario del producto |
-| `internal/` | Su núcleo y sus superficies |
-| `web/` | Su interfaz web: el código de la de partida, ajustado a la API, y lo que el navegador descarga en `web/public/` |
-| `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
-| `extensions/pi/` | La integración con el agente de Pi: envuelve el CLI y se incrusta en el binario para que el install la copie |
-| `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
+Cada documento responde a una pregunta. La estructura del código está en
+[`docs/development.md`](docs/development.md).
 
-El contrato de documentación dice qué contiene cada documento de `docs/`.
+| Documento | Qué escribe | Qué no |
+|---|---|---|
+| `README.md` | Qué es el producto y cómo arrancarlo | Estado, historia, decisiones |
+| `CONTRIBUTING.md` | Ramas, commits, integración y versiones | Requisitos, arquitectura |
+| `AGENTS.md` | Reglas de cada turno y enrutado al detalle | Estado, planes |
+| `CHANGELOG.md` | Lo que cambió en cada versión publicada | Planes, estado |
+| `docs/PRD.md` | Requisitos, alcance y criterios de aceptación | Diseño técnico, estado |
+| `docs/architecture.md` | Cómo está construido y por qué | Requisitos, procedimientos |
+| `docs/contracts.md` | Formas de datos y API que no se pueden romper | Narrativa de producto |
+| `docs/development.md` | Estructura del código, convenciones y cómo se trabaja | Estado, historia |
+| `docs/operations.md` | Construir, ejecutar y operar el producto | Requisitos, decisiones |
+| `docs/known-risks.md` | Riesgos vivos, resueltos y deuda aceptada | Requisitos, planes |
+| `docs/decisions/` | Una decisión durable por documento | El catálogo de lo trivial |
+| `docs/web/index.html` | La guía de uso del producto | Requisitos, decisiones |
+| `docs/tasks-ai-brand/` | La identidad visual aprobada y sus normas | El contenido de la guía |
+| `.tasks-ai/` | El trabajo: tareas, criterios y evidencia | Documentación |
 
 ## Requisitos de entorno
 

@@ -82,6 +82,16 @@ enmienda de las listas cuando una forma demuestra el mismo daño y no aparece en
 texto legítimo (`ADR-013`). Una escritura que no pasa por el producto solo la ve quien
 lee la base.
 
+### RX-12 La copia durable de los ADR es la exportación
+
+La base del tablero no se versiona (`RX-9`), así que el registro de los ADR vive en la
+máquina. Un ADR que no se exportó no está en Git: si la base se pierde, se pierde la
+decisión, y el directorio versionado es lo único que queda.
+
+**Cobertura:** `adr export --check` en las comprobaciones antes de cerrar un cambio que
+toque una decisión, y la exportación en el mismo commit que la escribe. La base se puede
+copiar junto con las tareas.
+
 ## Resueltos
 
 - **RX-9 La base del tablero es un binario que no se fusiona.** La base viajaba en el

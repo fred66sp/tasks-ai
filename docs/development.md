@@ -8,7 +8,7 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | Ruta | Qué es |
 |---|---|
 | `docs/` | La documentación del producto: requisitos, decisiones, diseño, contratos y riesgos |
-| `docs/decisions/` | Un documento por decisión durable |
+| `docs/decisions/` | La exportación generada de los ADR: un archivo por decisión durable |
 | `cmd/tasks-ai/` | El punto de entrada del binario |
 | `internal/settings/` | Los ajustes del proyecto: su archivo en la carpeta del producto y sus valores por omisión |
 | `internal/store/` | La base SQLite: su esquema versionado y lo que guarda de las tareas |
@@ -104,6 +104,26 @@ configuración se suman, así que añadir la del proyecto no retira las globales
 El `.opencode/` del proyecto no guarda nada del adaptador: es el estado de la sesión del
 arnés, y el repositorio lo ignora. La forma del plugin está en `ADR-015`.
 
+## Los ADR
+
+Una decisión durable vive en el tablero, como las tareas, y se escribe con el producto
+(`ADR-016`). `docs/decisions/` es su **exportación generada**: un archivo por ADR y el
+índice del directorio, versionados para que Git guarde la revisión y para que la puerta
+de `adr-software` los revise. Editar un archivo exportado a mano no cambia la decisión:
+la siguiente exportación lo revierte, y la marca del principio del archivo lo dice.
+
+```bash
+./.tasks-ai/bin/tasks-ai adr create --title "..." --deciders "..."   # ADR-001, en proposed
+./.tasks-ai/bin/tasks-ai adr edit 1 --status accepted               # congela el cuerpo
+./.tasks-ai/bin/tasks-ai adr export --dir docs/decisions            # escribe la exportación
+./.tasks-ai/bin/tasks-ai adr export --dir docs/decisions --check    # sale con 1 si hay deriva
+```
+
+El cuerpo se congela al salir de `proposed`: después solo se admiten añadidos fechados en
+«Más información», y un cambio de decisión se publica como un ADR nuevo que sustituye al
+anterior. La puerta de `adr-software` revisa el texto exportado, y su resultado se nombra
+en la tarea que cambia una decisión.
+
 ## Fronteras del código
 
 - El núcleo contiene las reglas y el acceso a datos; no conoce comandos ni rutas.
@@ -143,7 +163,9 @@ arnés, y el repositorio lo ignora. La forma del plugin está en `ADR-015`.
    - `go test ./...`, que incluye la prueba de enlaces y títulos de los documentos;
    - `make lint`;
    - `npm test` en `extensions/pi` y en `extensions/opencode`, si cambió una extensión;
-   - `make check-web`, si cambió la interfaz.
+   - `make check-web`, si cambió la interfaz;
+   - `adr export --dir docs/decisions --check` y la puerta de `adr-software`, si el
+     cambio toca una decisión o su exportación.
 4. Se presenta el informe, se espera la confirmación y se crea el commit con
    `Refs: tk-<n>`. Se comprueba que el commit fue bien y se cierra la tarea con su motivo:
    el cierre es lo último.

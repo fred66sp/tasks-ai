@@ -1,7 +1,7 @@
 # Operación
 
-Cómo se construye, se prueba y se ejecuta el producto. Las formas de datos y de API
-están en `contracts.md`.
+Cómo se ejecuta el producto y se opera el tablero. Las formas de datos y de API están
+en `contracts.md`.
 
 ## Ejecutar
 

@@ -80,3 +80,8 @@ export const editTaskComment = (ref, id, body) => jsonRequest(`/api/tasks/${enco
 export const createTag = (tag) => jsonRequest('/api/tags', 'POST', tag);
 export const updateTag = (name, tag) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, 'PATCH', tag);
 export const deleteTag = (name) => jsonRequest(`/api/tags/${encodeURIComponent(name)}`, 'DELETE');
+// Los ADR del proyecto: la lista viaja sin cuerpos y el detalle los trae todos.
+export const listADRs = () => apiRequest('/api/adrs');
+export const showADR = (number) => apiRequest(`/api/adrs/${encodeURIComponent(number)}`);
+export const createADR = (adr) => jsonRequest('/api/adrs', 'POST', adr);
+export const updateADR = (number, changes) => jsonRequest(`/api/adrs/${encodeURIComponent(number)}`, 'PATCH', changes);

@@ -64,6 +64,7 @@ export const workspaceOptions = {
         } catch {
           return;
         }
+        this.decisionsToken += 1;
         this.noticeReload();
         // El aviso sale para cualquier cambio de tarea, venga de donde venga:
         // solo se lo calla la ventana que pidió el cambio, con su propio

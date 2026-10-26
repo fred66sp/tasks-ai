@@ -17,7 +17,7 @@ están en `contracts.md`.
 
 La interfaz viaja incrustada en el binario: si se cambia su código, hay que
 construirla antes de compilar el binario. Los comandos de su construcción están en
-`README.md`, y la decisión, en `ADR-010`.
+[`development.md`](development.md), y la decisión, en `ADR-010`.
 
 ## El tablero del trabajo
 

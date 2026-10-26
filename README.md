@@ -41,47 +41,19 @@ Cada documento responde a una pregunta. La estructura del código está en
 
 ## Comandos
 
-Del producto:
-
 ```bash
-go build ./cmd/tasks-ai  # compila el binario
-
-./tasks-ai init                  # instala el producto en el proyecto: deja su carpeta .tasks-ai/ con la base, los ajustes y las instrucciones; no es repetible, un proyecto ya instalado lo rechaza
-./tasks-ai init --prefix tai     # instala con tai como prefijo de las referencias en vez de tk, y escribe las instrucciones con él
-./tasks-ai create --title "..."  # crea una tarea y devuelve su JSON, con su identidad y su referencia
-./tasks-ai create --title "..." --parent tk-1  # crea una subtarea de la tarea padre que se le da
-./tasks-ai create --title "..." --tags "fix,cli"  # nace además con esas etiquetas, que han de estar en el catálogo
-./tasks-ai list                 # devuelve todas las tareas del proyecto, las cerradas también, y cuál está bloqueada
-./tasks-ai show <referencia>     # devuelve en JSON la tarea a la que apunta la referencia
-./tasks-ai update <referencia> --priority 1  # cambia los campos que se piden: título, descripción, notas, responsable, prioridad, estado, etiquetas o padre
-./tasks-ai update <referencia> --status in_progress  # pone la tarea en curso: solo desde pendiente; --status open la devuelve a pendiente
-./tasks-ai update <referencia> --tags "docs,urgente"  # pone la lista entera de etiquetas de la tarea: una lista vacía la deja sin ninguna
-./tasks-ai update <referencia> --parent tk-1  # asigna el padre a la tarea o la mueve al que se le da; --parent "" lo quita y la deja en su nivel
-./tasks-ai tags                 # devuelve el catálogo de etiquetas con el uso de cada una
-./tasks-ai tag create --name "docs" --color blue  # crea una etiqueta; el color que falta es blue
-./tasks-ai tag edit <nombre> --name <nuevo>  # cambia de la etiqueta lo que se pide y nada más; renombrar no toca ninguna tarea
-./tasks-ai tag delete <nombre>  # borra la etiqueta con sus asignaciones y avisa de las tareas que la usaban
-./tasks-ai close <referencia> --reason done  # cierra una tarea con su motivo: done, duplicate, absorbed, stale o superseded
-./tasks-ai reopen <referencia>   # reabre una tarea cerrada: vuelve a open y quita el motivo de cierre
-./tasks-ai block <referencia> <referencia-bloqueante>   # deja la primera tarea bloqueada por la segunda
-./tasks-ai unblock <referencia> <referencia-bloqueante>  # retira el bloqueo entre las dos tareas
-./tasks-ai comment <referencia> --body "..."  # añade un comentario a la tarea
-./tasks-ai comment list <referencia>  # devuelve los comentarios de la tarea, del primero al último, cada uno con su identidad
-./tasks-ai comment edit <referencia> <id> --body "..."  # cambia el cuerpo del comentario: conserva su identidad y su fecha de creación
-./tasks-ai serve                # arranca la API HTTP y la interfaz en la dirección y el puerto del settings: la interfaz responde en la raíz, y los cambios se anuncian por un canal abierto
-./serve.sh                      # deja ese servidor en segundo plano: ./serve.sh status dice si está en marcha y ./serve.sh stop lo para, lo arrancara el script o el binario a mano
+go build ./cmd/tasks-ai          # compila el binario
+./tasks-ai init                  # instala el producto en el proyecto
+./tasks-ai create --title "..."  # crea una tarea
+./tasks-ai list                  # devuelve todas las tareas
+./tasks-ai serve                 # arranca la API y la interfaz web
+./serve.sh                       # deja ese servidor en segundo plano
 ```
 
-La interfaz se reconstruye —`npm run build` dentro de `web/`— y el binario se vuelve
-a compilar para que el artefacto nuevo viaje dentro (`ADR-010`).
-
-De la interfaz:
-
-```bash
-cd web && npm ci      # instala su herramienta de construcción
-cd web && npm run build  # construye la interfaz: deja el artefacto en web/public/task-manager/, que viaja incrustado en el binario
-cd web && npm run watch  # la reconstruye al cambiar
-```
+`tasks-ai --help` y `tasks-ai <comando> --help` son la referencia de cada comando y sus
+banderas. El recorrido completo, con ejemplos y respuestas, está en la guía de uso:
+[`docs/web/index.html`](docs/web/index.html). Construir la interfaz y refrescar el binario
+está en [`docs/development.md`](docs/development.md).
 
 ## Integración con el agente de Pi
 
@@ -119,10 +91,3 @@ repositorio: otra máquina lo tiene al clonar, sin copiar nada.
 El modelo del agente no se configura en el repositorio: se elige con `/gentle:models`,
 que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de cambiar
 ese archivo, porque el arnés congela su configuración al inicio.
-
-De la herramienta de desarrollo —la de partida, que el producto sustituye—:
-
-Se retiró del repositorio al pasar el trabajo a `.tasks-ai/`. Era un servidor en Node sobre
-el binario de terceros [tacks](https://github.com/srmccray/tacks) —`tk`—, con un catálogo
-de etiquetas propio. Su histórico de tareas se importó en el tablero del producto, y las
-decisiones que la describen viven en `ADR-005` y `ADR-010`. No queda nada que arrancar.

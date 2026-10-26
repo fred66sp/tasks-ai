@@ -122,7 +122,8 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | Forma de datos o de API | `docs/contracts.md` |
 | Diseño | `docs/architecture.md` |
 | Riesgo nuevo | `docs/known-risks.md` |
-| Comandos o estructura | `README.md` o `docs/development.md` |
+| Comandos | La ayuda del producto y `docs/web/index.html` |
+| Estructura | `docs/development.md` |
 
 Y siempre, antes de cerrar el cambio, las comprobaciones de
 [`docs/development.md`](docs/development.md).

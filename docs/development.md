@@ -122,6 +122,15 @@ make lint       # golangci-lint run ./...
 make fmt        # golangci-lint fmt ./...
 ```
 
+La interfaz se construye con su propia herramienta; el artefacto viaja incrustado en el
+binario:
+
+```bash
+cd web && npm ci         # instala su herramienta de construcción
+cd web && npm run build  # deja el artefacto en web/public/task-manager/
+cd web && npm run watch  # la reconstruye al cambiar
+```
+
 ## Lo que no se hace
 
 - No se edita la base de tareas con SQL.

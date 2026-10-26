@@ -1,0 +1,67 @@
+# ADR-015: El adaptador de OpenCode envuelve el CLI
+
+- **Estado:** Aceptada
+- **Fecha:** 2026-10-26
+
+## Contexto
+
+ADR-012 dejó la integración del agente a una extensión de Pi, y ADR-014 fijó que se
+distribuye incrustada en el binario. En OpenCode no existen esas herramientas: el agente
+vuelve a escribir comandos del tablero a mano y no recibe su estado por turno, que es
+justo lo que la extensión de Pi resuelve.
+
+Además, el plugin que gobierna la sesión en este proyecto —`opencode-orchestrator`— crea
+`.opencode/todo.md` y su herramienta `update_todo`. Este repositorio retiró ese TODO del
+arnés al instalar tasks-ai (`tk-1`): el tablero es la única fuente de tareas, y un
+segundo registro en markdown no se admite.
+
+Un plugin de OpenCode versión 2 es un módulo que exporta un `id` y un `setup(ctx)`. Desde
+ese contexto registra herramientas con un esquema JSON y puede añadir texto al sistema de
+cada petición. Los directorios locales de plugin se cargan desde `plugins` en
+`opencode.jsonc`, y las listas de varios archivos de configuración se suman: el plugin del
+proyecto no desplaza a los globales.
+
+## Decisión
+
+- El adaptador es un **plugin de OpenCode** en `extensions/opencode/`, con `index.ts` como
+  entrada y `tasks.ts` con las herramientas y el contexto.
+- Se carga por **ruta local** desde `opencode.jsonc` del proyecto
+  (`./.tasks-ai/extensions/opencode`), no por descubrimiento en `.opencode/plugins/`:
+  `.opencode/` es el estado del orquestador, y el repositorio lo ignora.
+- Ofrece **las mismas once herramientas, parámetros y textos** que la extensión de Pi, y
+  reutiliza su proyección del tablero (`board.ts`) y su envoltura del CLI (`cli.ts`), que
+  no saben de ningún agente. No hay una segunda copia del recorte.
+- El **resumen del tablero** entra en el sistema de cada petición con
+  `session.hook("context")`. No hay TUI, bloque ni línea de estado: OpenCode no los
+  ofrece al plugin de servidor.
+- Se **incrusta y se copia** como la extensión de Pi: `init` la deja en
+  `.tasks-ai/extensions/opencode`, devuelve su ruta en `opencode` y el texto de fuera dice
+  la línea que hay que añadir a `opencode.jsonc`.
+- **`.opencode/todo.md` no es registro de trabajo**: la misión nombra su `tk-N` y el
+  tablero sigue siendo el único sitio donde el trabajo existe. El adaptador no lee ni
+  escribe ese archivo.
+
+## Consecuencias
+
+- Los dos adaptadores comparten el CLI y la proyección del tablero: cambiar el contrato
+  del CLI o el recorte toca a los dos, y sus pruebas se ejecutan juntas.
+- El plugin no trae dependencias: el host le aporta `@opencode/plugin`, igual que Pi le
+  aporta `typebox`. `tasks.ts` se puede probar con el runner de Node sin instalar nada.
+- Limpiar `.opencode/` no rompe la integración: el adaptador vive en la carpeta del
+  producto.
+- Requisitos afectados: `RF-14` y `CA-18`.
+
+## Alternativas consideradas
+
+- **Un servidor MCP.** Descartada. ADR-012 dejó abierta la puerta a MCP si otro cliente lo
+  pedía; OpenCode lo pide, pero el plugin es su forma nativa y no añade protocolo,
+  transporte ni pruebas de servidor al producto. Nada más pide MCP.
+- **Un paquete publicado en npm.** Descartada. Exigiría versión, publicación y red para
+  algo que el producto ya instala en su carpeta; el proyecto quedaría dependiendo de un
+  registro para una copia que ya viaja en el binario.
+- **Un plugin dentro de `.opencode/plugins/`.** Descartada. `.opencode/` guarda el estado
+  del orquestador, que se puede limpiar; el adaptador quedaría fuera de la carpeta del
+  producto y separado de la extensión de Pi.
+- **Reutilizar la extensión de Pi tal cual.** Descartada. Las APIs de los dos hosts no
+  coinciden: typebox frente a esquema JSON, `before_agent_start` frente a
+  `session.hook("context")`, y Pi registra herramientas una a una.

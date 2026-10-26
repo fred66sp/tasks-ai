@@ -20,9 +20,10 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
+| `extensions/opencode/` | La integración con el agente OpenCode: las mismas herramientas sobre el CLI, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
 
-Las pruebas de la extensión necesitan sus dependencias en el disco: se instalan una vez con
+Las pruebas de la extensión de Pi necesitan sus dependencias en el disco: se instalan una vez con
 `npm install` y quedan en `extensions/pi/node_modules/`, que no se versiona. Hacen falta
 porque `index.ts` importa `typebox`, que en el paquete es `peerDependency` —lo inyecta Pi al
 cargar la extensión, no Node al probarla—, y sin él la suite no arranca.
@@ -36,14 +37,26 @@ npm test
 `npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
 el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
 
-La extensión viaja incrustada en el binario para que el `init` la copie al proyecto
-(`ADR-014`). Este repositorio es también su propio tablero, y lo lleva con una instalación
-real: el binario en `.tasks-ai/bin/tasks-ai` y la extensión en `.tasks-ai/extensions/pi`,
-que es la que Pi carga. Los dos son copias de lo que hay en el repositorio, así que se
-refrescan con una orden —recompila el binario y vuelve a copiar la extensión—:
+El plugin de OpenCode no trae dependencias —el host le aporta su paquete—, así que sus
+pruebas arrancan sin instalar nada:
 
 ```bash
-make install                               # refresca el binario, la extensión y el contrato
+cd extensions/opencode
+npm test
+```
+
+Reutiliza el tablero y el CLI de la extensión de Pi, y sustituye el CLI por uno falso:
+comprueba el adaptador, no el producto.
+
+Las dos extensiones viajan incrustadas en el binario para que el `init` las copie al
+proyecto (`ADR-014`, `ADR-015`). Este repositorio es también su propio tablero, y lo lleva
+con una instalación real: el binario en `.tasks-ai/bin/tasks-ai`, la extensión de Pi en
+`.tasks-ai/extensions/pi` y el plugin de OpenCode en `.tasks-ai/extensions/opencode`. Son
+copias de lo que hay en el repositorio, así que se refrescan con una orden —recompila el
+binario y vuelve a copiar las extensiones—:
+
+```bash
+make install                               # refresca el binario, las extensiones y el contrato
 ```
 
 `make install` copia también el contrato de etiquetas del repositorio, que tiene su
@@ -66,6 +79,19 @@ el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que
 ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo están en
 `contracts.md`; qué se gana con ellas, en el `README.md`; la forma, en `ADR-012` y
 `ADR-014`.
+
+OpenCode carga el plugin local que `init` deja en `.tasks-ai/extensions/opencode` con una
+entrada en el `opencode.jsonc` del proyecto. Las listas de `plugins` de los archivos de
+configuración se suman, así que añadir la del proyecto no retira las globales:
+
+```jsonc
+{
+  "plugins": ["./.tasks-ai/extensions/opencode"]
+}
+```
+
+El `.opencode/` del proyecto no guarda nada del adaptador: es el estado de la sesión del
+arnés, y el repositorio lo ignora. La forma del plugin está en `ADR-015`.
 
 ## Fronteras del código
 
@@ -105,6 +131,7 @@ ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo e
    viva; y se ejecutan las comprobaciones:
    - `go test ./...`, que incluye la prueba de enlaces y títulos de los documentos;
    - `make lint`;
+   - `npm test` en `extensions/pi` y en `extensions/opencode`, si cambió una extensión;
    - `make check-web`, si cambió la interfaz.
 4. Se presenta el informe, se espera la confirmación y se crea el commit con
    `Refs: tk-<n>`. Se comprueba que el commit fue bien y se cierra la tarea con su motivo:

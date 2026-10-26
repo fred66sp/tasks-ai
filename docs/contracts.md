@@ -157,7 +157,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   ningún comentario de esa tarea se rechaza con el código `1` sin tocar nada, y un cuerpo
   vacío es entrada inválida —código `2`—. La herramienta no ofrece borrar un comentario:
   lo que estaba mal se corrige editando su cuerpo.
-- `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix`, `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones—, `binary` —el binario copiado en `.tasks-ai/bin/tasks-ai`—, `extension` —la carpeta `.tasks-ai/extensions/pi/` con la extensión del agente— y `contract` —el contrato de las etiquetas en `.tasks-ai/CONTRATO_ETIQUETAS.md`—. La instalación deja además el catálogo con el vocabulario del contrato —los ocho tipos y `ODD`, `epic` y `task`—, cada etiqueta con su descripción y su color, y **no pisa lo que el proyecto ya tenga**: una etiqueta que existe conserva nombre, color, descripción y asignaciones. No es repetible sobre una instalación completa: la rechaza. A una instalación anterior, a la que le falta el binario, la extensión o el contrato, le añade lo que falta sin tocar lo que tiene, y una intenta anterior dejó a medias se completa sin borrar nada.
+- `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix`, `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones y al plugin de OpenCode—, `binary` —el binario copiado en `.tasks-ai/bin/tasks-ai`—, `extension` —la carpeta `.tasks-ai/extensions/pi/` con la extensión del agente—, `opencode` —la carpeta `.tasks-ai/extensions/opencode/` con el plugin del agente OpenCode— y `contract` —el contrato de las etiquetas en `.tasks-ai/CONTRATO_ETIQUETAS.md`—. La instalación deja además el catálogo con el vocabulario del contrato —los ocho tipos y `ODD`, `epic` y `task`—, cada etiqueta con su descripción y su color, y **no pisa lo que el proyecto ya tenga**: una etiqueta que existe conserva nombre, color, descripción y asignaciones. No es repetible sobre una instalación completa: la rechaza. A una instalación anterior, a la que le falta el binario, alguna de las extensiones o el contrato, le añade lo que falta sin tocar lo que tiene, y una intenta anterior dejó a medias se completa sin borrar nada.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
   API responde con `400`—, y `1` en cualquier otro caso. El texto de `error`, como la
@@ -286,9 +286,9 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 
 ## 7. Integración con el agente
 
-La extensión del agente Pi (`ADR-012`) no es una superficie del producto: envuelve el
-CLI. Cada herramienta ejecuta un comando y devuelve su JSON; ninguna toca la base ni
-recompone un mensaje del producto.
+Las extensiones de los agentes (`ADR-012`, `ADR-015`) no son una superficie del
+producto: envuelven el CLI. Cada herramienta ejecuta un comando y devuelve su JSON;
+ninguna toca la base ni recompone un mensaje del producto.
 
 ### Herramientas
 
@@ -363,8 +363,23 @@ quien lea su JSON recibe la tarea completa.
   `tasks_board`.
 - Un importador: traer el tablero anterior fue una pasada de retirada, no una capacidad
   del producto.
-- Un servidor MCP: la forma elegida es la extensión (`ADR-012`), y su condición de
-  revisión está en esa decisión.
+- Un servidor MCP: la forma elegida es la extensión (`ADR-012`, `ADR-015`), y su
+  condición de revisión está en esas decisiones.
+
+### Los dos hosts
+
+La tabla de herramientas es una sola: Pi y OpenCode ofrecen las mismas, con los mismos
+parámetros y los mismos textos, porque las dos envuelven el mismo CLI y comparten la
+proyección del tablero. Cambian el host, no el contrato.
+
+- **Pi** declara los parámetros con typebox, que le aporta el host, y el resumen del
+tablero entra antes de arrancar el agente. Añade el comando `/board` y la línea y el
+bloque del TUI.
+- **OpenCode** declara los parámetros con esquema JSON y el resumen entra en el sistema
+de cada petición. El host le aporta su paquete de plugins; no tiene TUI ni comando
+propio.
+- **Ninguno de los dos usa el TODO del arnés como registro de trabajo.** En OpenCode,
+`.opencode/todo.md` es cuaderno de sesión: el tablero es la única fuente.
 
 ## 8. El texto de las tareas
 

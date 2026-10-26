@@ -73,6 +73,9 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
   arreglo, una decisión, una duda— se propone como tarea antes de tocarlo, y se espera la
   confirmación.
+- El estado de misión del arnés de OpenCode —`.opencode/todo.md` y sus compañeros— es
+  cuaderno de sesión, no registro de trabajo: la misión nombra su `tk-N` y el tablero
+  sigue siendo la única lista.
 - Las notas son el plan de la tarea —los pasos y lo que hay que tener presente al
   retomarla—; los comentarios son decisiones con su razón, hallazgos y evidencias. Las
   notas se sobrescriben; los comentarios se corrigen editando su cuerpo y no se borran.

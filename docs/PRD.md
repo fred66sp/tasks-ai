@@ -121,6 +121,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio e incrustada en el binario para que el install la copie, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
 | RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
 | RF-13 | La búsqueda de la interfaz encuentra una tarea por el texto de su título, su referencia, sus etiquetas, su descripción, sus notas y sus comentarios |
+| RF-14 | El producto se acompaña también de un plugin del agente OpenCode, versionado en el repositorio e incrustado en el binario para que el install la copie, que ofrece las mismas operaciones del tablero sobre el CLI del producto: no toca la base, no reimplementa reglas y no mantiene una lista de tareas paralela |
 
 ### Reglas de negocio
 
@@ -175,3 +176,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-15 | El texto buscado en la interfaz lista la tarea que lo lleva en el título, la referencia, una etiqueta, la descripción, las notas o un comentario, y no lista nada cuando el texto no aparece en ninguno de esos campos |
 | CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por la extensión del agente con el mismo mensaje, y la tarea queda como estaba |
 | CA-17 | Un proyecto recién instalado trae el vocabulario de etiquetas del contrato con sus descripciones y su contrato escrito, de modo que una tarea se crea con su tipo sin preparar nada antes |
+| CA-18 | El agente completa el ciclo de trabajo de una tarea desde las herramientas del plugin de OpenCode, y el tablero queda como lo dejaría el CLI |

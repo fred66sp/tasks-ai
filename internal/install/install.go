@@ -24,9 +24,11 @@ const DirName = ".tasks-ai"
 // instructionsName is the file with the instructions for people and agents.
 const instructionsName = "AGENTS.md"
 
-// pointer is the text a project adds outside to point at the instructions.
+// pointer is the text a project adds outside to point at the instructions and at
+// the OpenCode adapter.
 const pointer = "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, " +
-	"añade esta línea al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName
+	"añade esta línea al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName + ". " +
+	"Para que OpenCode use el tablero, añade " + DirName + "/extensions/opencode a \"plugins\" de su opencode.jsonc"
 
 // contractName is the file with the contract of the labels.
 const contractName = "CONTRATO_ETIQUETAS.md"
@@ -46,6 +48,7 @@ type Result struct {
 	Pointer      string `json:"pointer"`
 	Binary       string `json:"binary"`
 	Extension    string `json:"extension"`
+	OpenCode     string `json:"opencode"`
 	Contract     string `json:"contract"`
 }
 
@@ -164,7 +167,12 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		return Result{}, err
 	}
 
-	extension, err := writeExtension(dir)
+	extension, err := writeExtension(dir, embedded.Pi, "pi")
+	if err != nil {
+		return Result{}, err
+	}
+
+	opencode, err := writeExtension(dir, embedded.OpenCode, "opencode")
 	if err != nil {
 		return Result{}, err
 	}
@@ -177,6 +185,7 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		Pointer:      pointer,
 		Binary:       binary,
 		Extension:    extension,
+		OpenCode:     opencode,
 		Contract:     filepath.Join(dir, contractName),
 	}, nil
 }
@@ -210,11 +219,12 @@ const binName = "tasks-ai"
 
 // complete says whether the installation already has everything the product
 // leaves. An installation made by an older version, without the binary or the
-// extension, is not complete: init completes it without touching what it has.
+// extensions, is not complete: init completes it without touching what it has.
 func complete(dir, dbPath, instructions string) bool {
 	return exists(dbPath) && exists(instructions) && exists(filepath.Join(dir, contractName)) &&
 		exists(filepath.Join(dir, "bin", binName)) &&
-		exists(filepath.Join(dir, "extensions", "pi"))
+		exists(filepath.Join(dir, "extensions", "pi")) &&
+		exists(filepath.Join(dir, "extensions", "opencode"))
 }
 
 // copyBinary deja el producto en la carpeta del proyecto, copiado del que se está
@@ -238,14 +248,13 @@ func copyBinary(dir string) (string, error) {
 	return target, nil
 }
 
-// writeExtension deja la extensión del agente dentro de la carpeta del producto,
+// writeExtension deja una extensión del agente dentro de la carpeta del producto,
 // extraída de los ficheros que el binario lleva incrustados, para que el proyecto
-// no dependa del repositorio de origen. Devuelve la ruta de la carpeta de la
-// extensión instalada.
-func writeExtension(dir string) (string, error) {
-	target := filepath.Join(dir, "extensions", "pi")
+// no dependa del repositorio de origen. Devuelve la ruta de la carpeta instalada.
+func writeExtension(dir string, files fs.FS, name string) (string, error) {
+	target := filepath.Join(dir, "extensions", name)
 
-	err := fs.WalkDir(embedded.Pi, ".", func(path string, entry fs.DirEntry, walkErr error) error {
+	err := fs.WalkDir(files, ".", func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -254,7 +263,7 @@ func writeExtension(dir string) (string, error) {
 			return nil
 		}
 
-		data, err := embedded.Pi.ReadFile(path)
+		data, err := fs.ReadFile(files, path)
 		if err != nil {
 			return err
 		}

@@ -120,18 +120,20 @@ reparte las dos superficies sin depender de nada más (`ADR-010`).
 
 ## 10. Integración con el agente
 
-El agente que trabaja en el proyecto llega al tablero por una extensión del agente Pi,
-que vive en `extensions/pi/` y se incrusta en el binario para que el install la copie
-(`ADR-012`, `ADR-014`). No es una tercera
-superficie del producto: envuelve el CLI, ejecuta sus comandos y devuelve su JSON.
+El agente que trabaja en el proyecto llega al tablero por una extensión —la de Pi, en
+`extensions/pi/`, o el plugin de OpenCode, en `extensions/opencode/`—, y las dos se
+incrustan en el binario para que el install las copie (`ADR-012`, `ADR-014`, `ADR-015`).
+No son una tercera superficie del producto: envuelven el CLI, ejecutan sus comandos y
+devuelven su JSON.
 
-- No toca la base ni reimplementa reglas: lo que el núcleo rechaza llega rechazado.
+- No tocan la base ni reimplementan reglas: lo que el núcleo rechaza llega rechazado.
 - El proyecto lo encuentra el CLI subiendo hasta `.tasks-ai/`, no la extensión.
 - Una herramienta por operación que el CLI ya tenga; ninguna que no exista.
-- Las etiquetas se asignan después de crear, porque `create` no las acepta.
+- Las dos comparten la proyección del tablero y el mapeo al CLI: cambia el host, no el
+  contrato.
 
 ```text
- agente ──> extensión (extensions/pi/) ──CLI──> núcleo ──> SQLite
+ agente ──> extensión (extensions/pi/ o extensions/opencode/) ──CLI──> núcleo ──> SQLite
 ```
 
 ## 11. De qué decisión sale cada pieza

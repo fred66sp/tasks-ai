@@ -21,8 +21,8 @@ func TestOpen_createsTheSchemaAndAnnotatesItsVersion(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 6 {
-		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 6", version)
+	if version != 7 {
+		t.Errorf("una base nueva queda en el esquema %d, se esperaba el 7", version)
 	}
 }
 
@@ -57,8 +57,8 @@ func TestOpen_doesNotRepeatTheSchemaItAlreadyHas(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 6 {
-		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 6", version)
+	if version != 7 {
+		t.Errorf("reabrir la base la dejó en el esquema %d, se esperaba el 7", version)
 	}
 
 	read, err := again.Task(t.Context(), created.ID)
@@ -101,6 +101,7 @@ func TestOpen_migratesIndexesWithoutLosingCommentsOrDependencies(t *testing.T) {
 	}
 
 	// Simula una base de esquema 5 que todavía no conoce los índices nuevos.
+	rawBase(t, path, "DROP TABLE adrs")
 	rawBase(t, path, "DROP INDEX comments_task_id_idx")
 	rawBase(t, path, "DROP INDEX dependencies_blocker_id_idx")
 	rawBase(t, path, "UPDATE meta SET value = '5' WHERE key = 'schema_version'")
@@ -111,8 +112,8 @@ func TestOpen_migratesIndexesWithoutLosingCommentsOrDependencies(t *testing.T) {
 	}
 	defer again.Close() //nolint:errcheck // las aserciones de abajo ya deciden el resultado
 
-	if version, err := again.SchemaVersion(t.Context()); err != nil || version != 6 {
-		t.Errorf("la base migrada quedó en el esquema %d (%v), se esperaba el 6", version, err)
+	if version, err := again.SchemaVersion(t.Context()); err != nil || version != 7 {
+		t.Errorf("la base migrada quedó en el esquema %d (%v), se esperaba el 7", version, err)
 	}
 
 	comments, err := again.Comments(t.Context(), task.ID)
@@ -191,8 +192,8 @@ func TestOpen_twoStoresOpeningABrandNewBaseAtTheSameTimeBothSucceed(t *testing.T
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 6 {
-		t.Errorf("la base quedó en el esquema %d, se esperaba el 6", version)
+	if version != 7 {
+		t.Errorf("la base quedó en el esquema %d, se esperaba el 7", version)
 	}
 
 	if err := after.SetPrefix(ctx, "px"); err != nil {
@@ -548,6 +549,7 @@ func TestOpen_givesUpWhenTheLockNeverYields(t *testing.T) {
 
 	// La base debe una migración para que Open necesite la escritura que este
 	// test bloquea; una base al día ya no abre transacciones solo para mirar.
+	rawBase(t, path, "DROP TABLE adrs")
 	rawBase(t, path, "DROP INDEX comments_task_id_idx")
 	rawBase(t, path, "DROP INDEX dependencies_blocker_id_idx")
 	rawBase(t, path, "UPDATE meta SET value = '5' WHERE key = 'schema_version'")
@@ -871,6 +873,7 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 	// La base se deja como estaba antes de la columna: sin ella y con el
 	// esquema 4 anotado, que es como llega una base de una versión anterior.
 	rawBase(t, path, `ALTER TABLE changes DROP COLUMN action`)
+	rawBase(t, path, `DROP TABLE adrs`)
 	rawBase(t, path, `DROP INDEX comments_task_id_idx`)
 	rawBase(t, path, `DROP INDEX dependencies_blocker_id_idx`)
 	rawBase(t, path, `UPDATE meta SET value = '4' WHERE key = 'schema_version'`)
@@ -889,8 +892,8 @@ func TestOpen_addsTheActionToABaseWhoseNoticesDoNotHaveOneYet(t *testing.T) {
 		t.Fatalf("SchemaVersion devolvió %v", err)
 	}
 
-	if version != 6 {
-		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 6", version)
+	if version != 7 {
+		t.Errorf("abrir la base de antes la dejó en el esquema %d, se esperaba el 7", version)
 	}
 
 	changes, err := again.Changes(ctx, 0, wholeHistory)

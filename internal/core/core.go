@@ -329,6 +329,11 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 		return nil, err
 	}
 
+	adrHeaders, err := c.adrHeadersOf(ctx, changes)
+	if err != nil {
+		return nil, err
+	}
+
 	events := make([]Event, 0, len(changes))
 
 	for _, change := range changes {
@@ -342,11 +347,14 @@ func (c *Core) Events(ctx context.Context, after int64) ([]Event, error) {
 
 		// El aviso de una etiqueta no habla de ninguna tarea, y una tarea que ya
 		// no está no tiene título que nombrar: el aviso sale sin él.
-		if change.Resource == store.ResourceTask {
+		switch change.Resource {
+		case store.ResourceTask:
 			event.Title = titles[change.ResourceID]
+		case store.ResourceADR:
+			event.Title = adrHeaders[change.ResourceID].Title
 		}
 
-		if event.Ref, err = c.referenceOf(change, tagNames); err != nil {
+		if event.Ref, err = c.referenceOf(change, tagNames, adrHeaders); err != nil {
 			return nil, err
 		}
 
@@ -399,15 +407,32 @@ func identitiesOf(changes []store.Change, resource string) []int64 {
 	return asked
 }
 
+// adrHeadersOf lee, en una sola consulta, el número y el título que tienen ahora
+// los ADR de los que hablan los avisos del lote.
+func (c *Core) adrHeadersOf(ctx context.Context, changes []store.Change) (map[int64]store.ADRHeader, error) {
+	headers, err := c.store.ADRHeaders(ctx, identitiesOf(changes, store.ResourceADR))
+	if err != nil {
+		return nil, fmt.Errorf("reading the headers of the changes: %w", err)
+	}
+
+	return headers, nil
+}
+
 // referenceOf composes the reference a notice speaks of: la tarea se nombra con
-// el prefijo de ahora, y la etiqueta con el nombre que lleva ahora, leído en el
-// lote. La etiqueta borrada no tiene nombre que mostrar.
-func (c *Core) referenceOf(change store.Change, tagNames map[int64]string) (string, error) {
+// el prefijo de ahora, la etiqueta con el nombre que lleva ahora y el ADR con su
+// número, leídos en el lote. La etiqueta borrada no tiene nombre que mostrar.
+func (c *Core) referenceOf(change store.Change, tagNames map[int64]string, adrHeaders map[int64]store.ADRHeader) (string, error) {
 	switch change.Resource {
 	case store.ResourceTask:
 		return Ref(c.prefix, change.ResourceID), nil
 	case store.ResourceTag:
 		return tagNames[change.ResourceID], nil
+	case store.ResourceADR:
+		if header := adrHeaders[change.ResourceID]; header.Number > 0 {
+			return ADRRef(header.Number), nil
+		}
+
+		return "", fmt.Errorf("notice %d speaks of ADR %d, which cannot be read", change.ID, change.ResourceID)
 	default:
 		return "", fmt.Errorf("notice %d speaks of resource %q, which cannot be read", change.ID, change.Resource)
 	}

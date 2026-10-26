@@ -987,8 +987,8 @@ func TestServer_reportsTheStatusOfTheProduct(t *testing.T) {
 
 	decode(t, body, &reported)
 
-	if reported.Version != core.Version || reported.Schema != 6 || reported.Prefix != "tk" {
-		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 6 y el prefijo tk", reported)
+	if reported.Version != core.Version || reported.Schema != 7 || reported.Prefix != "tk" {
+		t.Errorf("el estado del producto es %+v, se esperaba la versión del producto, el esquema 7 y el prefijo tk", reported)
 	}
 }
 

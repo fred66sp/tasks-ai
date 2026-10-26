@@ -33,6 +33,7 @@ const (
 const (
 	ResourceTask = "task"
 	ResourceTag  = "tag"
+	ResourceADR  = "adr"
 )
 
 // Las acciones que un aviso declara: lo que le pasó al recurso. Viajan dentro
@@ -153,6 +154,32 @@ var migrations = []migration{
 		statements: []string{
 			`CREATE INDEX comments_task_id_idx ON comments (task_id)`,
 			`CREATE INDEX dependencies_blocker_id_idx ON dependencies (blocker_id)`,
+		},
+	},
+	{
+		// Los ADR del proyecto, con su cuerpo por secciones. El sustituto apunta
+		// a la fila que sustituye, no a su número: así la relación no puede
+		// quedar apuntando a un número que nadie tiene. El número del ADR es
+		// único y no se reutiliza, y la fecha es la del último cambio de estado.
+		version: 7,
+		statements: []string{
+			`CREATE TABLE adrs (
+				id            INTEGER PRIMARY KEY AUTOINCREMENT,
+				number        INTEGER NOT NULL UNIQUE,
+				slug          TEXT    NOT NULL UNIQUE,
+				title         TEXT    NOT NULL,
+				status        TEXT    NOT NULL,
+				status_date   TEXT    NOT NULL,
+				deciders      TEXT    NOT NULL,
+				context       TEXT    NOT NULL DEFAULT '',
+				decision      TEXT    NOT NULL DEFAULT '',
+				consequences  TEXT    NOT NULL DEFAULT '',
+				alternatives  TEXT,
+				more_info     TEXT,
+				superseded_by INTEGER REFERENCES adrs (id),
+				created_at    TEXT    NOT NULL,
+				updated_at    TEXT    NOT NULL
+			)`,
 		},
 	},
 }

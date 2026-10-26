@@ -158,10 +158,10 @@ más se usan en este producto:
 | `skills/golang-lint/SKILL.md` | `golangci-lint` y sus reglas |
 | `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
 | `skills/adr-software/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
+| `skills/prd-cartographer/SKILL.md` | Escribir o revisar el PRD: evidencia, métricas y huecos declarados |
 
-Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Las skills
-`prd-writing`, `prd-to-plan` y `prd-to-issue` están para escribir requisitos y partirlos
-en plan o en encargos.
+Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Partir el PRD
+en trabajo no es tarea de una skill: cada unidad se propone como tarea del tablero.
 
 ## Idioma
 

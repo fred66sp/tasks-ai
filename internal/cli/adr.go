@@ -26,6 +26,7 @@ func newADRCommand() *cobra.Command {
 		newADRCreateCommand(),
 		newADREditCommand(),
 		newADRImportCommand(),
+		newADRExportCommand(),
 	)
 
 	return command

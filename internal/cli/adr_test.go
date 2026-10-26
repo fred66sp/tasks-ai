@@ -215,7 +215,7 @@ func TestRun_adrHelpNamesItsCommandsInEnglish(t *testing.T) {
 		t.Fatalf("adr --help salió con %d: %s", code, errOut)
 	}
 
-	for _, command := range []string{"list", "show", "create", "edit", "import"} {
+	for _, command := range []string{"list", "show", "create", "edit", "import", "export"} {
 		if !strings.Contains(out, command) {
 			t.Errorf("la ayuda no nombra el comando %q: %s", command, out)
 		}

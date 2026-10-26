@@ -1319,6 +1319,7 @@ func stripNoticeActions(t *testing.T, path string) {
 
 	for _, statement := range []string{
 		`ALTER TABLE changes DROP COLUMN action`,
+		`DROP TABLE adrs`,
 		`DROP INDEX comments_task_id_idx`,
 		`DROP INDEX dependencies_blocker_id_idx`,
 		`UPDATE meta SET value = '4' WHERE key = 'schema_version'`,

@@ -44,7 +44,7 @@ export interface Board {
 	counts: { open: number; in_progress: number; done: number; total: number };
 	inProgress: Task[];
 	ready: Task[];
-	lastClosed?: Task;
+	lastClosed?: Task | undefined;
 	tree: TreeNode[];
 }
 

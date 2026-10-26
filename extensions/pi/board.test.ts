@@ -115,14 +115,9 @@ describe("renderDetail", () => {
 		}));
 
 		const text = renderDetail({
-			ref: "tk-1",
-			title: "una tarea",
-			status: "open",
-			blocked: false,
-			priority: 1,
-			tags: ["docs"],
+			...task({ id: 1, ref: "tk-1", priority: 1, tags: ["docs"] }),
 			description: "una descripción larga",
-			children: [{ ref: "tk-2", title: "hija", status: "open", blocked: false, priority: 2, tags: [] }],
+			children: [task({ id: 2, ref: "tk-2", title: "hija", priority: 2 })],
 			blockers: [],
 			dependents: [],
 			comments,

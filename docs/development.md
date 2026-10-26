@@ -23,28 +23,39 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `extensions/opencode/` | La integración con el agente OpenCode: las mismas herramientas sobre el CLI, con sus pruebas propias |
 | `skills/` | Las skills del proyecto, copiadas de su origen: el taller y `SKILLS-AGP` |
 
-Las pruebas de la extensión de Pi necesitan sus dependencias en el disco: se instalan una vez con
-`npm install` y quedan en `extensions/pi/node_modules/`, que no se versiona. Hacen falta
-porque `index.ts` importa `typebox`, que en el paquete es `peerDependency` —lo inyecta Pi al
-cargar la extensión, no Node al probarla—, y sin él la suite no arranca.
+Las dos extensiones se comprueban con `npm run typecheck` y `npm test`. Sus dependencias se
+instalan una vez con `npm install` y quedan en `extensions/*/node_modules/`, que no se
+versiona. Hacen falta porque el typecheck necesita TypeScript y los tipos de Node, y porque
+`index.ts` de la extensión de Pi importa `typebox`, que en el paquete es `peerDependency` —lo
+inyecta Pi al cargar la extensión, no Node al probarla— y sin él la suite no arranca.
 
 ```bash
 cd extensions/pi
 npm install
+npm run typecheck
 npm test
 ```
 
 `npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
 el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
+`npm run typecheck` es `tsc --noEmit` sobre el `tsconfig.json` de la extensión: no emite
+nada, porque Node ejecuta los `.ts` tal cual. No activa `noUncheckedIndexedAccess`: las
+pruebas indexan los mapas del arnés y cada acceso pasaría a ser un aviso que no comprueba
+más código. El paquete que aporta el host a Pi —`@earendil-works/pi-coding-agent`— está como
+devDependency, así que el typecheck ve sus tipos reales.
 
-El plugin de OpenCode no trae dependencias —el host le aporta su paquete—, así que sus
-pruebas arrancan sin instalar nada:
+El plugin de OpenCode no trae dependencias de ejecución —el host le aporta su paquete—, pero
+sí las de la comprobación:
 
 ```bash
 cd extensions/opencode
+npm install
+npm run typecheck
 npm test
 ```
 
+`@opencode/plugin` no declara la superficie que usa el adaptador, así que sus tipos viven en
+`types/opencode-plugin.d.ts`; el contexto que el host entrega lo tipa `tasks.ts`.
 Reutiliza el tablero y el CLI de la extensión de Pi, y sustituye el CLI por uno falso:
 comprueba el adaptador, no el producto.
 

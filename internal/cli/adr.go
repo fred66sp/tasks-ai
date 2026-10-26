@@ -196,7 +196,7 @@ func newADREditCommand() *cobra.Command {
 
 	command.Flags().StringVarP(&title, "title", "t", "", "new title of the ADR")
 	command.Flags().StringVar(&status, "status", "", "new state: proposed, accepted, rejected, deprecated or superseded")
-	command.Flags().StringVar(&supersededBy, "superseded-by", "", "ADR that replaces this one, by its number or ADR-NNN")
+	command.Flags().StringVar(&supersededBy, "superseded-by", "", "ADR that replaces this one, by its number or ADR-NNN; name it back from the substitute's more information")
 	command.Flags().StringVar(&context, "context", "", "new context and problem")
 	command.Flags().StringVar(&decision, "decision", "", "new decision")
 	command.Flags().StringVar(&consequences, "consequences", "", "new consequences")

@@ -121,8 +121,11 @@ la siguiente exportación lo revierte, y la marca del principio del archivo lo d
 
 El cuerpo se congela al salir de `proposed`: después solo se admiten añadidos fechados en
 «Más información», y un cambio de decisión se publica como un ADR nuevo que sustituye al
-anterior. La puerta de `adr-software` revisa el texto exportado, y su resultado se nombra
-en la tarea que cambia una decisión.
+anterior. El sustituto nombra al anterior en «Más información» con el nombre de su archivo
+—`--note "Sustituye a ADR-001 (001-la-primera-decision.md)."`, con el `slug` que da `adr
+show`—: el producto guarda el enlace del sustituido y no reescribe el texto del sustituto, y
+la puerta de `adr-software` es quien comprueba que el nombre está. Su resultado se nombra en
+la tarea que cambia una decisión.
 
 ## Fronteras del código
 

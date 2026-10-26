@@ -110,7 +110,7 @@ func (c *Core) AllADRs(ctx context.Context) ([]ADR, error) {
 // ADR returns the ADR the reference points at. El número se escribe suelto o
 // con la referencia completa.
 func (c *Core) ADR(ctx context.Context, ref string) (ADR, error) {
-	number, err := parseADRRef(ref)
+	number, err := ParseADRRef(ref)
 	if err != nil {
 		return ADR{}, err
 	}
@@ -250,7 +250,7 @@ func (c *Core) UpdateADR(ctx context.Context, ref string, changes ADRChanges) (A
 		return ADR{}, invalid("there is nothing to change: name at least one field")
 	}
 
-	number, err := parseADRRef(ref)
+	number, err := ParseADRRef(ref)
 	if err != nil {
 		return ADR{}, err
 	}
@@ -301,7 +301,7 @@ func (c *Core) UpdateADR(ctx context.Context, ref string, changes ADRChanges) (A
 func changedADR(adr store.ADR, changes ADRChanges, today string) (store.ADR, error) {
 	if adr.Status != store.ADRProposed && changes.editsBody() {
 		return store.ADR{}, invalid(
-			"the body of ADR %s is frozen: once it leaves proposed, only more information accepts additions",
+			"the body of %s is frozen: once it leaves proposed, only more information accepts additions",
 			ADRRef(adr.Number),
 		)
 	}
@@ -582,9 +582,9 @@ func summarizeADR(stored store.ADR) (ADRSummary, error) {
 	}, nil
 }
 
-// parseADRRef reads the reference of an ADR: su número suelto o la referencia
+// ParseADRRef reads the reference of an ADR: su número suelto o la referencia
 // completa, sin distinguir mayúsculas.
-func parseADRRef(ref string) (int, error) {
+func ParseADRRef(ref string) (int, error) {
 	text := strings.TrimSpace(ref)
 	text = strings.TrimPrefix(strings.ToUpper(text), ADRRefPrefix)
 

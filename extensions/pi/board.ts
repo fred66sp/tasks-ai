@@ -51,7 +51,6 @@ export interface Board {
 const MAX_TREE_NODES = 40;
 const MAX_LISTED = 8;
 const MAX_TITLE = 60;
-const MAX_COMMENT = 500;
 
 /** Deriva el tablero: contadores por estado, lo que está en curso, lo que se puede empezar y el árbol. */
 export function deriveBoard(tasks: Task[]): Board {
@@ -170,7 +169,7 @@ export function renderDetail(detail: Detail): string {
 	if (detail.comments.length > 0) {
 		const recent = detail.comments.slice(-10);
 		lines.push("", `comentarios (${detail.comments.length}, los ${recent.length} últimos):`);
-		for (const comment of recent) lines.push(`- #${comment.id} · ${comment.created_at} · ${clip(comment.body, MAX_COMMENT)}`);
+		for (const comment of recent) lines.push(commentBlock(comment));
 	}
 
 	return lines.join("\n");
@@ -179,7 +178,15 @@ export function renderDetail(detail: Detail): string {
 /** Compone la lista de comentarios de una tarea, tal como la responde `comment list`. */
 export function renderComments(comments: Comment[]): string {
 	if (comments.length === 0) return "Sin comentarios.";
-	return comments.map((comment) => `- #${comment.id} · ${comment.created_at} · ${clip(comment.body, MAX_COMMENT)}`).join("\n");
+	return comments.map(commentBlock).join("\n");
+}
+
+/**
+ * Un comentario con su identidad en una línea y el cuerpo entero debajo, sin
+ * recortar ni recomponer: lo que se lee se puede volver a escribir tal cual.
+ */
+function commentBlock(comment: Comment): string {
+	return `- #${comment.id} · ${comment.created_at}\n${comment.body}`;
 }
 
 function listOf(tasks: Task[]): string {

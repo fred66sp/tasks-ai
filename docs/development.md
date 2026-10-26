@@ -21,7 +21,7 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
 | `extensions/opencode/` | La integración con el agente OpenCode: las mismas herramientas sobre el CLI, con sus pruebas propias |
-| `skills/` | Las skills del proyecto, copiadas del taller: Go, TypeScript y las locales |
+| `skills/` | Las skills del proyecto, copiadas de su origen: el taller y `SKILLS-AGP` |
 
 Las pruebas de la extensión de Pi necesitan sus dependencias en el disco: se instalan una vez con
 `npm install` y quedan en `extensions/pi/node_modules/`, que no se versiona. Hacen falta

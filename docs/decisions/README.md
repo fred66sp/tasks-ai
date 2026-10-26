@@ -1,0 +1,29 @@
+# Decisiones de arquitectura (ADR)
+
+Un Architecture Decision Record (ADR) recoge una decisión de arquitectura relevante con su
+contexto y sus consecuencias. Este índice enlaza los registros del directorio; no repite sus
+decisiones.
+
+## Convenciones
+
+- Directorio: `docs/decisions`
+- Nombres: `NNN-titulo-con-guiones.md`.
+- Estados: `proposed`, `accepted`, `rejected`, `deprecated`, `superseded`.
+
+## ADR
+
+- [ADR-001: Producto local-first en Go, de un solo proyecto](001-producto-local-first-en-go.md) (accepted, 2026-10-16)
+- [ADR-002: Un solo binario con dos superficies](002-un-solo-binario-con-dos-superficies.md) (accepted, 2026-10-16)
+- [ADR-003: Instalación en una sola carpeta del proyecto](003-instalacion-en-una-sola-carpeta.md) (accepted, 2026-10-16)
+- [ADR-004: Identidad interna y referencia visible](004-identidad-interna-y-referencia-visible.md) (accepted, 2026-10-16)
+- [ADR-005: Reutilizar la interfaz y sustituir el servidor](005-reutilizar-la-interfaz-con-un-nucleo-nuevo.md) (accepted, 2026-10-16)
+- [ADR-006: Reglas heredadas de la referencia funcional](006-reglas-heredadas-de-tacks.md) (accepted, 2026-10-16)
+- [ADR-007: SQLite directo, sin ORM](007-sqlite-directo-sin-orm.md) (accepted, 2026-10-16)
+- [ADR-008: Las escrituras las ordena la base](008-escrituras-ordenadas-por-la-base.md) (accepted, 2026-10-16)
+- [ADR-009: Forma del código y dependencias del producto](009-forma-del-codigo-y-dependencias.md) (accepted, 2026-10-16)
+- [ADR-010: La interfaz vive en `web/` y viaja en el binario](010-la-interfaz-vive-en-web-y-viaja-en-el-binario.md) (accepted, 2026-10-16)
+- [ADR-011: Las superficies del producto hablan inglés](011-las-superficies-del-producto-hablan-ingles.md) (accepted, 2026-10-17)
+- [ADR-012: La integración con el agente vive fuera del binario](012-la-integracion-con-el-agente-vive-fuera-del-binario.md) (superseded, 2026-10-17)
+- [ADR-013: El validador del texto de las tareas es léxico](013-el-validador-del-texto-de-las-tareas-es-lexico.md) (accepted, 2026-10-21)
+- [ADR-014: La extensión se distribuye incrustada y el install la copia](014-la-extension-se-distribuye-incrustada-y-el-install-la-copia.md) (accepted, 2026-10-22)
+- [ADR-015: El adaptador de OpenCode envuelve el CLI](015-the-opencode-adapter-wraps-the-cli.md) (accepted, 2026-10-26)

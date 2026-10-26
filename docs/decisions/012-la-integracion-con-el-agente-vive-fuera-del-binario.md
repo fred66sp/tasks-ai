@@ -1,7 +1,10 @@
-# ADR-012: La integración con el agente vive fuera del binario
+---
+status: superseded by [ADR-014](014-la-extension-se-distribuye-incrustada-y-el-install-la-copia.md)
+date: 2026-10-17
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Superada por [ADR-014](014-la-extension-se-distribuye-incrustada-y-el-install-la-copia.md)
-- **Fecha:** 2026-10-17
+# ADR-012: La integración con el agente vive fuera del binario
 
 ## Contexto
 

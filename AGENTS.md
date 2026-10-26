@@ -136,12 +136,12 @@ Y siempre, antes de cerrar el cambio, las comprobaciones de
 
 ## Trabajo en Go y en TypeScript
 
-El proyecto lleva dentro las skills que necesita, copiadas del taller
-`workshop-golang`: su origen, sus licencias y cómo volver a copiarlas están en
-[`skills/README.md`](skills/README.md). Se leen por su ruta relativa al proyecto, así que
-no hace falta tener el taller al lado. El procedimiento de Git y el de documentación no
-se copian: los ponen las skills que instala el arnés, `git-flow-management` y
-`document-management-software`.
+El proyecto lleva dentro las skills que necesita, copiadas de su origen: el taller
+`workshop-golang` y el repositorio propio `SKILLS-AGP`. Su origen, sus licencias y cómo
+volver a copiarlas están en [`skills/README.md`](skills/README.md). Se leen por su ruta
+relativa al proyecto, así que no hace falta tener el origen al lado. El procedimiento de
+Git y el de documentación no se copian: los ponen las skills que instala el arnés,
+`git-flow-management` y `document-management-software`.
 
 Antes de escribir, revisar o depurar código Go, lee `skills/golang-how-to/SKILL.md`, que
 es el orquestador: de la petición saca qué skills cargar y en qué combinación. Las que
@@ -157,7 +157,7 @@ más se usan en este producto:
 | `skills/golang-code-style/SKILL.md` | Forma del código y de los comentarios |
 | `skills/golang-lint/SKILL.md` | `golangci-lint` y sus reglas |
 | `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
-| `skills/adr-skill/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
+| `skills/adr-software/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
 
 Para la extensión, que está en TypeScript, lee `skills/typescript/SKILL.md`. Las skills
 `prd-writing`, `prd-to-plan` y `prd-to-issue` están para escribir requisitos y partirlos

@@ -1,11 +1,15 @@
-# ADR-014: La extensión se distribuye incrustada y el install la copia
+---
+status: accepted
+date: 2026-10-22
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-22
+# ADR-014: La extensión se distribuye incrustada y el install la copia
 
 ## Contexto
 
-ADR-012 dejó la extensión del agente fuera del binario y fuera del producto instalable:
+[ADR-012](012-la-integracion-con-el-agente-vive-fuera-del-binario.md) dejó la extensión
+del agente fuera del binario y fuera del producto instalable:
 el proyecto la instalaba por ruta (`pi install -l ./extensions/pi`), dejando en sus
 ajustes una ruta relativa al repositorio de origen. Un proyecto que se lleva a otra
 máquina sin ese repositorio pierde la integración, y el binario tampoco viaja: se

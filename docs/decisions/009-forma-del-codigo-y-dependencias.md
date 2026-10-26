@@ -1,7 +1,10 @@
-# ADR-009: Forma del código y dependencias del producto
+---
+status: accepted
+date: 2026-10-16
+decision-makers: "Alfredo González Portero"
+---
 
-- **Estado:** Aceptada
-- **Fecha:** 2026-10-16
+# ADR-009: Forma del código y dependencias del producto
 
 ## Contexto
 

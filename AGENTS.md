@@ -27,7 +27,7 @@ detalle canónico vive en los documentos enlazados y no se copia aquí.
   sitios, se elige el dueño y en el otro se enlaza.
 - No se escribe lo que ya guardan Git, el tablero o el código. La historia y el estado se
   consultan, no se copian.
-- No se escriben referencias que envejecen: hashes, rutas de una máquina, recuentos ni
+- No se escriben referencias que envejecen: hashes de commit, rutas de una máquina, recuentos ni
   fechas de verificación. Se enuncia el hecho.
 - Cada documento declara su misión en su primera sección. No se crea uno nuevo si la
   pregunta ya tiene dueño.
@@ -110,7 +110,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 |---|---|
 | `docs/` | La documentación del producto |
 | `cmd/`, `internal/` | El código del producto, en Go |
-| `.tasks-ai/` | El tablero del proyecto; su base vive en esta máquina y no viaja |
+| `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `skills/` | Las skills del proyecto que no instala el arnés; su origen, en `skills/README.md` |
 
 - Los proyectos de referencia están fuera de este repositorio: se leen, no se tocan.

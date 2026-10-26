@@ -25,7 +25,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 | `docs/architecture.md` | Cómo está construido y por qué | Requisitos, procedimientos |
 | `docs/contracts.md` | Formas de datos y API que no se pueden romper | Narrativa de producto |
 | `docs/development.md` | Estructura del código, convenciones y cómo se trabaja | Estado, historia |
-| `docs/operations.md` | Construir, ejecutar y operar el producto | Requisitos, decisiones |
+| `docs/operations.md` | Ejecutar el producto y operar el tablero | Requisitos, decisiones |
 | `docs/known-risks.md` | Riesgos vivos, resueltos y deuda aceptada | Requisitos, planes |
 | `docs/decisions/` | Una decisión durable por documento | El catálogo de lo trivial |
 | `docs/web/index.html` | La guía de uso del producto | Requisitos, decisiones |

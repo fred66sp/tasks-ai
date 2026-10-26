@@ -136,16 +136,5 @@ superficie del producto: envuelve el CLI, ejecuta sus comandos y devuelve su JSO
 
 ## 11. De qué decisión sale cada pieza
 
-| Pieza del diseño | Decisión |
-|---|---|
-| Producto en Go, local y de un solo proyecto | `ADR-001` |
-| Un binario con las dos superficies y un núcleo | `ADR-002` |
-| Instalación en una sola carpeta del proyecto | `ADR-003` |
-| Identidad interna y referencia visible | `ADR-004` |
-| Interfaz reutilizada con servidor nuevo | `ADR-005` |
-| Reglas heredadas conservadas y descartadas | `ADR-006` |
-| SQLite directo | `ADR-007` |
-| Escrituras ordenadas por la base | `ADR-008` |
-| Forma del código y dependencias | `ADR-009` |
-| Interfaz en `web/`, incrustada en el binario | `ADR-010` |
-| Integración con el agente: incrustada para distribuirla | `ADR-012`, `ADR-014` |
+Cada pieza del diseño sale de una decisión registrada en [`decisions/`](decisions/). El
+documento de cada decisión explica el contexto, lo que se decidió y lo que se descartó.

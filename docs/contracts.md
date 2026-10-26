@@ -395,7 +395,7 @@ una letra.
 - Se rechaza: `acd789f`.
 - Se acepta: `hashes de commit, nombres de rama, referencias a commits pendientes`.
 
-**`R2` — el nombre de una rama.** Uno de los prefijos de rama del contrato de Git seguido
+**`R2` — el nombre de una rama.** Uno de los prefijos de rama del flujo de Git seguido
 de su nombre.
 
 ```text

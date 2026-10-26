@@ -67,12 +67,15 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
   [`docs/development.md`](docs/development.md).
 - Ninguna tarea la crea el agente por su cuenta: la propone con el resultado que cierra y
   el criterio con el que se comprueba, y espera la confirmación de la persona.
+- Quien delega es quien cierra: un subagente trabaja la tarea y devuelve evidencia, pero
+  no la cierra ni escribe el cierre.
 - Lo que no está en el tablero no entra en el trabajo. La tarea siguiente se saca de
   ahí, con su criterio; no se inventa por el camino. Lo que aparezca de nuevo —un
   arreglo, una decisión, una duda— se propone como tarea antes de tocarlo, y se espera la
   confirmación.
-- Cómo se escribe y se mantiene una tarea —etiquetas, ritmo de actualización y qué
-  guarda cada campo— lo gobierna [`.tasks-ai/AGENTS.md`](.tasks-ai/AGENTS.md).
+- Las notas son el plan de la tarea —los pasos y lo que hay que tener presente al
+  retomarla—; los comentarios son decisiones con su razón, hallazgos y evidencias. Las
+  notas se sobrescriben; los comentarios se corrigen editando su cuerpo y no se borran.
 - Cada tarea declara **el resultado que cierra** y **el criterio con el que se
   comprueba**, observable por la interfaz pública. Una tarea sin criterio no se
   empieza: se escribe primero.

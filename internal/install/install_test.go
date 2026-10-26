@@ -541,6 +541,24 @@ func TestRun_writesTheContractTheProductShips(t *testing.T) {
 	}
 }
 
+func TestInstructionsInTheRepositoryAreTheShippedOnes(t *testing.T) {
+	t.Parallel()
+
+	shipped, err := os.ReadFile("agent.md")
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones que viajan en el binario: %v", err)
+	}
+
+	repository, err := os.ReadFile(filepath.Join("..", "..", ".tasks-ai", "AGENTS.md"))
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones del repositorio: %v", err)
+	}
+
+	if !bytes.Equal(shipped, repository) {
+		t.Errorf("las instrucciones del repositorio no son las que viajan en el binario")
+	}
+}
+
 // tagsOf abre la base de una instalación y devuelve su catálogo.
 func tagsOf(t *testing.T, dbPath string) []store.TagUse {
 	t.Helper()

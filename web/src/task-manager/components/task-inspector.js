@@ -35,8 +35,7 @@ export const TaskInspector = {
     menuItems() {
       return [
         { id: 'copy', label: 'Copiar ID' },
-        { id: 'subtask', label: 'Crear subtarea' },
-        { id: 'close', label: 'Cerrar tarea', separatorBefore: true, danger: true, disabled: this.task.status === 'done' || this.busy(`close:${this.task.id}`) }
+        { id: 'subtask', label: 'Crear subtarea' }
       ];
     }
   },
@@ -50,7 +49,6 @@ export const TaskInspector = {
     selectMenuAction(action) {
       if (action === 'copy') this.emitAction('task.copy');
       if (action === 'subtask') this.emitAction('subtask.open');
-      if (action === 'close') this.emitAction('task.close');
     },
     selectTab(tab) {
       if (tab === 'edit') this.emitAction('edit.open');
@@ -94,11 +92,18 @@ export const TaskInspector = {
           <div class="task-inspector__description tk-rich-text tk-scrollable-text"
             :class="{ 'tk-rich-text--plain': plainText(task.description) }" v-html="descriptionHtml()"></div>
         </div>
-        <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
-            aria-label="Editar tarea" @click="emitAction('edit.open')">✎</button>
+        <div class="task-inspector__actions"><button class="tk-button tk-button--secondary tk-button--compact"
+            type="button" title="Editar tarea" @click="emitAction('edit.open')"><span class="tk-icon"
+              aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Z" />
+              </svg></span>Editar</button><button class="tk-button tk-button--danger tk-button--compact" type="button"
+            title="Cerrar tarea" :disabled="task.status === 'done' || busy('close:' + task.id)"
+            @click="emitAction('task.close')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="m5 12 4 4L19 6" />
+              </svg></span>Cerrar tarea</button><task-badge kind="status" :value="task.status"></task-badge>
           <overflow-menu :open="menuOpen" :items="menuItems" label="Más opciones de la tarea"
             menu-class="tk-dropdown--inspector" :compact="false" @toggle="emitAction('menu.toggle')"
-            @select="selectMenuAction"></overflow-menu><task-badge kind="status" :value="task.status"></task-badge>
+            @select="selectMenuAction"></overflow-menu>
         </div>
       </div>
       <div class="task-property-bar"><label class="task-property-control"><span

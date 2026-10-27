@@ -34,7 +34,10 @@ export const TagManagerDrawer = {
     <div class="tag-manager-body">
       <div class="tag-manager-toolbar"><input :value="searchQuery" class="tk-input" type="search"
           placeholder="Buscar etiquetas" @input="$emit('update-search', $event.target.value)" /><button
-          class="tk-button tk-button--secondary" type="button" @click="$emit('open-create')">Nueva</button></div>
+          class="tk-button tk-button--secondary tk-button--compact" type="button" title="Nueva etiqueta"
+          @click="$emit('open-create')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg></span>Nueva</button></div>
       <div class="tag-manager-summary"><span>{{ tags.length }}
           {{ tags.length === 1 ? 'etiqueta' : 'etiquetas' }}</span><span>A–Z</span></div>
       <div class="tag-manager-list">

@@ -87,7 +87,8 @@ textarea:focus-visible {
 }
 .workspace-header__actions {
   display: flex;
-  gap: var(--tk-space-2);
+  align-items: center;
+  gap: 6px;
 }
 .workspace-body {
   display: grid;

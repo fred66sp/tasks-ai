@@ -1655,7 +1655,10 @@
     <div class="tag-manager-body">
       <div class="tag-manager-toolbar"><input :value="searchQuery" class="tk-input" type="search"
           placeholder="Buscar etiquetas" @input="$emit('update-search', $event.target.value)" /><button
-          class="tk-button tk-button--secondary" type="button" @click="$emit('open-create')">Nueva</button></div>
+          class="tk-button tk-button--secondary tk-button--compact" type="button" title="Nueva etiqueta"
+          @click="$emit('open-create')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg></span>Nueva</button></div>
       <div class="tag-manager-summary"><span>{{ tags.length }}
           {{ tags.length === 1 ? 'etiqueta' : 'etiquetas' }}</span><span>A\u2013Z</span></div>
       <div class="tag-manager-list">
@@ -2106,7 +2109,7 @@
         return this.kind === "status" ? statusBadgeClass(this.value) : `tk-priority--${this.value}`;
       }
     },
-    template: `<span :class="['tk-badge', badgeClass]">{{ label }}</span>`
+    template: `<span :class="['tk-badge', badgeClass]"><span v-if="kind === 'status'" class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></span>{{ label }}</span>`
   };
 
   // src/shared/tasks/rich-text.js
@@ -2244,8 +2247,7 @@
       menuItems() {
         return [
           { id: "copy", label: "Copiar ID" },
-          { id: "subtask", label: "Crear subtarea" },
-          { id: "close", label: "Cerrar tarea", separatorBefore: true, danger: true, disabled: this.task.status === "done" || this.busy(`close:${this.task.id}`) }
+          { id: "subtask", label: "Crear subtarea" }
         ];
       }
     },
@@ -2259,7 +2261,6 @@
       selectMenuAction(action) {
         if (action === "copy") this.emitAction("task.copy");
         if (action === "subtask") this.emitAction("subtask.open");
-        if (action === "close") this.emitAction("task.close");
       },
       selectTab(tab) {
         if (tab === "edit") this.emitAction("edit.open");
@@ -2303,11 +2304,18 @@
           <div class="task-inspector__description tk-rich-text tk-scrollable-text"
             :class="{ 'tk-rich-text--plain': plainText(task.description) }" v-html="descriptionHtml()"></div>
         </div>
-        <div class="task-inspector__actions"><button class="tk-icon-button" type="button" title="Editar"
-            aria-label="Editar tarea" @click="emitAction('edit.open')">\u270E</button>
+        <div class="task-inspector__actions"><button class="tk-button tk-button--secondary tk-button--compact"
+            type="button" title="Editar tarea" @click="emitAction('edit.open')"><span class="tk-icon"
+              aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Z" />
+              </svg></span>Editar</button><button class="tk-button tk-button--danger tk-button--compact" type="button"
+            title="Cerrar tarea" :disabled="task.status === 'done' || busy('close:' + task.id)"
+            @click="emitAction('task.close')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+                <path d="m5 12 4 4L19 6" />
+              </svg></span>Cerrar tarea</button><task-badge kind="status" :value="task.status"></task-badge>
           <overflow-menu :open="menuOpen" :items="menuItems" label="M\xE1s opciones de la tarea"
             menu-class="tk-dropdown--inspector" :compact="false" @toggle="emitAction('menu.toggle')"
-            @select="selectMenuAction"></overflow-menu><task-badge kind="status" :value="task.status"></task-badge>
+            @select="selectMenuAction"></overflow-menu>
         </div>
       </div>
       <div class="task-property-bar"><label class="task-property-control"><span
@@ -2935,8 +2943,11 @@
         <h2 id="decisions-title">Decisiones</h2>
         <p>Los ADR del proyecto</p>
       </div>
-      <div class="decisions-header__actions"><button class="tk-button tk-button--secondary" type="button"
-          @click="startNew()">Nueva decisi\xF3n</button><button class="tk-icon-button" type="button"
+      <div class="decisions-header__actions"><button class="tk-button tk-button--secondary tk-button--compact"
+          type="button" title="Nueva decisi\xF3n" @click="startNew()"><span class="tk-icon" aria-hidden="true"><svg
+            viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg></span>Nueva decisi\xF3n</button><button class="tk-icon-button" type="button"
           aria-label="Cerrar decisiones" title="Cerrar decisiones" @click="$emit('close')">\xD7</button></div>
     </header>
     <div class="decisions-body" ref="scroller" @scroll="onScroll">
@@ -2960,9 +2971,15 @@
 
         <form v-if="creating" class="decisions-item is-open decisions-create" @submit.prevent="save()">
           <div class="decisions-form__bar"><span class="decisions-item__ref">Nueva decisi\xF3n</span>
-            <div class="decisions-actions"><button class="tk-button tk-button--ghost" type="button"
-                @click="cancel()">Cancelar</button><button class="tk-button tk-button--primary" type="submit"
-                :disabled="busy">Guardar</button></div>
+            <div class="decisions-actions"><button class="tk-button tk-button--ghost tk-button--compact" type="button"
+                title="Descartar cambios" @click="cancel()"><span class="tk-icon" aria-hidden="true"><svg
+                    viewBox="0 0 24 24">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg></span>Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
+                type="submit" title="Guardar decisi\xF3n" :disabled="busy"><span class="tk-icon" aria-hidden="true"><svg
+                    viewBox="0 0 24 24">
+                    <path d="m5 12 4 4L19 6" />
+                  </svg></span>Guardar</button></div>
           </div>
           <div class="form-grid"><label class="tk-field span-2"><span class="tk-field__label">T\xEDtulo</span><input
                 class="tk-input" required :value="draft.title"
@@ -3011,9 +3028,15 @@
             <p v-if="!details[adr.number] && !isEditing(adr.number)" class="decisions-empty">Leyendo la decisi\xF3n\u2026</p>
             <form v-if="isEditing(adr.number) && details[adr.number]" class="decisions-form" @submit.prevent="save()">
               <div class="decisions-form__bar"><span class="decisions-item__ref">Editando {{ adr.ref }}</span>
-                <div class="decisions-actions"><button class="tk-button tk-button--ghost" type="button"
-                    @click="cancel()">Cancelar</button><button class="tk-button tk-button--primary" type="submit"
-                    :disabled="busy">Guardar</button></div>
+                <div class="decisions-actions"><button class="tk-button tk-button--ghost tk-button--compact"
+                    type="button" title="Descartar cambios" @click="cancel()"><span class="tk-icon"
+                      aria-hidden="true"><svg viewBox="0 0 24 24">
+                        <path d="M6 6l12 12M18 6 6 18" />
+                      </svg></span>Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
+                    type="submit" title="Guardar decisi\xF3n" :disabled="busy"><span class="tk-icon"
+                      aria-hidden="true"><svg viewBox="0 0 24 24">
+                        <path d="m5 12 4 4L19 6" />
+                      </svg></span>Guardar</button></div>
               </div>
               <div class="form-grid"><label class="tk-field span-2"><span class="tk-field__label">T\xEDtulo</span><input
                     class="tk-input" required :value="draft.title" :disabled="frozenBody"
@@ -3051,8 +3074,11 @@
                     v-if="details[adr.number].superseded_by">Sustituido por <button class="decisions-link"
                       type="button"
                       @click="openReference(details[adr.number].superseded_by)">{{ details[adr.number].superseded_by
-                      }}</button></span></p><button class="tk-button tk-button--secondary" type="button"
-                  @click="startEdit(adr.number)">Editar</button>
+                      }}</button></span></p><button class="tk-button tk-button--secondary tk-button--compact"
+                  type="button" title="Editar decisi\xF3n" @click="startEdit(adr.number)"><span class="tk-icon"
+                    aria-hidden="true"><svg viewBox="0 0 24 24">
+                      <path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Z" />
+                    </svg></span>Editar</button>
               </div>
               <section v-for="section in sectionsOf(details[adr.number])" :key="section.field" class="decisions-section"
                 :class="'decisions-section--' + section.field">
@@ -3095,18 +3121,30 @@
         <div><strong>Gestor de tareas</strong><span>Local</span></div>
       </div>
       <div class="workspace-header__actions">
-        <button class="tk-icon-button" type="button" aria-label="Actualizar datos" title="Actualizar datos"
-          :disabled="refreshing || loading" @click.stop="reloadWorkspace()"><span class="tk-icon"
-            :class="{ 'is-spinning': refreshing }">\u21BB</span></button>
-        <button class="tk-button tk-button--danger" type="button"
-          :disabled="!hasSelection || selectedTask.status === 'done' || isBusy('close:' + selectedTaskId)"
-          @click.stop="closeTask()">Cerrar tarea</button>
-        <button class="tk-button tk-button--secondary" type="button" data-decisions-open=""
-          :disabled="unavailable || loading" @click.stop="isDecisionsOpen = true">Decisiones</button>
-        <button class="tk-button tk-button--secondary" type="button" data-tag-manager-open=""
-          :disabled="unavailable || loading" @click.stop="isTagManagerOpen = true">Etiquetas</button>
-        <button class="tk-button tk-button--primary" type="button" :disabled="unavailable || loading"
-          @click.stop="newTaskDraft = emptyTaskDraft(); isNewTaskOpen = true">Nueva tarea</button>
+        <button class="tk-button tk-button--ghost tk-button--compact" type="button" aria-label="Actualizar datos"
+          title="Actualizar datos" :disabled="refreshing || loading" @click.stop="reloadWorkspace()"><span
+            class="tk-icon" :class="{ 'is-spinning': refreshing }" aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M20 11a8 8 0 1 1-2.3-5.7M20 4v7h-7" />
+            </svg></span></button>
+        <button class="tk-button tk-button--secondary tk-button--compact" type="button" data-decisions-open=""
+          aria-label="Decisiones" title="Decisiones" :disabled="unavailable || loading"
+          @click.stop="isDecisionsOpen = true"><span
+            class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M7 3h7l4 4v14H7zM14 3v5h4M10 13h5M10 17h5" />
+            </svg></span><span class="tk-button__label">Decisiones</span></button>
+        <button class="tk-button tk-button--secondary tk-button--compact" type="button" data-tag-manager-open=""
+          aria-label="Etiquetas" title="Etiquetas" :disabled="unavailable || loading"
+          @click.stop="isTagManagerOpen = true"><span
+            class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M20 13 12 21l-9-9V3h9l8 8a2 2 0 0 1 0 2Z" />
+              <circle cx="7.5" cy="7.5" r="1" />
+            </svg></span><span class="tk-button__label">Etiquetas</span></button>
+        <button class="tk-button tk-button--primary tk-button--compact" type="button" aria-label="Nueva tarea"
+          title="Nueva tarea" :disabled="unavailable || loading"
+          @click.stop="newTaskDraft = emptyTaskDraft(); isNewTaskOpen = true"><span class="tk-icon"
+            aria-hidden="true"><svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg></span><span class="tk-button__label">Nueva tarea</span></button>
       </div>
     </header>
     <section class="workspace-body">

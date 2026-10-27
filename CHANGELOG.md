@@ -22,3 +22,7 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
   a 10, 20, 40 o 60 por página —10 por omisión—, vuelve arriba con un botón flotante y
   alterna el tono de las tarjetas. `adr list` y `GET /api/adrs` incluyen el contexto de
   cada decisión.
+- La cabecera del gestor y las entradas de etiquetas y decisiones usan botones compactos
+  con icono; Cerrar tarea pasa al detalle de la tarea seleccionada, junto a Editar y su
+  estado, y en pantalla estrecha la cabecera deja las acciones en icono para no perder la
+  entrada a Decisiones.

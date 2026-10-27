@@ -51,6 +51,25 @@
         padding: 0 var(--tk-space-3);
         font-size: 14px;
       }
+      /* Botón denso de cabecera y de las barras de panel: las medidas de la
+         maqueta compacta, sin tocar el botón normal del resto de la interfaz. */
+      .tk-button--compact {
+        height: 24px;
+        min-height: 24px;
+        gap: 5px;
+        padding: 0 var(--tk-space-2);
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .tk-button--compact.tk-button--primary {
+        font-weight: 650;
+      }
+      .tk-button--compact .tk-icon {
+        width: 13px;
+        height: 13px;
+        flex-basis: 13px;
+      }
       .tk-icon-button {
         width: 38px;
         height: 38px;
@@ -354,6 +373,7 @@
         display: inline-flex;
         min-height: 26px;
         align-items: center;
+        gap: 5px;
         padding: 2px 9px;
         border: 1px solid transparent;
         border-radius: var(--tk-radius-pill);
@@ -361,6 +381,11 @@
         font-weight: 780;
         line-height: 1;
         white-space: nowrap;
+      }
+      .tk-badge > .tk-icon {
+        width: 12px;
+        height: 12px;
+        flex-basis: 12px;
       }
       .tk-badge--neutral {
         border-color: var(--tk-color-border-subtle);
@@ -449,7 +474,11 @@
       }
       .task-inspector__actions {
         display: flex;
-        gap: 3px;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
       }
       .task-property-bar {
         display: flex;
@@ -642,12 +671,6 @@
       .workspace-header .brand-mark {
         width: 42px;
         height: 42px;
-      }
-      .workspace-header__actions .tk-icon-button {
-        display: inline-flex;
-      }
-      .workspace-header__actions .tk-button--secondary {
-        display: none;
       }
       .tk-select {
         appearance: none;
@@ -1444,10 +1467,6 @@
       .tag-manager-task-chips .tag-manager-chip {
         min-height: 22px;
         font-size: 12px;
-      }
-      .workspace-header__actions [data-tag-manager-open],
-      .workspace-header__actions [data-decisions-open] {
-        display: inline-flex;
       }
       .tag-manager-filter-controls {
         display: flex;

@@ -420,7 +420,9 @@ func (c *Core) adrHeadersOf(ctx context.Context, changes []store.Change) (map[in
 
 // referenceOf composes the reference a notice speaks of: la tarea se nombra con
 // el prefijo de ahora, la etiqueta con el nombre que lleva ahora y el ADR con su
-// número, leídos en el lote. La etiqueta borrada no tiene nombre que mostrar.
+// número, leídos en el lote. La etiqueta borrada y el ADR que ya no está no
+// tienen nombre que mostrar, y el aviso sale sin él en vez de tumbar el lote:
+// una fila que no se puede leer no puede dejar sin canal a las demás ventanas.
 func (c *Core) referenceOf(change store.Change, tagNames map[int64]string, adrHeaders map[int64]store.ADRHeader) (string, error) {
 	switch change.Resource {
 	case store.ResourceTask:
@@ -428,11 +430,12 @@ func (c *Core) referenceOf(change store.Change, tagNames map[int64]string, adrHe
 	case store.ResourceTag:
 		return tagNames[change.ResourceID], nil
 	case store.ResourceADR:
-		if header := adrHeaders[change.ResourceID]; header.Number > 0 {
-			return ADRRef(header.Number), nil
+		header, ok := adrHeaders[change.ResourceID]
+		if !ok {
+			return "", nil
 		}
 
-		return "", fmt.Errorf("notice %d speaks of ADR %d, which cannot be read", change.ID, change.ResourceID)
+		return ADRRef(header.Number), nil
 	default:
 		return "", fmt.Errorf("notice %d speaks of resource %q, which cannot be read", change.ID, change.Resource)
 	}

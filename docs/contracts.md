@@ -230,7 +230,9 @@ Un ADR se presenta así:
   se rechaza como entrada inválida —código `2`— sin escribir nada. `--status` cambia el
   estado y actualiza `date`; un estado desconocido es entrada inválida, y
   `--status superseded` exige `--superseded-by` con un ADR que exista —si no existe, la
-  salida es `1`—, que no sea él mismo y que no forme un ciclo. Un cambio sin ningún
+  salida es `1`—, que no sea él mismo y que no forme un ciclo. Un `--superseded-by` sin
+  `--status superseded` es entrada inválida: el sustituto solo existe en ese estado, y
+  nombrarlo con otro no puede salir como si hubiera cambiado. Un cambio sin ningún
   campo es entrada inválida.
 - `adr import --dir <directorio>` lee los archivos markdown de ese directorio y guarda
   los ADR que aún no están en la base, conservando número, título, estado, fecha,

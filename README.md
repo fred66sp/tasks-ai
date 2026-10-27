@@ -10,6 +10,10 @@ rutas, los códigos de estado y los avisos de cambio están en
 Todo lo del producto vive en la carpeta `.tasks-ai/` del proyecto —la base, la
 configuración y las instrucciones—, de modo que el proyecto no se ensucia.
 
+La base guarda también las decisiones durables del proyecto, los ADR. Se escriben con el
+producto —`adr create`, `adr edit`— y `docs/decisions/` es su exportación generada, que
+se versiona para que Git guarde la revisión de cada decisión (`ADR-016`).
+
 ## Documentación
 
 Cada documento responde a una pregunta. La estructura del código está en
@@ -26,7 +30,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 | `docs/contracts.md` | Formas de datos y API que no se pueden romper | Narrativa de producto |
 | `docs/development.md` | Estructura, ejecución y cómo se trabaja | Estado, historia |
 | `docs/known-risks.md` | Riesgos vivos, resueltos y deuda aceptada | Requisitos, planes |
-| `docs/decisions/` | Una decisión durable por documento | El catálogo de lo trivial |
+| `docs/decisions/` | La exportación generada de las decisiones durables | El registro de lo trivial |
 | `docs/web/index.html` | La guía de uso del producto | Requisitos, decisiones |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y sus normas | El contenido de la guía |
 | `.tasks-ai/` | El trabajo: tareas, criterios y evidencia | Documentación |
@@ -45,6 +49,8 @@ go build ./cmd/tasks-ai          # compila el binario
 ./tasks-ai init                  # instala el producto en el proyecto
 ./tasks-ai create --title "..."  # crea una tarea
 ./tasks-ai list                  # devuelve todas las tareas
+./tasks-ai adr list              # devuelve las decisiones del proyecto
+./tasks-ai adr export --dir docs/decisions  # escribe la exportación versionada de los ADR
 ./tasks-ai serve                 # arranca la API y la interfaz web
 ./serve.sh                       # deja ese servidor en segundo plano
 ```

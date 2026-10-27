@@ -597,7 +597,7 @@
         <table>
           <thead><tr><th data-i18n="empezar.7">Archivo</th><th data-i18n="empezar.8">Qué contiene</th></tr></thead>
           <tbody>
-            <tr><td><code>tasks.db</code></td><td data-i18n="empezar.9">La base, con su esquema versionado y el prefijo con el que se compusieron las referencias.</td></tr>
+            <tr><td><code>tasks.db</code></td><td data-i18n="empezar.9">La base, con su esquema versionado, las tareas, los ADR y el prefijo con el que se compusieron las referencias.</td></tr>
             <tr><td><code>settings.json</code></td><td data-i18n="empezar.10">Los ajustes del producto, con sus valores por omisión, listos para editarse a mano.</td></tr>
             <tr><td><code>AGENTS.md</code></td><td data-i18n="empezar.11">Qué hay en la carpeta y cómo se usa. Es el documento que lee quien llega nuevo.</td></tr>
           </tbody>
@@ -941,6 +941,30 @@
         <pre data-lang="es"><code>./tasks-ai completion bash      # también zsh, fish y powershell</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai completion bash      # also zsh, fish and powershell</code></pre>
       </div>
+
+      <h3 class="cmd" data-i18n="comandos.80"><code>adr</code><span class="sig">— las decisiones durables del proyecto</span></h3>
+      <p data-i18n="comandos.81">Un ADR guarda una decisión con su contexto y sus consecuencias. Vive en la misma base que las tareas y se escribe con el producto; <code>docs/decisions/</code> es una exportación generada, versionada para que Git guarde la revisión de cada decisión.</p>
+      <div class="code">
+        <pre data-lang="es"><code>./tasks-ai adr create --title "Adoptar SQLite" --deciders "Ana"   # ADR-001, en proposed
+./tasks-ai adr edit 1 --decision "Se usa SQLite como única base."  # el cuerpo se escribe mientras sigue en proposed
+./tasks-ai adr edit 1 --status accepted                            # aceptarla congela el cuerpo
+./tasks-ai adr edit 1 --note "Se comprobó en producción"           # solo «más información» admite añadidos
+./tasks-ai adr edit 1 --status superseded --superseded-by 2        # ADR-002 la sustituye
+./tasks-ai adr list                                                # los ADR con su contexto
+./tasks-ai adr show ADR-001                                        # uno entero, con sus secciones
+./tasks-ai adr export --dir docs/decisions                         # escribe la exportación y su índice
+./tasks-ai adr export --dir docs/decisions --check                 # sale con 1 si hay deriva</code></pre>
+        <pre data-lang="en" hidden><code>./tasks-ai adr create --title "Adopt SQLite" --deciders "Ana"   # ADR-001, in proposed
+./tasks-ai adr edit 1 --decision "SQLite is the only database."  # the body is written while it stays proposed
+./tasks-ai adr edit 1 --status accepted                          # accepting it freezes the body
+./tasks-ai adr edit 1 --note "Checked in production"             # only more information takes additions
+./tasks-ai adr edit 1 --status superseded --superseded-by 2      # ADR-002 supersedes it
+./tasks-ai adr list                                              # the ADRs with their context
+./tasks-ai adr show ADR-001                                      # one whole, with its sections
+./tasks-ai adr export --dir docs/decisions                       # writes the export and its index
+./tasks-ai adr export --dir docs/decisions --check               # exits 1 when there is drift</code></pre>
+      </div>
+      <p data-i18n="comandos.82">El cuerpo —título, contexto, decisión, consecuencias y alternativas— se congela al salir de <code>proposed</code>: después solo se admiten añadidos fechados en «Más información», y un cambio de decisión se publica como un ADR nuevo que sustituye al anterior. No hay borrado. <code>adr import --dir</code> lee un directorio de archivos y guarda los ADR que aún no están, sin duplicarlos.</p>
 
       <h3 data-i18n="comandos.65">Códigos de salida</h3>
       <div class="table-wrap">
@@ -1376,7 +1400,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "empezar.6": "What it writes",
  "empezar.7": "File",
  "empezar.8": "What it holds",
- "empezar.9": "The database, with its versioned schema and the prefix its references were composed with.",
+ "empezar.9": "The database, with its versioned schema, the tasks, the ADRs and the prefix its references were composed with.",
  "empezar.10": "The product settings, with their defaults, ready to be edited by hand.",
  "empezar.11": "What the folder holds and how to use it. It is the document a newcomer reads.",
  "empezar.12": "First task",
@@ -1493,6 +1517,9 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.73": "A rule stops it or the reference does not exist: closing with open subtasks, reopening something open, a tag that already exists.",
  "comandos.75": "Invalid usage or input: missing title or reason, priority out of range, unknown colour, a status that is not set that way.",
  "comandos.76": "<strong>No rejection writes.</strong> An operation that ends with a non-zero code leaves the database as it was: no half-created tasks and no half-written reasons.",
+ "comandos.80": "<code>adr</code><span class=\"sig\">— the durable decisions of the project</span>",
+ "comandos.81": "An ADR keeps a decision with its context and its consequences. It lives in the same database as the tasks and is written with the product; <code>docs/decisions/</code> is a generated export, versioned so Git keeps the review of every decision.",
+ "comandos.82": "The body — title, context, decision, consequences and alternatives — freezes when it leaves <code>proposed</code>: after that only dated additions to <em>more information</em> are accepted, and a change of decision is published as a new ADR that supersedes the previous one. There is no deletion. <code>adr import --dir</code> reads a directory of files and stores the ADRs that are not in the database yet, without duplicating them.",
  "ciclo.2": "The lifecycle",
  "ciclo.3": "Three statuses and two derived rules. Knowing which transitions are legal avoids half of the errors.",
  "ciclo.4": "Pending",

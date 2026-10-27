@@ -124,7 +124,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | Cambio | Dónde se escribe |
 |---|---|
 | Requisito nuevo o modificado | `docs/PRD.md` |
-| Decisión durable | Un documento nuevo en `docs/decisions/` |
+| Decisión durable | El tablero, con `adr create`; `docs/decisions/` es su exportación generada (`ADR-016`) |
 | Forma de datos o de API | `docs/contracts.md` |
 | Diseño | `docs/architecture.md` |
 | Riesgo nuevo | `docs/known-risks.md` |
@@ -157,7 +157,7 @@ más se usan en este producto:
 | `skills/golang-code-style/SKILL.md` | Forma del código y de los comentarios |
 | `skills/golang-lint/SKILL.md` | `golangci-lint` y sus reglas |
 | `skills/golang-naming/SKILL.md` | Nombrar paquetes, tipos, funciones y campos |
-| `skills/adr-software/SKILL.md` | Crear y mantener las decisiones de `docs/decisions/` |
+| `skills/adr-software/SKILL.md` | Revisar las decisiones exportadas en `docs/decisions/`: la escritura va por `adr` |
 | `skills/prd-cartographer/SKILL.md` | Escribir o revisar el PRD: evidencia, métricas y huecos declarados |
 | `skills/typescript-idiomatic-style/SKILL.md` | Tipos, módulos y forma de la CLI de TypeScript de las extensiones |
 | `skills/typescript-testing-and-verification/SKILL.md` | Validar la frontera, escribir las pruebas y correr la puerta de las extensiones |

@@ -3,11 +3,12 @@ import { TagManagerDrawer } from './components/tag-manager-drawer.js';
 import { NewTaskDialog } from './components/new-task-dialog.js';
 import { TaskList } from './components/task-list.js';
 import { TaskInspector } from './components/task-inspector.js';
+import { DecisionsPanel } from './components/decisions-panel.js';
 
 export const AppShell = {
   ...workspaceOptions,
   name: 'AppShell',
-  components: { NewTaskDialog, TagManagerDrawer, TaskInspector, TaskList },
+  components: { NewTaskDialog, TagManagerDrawer, TaskInspector, TaskList, DecisionsPanel },
   template: `
     <main class="workspace-frame" @click="handleWorkspaceClick">
   <div class="workspace-app">
@@ -24,6 +25,8 @@ export const AppShell = {
         <button class="tk-button tk-button--danger" type="button"
           :disabled="!hasSelection || selectedTask.status === 'done' || isBusy('close:' + selectedTaskId)"
           @click.stop="closeTask()">Cerrar tarea</button>
+        <button class="tk-button tk-button--secondary" type="button" data-decisions-open=""
+          :disabled="unavailable || loading" @click.stop="isDecisionsOpen = true">Decisiones</button>
         <button class="tk-button tk-button--secondary" type="button" data-tag-manager-open=""
           :disabled="unavailable || loading" @click.stop="isTagManagerOpen = true">Etiquetas</button>
         <button class="tk-button tk-button--primary" type="button" :disabled="unavailable || loading"
@@ -55,6 +58,8 @@ export const AppShell = {
 <new-task-dialog :open="isNewTaskOpen" :draft="newTaskDraft" :tasks="mappedTasks" :tags="tagCatalog" :colors="colors"
   :busy="isBusy('create')" @close="isNewTaskOpen = false" @update-draft="newTaskDraft = $event" @submit="createTask">
 </new-task-dialog>
+<decisions-panel :open="isDecisionsOpen" :refresh-token="decisionsToken" @close="isDecisionsOpen = false">
+</decisions-panel>
 <tag-manager-drawer :open="isTagManagerOpen" :tags="tagCatalog" :visible-tags="visibleTags" :colors="colors"
   :search-query="tagSearchQuery" :form-mode="tagFormMode" :draft="tagDraft" :editing-name="editingTagName"
   :form-error="tagFormError" :busy="isBusy" :color-hex="colorHex"

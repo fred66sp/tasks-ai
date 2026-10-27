@@ -433,8 +433,8 @@ func TestStatus_reportsTheVersionTheSchemaAndThePrefix(t *testing.T) {
 		t.Errorf("el estado trae la versión %q, se esperaba %q", status.Version, core.Version)
 	}
 
-	if status.Schema != 6 {
-		t.Errorf("el estado trae el esquema %d, se esperaba el 6", status.Schema)
+	if status.Schema != 7 {
+		t.Errorf("el estado trae el esquema %d, se esperaba el 7", status.Schema)
 	}
 
 	if status.Prefix != "px" {

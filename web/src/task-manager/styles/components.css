@@ -209,7 +209,6 @@
         min-height: 0;
         overflow: auto;
         overflow-x: hidden;
-        scrollbar-color: var(--tk-color-border-default) transparent;
       }
       .task-tree {
         min-width: 570px;
@@ -477,7 +476,6 @@
         min-height: 0;
         overflow: auto;
         padding: var(--tk-space-5) var(--tk-space-6);
-        scrollbar-color: var(--tk-color-border-default) transparent;
       }
       .tk-panel-stack {
         display: grid;
@@ -1447,7 +1445,8 @@
         min-height: 22px;
         font-size: 12px;
       }
-      .workspace-header__actions [data-tag-manager-open] {
+      .workspace-header__actions [data-tag-manager-open],
+      .workspace-header__actions [data-decisions-open] {
         display: inline-flex;
       }
       .tag-manager-filter-controls {
@@ -1638,4 +1637,343 @@
         margin: 8px;
         color: var(--tk-color-text-muted);
         font-size: 13px;
+      }
+      /* Decisiones: la capa a pantalla completa con un solo flujo de acordeones.
+         Cada ADR se lee y se edita en su tarjeta; no hay panel lateral ni
+         formulario aparte. La cabecera, los campos y las insignias son las del
+         resto de la interfaz. */
+      .decisions-layer {
+        position: fixed;
+        z-index: 250;
+        inset: 0;
+        display: none;
+        background: rgba(3, 7, 12, 0.55);
+      }
+      .decisions-layer.is-open {
+        display: block;
+      }
+      .decisions-panel {
+        display: grid;
+        width: 100%;
+        height: 100dvh;
+        grid-template-rows: auto minmax(0, 1fr);
+        background: var(--tk-color-canvas);
+      }
+      .decisions-header {
+        display: flex;
+        min-height: var(--tk-header-height);
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--tk-space-4);
+        padding: 0 20px;
+        border-bottom: 1px solid var(--tk-color-border-subtle);
+      }
+      .decisions-header h2 {
+        margin: 0;
+        font-size: 21px;
+      }
+      .decisions-header p {
+        margin: 3px 0 0;
+        color: var(--tk-color-text-muted);
+        font-size: 13px;
+      }
+      .decisions-header__actions {
+        display: flex;
+        align-items: center;
+        gap: var(--tk-space-2);
+      }
+      .decisions-body {
+        min-height: 0;
+        padding: var(--tk-space-4);
+        overflow-y: auto;
+      }
+      .decisions-stack {
+        display: grid;
+        gap: 10px;
+        width: 100%;
+        max-width: 940px;
+        margin: 0 auto;
+      }
+      .decisions-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--tk-space-2);
+        margin-bottom: var(--tk-space-2);
+      }
+      .decisions-toolbar .tk-input {
+        flex: 1 1 220px;
+      }
+      .decisions-toolbar .tk-select:not(.tk-select--compact) {
+        flex: 0 0 210px;
+        padding-right: 32px;
+      }
+      .decisions-toolbar .tk-select--compact {
+        flex: 0 0 auto;
+      }
+      .decisions-summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--tk-space-3);
+        margin-bottom: var(--tk-space-2);
+        color: var(--tk-color-text-muted);
+        font-size: 13px;
+      }
+      .decisions-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--tk-space-2);
+      }
+      .decisions-item {
+        border: 1px solid var(--tk-color-border-subtle);
+        border-radius: var(--tk-radius-md);
+        background: var(--tk-color-surface);
+        overflow: hidden;
+      }
+      .decisions-item.is-open {
+        border-color: var(--tk-color-accent);
+      }
+      /* Las filas impares llevan un paso de tono: el ojo no pierde el renglón
+         al recorrer una lista larga, y la tarjeta abierta conserva el suyo. */
+      article.decisions-item:nth-of-type(odd) {
+        background: var(--tk-color-surface-alt);
+      }
+      .decisions-item__head {
+        display: grid;
+        gap: 9px;
+        padding: 16px 18px;
+        cursor: pointer;
+      }
+      .decisions-item__head:hover {
+        background: var(--tk-color-surface-hover);
+      }
+      .decisions-item__head:focus-visible {
+        outline: 2px solid var(--tk-color-accent);
+        outline-offset: -2px;
+      }
+      .decisions-item__head[aria-disabled='true'] {
+        cursor: default;
+      }
+      .decisions-item__topline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--tk-space-2);
+      }
+      .decisions-item__meta {
+        display: flex;
+        align-items: center;
+        gap: var(--tk-space-2);
+      }
+      .decisions-item__ref {
+        color: var(--tk-color-text-muted);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .decisions-item__date {
+        color: var(--tk-color-text-muted);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .decisions-item__chev {
+        display: inline-flex;
+        color: var(--tk-color-text-secondary);
+        transition: transform 160ms ease;
+      }
+      .decisions-item__chev.is-open {
+        transform: rotate(180deg);
+      }
+      .decisions-item__title {
+        margin: 0;
+        font-size: 17px;
+        font-weight: 650;
+        line-height: 1.3;
+      }
+      /* Tres líneas del contexto, y solo tres: el texto no se recorta en el
+         dato, se recorta al dibujarlo. */
+      .decisions-item__excerpt {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+        margin: 0;
+        color: var(--tk-color-text-secondary);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .decisions-content {
+        padding: 0 18px 18px;
+      }
+      .decisions-separator {
+        height: 1px;
+        margin-bottom: var(--tk-space-4);
+        background: var(--tk-color-border-subtle);
+      }
+      .decisions-editbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--tk-space-3);
+      }
+      .decisions-document__meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--tk-space-2);
+        margin: 0;
+        color: var(--tk-color-text-muted);
+        font-size: 13px;
+      }
+      .decisions-section {
+        margin-top: var(--tk-space-4);
+      }
+      .decisions-section--context,
+      .decisions-section--decision,
+      .decisions-section--consequences,
+      .decisions-section--alternatives {
+        padding: 12px 14px;
+        border-radius: var(--tk-radius-sm);
+      }
+      .decisions-section--context {
+        background: rgba(96, 165, 250, 0.1);
+      }
+      .decisions-section--decision {
+        background: var(--tk-color-success-soft);
+      }
+      .decisions-section--consequences {
+        background: var(--tk-color-purple-soft);
+      }
+      .decisions-section--alternatives {
+        background: rgba(148, 163, 184, 0.09);
+      }
+      .decisions-section h4 {
+        margin: 0 0 6px;
+        color: var(--tk-color-text-muted);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .decisions-section--context h4 {
+        color: var(--tk-priority-low);
+      }
+      .decisions-section--decision h4 {
+        color: var(--tk-color-success);
+      }
+      .decisions-section--consequences h4 {
+        color: var(--tk-color-purple);
+      }
+      .decisions-section--alternatives h4 {
+        color: var(--tk-color-text-secondary);
+      }
+      /* El markdown del ADR: el código en línea y la negrita se leen como en
+         el resto de la interfaz, sin heredar el tamaño del párrafo. */
+      .decisions-section .tk-rich-text code {
+        padding: 1px 5px;
+        border: 1px solid var(--tk-color-border-subtle);
+        border-radius: 4px;
+        background: var(--tk-color-surface-inset);
+        color: var(--tk-color-text-primary);
+        font-family: var(--tk-font-mono);
+        font-size: 0.92em;
+      }
+      .decisions-section .tk-rich-text strong {
+        color: var(--tk-color-text-primary);
+      }
+      .decisions-section .tk-rich-text a {
+        color: var(--tk-color-accent);
+      }
+      .decisions-section .tk-rich-text > :last-child {
+        margin-bottom: 0;
+      }
+      .decisions-link {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--tk-color-accent);
+        cursor: pointer;
+        font: inherit;
+        text-decoration: underline;
+      }
+      .decisions-create {
+        display: grid;
+        gap: var(--tk-space-3);
+        padding: 16px 18px;
+      }
+      .decisions-form {
+        display: grid;
+        gap: var(--tk-space-3);
+      }
+      .decisions-form__bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--tk-space-2);
+        padding-bottom: var(--tk-space-2);
+      }
+      .decisions-error {
+        margin: 0;
+        color: var(--tk-color-danger);
+        font-size: 13px;
+      }
+      .decisions-hint {
+        margin: 0;
+        color: var(--tk-color-text-muted);
+        font-size: 12px;
+      }
+      .decisions-empty {
+        margin: var(--tk-space-3);
+        color: var(--tk-color-text-muted);
+      }
+      .decisions-pager {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: var(--tk-space-3);
+        padding: var(--tk-space-2) 0 var(--tk-space-4);
+        color: var(--tk-color-text-muted);
+        font-size: 13px;
+      }
+      /* Vuelta arriba al estilo de la documentación de SKILLS-AGP: un círculo
+         que aparece cuando la cabecera del registro ya no se ve. */
+      .decisions-to-top {
+        position: fixed;
+        right: clamp(16px, 3vw, 28px);
+        bottom: clamp(16px, 3vw, 28px);
+        z-index: 260;
+        display: inline-flex;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--tk-color-border-strong);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--tk-color-surface-raised) 92%, transparent);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        color: var(--tk-color-text-muted);
+        box-shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.8);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: opacity 0.2s, transform 0.2s, visibility 0.2s, border-color 0.15s, color 0.15s;
+      }
+      .decisions-to-top.is-visible {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+      }
+      .decisions-to-top:hover {
+        color: var(--tk-color-accent);
+        border-color: var(--tk-color-accent);
+      }
+      .decisions-to-top:focus-visible {
+        outline: 2px solid var(--tk-color-accent);
+        outline-offset: 3px;
       }

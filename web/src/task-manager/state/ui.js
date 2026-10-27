@@ -72,6 +72,7 @@ export const workspaceUi = {
       this.isAdvancedFiltersOpen = false;
       this.isNewTaskOpen = false;
       this.isTagManagerOpen = false;
+      this.isDecisionsOpen = false;
     }
   }
 };

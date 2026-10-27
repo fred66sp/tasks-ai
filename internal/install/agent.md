@@ -6,7 +6,7 @@ Este proyecto guarda sus tareas con el gestor local que vive en esta carpeta.
 
 | Elemento | Qué es |
 |---|---|
-| `tasks.db` | Las tareas del proyecto |
+| `tasks.db` | Las tareas y las decisiones del proyecto |
 | `settings.json` | El prefijo de las referencias, la base y los ajustes de la interfaz |
 | `AGENTS.md` | Estas instrucciones |
 | `CONTRATO_ETIQUETAS.md` | El contrato de las etiquetas: clases, asignación y gestión del catálogo |
@@ -25,6 +25,12 @@ tasks-ai tags                                    # devuelve el catálogo de etiq
 tasks-ai tag create --name "docs" --color blue   # crea una etiqueta; el color que falta es blue
 tasks-ai tag edit docs --name "documentacion"    # cambia de la etiqueta lo que se pide y nada más; renombrar no toca ninguna tarea
 tasks-ai tag delete docs                         # borra la etiqueta con sus asignaciones y avisa de las tareas que la usaban
+tasks-ai adr create --title "Adoptar SQLite" --deciders "Ana"  # crea una decisión durable y devuelve su número
+tasks-ai adr edit 1 --status accepted            # cambia lo que se pide y devuelve el ADR; el cuerpo se congela al salir de proposed
+tasks-ai adr list                                # devuelve los ADR del proyecto, sin sus cuerpos
+tasks-ai adr show ADR-001                        # devuelve el ADR entero, con su cuerpo por secciones
+tasks-ai adr import --dir docs/decisions         # guarda los ADR de un directorio que aún no estén, sin duplicar
+tasks-ai adr export --dir docs/decisions         # escribe la exportación generada de los ADR y su índice
 tasks-ai close tk-1 --reason done                # cierra la tarea con su motivo y devuelve la tarea
 tasks-ai reopen tk-1                             # reabre la tarea cerrada y devuelve la tarea
 tasks-ai block tk-2 tk-1                         # deja tk-2 bloqueada por tk-1 y devuelve tk-2
@@ -53,6 +59,13 @@ debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag
 --help`); un color que falte es `blue` y un color desconocido se rechaza. Renombrar una
 etiqueta cambia el nombre que muestran las tareas sin tocar su fila guardada, y borrar
 una retira sus asignaciones avisando de las tareas que la usaban.
+
+Las decisiones durables del proyecto viven en la misma base, cada una con su número y su
+referencia `ADR-NNN`. Se escriben con `adr`, no editando el markdown: `docs/decisions/`
+es una exportación generada desde la base y `adr export --check` dice si hay deriva. El
+cuerpo se congela al salir de `proposed`; después solo se admiten añadidos fechados en
+«Más información», y un cambio de decisión se publica como un ADR nuevo que sustituye al
+anterior.
 
 Toda operación responde en JSON por la salida estándar, y los avisos y errores van por
 la salida de error con la forma `{"error": "..."}`. `serve` no es una operación: no

@@ -181,6 +181,16 @@
   .tag-manager-drawer {
     width: 100vw;
   }
+  .decisions-body {
+    padding: var(--tk-space-3);
+  }
+  .decisions-toolbar .tk-select,
+  .decisions-toolbar .tk-select:not(.tk-select--compact) {
+    flex: 1 1 100%;
+  }
+  .decisions-item__date {
+    display: none;
+  }
   .tag-manager-filter-controls {
     width: 100%;
   }

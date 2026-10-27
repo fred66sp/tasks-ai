@@ -101,6 +101,10 @@ export const workspaceData = {
       isMobileInspectorOpen: false,
       isNewTaskOpen: false,
       isTagManagerOpen: false,
+      isDecisionsOpen: false,
+      // Aviso de cambio ajeno: el panel de decisiones relee el registro cuando
+      // el canal cuenta algo nuevo.
+      decisionsToken: 0,
       newTaskDraft: { title: '', description: '', priority: '2', parent: '', tags: [] },
       editDraft: { title: '', description: '', notes: '', assignee: '', tags: [] },
       dependencyDraft: '',

@@ -55,13 +55,13 @@ const workspaceEventName = "workspace.changed"
 // estado y el aviso son los mismos venga de donde venga, y quien lo hizo se
 // evita repetirse con su propio estado local.
 type notice struct {
-	Resource string       `json:"resource"`
-	Changes  []taskChange `json:"changes,omitempty"`
+	Resource string         `json:"resource"`
+	Changes  []noticeChange `json:"changes,omitempty"`
 }
 
-// taskChange is one task the change touched, in the shape the toast of the
-// interface prints: su referencia visible, lo que le pasó y su título.
-type taskChange struct {
+// noticeChange es el recurso que el cambio tocó, en la forma que imprime el
+// aviso de la interfaz: su referencia visible, lo que le pasó y su título.
+type noticeChange struct {
 	ID     string `json:"id"`
 	Action string `json:"action"`
 	Title  string `json:"title"`
@@ -84,19 +84,28 @@ const (
 // viaja sin ellas, porque el aviso de la pantalla solo nombra tareas.
 func noticeOf(event core.Event) notice {
 	resource := "tags"
-	if event.Resource == store.ResourceTask {
+
+	switch event.Resource {
+	case store.ResourceTask:
 		resource = "tasks"
+	case store.ResourceADR:
+		resource = "adrs"
 	}
 
 	result := notice{Resource: resource}
 
-	if event.Resource == store.ResourceTask && event.Title != "" {
-		result.Changes = []taskChange{{
-			ID:     event.Ref,
-			Action: actionWord(event.Action),
-			Title:  event.Title,
-		}}
+	// El aviso nombra la tarea o el ADR que cambió; el de una etiqueta, y el de
+	// una tarea de la que no queda título, viajan sin nombres.
+	named := event.Resource == store.ResourceTask || event.Resource == store.ResourceADR
+	if !named || event.Title == "" {
+		return result
 	}
+
+	result.Changes = []noticeChange{{
+		ID:     event.Ref,
+		Action: actionWord(event.Action),
+		Title:  event.Title,
+	}}
 
 	return result
 }
@@ -166,6 +175,10 @@ func (s *Server) routes() *nethttp.ServeMux {
 	mux.HandleFunc("POST /api/tags", s.createTag)
 	mux.HandleFunc("PATCH /api/tags/{name}", s.patchTag)
 	mux.HandleFunc("DELETE /api/tags/{name}", s.deleteTag)
+	mux.HandleFunc("GET /api/adrs", s.listADRs)
+	mux.HandleFunc("POST /api/adrs", s.createADR)
+	mux.HandleFunc("GET /api/adrs/{number}", s.adrDetail)
+	mux.HandleFunc("PATCH /api/adrs/{number}", s.patchADR)
 	mux.HandleFunc("GET /api/events", s.events)
 	mux.HandleFunc("GET /api/status", s.status)
 
@@ -579,6 +592,123 @@ func (s *Server) listTags(w nethttp.ResponseWriter, r *nethttp.Request) {
 	}
 
 	writeJSON(w, nethttp.StatusOK, catalogue)
+}
+
+// listADRs answers with the ADR of the project, without their bodies. Con q,
+// solo los que contienen ese texto en alguno de sus campos.
+func (s *Server) listADRs(w nethttp.ResponseWriter, r *nethttp.Request) {
+	adrs, err := s.core.ADRs(r.Context(), r.URL.Query().Get("q"))
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, adrs)
+}
+
+// adrDetail answers with one ADR and its whole body.
+func (s *Server) adrDetail(w nethttp.ResponseWriter, r *nethttp.Request) {
+	adr, err := s.core.ADR(r.Context(), r.PathValue("number"))
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, adr)
+}
+
+// adrEntry is the body a creation of ADR speaks.
+type adrEntry struct {
+	Title        string `json:"title"`
+	Deciders     string `json:"deciders"`
+	Status       string `json:"status"`
+	Context      string `json:"context"`
+	Decision     string `json:"decision"`
+	Consequences string `json:"consequences"`
+	Alternatives string `json:"alternatives"`
+}
+
+// createADR creates an ADR and answers with it.
+func (s *Server) createADR(w nethttp.ResponseWriter, r *nethttp.Request) {
+	entry, err := decode[adrEntry](r)
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	adr, err := s.core.CreateADR(r.Context(), core.NewADR{
+		Title:        entry.Title,
+		Deciders:     entry.Deciders,
+		Status:       entry.Status,
+		Context:      entry.Context,
+		Decision:     entry.Decision,
+		Consequences: entry.Consequences,
+		Alternatives: entry.Alternatives,
+	})
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusCreated, adr)
+}
+
+// adrPatch is the body a change of ADR speaks: a field left out is not touched,
+// igual que en el cambio del CLI.
+type adrPatch struct {
+	Title        *string `json:"title"`
+	Status       *string `json:"status"`
+	SupersededBy *string `json:"superseded_by"`
+	Context      *string `json:"context"`
+	Decision     *string `json:"decision"`
+	Consequences *string `json:"consequences"`
+	Alternatives *string `json:"alternatives"`
+	Note         *string `json:"note"`
+}
+
+// patchADR changes what the change asks for, under the rules of the core: un
+// cuerpo congelado y una sustitución incoherente se rechazan con su mensaje.
+func (s *Server) patchADR(w nethttp.ResponseWriter, r *nethttp.Request) {
+	entry, err := decode[adrPatch](r)
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	changes := core.ADRChanges{
+		Title:        entry.Title,
+		Status:       entry.Status,
+		Context:      entry.Context,
+		Decision:     entry.Decision,
+		Consequences: entry.Consequences,
+		Alternatives: entry.Alternatives,
+		Note:         entry.Note,
+	}
+
+	if entry.SupersededBy != nil {
+		number, err := core.ParseADRRef(*entry.SupersededBy)
+		if err != nil {
+			s.writeError(w, err)
+
+			return
+		}
+
+		changes.SupersededBy = &number
+	}
+
+	adr, err := s.core.UpdateADR(r.Context(), r.PathValue("number"), changes)
+	if err != nil {
+		s.writeError(w, err)
+
+		return
+	}
+
+	writeJSON(w, nethttp.StatusOK, adr)
 }
 
 // status answers with the product's version, the version of the schema and the

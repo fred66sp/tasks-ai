@@ -11,6 +11,9 @@
   --tk-color-surface-raised: #1f2937;
   --tk-color-surface-hover: #252f3f;
   --tk-color-surface-selected: #2a3750;
+  /* El tono de las filas impares del registro, un paso por encima de la
+     superficie para seguir la lectura sin partir la pantalla. */
+  --tk-color-surface-alt: #141c2c;
   --tk-color-surface-inset: #070b14;
   --tk-color-text-primary: #e5e7eb;
   --tk-color-text-secondary: #c3cad5;
@@ -39,6 +42,10 @@
   --tk-status-in-progress: var(--tk-color-accent);
   --tk-status-done: var(--tk-color-success);
   --tk-status-blocked: var(--tk-color-danger);
+  /* Una sola forma de desplazarse en toda la interfaz, la misma de los
+     comentarios: el color del borde sobre el fondo. Se hereda, así que alcanza
+     a cualquier contenedor y a los campos que se desplazan. */
+  scrollbar-color: var(--tk-color-border-default) transparent;
   --tk-space-2: 8px;
   --tk-space-3: 12px;
   --tk-space-4: 16px;

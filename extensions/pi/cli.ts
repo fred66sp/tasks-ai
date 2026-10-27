@@ -24,22 +24,34 @@ export function findProjectRoot(from: string): string | null {
 }
 
 /**
+ * El nombre del binario que la instalación deja en el proyecto, con la extensión
+ * que la plataforma necesita para ejecutarlo: Windows no arranca un binario sin
+ * `.exe`, y la copia que deja `init` y esta búsqueda tienen que ser el mismo
+ * fichero.
+ */
+export function binaryFileName(platform: string = process.platform): string {
+	return platform === "win32" ? "tasks-ai.exe" : "tasks-ai";
+}
+
+/**
  * Dónde está el binario: `TASKS_AI_BIN` si se ha dicho, si no el que el proyecto
  * tiene construido, y si no el que esté en el PATH.
  */
 export function resolveBin(cwd: string): string {
 	if (process.env.TASKS_AI_BIN) return process.env.TASKS_AI_BIN;
 
+	const name = binaryFileName();
+
 	const root = findProjectRoot(cwd);
 	if (root !== null) {
-		const installed = path.join(root, ".tasks-ai", "bin", "tasks-ai");
+		const installed = path.join(root, ".tasks-ai", "bin", name);
 		if (existsSync(installed)) return installed;
 
-		const local = path.join(root, "bin", "tasks-ai");
+		const local = path.join(root, "bin", name);
 		if (existsSync(local)) return local;
 	}
 
-	return "tasks-ai";
+	return name;
 }
 
 /** Ejecuta el producto con los argumentos dados y devuelve su respuesta o su rechazo. */

@@ -12,6 +12,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	embedded "tasks-ai"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/settings"
@@ -214,8 +215,19 @@ func exists(path string) bool {
 	return err == nil
 }
 
-// binName is the name of the binary the install leaves inside the product folder.
-const binName = "tasks-ai"
+// binName is the name of the binary the install leaves inside the product folder:
+// en Windows lleva la extensión que el sistema necesita para ejecutarlo.
+var binName = binaryName(runtime.GOOS)
+
+// binaryName names the installed binary for a platform, so the copy the install
+// leaves and the one the extensions look for are the same file.
+func binaryName(goos string) string {
+	if goos == "windows" {
+		return "tasks-ai.exe"
+	}
+
+	return "tasks-ai"
+}
 
 // complete says whether the installation already has everything the product
 // leaves. An installation made by an older version, without the binary or the

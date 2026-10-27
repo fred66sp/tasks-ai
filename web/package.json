@@ -2,10 +2,12 @@
   "name": "tasks-ai-web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Interfaz del producto: Vue 3 sobre la API de tasks-ai, empaquetada con esbuild.",
   "license": "UNLICENSED",
   "scripts": {
     "build": "esbuild src/task-manager/main.js --bundle --format=iife --target=es2020 --outfile=public/task-manager/app-vue.js",
+    "test": "node --test",
     "watch": "npm run build -- --watch"
   },
   "devDependencies": {

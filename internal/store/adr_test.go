@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"tasks-ai/internal/store"
@@ -19,6 +20,80 @@ func newADR(title string) store.ADR {
 		Context:      "el contexto",
 		Decision:     "la decisión",
 		Consequences: "las consecuencias",
+	}
+}
+
+// TestCreateADR_givesANumberOfItsOwnToCreationsThatRunAtOnce comprueba la regla
+// que sostiene la numeración: la transacción toma el bloqueo de escritura al
+// empezar, así que dos superficies creando a la vez —el servidor y el CLI— no
+// comparten número. La garantía vive en el DSN, y esta prueba es la que la
+// sostiene.
+func TestCreateADR_givesANumberOfItsOwnToCreationsThatRunAtOnce(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	first, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la primera conexión: %v", err)
+	}
+
+	t.Cleanup(func() { _ = first.Close() })
+
+	second, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la segunda conexión: %v", err)
+	}
+
+	t.Cleanup(func() { _ = second.Close() })
+
+	// Dos conexiones y ocho creaciones a la vez, como dos procesos.
+	const creations = 8
+
+	numbers := make(chan int, creations)
+	failures := make(chan error, creations)
+
+	for index := range creations {
+		base := first
+		if index%2 == 1 {
+			base = second
+		}
+
+		go func(index int, base *store.Store) {
+			adr, err := base.CreateADR(t.Context(), store.ADR{
+				Slug:     fmt.Sprintf("decision-%d", index),
+				Title:    fmt.Sprintf("Decisión %d", index),
+				Status:   store.ADRProposed,
+				Date:     "2026-10-26",
+				Deciders: "Alfredo González Portero",
+			})
+			if err != nil {
+				failures <- err
+
+				return
+			}
+
+			numbers <- adr.Number
+		}(index, base)
+	}
+
+	seen := make(map[int]bool, creations)
+
+	for range creations {
+		select {
+		case err := <-failures:
+			t.Fatalf("creando a la vez sobre la misma base: %v", err)
+		case number := <-numbers:
+			if seen[number] {
+				t.Errorf("el número %d lo dieron dos creaciones", number)
+			}
+
+			seen[number] = true
+		}
+	}
+
+	if len(seen) != creations {
+		t.Errorf("las creaciones quedaron en %d números, se esperaban %d", len(seen), creations)
 	}
 }
 

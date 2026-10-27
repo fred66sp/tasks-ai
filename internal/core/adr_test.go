@@ -1,7 +1,9 @@
 package core_test
 
 import (
+	"database/sql"
 	"errors"
+	"path/filepath"
 	"strings"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/store"
@@ -204,6 +206,39 @@ func TestUpdateADR_freezesTheBodyWhenItLeavesProposed(t *testing.T) {
 	}
 }
 
+// TestUpdateADR_refusesASubstituteWithoutItsState comprueba que un sustituto que
+// no va con el estado `superseded` no escribe nada y lo dice: antes respondía
+// como si hubiera cambiado, con una actualización idéntica y su aviso.
+func TestUpdateADR_refusesASubstituteWithoutItsState(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	old := createADR(t, apply, "La decisión anterior")
+	next := createADR(t, apply, "La decisión nueva")
+
+	substitute := next.Number
+	accepted := "accepted"
+
+	for _, changes := range []core.ADRChanges{
+		{SupersededBy: &substitute},
+		{Status: &accepted, SupersededBy: &substitute},
+	} {
+		if _, err := apply.UpdateADR(t.Context(), old.Ref, changes); !errors.Is(err, core.ErrInvalid) {
+			t.Errorf("un sustituto con %+v devolvió %v, se esperaba entrada inválida", changes, err)
+		}
+	}
+
+	kept, err := apply.ADR(t.Context(), old.Ref)
+	if err != nil {
+		t.Fatalf("leyendo el ADR tras el rechazo: %v", err)
+	}
+
+	if kept.Status != store.ADRProposed || kept.SupersededBy != nil {
+		t.Errorf("el rechazo dejó el ADR en %+v, se esperaba propuesto y sin sustituto", kept)
+	}
+}
+
 func TestUpdateADR_supersedesWithAnExistingSubstituteAndWithoutCycles(t *testing.T) {
 	t.Parallel()
 
@@ -307,6 +342,62 @@ func TestEvents_announcesTheADRWithItsReferenceAndTitle(t *testing.T) {
 
 	if event.Resource != store.ResourceADR || event.Ref != created.Ref || event.Title != created.Title {
 		t.Errorf("el aviso es %+v, se esperaba el ADR %q con su título", event, created.Ref)
+	}
+}
+
+// TestEvents_leavesAnADRNoticeWithoutANameWhenItsRowIsGone comprueba que una fila
+// que no se puede leer no deja sin canal a las demás ventanas: el aviso de un ADR
+// que ya no está sale sin nombre, como el de una etiqueta borrada, en vez de
+// romper el lote. El producto no borra ADR: la fila se va por fuera.
+func TestEvents_leavesAnADRNoticeWithoutANameWhenItsRowIsGone(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "tasks.db")
+
+	base, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	apply := core.New(base, "tk")
+
+	adr := createADR(t, apply, "La que se va")
+
+	if err := base.Close(); err != nil {
+		t.Fatalf("cerrando la base: %v", err)
+	}
+
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("abriendo la base para retirar el ADR: %v", err)
+	}
+
+	if _, err := raw.ExecContext(t.Context(), `DELETE FROM adrs WHERE number = ?`, adr.Number); err != nil {
+		t.Fatalf("retirando el ADR: %v", err)
+	}
+
+	if err := raw.Close(); err != nil {
+		t.Fatalf("cerrando la base tras retirar el ADR: %v", err)
+	}
+
+	reopened, err := store.Open(t.Context(), path)
+	if err != nil {
+		t.Fatalf("reabriendo la base: %v", err)
+	}
+
+	t.Cleanup(func() { _ = reopened.Close() })
+
+	events, err := core.New(reopened, "tk").Events(t.Context(), 0)
+	if err != nil {
+		t.Fatalf("leyendo los avisos con un ADR que ya no está: %v", err)
+	}
+
+	if len(events) != 1 {
+		t.Fatalf("el lote trae %d avisos, se esperaba uno", len(events))
+	}
+
+	if events[0].Ref != "" || events[0].Title != "" {
+		t.Errorf("el aviso huérfano es %+v, se esperaba sin nombre", events[0])
 	}
 }
 

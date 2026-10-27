@@ -231,7 +231,9 @@ export const DecisionsPanel = {
       this.details = details;
     },
     async expandAll() {
-      await Promise.all(this.paged.map((adr) => this.expand(adr.number)));
+      // Todo el registro filtrado, no solo la página que se ve: es lo que el
+      // botón promete, y un ADR expandido no se pierde al cambiar de página.
+      await Promise.all(this.visible.map((adr) => this.expand(adr.number)));
     },
     // Plegar todas respeta la tarjeta en edición: un clic de más no tira el
     // borrador.
@@ -244,7 +246,6 @@ export const DecisionsPanel = {
         title: '',
         deciders: '',
         status: 'proposed',
-        supersededBy: '',
         context: '',
         decision: '',
         consequences: '',

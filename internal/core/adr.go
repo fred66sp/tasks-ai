@@ -353,6 +353,13 @@ func (c *Core) UpdateADR(ctx context.Context, ref string, changes ADRChanges) (A
 // lock. It must not ask the base for anything. La sustitución se comprueba
 // antes de escribir, contra las filas que hay.
 func changedADR(adr store.ADR, changes ADRChanges, today string) (store.ADR, error) {
+	// El sustituto solo significa algo junto al estado que lo usa: sin él, o con
+	// otro estado, el cambio no tocaría el sustituto y saldría como si lo
+	// hubiera hecho, con aviso y fecha de cambio.
+	if changes.SupersededBy != nil && (changes.Status == nil || *changes.Status != store.ADRSuperseded) {
+		return store.ADR{}, invalid("a substitute needs the state: use --status superseded")
+	}
+
 	if adr.Status != store.ADRProposed && changes.editsBody() {
 		return store.ADR{}, invalid(
 			"the body of %s is frozen: once it leaves proposed, only more information accepts additions",

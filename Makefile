@@ -38,8 +38,8 @@ lint-fix: ## Revisa el código corrigiendo lo que el linter sepa corregir
 fmt: ## Formatea el código
 	golangci-lint fmt ./...
 
-check-web: ## Comprueba que la interfaz construida coincide con su fuente
-	cd web && npm run build
+check-web: ## Comprueba las pruebas de la interfaz y que lo construido coincide con su fuente
+	cd web && npm test && npm run build
 	git diff --exit-code -- web/public
 
 clean: ## Retira lo que generan las pruebas

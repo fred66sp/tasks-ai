@@ -2785,7 +2785,7 @@
         this.details = details;
       },
       async expandAll() {
-        await Promise.all(this.paged.map((adr) => this.expand(adr.number)));
+        await Promise.all(this.visible.map((adr) => this.expand(adr.number)));
       },
       // Plegar todas respeta la tarjeta en edición: un clic de más no tira el
       // borrador.
@@ -2798,7 +2798,6 @@
           title: "",
           deciders: "",
           status: "proposed",
-          supersededBy: "",
           context: "",
           decision: "",
           consequences: "",

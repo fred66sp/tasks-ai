@@ -166,8 +166,14 @@ func renderADR(adr core.ADR, slugs map[int]string) string {
 	writeSection(&out, "Contexto", adr.Context)
 	writeSection(&out, "Decisión", adr.Decision)
 	writeSection(&out, "Consecuencias", adr.Consequences)
-	writeSection(&out, "Alternativas consideradas", optionalText(adr.Alternatives))
-	writeSection(&out, "Más información", optionalText(adr.MoreInfo))
+
+	if adr.Alternatives != nil {
+		writeSection(&out, "Alternativas consideradas", *adr.Alternatives)
+	}
+
+	if adr.MoreInfo != nil {
+		writeSection(&out, "Más información", *adr.MoreInfo)
+	}
 
 	return out.String()
 }
@@ -221,15 +227,6 @@ func renderIndex(dir string, entries []string) string {
 	}
 
 	return out.String()
-}
-
-// optionalText reads the text of an optional field, empty when it is absent.
-func optionalText(text *string) string {
-	if text == nil {
-		return ""
-	}
-
-	return *text
 }
 
 // sortedNames lists the files of the export by name, with the index last: el

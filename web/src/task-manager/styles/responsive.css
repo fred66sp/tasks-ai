@@ -182,33 +182,14 @@
     width: 100vw;
   }
   .decisions-body {
-    grid-template-columns: minmax(0, 1fr);
+    padding: var(--tk-space-3);
   }
-  .decisions-list {
-    border-right: 0;
+  .decisions-toolbar .tk-select,
+  .decisions-toolbar .tk-select:not(.tk-select--compact) {
+    flex: 1 1 100%;
   }
-  .decisions-body.is-detail .decisions-list {
+  .decisions-item__date {
     display: none;
-  }
-  .decisions-detail {
-    display: none;
-    padding: var(--tk-space-4);
-  }
-  .decisions-body.is-detail .decisions-detail {
-    display: block;
-  }
-  .decisions-back {
-    display: inline-flex;
-    margin-bottom: var(--tk-space-2);
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--tk-color-accent);
-    cursor: pointer;
-    font: inherit;
-  }
-  .decisions-form__grid {
-    grid-template-columns: 1fr;
   }
   .tag-manager-filter-controls {
     width: 100%;

@@ -54,6 +54,76 @@ func TestCreateADR_givesItTheNumberTheReferenceAndTheSlug(t *testing.T) {
 	}
 }
 
+func TestADRs_listsTheContextAndLeavesOutTheRestOfTheBody(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	created := createADR(t, apply, "Una decisión")
+
+	adrs, err := apply.ADRs(t.Context(), "")
+	if err != nil {
+		t.Fatalf("leyendo los ADR: %v", err)
+	}
+
+	if len(adrs) != 1 {
+		t.Fatalf("la lista trae %d ADR, se esperaba uno", len(adrs))
+	}
+
+	if adrs[0].Ref != created.Ref || adrs[0].Context != "el contexto" {
+		t.Errorf("el resumen es %+v, se esperaba el ADR %q con su contexto", adrs[0], created.Ref)
+	}
+}
+
+func TestADRs_searchesEveryFieldWithoutAccentsOrCase(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+
+	created := createADR(t, apply, "Los ADR se leen en acordeón")
+	createADR(t, apply, "Otra decisión distinta")
+
+	body := "Se edita en el sitio, sin panel lateral."
+	if _, err := apply.UpdateADR(t.Context(), created.Ref, core.ADRChanges{
+		Decision:     &body,
+		Consequences: new("Se lee sin salir de la tarjeta."),
+		Alternatives: new("Un modal con otra pantalla."),
+		Note:         new("Se comprobó en la revisión."),
+	}); err != nil {
+		t.Fatalf("escribiendo el cuerpo del ADR: %v", err)
+	}
+
+	cases := []struct {
+		search string
+		want   int
+	}{
+		{"acordeón", 1},
+		{"ACORDEON", 1},
+		{"alfredo", 2},
+		{"panel lateral", 1},
+		{"sin salir", 1},
+		{"modal", 1},
+		{"revision", 1},
+		{"ADR-001", 1},
+		{"no está en ninguna", 0},
+		{"", 2},
+	}
+
+	for _, c := range cases {
+		t.Run(c.search, func(t *testing.T) {
+			t.Parallel()
+
+			adrs, err := apply.ADRs(t.Context(), c.search)
+			if err != nil {
+				t.Fatalf("buscando %q: %v", c.search, err)
+			}
+
+			if len(adrs) != c.want {
+				t.Errorf("la búsqueda %q trae %d ADR, se esperaban %d: %+v", c.search, len(adrs), c.want, adrs)
+			}
+		})
+	}
+}
+
 func TestCreateADR_refusesWhatTheRegisterCannotHold(t *testing.T) {
 	t.Parallel()
 
@@ -80,7 +150,7 @@ func TestCreateADR_refusesWhatTheRegisterCannotHold(t *testing.T) {
 		})
 	}
 
-	adrs, err := apply.ADRs(t.Context())
+	adrs, err := apply.ADRs(t.Context(), "")
 	if err != nil {
 		t.Fatalf("leyendo los ADR: %v", err)
 	}

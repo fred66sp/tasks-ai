@@ -125,8 +125,9 @@ artefacto construido se versiona y viaja incrustado en el binario, de modo que `
 reparte las dos superficies sin depender de nada más (`ADR-010`).
 
 La vista de decisiones es un frente de la misma interfaz: se abre desde la cabecera, a
-pantalla completa, con el listado a un lado y el ADR entero al otro, y desde ella se
-crea, se edita y se sustituye. No tiene router ni URLs propias: es otra capa de la misma
+pantalla completa, como un acordeón de tarjetas —al plegarse, cada una enseña tres líneas
+de su contexto; al abrirse, el ADR entero—, y desde ella se crea, se edita y se sustituye
+sin salir de la tarjeta. No tiene router ni URLs propias: es otra capa de la misma
 página, como el gestor de etiquetas.
 
 ## 10. Integración con el agente

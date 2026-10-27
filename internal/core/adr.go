@@ -49,15 +49,17 @@ type ADR struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-// ADRSummary is an ADR as the list shows it: what a list entry needs, without
-// the body.
+// ADRSummary is an ADR as the list shows it: what a list entry needs, with the
+// context because the interface folds the entry down to three lines of it, and
+// without the rest of the body.
 type ADRSummary struct {
-	Number int    `json:"number"`
-	Ref    string `json:"ref"`
-	Slug   string `json:"slug"`
-	Title  string `json:"title"`
-	Status string `json:"status"`
-	Date   string `json:"date"`
+	Number  int    `json:"number"`
+	Ref     string `json:"ref"`
+	Slug    string `json:"slug"`
+	Title   string `json:"title"`
+	Status  string `json:"status"`
+	Date    string `json:"date"`
+	Context string `json:"context"`
 }
 
 // ADRRef composes the reference of an ADR: ADR-016.
@@ -65,16 +67,23 @@ func ADRRef(number int) string {
 	return fmt.Sprintf("%s%03d", ADRRefPrefix, number)
 }
 
-// ADRs lists the ADR of the project by number, each one without its body.
-func (c *Core) ADRs(ctx context.Context) ([]ADRSummary, error) {
+// ADRs lists the ADR of the project by number, each one with its context and
+// without the rest of the body. Con una búsqueda, solo los que la contienen en
+// alguno de sus campos; el texto vacío no filtra nada.
+func (c *Core) ADRs(ctx context.Context, search string) ([]ADRSummary, error) {
 	stored, err := c.store.ADRs(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("reading the ADRs: %w", err)
 	}
 
+	query := searchable(strings.TrimSpace(search))
 	summaries := make([]ADRSummary, 0, len(stored))
 
 	for i := range stored {
+		if !adrMatches(stored[i], query) {
+			continue
+		}
+
 		summary, err := summarizeADR(stored[i])
 		if err != nil {
 			return nil, err
@@ -84,6 +93,51 @@ func (c *Core) ADRs(ctx context.Context) ([]ADRSummary, error) {
 	}
 
 	return summaries, nil
+}
+
+// adrMatches says whether the ADR holds the search in any of its fields. La
+// búsqueda llega ya normalizada, y el número y el sustituto se buscan por su
+// referencia visible.
+func adrMatches(adr store.ADR, search string) bool {
+	if search == "" {
+		return true
+	}
+
+	fields := []string{
+		strconv.Itoa(adr.Number),
+		ADRRef(adr.Number),
+		adr.Slug,
+		adr.Title,
+		adr.Status,
+		adr.Date,
+		adr.Deciders,
+		adr.Context,
+		adr.Decision,
+		adr.Consequences,
+		textOf(adr.Alternatives),
+		textOf(adr.MoreInfo),
+	}
+
+	if adr.SupersededBy != nil {
+		fields = append(fields, ADRRef(*adr.SupersededBy))
+	}
+
+	return strings.Contains(searchable(strings.Join(fields, "\n")), search)
+}
+
+// searchable lowers a text and drops its accents, so a search for "decision"
+// finds "decisión".
+func searchable(text string) string {
+	return accents.Replace(strings.ToLower(text))
+}
+
+// textOf reads the text an optional column holds.
+func textOf(text *string) string {
+	if text == nil {
+		return ""
+	}
+
+	return *text
 }
 
 // AllADRs returns every ADR with its body: es lo que la exportación escribe.
@@ -573,12 +627,13 @@ func summarizeADR(stored store.ADR) (ADRSummary, error) {
 	}
 
 	return ADRSummary{
-		Number: stored.Number,
-		Ref:    ADRRef(stored.Number),
-		Slug:   stored.Slug,
-		Title:  stored.Title,
-		Status: stored.Status,
-		Date:   stored.Date,
+		Number:  stored.Number,
+		Ref:     ADRRef(stored.Number),
+		Slug:    stored.Slug,
+		Title:   stored.Title,
+		Status:  stored.Status,
+		Date:    stored.Date,
+		Context: stored.Context,
 	}, nil
 }
 

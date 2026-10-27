@@ -23,6 +23,25 @@ func createADRByAPI(t *testing.T, server, title string) core.ADR {
 	return created
 }
 
+// listedADR lee la respuesta de la lista y devuelve su único ADR, comprobando
+// que trae el contexto y no el resto del cuerpo.
+func listedADR(t *testing.T, body string) core.ADRSummary {
+	t.Helper()
+
+	if strings.Contains(body, `"decision"`) {
+		t.Errorf("el listado trae el resto del cuerpo: %s", body)
+	}
+
+	var listed []core.ADRSummary
+	decode(t, body, &listed)
+
+	if len(listed) != 1 {
+		t.Fatalf("el listado trae %d ADR, se esperaba uno", len(listed))
+	}
+
+	return listed[0]
+}
+
 func TestServer_createsReadsAndEditsTheADRs(t *testing.T) {
 	t.Parallel()
 
@@ -51,15 +70,8 @@ func TestServer_createsReadsAndEditsTheADRs(t *testing.T) {
 		t.Fatalf("listar los ADR respondió %d: %s", status, body)
 	}
 
-	if strings.Contains(body, `"context"`) {
-		t.Errorf("el listado trae cuerpos, se esperaban resúmenes: %s", body)
-	}
-
-	var listed []core.ADRSummary
-	decode(t, body, &listed)
-
-	if len(listed) != 1 || listed[0].Ref != created.Ref {
-		t.Errorf("el listado es %+v, se esperaba el ADR creado", listed)
+	if listed := listedADR(t, body); listed.Ref != created.Ref || listed.Context != "el contexto" {
+		t.Errorf("el listado es %+v, se esperaba el ADR creado con su contexto", listed)
 	}
 
 	status, body = do(t, server, http.MethodPatch, "/api/adrs/1", `{"decision":"la decisión"}`)
@@ -144,5 +156,35 @@ func TestServer_theNoticeOfAnADRChangeNamesIt(t *testing.T) {
 
 	if len(change.Changes) != 1 || change.Changes[0] != (taskChange{ID: adr.Ref, Action: createdAction, Title: "El ADR avisado"}) {
 		t.Errorf("el aviso del ADR dice %+v, se esperaba %s creada como “El ADR avisado”", change.Changes, adr.Ref)
+	}
+}
+
+func TestServer_searchesTheADRsByTheirFields(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+	createADRByAPI(t, server, "Los ADR se leen en acordeón")
+
+	for _, search := range []string{"acordeon", "contexto", "ADR-001"} {
+		status, body := do(t, server, http.MethodGet, "/api/adrs?q="+search, "")
+		if status != http.StatusOK {
+			t.Fatalf("buscar %q respondió %d: %s", search, status, body)
+		}
+
+		if listed := listedADR(t, body); listed.Ref != "ADR-001" {
+			t.Errorf("buscar %q devolvió %+v, se esperaba el ADR-001", search, listed)
+		}
+	}
+
+	status, body := do(t, server, http.MethodGet, "/api/adrs?q=nada-que-ver", "")
+	if status != http.StatusOK {
+		t.Fatalf("buscar sin coincidencias respondió %d: %s", status, body)
+	}
+
+	var found []core.ADRSummary
+	decode(t, body, &found)
+
+	if len(found) != 0 {
+		t.Errorf("la búsqueda sin coincidencias trae %+v, se esperaba nada", found)
 	}
 }

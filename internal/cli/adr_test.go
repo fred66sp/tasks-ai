@@ -63,8 +63,8 @@ func TestRun_adrCreatesShowsAndListsTheADR(t *testing.T) {
 		t.Fatalf("adr list salió con %d: %s", code, errOut)
 	}
 
-	if strings.Contains(out, `"context"`) {
-		t.Errorf("el listado trae cuerpos, se esperaban resúmenes: %s", out)
+	if strings.Contains(out, `"decision"`) || !strings.Contains(out, `"context"`) {
+		t.Errorf("el listado debe traer el contexto y no el resto del cuerpo: %s", out)
 	}
 
 	var listed []core.ADRSummary

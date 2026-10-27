@@ -32,16 +32,17 @@ func newADRCommand() *cobra.Command {
 	return command
 }
 
-// newADRListCommand lists the ADR without their bodies.
+// newADRListCommand lists the ADR with their context, without the rest of the
+// body.
 func newADRListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
 		Short: "Lists the ADRs",
-		Long:  "Lists the ADR of the project by number, each one with its reference, its state and its day.",
+		Long:  "Lists the ADR of the project by number, each one with its reference, its state, its day\nand its context: the body of the decision is read with adr show.",
 		Args:  usage(cobra.NoArgs),
 		RunE: func(command *cobra.Command, _ []string) error {
 			return withProject(command, func(opened *project) error {
-				adrs, err := opened.core.ADRs(command.Context())
+				adrs, err := opened.core.ADRs(command.Context(), "")
 				if err != nil {
 					return err
 				}

@@ -594,9 +594,10 @@ func (s *Server) listTags(w nethttp.ResponseWriter, r *nethttp.Request) {
 	writeJSON(w, nethttp.StatusOK, catalogue)
 }
 
-// listADRs answers with every ADR of the project, without their bodies.
+// listADRs answers with the ADR of the project, without their bodies. Con q,
+// solo los que contienen ese texto en alguno de sus campos.
 func (s *Server) listADRs(w nethttp.ResponseWriter, r *nethttp.Request) {
-	adrs, err := s.core.ADRs(r.Context())
+	adrs, err := s.core.ADRs(r.Context(), r.URL.Query().Get("q"))
 	if err != nil {
 		s.writeError(w, err)
 

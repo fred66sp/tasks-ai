@@ -214,7 +214,8 @@ Un ADR se presenta así:
 ```
 
 - `adr list` responde los ADR por número, cada uno con `number`, `ref`, `slug`, `title`,
-  `status` y `date`: sin cuerpos.
+  `status`, `date` y `context`: el contexto viaja porque la interfaz pliega cada ADR a
+  tres líneas de él, y el resto del cuerpo se lee con `adr show`.
 - `adr show <número>` responde el ADR completo, con la forma de arriba. El número se
   escribe suelto o como referencia `ADR-016`, y una que no existe se rechaza con el
   código `1`.
@@ -261,7 +262,7 @@ Un ADR se presenta así:
 | `POST /api/tags` | Crear etiqueta |
 | `PATCH /api/tags/:name` | Renombrar, recolorear o describir |
 | `DELETE /api/tags/:name` | Borrar etiqueta |
-| `GET /api/adrs` | Los ADR del proyecto, por número y sin cuerpos |
+| `GET /api/adrs` | Los ADR del proyecto, por número, con su contexto y sin el resto del cuerpo; `?q=` filtra por todos los campos |
 | `GET /api/adrs/:number` | Un ADR completo |
 | `POST /api/adrs` | Crear un ADR |
 | `PATCH /api/adrs/:number` | Cambiar lo que nombre: el cuerpo mientras el ADR siga en `proposed`, un añadido a `more_info`, el estado y su sustituto; los rechazos son los del CLI |
@@ -287,6 +288,12 @@ no pertenece a esa tarea es `404`, y un cuerpo vacío es `400`.
 Crear un ADR responde `201` y leerlo o editarlo, `200`; un número que no existe es `404`.
 Un cuerpo congelado, un estado desconocido y una sustitución sin sustituto son entrada
 inválida —`400`—, como en el CLI, y un sustituto que no existe es `404`.
+
+`GET /api/adrs?q=…` devuelve solo los ADR que contienen ese texto en alguno de sus
+campos —número, referencia, `slug`, título, estado, fecha, decisores, contexto, decisión,
+consecuencias, alternativas, más información o sustituto—, sin distinguir mayúsculas ni
+acentos. Sin `q`, o con `q` vacío, devuelve todos. La búsqueda es del servidor porque la
+lista no trae el cuerpo entero.
 
 El cuerpo de un error es `{"error": "..."}` con el código que corresponde, nunca un
 error dentro de una respuesta correcta. Cada petición de escritura contiene un único

@@ -950,7 +950,7 @@
 ./tasks-ai adr edit 1 --status accepted                            # aceptarla congela el cuerpo
 ./tasks-ai adr edit 1 --note "Se comprobó en producción"           # solo «más información» admite añadidos
 ./tasks-ai adr edit 1 --status superseded --superseded-by 2        # ADR-002 la sustituye
-./tasks-ai adr list                                                # los ADR, sin cuerpos
+./tasks-ai adr list                                                # los ADR con su contexto
 ./tasks-ai adr show ADR-001                                        # uno entero, con sus secciones
 ./tasks-ai adr export --dir docs/decisions                         # escribe la exportación y su índice
 ./tasks-ai adr export --dir docs/decisions --check                 # sale con 1 si hay deriva</code></pre>
@@ -959,7 +959,7 @@
 ./tasks-ai adr edit 1 --status accepted                          # accepting it freezes the body
 ./tasks-ai adr edit 1 --note "Checked in production"             # only more information takes additions
 ./tasks-ai adr edit 1 --status superseded --superseded-by 2      # ADR-002 supersedes it
-./tasks-ai adr list                                              # the ADRs, without bodies
+./tasks-ai adr list                                              # the ADRs with their context
 ./tasks-ai adr show ADR-001                                      # one whole, with its sections
 ./tasks-ai adr export --dir docs/decisions                       # writes the export and its index
 ./tasks-ai adr export --dir docs/decisions --check               # exits 1 when there is drift</code></pre>

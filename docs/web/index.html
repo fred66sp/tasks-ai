@@ -962,6 +962,7 @@
 ./tasks-ai adr edit 1 --status superseded --superseded-by 2        # ADR-002 la sustituye
 ./tasks-ai adr list                                                # los ADR con su contexto
 ./tasks-ai adr show ADR-001                                        # uno entero, con sus secciones
+./tasks-ai adr import --dir docs/decisions                         # guarda los ADR que aún no están
 ./tasks-ai adr export --dir docs/decisions                         # escribe la exportación y su índice
 ./tasks-ai adr export --dir docs/decisions --check                 # sale con 1 si hay deriva</code></pre>
         <pre data-lang="en" hidden><code>./tasks-ai adr create --title "Adopt SQLite" --deciders "Ana"   # ADR-001, in proposed
@@ -971,6 +972,7 @@
 ./tasks-ai adr edit 1 --status superseded --superseded-by 2      # ADR-002 supersedes it
 ./tasks-ai adr list                                              # the ADRs with their context
 ./tasks-ai adr show ADR-001                                      # one whole, with its sections
+./tasks-ai adr import --dir docs/decisions                       # stores the ADRs that are not there yet
 ./tasks-ai adr export --dir docs/decisions                       # writes the export and its index
 ./tasks-ai adr export --dir docs/decisions --check               # exits 1 when there is drift</code></pre>
       </div>

@@ -1309,7 +1309,7 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
             <tr><td data-i18n="limites.12">Impedir ciclos de dependencias</td><td data-i18n="limites.13">Se permiten: A puede esperar a B y B a A. Si pasa, las dos aparecen bloqueadas y hay que retirar un bloqueo.</td></tr>
             <tr><td data-i18n="limites.14">Cerrar en cascada</td><td data-i18n="limites.15">Cerrar una subtarea no cierra al padre, y un padre con subtareas abiertas no se puede cerrar.</td></tr>
             <tr><td data-i18n="limites.16">Interpretar la prioridad</td><td data-i18n="limites.17">Valida el rango y nada más: no ordena, no filtra por sí sola ni cambia el comportamiento de nada.</td></tr>
-            <tr><td data-i18n="limites.18">Tener usuarios ni permisos</td><td data-i18n="limites.19">No hay autenticación: el producto supone una persona en su máquina y escucha en <code>127.0.0.1</code> por omisión. Cambiar <code>http.host</code> expone la API a quien llegue a esa dirección, sin más protección.</td></tr>
+            <tr><td data-i18n="limites.18">Tener usuarios ni permisos</td><td data-i18n="limites.19">No hay autenticación: el producto supone una persona en su máquina y escucha en <code>127.0.0.1</code> por omisión. Cambiar <code>http.host</code> expone la API a quien llegue a esa dirección, sin más protección. El servidor solo contesta a las peticiones dirigidas a su propio nombre y rechaza una escritura que el navegador marca como venida de otra página.</td></tr>
             <tr><td data-i18n="limites.20">Sincronizar entre máquinas</td><td data-i18n="limites.21">La base es un archivo local. Ni se sincroniza ni se comparte sola, y dos procesos escribiendo sobre la misma base no es una forma de trabajo soportada.</td></tr>
             <tr><td data-i18n="limites.25">Borrar un ADR</td><td data-i18n="limites.26">No hay orden de borrado. Un cambio de decisión se publica como un ADR nuevo que sustituye al anterior.</td></tr>
             <tr><td data-i18n="limites.22">Versionar el proyecto</td><td data-i18n="limites.23">No sabe nada de Git ni de ramas: no registra commits, ni autores, ni estados de revisión.</td></tr>
@@ -1721,7 +1721,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "limites.16": "Interpret priority",
  "limites.17": "It validates the range and nothing else: it does not sort, does not filter on its own and changes no behaviour.",
  "limites.18": "Have users or permissions",
- "limites.19": "There is no authentication: the product assumes one person on their machine and listens on <code>127.0.0.1</code> by default. Changing <code>http.host</code> exposes the API to anyone who reaches that address, with no further protection.",
+ "limites.19": "There is no authentication: the product assumes one person on their machine and listens on <code>127.0.0.1</code> by default. Changing <code>http.host</code> exposes the API to anyone who reaches that address, with no further protection. The server only answers requests addressed to its own name and refuses a write the browser marks as coming from another page.",
  "limites.20": "Synchronise across machines",
  "limites.21": "The database is a local file. It neither syncs nor shares itself, and two processes writing to the same database is not a supported way of working.",
  "limites.22": "Version the project",

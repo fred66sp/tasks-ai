@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	nethttp "net/http"
 	"strconv"
 	"strings"
@@ -44,6 +45,11 @@ func badEntry(format string, args ...any) error {
 // viven en la base, no en la memoria del servidor: mirarla es lo que hace que
 // un cambio pedido por otro proceso —el CLI— llegue también a este canal.
 const pollInterval = 500 * time.Millisecond
+
+// maxBody es lo más que puede llevar el cuerpo de una petición: una tarea o un
+// comentario largos caben de sobra, y sin tope una petición sola se lleva la
+// memoria del proceso.
+const maxBody = 4 << 20
 
 // workspaceEventName es el nombre con el que viaja cada aviso: es el mensaje
 // con nombre que la interfaz escucha, y sin él la pantalla no reacciona.
@@ -137,21 +143,24 @@ type Server struct {
 	core    *core.Core
 	log     *slog.Logger
 	closing <-chan struct{}
+	host    string
 }
 
 // New wires the API over the core the command line calls and the registry it
 // writes to. closing se cierra cuando el servidor empieza a apagarse: quien
 // espera en el canal de avisos termina entonces en vez de retener el apagado.
 // Un canal sin valor no se cierra nunca, que es lo que quieren las pruebas.
-func New(apply *core.Core, log *slog.Logger, closing <-chan struct{}) *Server {
-	return &Server{core: apply, log: log, closing: closing}
+// host es la dirección en la que el servidor escucha: es el nombre al que
+// contesta.
+func New(apply *core.Core, log *slog.Logger, closing <-chan struct{}, host string) *Server {
+	return &Server{core: apply, log: log, closing: closing, host: host}
 }
 
 // Handler returns the routes of the API, with each operation logged at debug
 // level: con error el servidor calla, con info dice dónde escucha —lo dice el
 // comando serve— y con debug cuenta además cada operación que sirve.
 func (s *Server) Handler() nethttp.Handler {
-	return s.logOperations(s.routes())
+	return s.logOperations(s.guard(s.routes()))
 }
 
 // routes composes the routes the contract lists. Go's mux answers 405 by
@@ -183,6 +192,100 @@ func (s *Server) routes() *nethttp.ServeMux {
 	mux.HandleFunc("GET /api/status", s.status)
 
 	return mux
+}
+
+// guard admits only the requests that belong to this server. Sin esto, la
+// defensa del producto era escuchar en loopback y suponer una sola persona en la
+// máquina: cualquier página abierta en el navegador de esa persona alcanzaba la
+// API —que no tiene autenticación—, y un DNS rebinding la alcanza aunque el
+// nombre de la página sea otro. El nombre del destino tiene que ser el del
+// servidor, y una escritura que el navegador marca como venida de otra página se
+// rechaza. Quien escucha en una dirección comodín ya pidió en la guía estar
+// expuesto a la red, así que ahí solo se comprueba el origen de la escritura.
+func (s *Server) guard(next nethttp.Handler) nethttp.Handler {
+	return nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
+		r.Body = nethttp.MaxBytesReader(w, r.Body, maxBody)
+
+		if !s.answersTo(r.Host) {
+			refuse(w, "this server does not answer to that name")
+
+			return
+		}
+
+		if !fromItsOwnPage(r) {
+			refuse(w, "the change does not come from the interface")
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// answersTo says whether a Host header names this server: cualquier nombre de
+// loopback, que es como se abre la interfaz, y la dirección de los ajustes.
+func (s *Server) answersTo(hostport string) bool {
+	if wildcardHost(s.host) {
+		return true
+	}
+
+	host := hostnameOf(hostport)
+
+	return isLoopback(host) || strings.EqualFold(host, s.host)
+}
+
+// wildcardHost says whether the address listens on every interface: quien la
+// elige está pidiendo que la API se alcance desde fuera.
+func wildcardHost(host string) bool {
+	switch host {
+	case "", "0.0.0.0", "::":
+		return true
+	}
+
+	return false
+}
+
+// hostnameOf takes the name of a Host header or of an address, without its port.
+func hostnameOf(hostport string) string {
+	if host, _, err := net.SplitHostPort(hostport); err == nil {
+		return host
+	}
+
+	return strings.Trim(hostport, "[]")
+}
+
+// isLoopback says whether a name is the machine's own.
+func isLoopback(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+
+	address := net.ParseIP(host)
+
+	return address != nil && address.IsLoopback()
+}
+
+// fromItsOwnPage says whether the browser that sent a change says it came from
+// this server. Un cliente que no es un navegador no manda origen, y quien lo
+// lanza ya tiene la máquina: no hay nada que comprobar.
+func fromItsOwnPage(r *nethttp.Request) bool {
+	switch r.Method {
+	case nethttp.MethodGet, nethttp.MethodHead, nethttp.MethodOptions:
+		return true
+	}
+
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+
+	return origin == "http://"+r.Host || origin == "https://"+r.Host
+}
+
+// refuse answers a request the server does not serve, with the body of an error
+// so the interface reads the reason like any other.
+func refuse(w nethttp.ResponseWriter, message string) {
+	writeJSON(w, nethttp.StatusForbidden, errorBody{Error: message})
 }
 
 // logOperations writes one debug line per served operation, with the method,
@@ -836,15 +939,25 @@ func decode[T any](r *nethttp.Request) (T, error) {
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&entry); err != nil {
-		return entry, badEntry("the body of the request is not valid JSON")
+		return entry, unreadable(err)
 	}
 
 	var extra any
 	if err := decoder.Decode(&extra); err != io.EOF {
-		return entry, badEntry("the body of the request is not valid JSON")
+		return entry, unreadable(err)
 	}
 
 	return entry, nil
+}
+
+// unreadable is the entry error of a body that cannot be read: uno que pasa del
+// tope se dice con su tamaño en vez de fingir que no es JSON.
+func unreadable(err error) error {
+	if tooBig, ok := errors.AsType[*nethttp.MaxBytesError](err); ok {
+		return badEntry("the body of the request is larger than %d bytes", tooBig.Limit)
+	}
+
+	return badEntry("the body of the request is not valid JSON")
 }
 
 // statusOf translates an error into the status code the contract names, by the

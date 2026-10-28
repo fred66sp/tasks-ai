@@ -14,6 +14,9 @@ node_modules/
 #   .pi/  el paquete de Pi instalado en el proyecto y el agente de delegación
 # El modelo elegido para el subagente con /gentle:models no viaja: es de esta máquina.
 .pi/subagents.json
+
+# Memoria local de Engram: sus datos son de esta máquina. Solo viaja el ajuste que
+# ata el proyecto a su nombre; la memoria se reconstruye trabajando, no se copia.
 .engram/*
 !.engram/config.json
 

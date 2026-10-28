@@ -92,6 +92,32 @@ decisión, y el directorio versionado es lo único que queda.
 toque una decisión, y la exportación en el mismo commit que la escribe. La base se puede
 copiar junto con las tareas.
 
+### RX-13 El tablero no distingue a quien pregunta
+
+La API no pide credenciales y atiende en loopback: cualquier proceso de la máquina la lee
+y la escribe mientras `serve` corre, y la base se crea con los permisos que da el proyecto,
+así que otra cuenta de la máquina la lee si el directorio de la persona la deja atravesar.
+Es la consecuencia de un producto de una sola persona (`ADR-001`), y su límite está escrito
+en la guía de uso.
+
+**Cobertura:** la guía lo declara en sus límites; el servidor solo contesta a peticiones
+dirigidas a su propio nombre y rechaza una escritura que el navegador marca como venida de
+otra página (`ADR-017`), que era la única forma de alcanzarlo sin tener cuenta en la
+máquina. Un proceso local sigue sin necesitar permiso: quien lo lanza ya tiene la sesión de
+la persona.
+
+### RX-14 La carpeta del producto puede ser un enlace
+
+La instalación rechaza un enlace simbólico dentro de `.tasks-ai/` —en un fichero o en una
+carpeta intermedia—, porque escribir a través de él llevaría el contenido del producto a un
+fichero de la persona. No lo comprueba en la carpeta entera: si `.tasks-ai/` es el enlace,
+todo lo que el producto escribe cae donde apunte, y el daño se queda en los nombres que el
+producto usa, que tienen que coincidir con los de un fichero que ya esté ahí.
+
+**Cobertura:** `noLinks` en `internal/install` antes de cada escritura incondicional, con
+una prueba por cada forma —el fichero enlazado y la carpeta enlazada—. Que `.tasks-ai/` sea
+un enlace es una decisión de quien monta el proyecto.
+
 ## Resueltos
 
 - **RX-9 La base del tablero es un binario que no se fusiona.** La base viajaba en el

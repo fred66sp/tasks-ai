@@ -66,7 +66,7 @@ func serve(command *cobra.Command) error {
 	// error que nadie cometió.
 	closing := make(chan struct{})
 
-	api := http.New(opened.core, log, closing)
+	api := http.New(opened.core, log, closing, opened.cfg.HTTP.Host)
 	server := &nethttp.Server{
 		Addr: fmt.Sprintf("%s:%d", opened.cfg.HTTP.Host, opened.cfg.HTTP.Port),
 		// El canal de eventos permanece abierto: un tiempo de escritura

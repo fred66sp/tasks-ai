@@ -23,7 +23,7 @@ import (
 func newTestServer(t *testing.T, apply *core.Core, log *slog.Logger) string {
 	t.Helper()
 
-	server := httptest.NewServer(api.New(apply, log, nil).Handler())
+	server := httptest.NewServer(api.New(apply, log, nil, "127.0.0.1").Handler())
 	t.Cleanup(server.Close)
 
 	return server.URL
@@ -1581,12 +1581,108 @@ func expect(t *testing.T, status int, body string, expected int, message string)
 	}
 }
 
-func do(t *testing.T, server, method, path, body string) (int, string) {
+// TestServer_refusesARequestAddressedToAnotherName comprueba que el servidor no
+// contesta a quien llega por un nombre que no es el suyo. Es la petición de una
+// página que un DNS rebinding apunta a esta máquina: sin esta comprobación leería
+// el tablero entero, porque la API no pide credenciales.
+func TestServer_refusesARequestAddressedToAnotherName(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := doWith(t, server, http.MethodGet, "/api/tasks", "", func(request *http.Request) {
+		request.Host = "evil.example:8890"
+	})
+	if status != http.StatusForbidden {
+		t.Fatalf("leer el tablero por otro nombre respondió %d: %s", status, body)
+	}
+}
+
+// TestServer_refusesAWriteThatComesFromAnotherPage comprueba que una página que
+// no es la interfaz no escribe en el tablero. El cuerpo va como texto llano a
+// propósito: es lo que un navegador manda a otro origen sin preguntar antes si se
+// lo permiten, así que la comprobación no puede ser el tipo del contenido.
+func TestServer_refusesAWriteThatComesFromAnotherPage(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := doWith(t, server, http.MethodPost, "/api/tasks", `{"title":"Desde otra página"}`, func(request *http.Request) {
+		request.Header.Set("Origin", "https://evil.example")
+		request.Header.Set("Content-Type", "text/plain")
+	})
+	if status != http.StatusForbidden {
+		t.Fatalf("escribir desde otra página respondió %d: %s", status, body)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/tasks", "")
+	if status != http.StatusOK {
+		t.Fatalf("listar las tareas respondió %d: %s", status, body)
+	}
+
+	var tasks []core.Task
+	decode(t, body, &tasks)
+
+	if len(tasks) != 0 {
+		t.Fatalf("la escritura rechazada dejó %d tareas en el tablero", len(tasks))
+	}
+}
+
+// TestServer_acceptsTheWriteOfItsOwnPage comprueba que la interfaz sigue
+// escribiendo: el guardián no puede cerrar la puerta de casa.
+func TestServer_acceptsTheWriteOfItsOwnPage(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	status, body := doWith(t, server, http.MethodPost, "/api/tasks", `{"title":"Desde la interfaz"}`, func(request *http.Request) {
+		request.Header.Set("Origin", server)
+	})
+	if status != http.StatusCreated {
+		t.Fatalf("escribir desde la interfaz respondió %d: %s", status, body)
+	}
+}
+
+// TestServer_refusesABodyLargerThanTheLimit comprueba que una petición sola no
+// puede pedir la memoria del proceso, y que el cuerpo rechazado no deja nada
+// escrito.
+func TestServer_refusesABodyLargerThanTheLimit(t *testing.T) {
+	t.Parallel()
+
+	server, _ := newServer(t)
+
+	huge := `{"title":"` + strings.Repeat("a", 5<<20) + `"}`
+
+	status, body := do(t, server, http.MethodPost, "/api/tasks", huge)
+	if status != http.StatusBadRequest || !strings.Contains(body, "larger") {
+		t.Fatalf("un cuerpo de cinco megas respondió %d: %s", status, body)
+	}
+
+	status, body = do(t, server, http.MethodGet, "/api/tasks", "")
+	if status != http.StatusOK {
+		t.Fatalf("listar las tareas respondió %d: %s", status, body)
+	}
+
+	var tasks []core.Task
+	decode(t, body, &tasks)
+
+	if len(tasks) != 0 {
+		t.Fatalf("el cuerpo rechazado dejó %d tareas en el tablero", len(tasks))
+	}
+}
+
+// doWith hace la petición como do y deja prepararla antes: es lo que permite
+// mentir sobre el nombre al que se dirige o sobre la página desde la que viene.
+func doWith(t *testing.T, server, method, path, body string, prepare func(*http.Request)) (int, string) {
 	t.Helper()
 
 	request, err := http.NewRequestWithContext(t.Context(), method, server+path, strings.NewReader(body))
 	if err != nil {
 		t.Fatalf("preparando %s %s: %v", method, path, err)
+	}
+
+	if prepare != nil {
+		prepare(request)
 	}
 
 	response, err := http.DefaultClient.Do(request)
@@ -1602,6 +1698,12 @@ func do(t *testing.T, server, method, path, body string) (int, string) {
 	}
 
 	return response.StatusCode, string(raw)
+}
+
+func do(t *testing.T, server, method, path, body string) (int, string) {
+	t.Helper()
+
+	return doWith(t, server, method, path, body, nil)
 }
 
 func openEvents(t *testing.T, url string) io.Reader {

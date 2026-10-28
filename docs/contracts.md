@@ -277,10 +277,16 @@ Códigos de estado:
 |---|---|
 | `200` | Operación resuelta |
 | `201` | Recurso creado |
-| `400` | Entrada inválida: prioridad fuera de rango, motivo de cierre desconocido, campos que faltan |
+| `400` | Entrada inválida: prioridad fuera de rango, motivo de cierre desconocido, campos que faltan, cuerpo mayor que el tope |
+| `403` | La petición no se dirige a este servidor, o una escritura declara un origen que no es el suyo |
 | `404` | La referencia o el número no corresponde a ninguna tarea, etiqueta o ADR |
 | `409` | La regla lo impide: cerrar una tarea con subtareas abiertas |
 | `500` | Fallo interno |
+
+El servidor contesta solo a las peticiones dirigidas a su propio nombre —la dirección de
+`http.host` o cualquier nombre de loopback— y rechaza con `403` una escritura cuyo
+encabezado `Origin` no sea el del propio servidor; una lectura desde otro nombre también
+es `403`. Un cuerpo mayor de cuatro mebibytes se corta y se responde `400` (`ADR-017`).
 
 Crear y editar un comentario responden con `200` y la tarea tal como queda, igual que el
 CLI; `GET /api/tasks/:ref/comments` responde la lista con la forma de la sección 1. El

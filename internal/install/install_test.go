@@ -162,6 +162,71 @@ func TestRun_leavesTheBinaryAndTheExtensions(t *testing.T) {
 	}
 }
 
+// TestRun_refusesToWriteThroughASymbolicLink comprueba que un repositorio no
+// puede llevar el contenido del producto a un fichero de la persona. El árbol
+// que se clona trae el enlace; la instalación escribe con los permisos de quien
+// la ejecuta.
+func TestRun_refusesToWriteThroughASymbolicLink(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	kept := "no se toca"
+
+	target := filepath.Join(t.TempDir(), "un-fichero-de-la-persona")
+	if err := os.WriteFile(target, []byte(kept), 0o600); err != nil {
+		t.Fatalf("preparando el fichero de fuera: %v", err)
+	}
+
+	productsExtension := filepath.Join(dir, install.DirName, "extensions", "pi")
+	mkdir(t, productsExtension)
+
+	if err := os.Symlink(target, filepath.Join(productsExtension, "index.ts")); err != nil {
+		t.Fatalf("preparando el enlace simbólico: %v", err)
+	}
+
+	if _, err := install.Run(t.Context(), dir, ""); err == nil {
+		t.Fatal("la instalación escribió a través de un enlace simbólico")
+	}
+
+	raw, err := os.ReadFile(target) //nolint:gosec // el destino lo prepara la prueba en su propio directorio
+	if err != nil {
+		t.Fatalf("leyendo el fichero de fuera: %v", err)
+	}
+
+	if string(raw) != kept {
+		t.Fatalf("el fichero de fuera del proyecto cambió: %q", raw)
+	}
+}
+
+// TestRun_refusesToWriteThroughALinkedFolder comprueba lo mismo con la carpeta
+// entera: un enlace en lugar de extensions lleva cada fichero del producto a la
+// carpeta a la que apunta.
+func TestRun_refusesToWriteThroughALinkedFolder(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	outside := t.TempDir()
+
+	mkdir(t, filepath.Join(dir, install.DirName))
+
+	if err := os.Symlink(outside, filepath.Join(dir, install.DirName, "extensions")); err != nil {
+		t.Fatalf("preparando el enlace simbólico: %v", err)
+	}
+
+	if _, err := install.Run(t.Context(), dir, ""); err == nil {
+		t.Fatal("la instalación escribió en una carpeta enlazada")
+	}
+
+	written, err := os.ReadDir(outside)
+	if err != nil {
+		t.Fatalf("leyendo la carpeta de fuera: %v", err)
+	}
+
+	if len(written) != 0 {
+		t.Fatalf("la instalación dejó %d entradas en la carpeta enlazada", len(written))
+	}
+}
+
 func TestRun_completesAnInstallationFromAnOlderVersion(t *testing.T) {
 	t.Parallel()
 

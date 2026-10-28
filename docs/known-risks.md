@@ -106,6 +106,18 @@ otra página (`ADR-017`), que era la única forma de alcanzarlo sin tener cuenta
 máquina. Un proceso local sigue sin necesitar permiso: quien lo lanza ya tiene la sesión de
 la persona.
 
+### RX-14 La carpeta del producto puede ser un enlace
+
+La instalación rechaza un enlace simbólico dentro de `.tasks-ai/` —en un fichero o en una
+carpeta intermedia—, porque escribir a través de él llevaría el contenido del producto a un
+fichero de la persona. No lo comprueba en la carpeta entera: si `.tasks-ai/` es el enlace,
+todo lo que el producto escribe cae donde apunte, y el daño se queda en los nombres que el
+producto usa, que tienen que coincidir con los de un fichero que ya esté ahí.
+
+**Cobertura:** `noLinks` en `internal/install` antes de cada escritura incondicional, con
+una prueba por cada forma —el fichero enlazado y la carpeta enlazada—. Que `.tasks-ai/` sea
+un enlace es una decisión de quien monta el proyecto.
+
 ## Resueltos
 
 - **RX-9 La base del tablero es un binario que no se fusiona.** La base viajaba en el

@@ -7,12 +7,14 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	embedded "tasks-ai"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/settings"
@@ -239,6 +241,39 @@ func complete(dir, dbPath, instructions string) bool {
 		exists(filepath.Join(dir, "extensions", "opencode"))
 }
 
+// noLinks refuses a destination whose path below the product folder runs through
+// a symbolic link. El árbol del proyecto puede venir de un clon ajeno y traer el
+// enlace: escribir a través de él lleva el contenido del producto a un fichero de
+// la persona, con sus permisos y sin que nadie lo pida. Lo que todavía no existe
+// no puede ser un enlace, así que se comprueba antes de crear nada.
+func noLinks(root, path string) error {
+	relative, err := filepath.Rel(root, path)
+	if err != nil || !filepath.IsLocal(relative) {
+		return fmt.Errorf("%s does not belong to %s", path, root)
+	}
+
+	current := root
+
+	for part := range strings.SplitSeq(relative, string(filepath.Separator)) {
+		current = filepath.Join(current, part)
+
+		info, err := os.Lstat(current)
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil
+		}
+
+		if err != nil {
+			return fmt.Errorf("looking at %s: %w", current, err)
+		}
+
+		if info.Mode()&os.ModeSymlink != 0 {
+			return fmt.Errorf("%s is a symbolic link: the product does not write through it", current)
+		}
+	}
+
+	return nil
+}
+
 // copyBinary deja el producto en la carpeta del proyecto, copiado del que se está
 // ejecutando, para que el proyecto no dependa de dónde se compiló. Devuelve la ruta
 // del binario instalado.
@@ -249,6 +284,11 @@ func copyBinary(dir string) (string, error) {
 	}
 
 	target := filepath.Join(dir, "bin", binName)
+
+	if err := noLinks(dir, target); err != nil {
+		return "", err
+	}
+
 	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
 		return "", fmt.Errorf("creating %s: %w", filepath.Dir(target), err)
 	}
@@ -281,6 +321,11 @@ func writeExtension(dir string, files fs.FS, name string) (string, error) {
 		}
 
 		dest := filepath.Join(dir, filepath.FromSlash(path))
+
+		if err := noLinks(dir, dest); err != nil {
+			return err
+		}
+
 		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
 			return fmt.Errorf("creating %s: %w", filepath.Dir(dest), err)
 		}

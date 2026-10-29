@@ -124,6 +124,7 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | Cambio | Dónde se escribe |
 |---|---|
 | Requisito nuevo o modificado | `docs/PRD.md` |
+| Usuarios, propósito o principios de producto | `PRODUCT.md` |
 | Decisión durable | El tablero, con `adr create`; `docs/decisions/` es su exportación generada (`ADR-016`) |
 | Forma de datos o de API | `docs/contracts.md` |
 | Diseño | `docs/architecture.md` |

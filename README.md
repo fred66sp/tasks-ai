@@ -25,6 +25,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 | `CONTRIBUTING.md` | Ramas, commits, integración y versiones | Requisitos, arquitectura |
 | `AGENTS.md` | Reglas de cada turno y enrutado al detalle | Estado, planes |
 | `CHANGELOG.md` | Lo que cambió en cada versión publicada | Planes, estado |
+| `PRODUCT.md` | El registro durable del producto para el trabajo de diseño | Requisitos, estado, formas de datos |
 | `docs/PRD.md` | Requisitos, alcance y criterios de aceptación | Diseño técnico, estado |
 | `docs/architecture.md` | Cómo está construido y por qué | Requisitos, procedimientos |
 | `docs/contracts.md` | Formas de datos y API que no se pueden romper | Narrativa de producto |

@@ -27,6 +27,7 @@ func TestProjectDocumentation(t *testing.T) {
 		"README.md",
 		"AGENTS.md",
 		"CHANGELOG.md",
+		"PRODUCT.md",
 		"docs",
 		".tasks-ai",
 		".pi/agents",

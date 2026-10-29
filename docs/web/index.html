@@ -29,14 +29,14 @@
     --muted: #5f6b80;
     --border: #e2e8f0;
     --border-strong: #cbd5e1;
-    --accent: #7c3aed;
+    --accent: #6d28d9;
     --accent-2: #2563eb;
     --accent-3: #06b6d4;
     --accent-soft: rgba(124, 58, 237, .10);
     --ok: #10b981;
     --warn: #f59e0b;
-    --ok-text: #047857;
-    --warn-text: #b45309;
+    --ok-text: #065f46;
+    --warn-text: #92400e;
     --error-text: #b91c1c;
     --code-bg: #0a0f1c;
     --code-text: #e5e7eb;
@@ -528,10 +528,31 @@
   ul.plain li + li { margin-top: 6px; }
   .cmd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .cmd .sig { color: var(--muted); font-weight: 500; font-size: 13.5px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  /* El conmutador recorta sus esquinas: el anillo va por dentro o no se ve. */
+  .lang-switch button:focus-visible { outline-offset: -3px; }
+  .code :focus-visible { outline-color: #c4b5fd; }
+  .skip {
+    position: absolute; left: 16px; top: -60px; z-index: 100;
+    padding: 10px 14px; border-radius: 8px;
+    background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
+  }
+  .skip:focus { top: 12px; }
+  /* En pantallas estrechas la cabecera solo conserva lo que se usa: la marca,
+     el idioma y el tema. El lema y el rótulo del botón se retiran antes de
+     dejar que el conmutador de idioma se recorte. */
+  @media (max-width: 520px) {
+    .topbar { gap: 8px; }
+    .brand-mark { flex: 0 0 auto; }
+    .brand-name small { display: none; }
+    .icon-btn span { display: none; }
+    .lang-switch { flex: 0 0 auto; }
+  }
 </style>
 </head>
 <body>
 
+<a class="skip" href="#main" data-i18n="header.0">Saltar al contenido</a>
 
 <header class="topbar">
   <a class="brand" href="#top">
@@ -580,7 +601,7 @@
     <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
   </nav>
 
-  <main>
+  <main id="main">
     <section id="que-es">
       <div class="section-head"><span class="section-num">1</span><h2 class="title" data-i18n="que-es.2">Qué es tasks-ai</h2></div>
       <p class="sub" data-i18n="que-es.3">Un gestor de tareas para el proyecto en el que estás, no un servicio al que te conectas. No hay servidor que mantener ni cuenta que crear: hay un binario y una carpeta.</p>
@@ -1434,6 +1455,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
 <script type="module" src="https://cdn.jsdelivr.net/npm/microlighter@2.0.0/dist/microlighter.min.js"></script>
 <script type="application/json" id="tasks-ai-en">
 {
+ "header.0": "Skip to content",
  "header.1": "tasks-ai<small>local-first task manager</small>",
  "header.2": "Theme",
  "hero.1": "On this page",

@@ -158,6 +158,10 @@
   .icon-btn svg { width: 16px; height: 16px; }
   :root[data-theme="light"] .icon-sun { display: none; }
   :root[data-theme="dark"] .icon-moon { display: none; }
+  /* Entrada de vuelta a la portada, en la línea del catálogo de SKILLS-AGP:
+     el lema se retira en pantallas estrechas con la regla de .icon-btn span. */
+  .catalog-btn { text-decoration: none; }
+  .catalog-btn:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
 
 
   .hero {
@@ -251,6 +255,9 @@
     }
     .toc a:hover { color: var(--text); text-decoration: none; }
     .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; }
+    /* Salida del índice hacia la portada, separada por filete como en SKILLS-AGP. */
+    .toc .toc-extra { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .toc .toc-extra a { color: var(--accent); }
   }
   main { min-width: 0; }
   section { scroll-margin-top: 88px; }
@@ -560,6 +567,10 @@
     <span class="brand-name" data-i18n="header.1">tasks-ai<small>gestor de tareas local-first</small></span>
   </a>
   <span class="topbar-spacer"></span>
+  <a class="icon-btn catalog-btn" href="landing.html" aria-label="Volver a la portada" data-aria-en="Back to the landing page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19"></path></svg>
+    <span data-i18n="header.3">Portada</span>
+  </a>
   <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" lang="en">EN</button></div><button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
     <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
@@ -575,6 +586,7 @@
     <div class="hero-actions">
       <a class="btn btn-primary" href="#empezar" data-i18n="hero.17">Empezar</a>
       <a class="btn btn-ghost" href="#comandos" data-i18n="hero.18">Ver las órdenes</a>
+      <a class="btn btn-ghost" href="landing.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 19l-7-7 7-7"></path></svg><span data-i18n="hero.23">Volver a la portada</span></a>
     </div>
     <div class="status-strip" role="status">
       <span class="status-mark" aria-hidden="true">OK</span>
@@ -599,6 +611,7 @@
     <a href="#limites" data-i18n="hero.11">11. Lo que no hace</a>
     <a href="#errores" data-i18n="hero.12">12. Errores y qué significan</a>
     <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
+    <div class="toc-extra"><a href="landing.html" data-i18n="hero.24">Volver a la portada</a></div>
   </nav>
 
   <main id="main">
@@ -1458,6 +1471,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "header.0": "Skip to content",
  "header.1": "tasks-ai<small>local-first task manager</small>",
  "header.2": "Theme",
+ "header.3": "Landing",
  "hero.1": "On this page",
  "hero.2": "1. What tasks-ai is",
  "hero.3": "2. Starting in a project",
@@ -1479,6 +1493,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "hero.18": "See the commands",
  "hero.20": "Everything on this page can be repeated",
  "hero.21": "Every command, every option, every error message and every response on this page was copied from the real binary. Long responses are trimmed to the fields that matter, and the page says when they are.",
+ "hero.23": "Back to the landing page",
+ "hero.24": "Back to the landing page",
  "que-es.2": "What tasks-ai is",
  "que-es.3": "A task manager for the project you are in, not a service you connect to. There is no server to maintain and no account to create: there is a binary and a folder.",
  "que-es.4": "Tasks live in <code>.tasks-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.tasks-ai/</code> folder with it.",

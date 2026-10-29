@@ -182,7 +182,22 @@
     filter: blur(6px);
     pointer-events: none;
   }
-  .hero-inner { position: relative; max-width: 1080px; margin: 0 auto; }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--border-strong) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--border-strong) 45%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(70% 65% at 50% 20%, #000 0%, transparent 78%);
+    mask-image: radial-gradient(70% 65% at 50% 20%, #000 0%, transparent 78%);
+    opacity: .5;
+    pointer-events: none;
+  }
+  /* La retícula se pinta por encima del contenido posicionado: sin este
+     z-index el texto del hero quedaría debajo de ella. */
+  .hero-inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; }
   .pill {
     display: inline-flex;
     align-items: center;
@@ -205,8 +220,25 @@
     font-weight: 800;
   }
   .hero h1 .grad {
-    color: var(--accent);
+    background: linear-gradient(112deg, var(--accent) 0%, var(--accent-2) 52%, var(--accent-3) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
+  /* Entrada y ambiente del hero, en la línea del catálogo de SKILLS-AGP:
+     el contenido sube escalonado y los halos derivan muy despacio. La regla
+     global de prefers-reduced-motion lo apaga entero. */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes hero-drift {
+    from { translate: 0 0; scale: 1; filter: blur(6px) hue-rotate(0deg); }
+    to { translate: 64px -36px; scale: 1.12; filter: blur(6px) hue-rotate(40deg); }
+  }
+  .hero::before { animation: hero-drift 20s ease-in-out -5s infinite alternate; }
+  .hero-inner > * { animation: rise .6s ease-out both; }
+  .hero-inner > *:nth-child(2) { animation-delay: .08s; }
+  .hero-inner > *:nth-child(3) { animation-delay: .16s; }
+  .hero-inner > *:nth-child(4) { animation-delay: .24s; }
+  .hero-inner > *:nth-child(5) { animation-delay: .32s; }
   .hero p.lead {
     margin: 20px 0 0;
     max-width: 660px;
@@ -529,7 +561,7 @@
   .to-top svg { width: 18px; height: 18px; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
   .sev-info { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
   .qa { border-bottom: 1px solid var(--border); padding: 18px 0; }
   .qa:last-child { border-bottom: 0; }
@@ -550,6 +582,24 @@
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }
+  /* Entrada en cascada del contenido, mismo convenio que el catálogo de
+     SKILLS-AGP: los bloques múltiples y los listados se escalonan con --d —
+     la posición en el lote que entra, la fija el script— y el resto de
+     bloques sube con un fade simple. Sin JavaScript nada queda oculto y el
+     estado final es el estático. */
+  @media screen and (prefers-reduced-motion: no-preference) {
+    .flow.is-ready .flow-step:not(.is-in), .grid.is-ready .card:not(.is-in),
+    ul.plain.is-ready li:not(.is-in), .qa.is-ready:not(.is-in),
+    .section-head.is-ready:not(.is-in), section > .sub.is-ready:not(.is-in),
+    .code.is-ready:not(.is-in), .table-wrap.is-ready:not(.is-in),
+    .note.is-ready:not(.is-in) { opacity: 0; }
+    .flow .flow-step.is-in, .grid .card.is-in, ul.plain li.is-in,
+    .qa.is-in, .section-head.is-in, section > .sub.is-in,
+    .code.is-in, .table-wrap.is-in, .note.is-in {
+      animation: rise .55s cubic-bezier(.16, 1, .3, 1) backwards;
+      animation-delay: calc(var(--d, 0) * 70ms);
+    }
+  }
   /* En pantallas estrechas la cabecera solo conserva lo que se usa: la marca,
      el idioma y el tema. El lema y el rótulo del botón se retiran antes de
      dejar que el conmutador de idioma se recorte. */
@@ -2054,6 +2104,40 @@ chmod +x tasks-ai                              # then try again</code></pre>
     window.addEventListener("scroll", updateToTop, { passive: true });
     updateToTop();
   }
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  // Entrada en cascada del contenido, mismo convenio que el catálogo de
+  // SKILLS-AGP: cada bloque se revela al entrar en pantalla y los que
+  // llegan juntos se renumeran en --d para escalonarse; sin observer,
+  // todo visible.
+  if (!("IntersectionObserver" in window)) { return; }
+  var observer = new IntersectionObserver(function (entries) {
+    entries.filter(function (entry) { return entry.isIntersecting; })
+      .sort(function (a, b) {
+        return parseFloat(a.target.style.getPropertyValue("--d")) - parseFloat(b.target.style.getPropertyValue("--d"));
+      })
+      .forEach(function (entry, i) {
+        entry.target.style.setProperty("--d", i);
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      });
+  }, { threshold: 0, rootMargin: "0px 0px -8% 0px" });
+  // Bloques múltiples y listados: la cascada escala entre ellos.
+  document.querySelectorAll(".flow, .grid, ul.plain").forEach(function (group) {
+    var blocks = group.querySelectorAll(":scope > .flow-step, :scope > .card, :scope > li");
+    blocks.forEach(function (block, i) { block.style.setProperty("--d", i); });
+    group.classList.add("is-ready");
+    blocks.forEach(function (block) { observer.observe(block); });
+  });
+  // Bloques sueltos: el mismo reveal, sin rejilla que coordinar.
+  document.querySelectorAll(".section-head, section > .sub, .qa, .code, .table-wrap, .note").forEach(function (block) {
+    block.style.setProperty("--d", 0);
+    block.classList.add("is-ready");
+    observer.observe(block);
+  });
 })();
 </script>
 </body>

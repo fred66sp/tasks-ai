@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T13:11:06Z",
+  "title": "Design System: tasks-ai",
+  "extensions": {
+    "colorMeta": {
+      "canvas-night": {
+        "role": "neutral",
+        "displayName": "Noche",
+        "canonical": "#0a0f1c",
+        "tonalRamp": [
+          "#20232d",
+          "#323c54",
+          "#405282",
+          "#4866b4",
+          "#7088c6",
+          "#a0add0",
+          "#cad0e0",
+          "#f0f1f4"
+        ]
+      },
+      "violet-ink": {
+        "role": "primary",
+        "displayName": "Violeta que escribe",
+        "canonical": "#a78bfa",
+        "tonalRamp": [
+          "#201a33",
+          "#332265",
+          "#4121a0",
+          "#4a15e6",
+          "#7247ee",
+          "#a189e7",
+          "#cbc1ea",
+          "#f0eef6"
+        ]
+      },
+      "violet-ink-day": {
+        "role": "primary",
+        "displayName": "Violeta gastado",
+        "canonical": "#6d28d9",
+        "tonalRamp": [
+          "#241d30",
+          "#3e2a5d",
+          "#563091",
+          "#6c2ecd",
+          "#8d5bda",
+          "#b094dc",
+          "#d2c5e5",
+          "#f2eff5"
+        ]
+      },
+      "azure-brand": {
+        "role": "secondary",
+        "displayName": "Azul de apoyo",
+        "canonical": "#3882f6",
+        "tonalRamp": [
+          "#1b2231",
+          "#253861",
+          "#274b9a",
+          "#1f5add",
+          "#4f7fe6",
+          "#8da8e3",
+          "#c2cee8",
+          "#eff1f6"
+        ]
+      },
+      "cyan-brand": {
+        "role": "tertiary",
+        "displayName": "Cian de cierre",
+        "canonical": "#06b6d4",
+        "tonalRamp": [
+          "#1a2f33",
+          "#215c66",
+          "#1f8fa2",
+          "#12cae9",
+          "#45d8f1",
+          "#88dae8",
+          "#c0e4ea",
+          "#eef5f6"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Éxito",
+        "canonical": "#10b981",
+        "tonalRamp": [
+          "#1b322a",
+          "#25624e",
+          "#269b74",
+          "#1ede9e",
+          "#4ee7b5",
+          "#8de3c6",
+          "#c2e8db",
+          "#eef6f4"
+        ]
+      },
+      "warning": {
+        "role": "neutral",
+        "displayName": "Aviso",
+        "canonical": "#f59e0b",
+        "tonalRamp": [
+          "#33291a",
+          "#654c22",
+          "#a17120",
+          "#e79915",
+          "#efb047",
+          "#e7c489",
+          "#eadac0",
+          "#f6f3ee"
+        ]
+      },
+      "danger": {
+        "role": "neutral",
+        "displayName": "Peligro",
+        "canonical": "#f87171",
+        "tonalRamp": [
+          "#321a1a",
+          "#642323",
+          "#a02121",
+          "#e51616",
+          "#ed4848",
+          "#e68a8a",
+          "#e9c1c1",
+          "#f6eeee"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular de la portada."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "El titular de la guía de uso."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de sección; panel y modal en la interfaz."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto de la interfaz (15 px); la guía lee a 16 px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Etiquetas de propiedad y de campo, en mayúsculas."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "CLI, código, JSON y referencias de tarea."
+      }
+    },
+    "shadows": [
+      {
+        "name": "flotante",
+        "value": "0 30px 90px rgba(0, 0, 0, 0.52)",
+        "purpose": "Modales y avisos emergentes sobre el velo."
+      },
+      {
+        "name": "papel-claro",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px -12px rgba(15, 23, 42, 0.18)",
+        "purpose": "Tarjetas y tablas de la guía en tema claro."
+      },
+      {
+        "name": "papel-oscuro",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -18px rgba(0, 0, 0, 0.8)",
+        "purpose": "Las mismas piezas en tema oscuro."
+      },
+      {
+        "name": "superposicion-clara",
+        "value": "0 20px 60px -30px rgba(15, 23, 42, 0.35)",
+        "purpose": "Superposición de sección, tema claro."
+      },
+      {
+        "name": "superposicion-oscura",
+        "value": "0 24px 70px -34px rgba(0, 0, 0, 0.9)",
+        "purpose": "Superposición de sección, tema oscuro."
+      },
+      {
+        "name": "artefacto",
+        "value": "0 1px 1px rgba(2, 6, 23, 0.18), 0 28px 70px -32px rgba(2, 6, 23, 0.6)",
+        "purpose": "El tablero de ejemplo de la portada."
+      },
+      {
+        "name": "foco",
+        "value": "0 0 0 3px rgba(139, 92, 246, 0.16)",
+        "purpose": "Halo del campo activo, siempre junto al borde violeta."
+      }
+    ],
+    "motion": [
+      {
+        "name": "estado",
+        "value": "120ms ease",
+        "purpose": "Fondo, borde y color de botones, filas y campos."
+      },
+      {
+        "name": "entrada-aviso",
+        "value": "180ms ease",
+        "purpose": "El aviso emergente aparece desde -8 px."
+      },
+      {
+        "name": "giro-expansor",
+        "value": "180ms ease",
+        "purpose": "El expansor del árbol gira a 90 grados."
+      },
+      {
+        "name": "entrada-portada",
+        "value": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+        "purpose": "Único momento compuesto: la portada sube en cascada de 50 ms y el artefacto a 700 ms."
+      },
+      {
+        "name": "pulso-filtro",
+        "value": "2.4s ease-in-out infinite",
+        "purpose": "Indicador de filtro avanzado activo; se apaga con reduced motion."
+      },
+      {
+        "name": "esqueleto",
+        "value": "1.2s linear infinite",
+        "purpose": "Barrido del estado de carga."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "xl",
+        "value": "1500px",
+        "purpose": "El explorador baja de 38 % a 560 px."
+      },
+      {
+        "name": "lg",
+        "value": "1180px",
+        "purpose": "La aplicación conserva 1100 px mínimos y la ventana desplaza."
+      },
+      {
+        "name": "md",
+        "value": "1120px",
+        "purpose": "El filtro avanzado pasa a dos columnas."
+      },
+      {
+        "name": "sm-reflow",
+        "value": "720px",
+        "purpose": "El explorador toma la pantalla y el inspector pasa a hoja fija."
+      },
+      {
+        "name": "sm",
+        "value": "560px",
+        "purpose": "El filtro avanzado pasa a una columna."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "La acción que confirma; violeta legible sobre el lienzo nocturno.",
+      "html": "<button class=\"ds-btn-primary\">Crear tarea</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 16px; border: 1px solid transparent; border-radius: 6px; background: #a78bfa; color: #0a0f1c; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; font-weight: 750; cursor: pointer; transition: background 120ms, border-color 120ms, color 120ms; } .ds-btn-primary:hover { background: #c4b5fd; } .ds-btn-primary:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.58; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción de apoyo: borde sobre superficie realzada.",
+      "html": "<button class=\"ds-btn-secondary\">Editar</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 16px; border: 1px solid #334155; border-radius: 6px; background: #1f2937; color: #e5e7eb; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; font-weight: 750; cursor: pointer; transition: background 120ms, border-color 120ms; } .ds-btn-secondary:hover { border-color: #475569; background: #252f3f; } .ds-btn-secondary:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acción de cabecera: solo icono, sin fondo hasta el hover.",
+      "html": "<button class=\"ds-btn-ghost\" aria-label=\"Ajustes\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"3\"></circle><path d=\"M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.1 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1z\"></path></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #c3cad5; cursor: pointer; transition: background 120ms, color 120ms; } .ds-btn-ghost:hover { background: #252f3f; color: #e5e7eb; } .ds-btn-ghost:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Campo hundido con halo violeta al enfocar.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Título</span><input class=\"ds-input\" type=\"text\" value=\"Revisar el cierre\"></label>",
+      "css": ".ds-field { display: grid; gap: 7px; } .ds-field-label { color: #c3cad5; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 750; } .ds-input { height: 42px; padding: 0 13px; border: 1px solid #334155; border-radius: 6px; background: #070b16; color: #e5e7eb; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; } .ds-input::placeholder { color: #6b7688; } .ds-input:hover { border-color: #475569; } .ds-input:focus { border-color: #a78bfa; outline: 0; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.16); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Píldora de estado: borde al 25 % y relleno al 14 %.",
+      "html": "<span class=\"ds-badge\">en curso</span> <span class=\"ds-badge ds-badge-success\">cerrada</span>",
+      "css": ".ds-badge { display: inline-flex; min-height: 26px; align-items: center; gap: 5px; padding: 2px 9px; border: 1px solid rgba(98, 167, 255, 0.25); border-radius: 999px; background: rgba(139, 92, 246, 0.16); color: #a78bfa; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 780; line-height: 1; white-space: nowrap; } .ds-badge-success { border-color: rgba(88, 211, 146, 0.25); background: rgba(16, 185, 129, 0.14); color: #10b981; }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Contenedor de sección del inspector: capa neutra, sin sombra.",
+      "html": "<section class=\"ds-panel\"><header class=\"ds-panel-header\"><h3>Comentarios</h3><button class=\"ds-panel-action\">Añadir</button></header><div class=\"ds-panel-body\">Tres comentarios en esta tarea.</div></section>",
+      "css": ".ds-panel { border: 1px solid #1e293b; border-radius: 10px; background: #111827; color: #e5e7eb; font-family: Inter, ui-sans-serif, system-ui, sans-serif; } .ds-panel-header { display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; border-bottom: 1px solid #1e293b; } .ds-panel-header h3 { margin: 0; font-size: 18px; font-weight: 700; } .ds-panel-action { height: 24px; padding: 0 8px; border: 1px solid #334155; border-radius: 6px; background: #1f2937; color: #e5e7eb; font-size: 12px; font-weight: 500; cursor: pointer; } .ds-panel-body { padding: 16px; color: #c3cad5; font-size: 15px; }"
+    },
+    {
+      "name": "Task Row",
+      "kind": "custom",
+      "refersTo": "task-row",
+      "description": "La fila del árbol: tipo, título, prioridad, estado y la barra de selección.",
+      "html": "<div class=\"ds-row\"><span class=\"ds-row-type\">E</span><div class=\"ds-row-copy\"><span class=\"ds-row-title\">Revisión y ajustes de implementación</span><span class=\"ds-row-meta\">62 subtareas · ODD</span></div><span class=\"ds-row-priority\">alta</span><span class=\"ds-row-status\">en curso</span></div>",
+      "css": ".ds-row { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 68px; padding: 7px; border: 1px solid rgba(98, 167, 255, 0.38); border-radius: 6px; background: #2a3750; color: #e5e7eb; font-family: Inter, ui-sans-serif, system-ui, sans-serif; } .ds-row::before { content: \"\"; position: absolute; top: 8px; bottom: 8px; left: 0; width: 3px; background: #a78bfa; } .ds-row-type { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 6px; background: rgba(139, 92, 246, 0.16); font-size: 13px; font-weight: 850; } .ds-row-title { display: block; overflow: hidden; font-size: 16px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; } .ds-row-meta { display: block; margin-top: 2px; color: #94a3b8; font-size: 13px; } .ds-row-priority, .ds-row-status { color: #c3cad5; font-size: 13px; font-weight: 700; }"
+    },
+    {
+      "name": "Docs Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "El primario de la guía y la portada: degradado de violeta a azul.",
+      "html": "<a class=\"ds-btn-gradient\" href=\"#\">Empezar <span aria-hidden=\"true\">→</span></a>",
+      "css": ".ds-btn-gradient { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border: 1px solid transparent; border-radius: 10px; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #2563eb 100%); box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 24px -12px rgba(15, 23, 42, 0.18); color: #fff; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14.5px; font-weight: 650; text-decoration: none; transition: transform 120ms, box-shadow 200ms; } .ds-btn-gradient:hover { background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 55%, #1d4ed8 100%); transform: translateY(-1px); text-decoration: none; } .ds-btn-gradient:focus-visible { outline: 2px solid #6d28d9; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El archivador del proyecto",
+    "overview": "El mundo es un archivador, no una aplicación: todo el trabajo de un proyecto vive en un cajón —`.tasks-ai/`—, y el tablero es el expediente que se consulta. Por eso la pantalla no presenta nada ni se presenta a sí misma; ordena. Dos columnas y una cabecera, una fila por tarea, un panel donde se lee y se corrige lo que hay. La persona y el agente miran el mismo expediente, así que la jerarquía sirve tanto a un vistazo rápido como a una lectura larga.\n\nLa voz es densa y precisa. El adorno tiene un sitio reservado y pequeño: el zorro de la marca, una línea de degradado, el violeta de la selección. Todo lo demás es instrumento: medidas repetidas, bordes de un píxel, estados nombrados con texto y no solo con color.",
+    "keyCharacteristics": [
+      "Archivador antes que escenario: dos columnas, filas de 68 px y un panel de lectura.",
+      "Densidad funcional: controles de 42 px, compactos de 36 y 24, filas del árbol de 68.",
+      "Neutros por capas: cinco pasos del mismo azul nocturno.",
+      "El violeta pertenece a la marca y al foco; cuando escribe, usa su variante legible.",
+      "Un degradado de marca solo en la portada, y el primario de violeta a azul en la guía y en la portada."
+    ],
+    "rules": [
+      {
+        "name": "El violeta que escribe",
+        "body": "El violeta de marca (#8b5cf6) no lleva texto nunca. Si el violeta nombra algo, es #a78bfa sobre oscuro o #6d28d9 sobre claro.",
+        "section": "colors"
+      },
+      {
+        "name": "La gradiente tiene una sola casa",
+        "body": "El degradado de marca —violeta #8b5cf6, azul #3882f6, cian #06b6d4— vive en la portada: la palabra marcada del titular, la malla y la regla de dos píxeles que la cierra. En la guía solo el botón primario lleva un degradado, y es de violeta a azul. En el tablero no aparece ninguno.",
+        "section": "colors"
+      },
+      {
+        "name": "El estado no va solo en color",
+        "body": "Éxito, aviso y peligro llevan siempre palabra, icono o forma además del tono.",
+        "section": "colors"
+      },
+      {
+        "name": "La jerarquía es de peso",
+        "body": "Dos textos del mismo tamaño se separan por peso antes que por color. Nada que nombre algo baja de 500.",
+        "section": "typography"
+      },
+      {
+        "name": "El titular no lleva ceja",
+        "body": "Ni la guía ni la portada ponen una etiqueta pequeña encima de un título.",
+        "section": "typography"
+      },
+      {
+        "name": "El modal no edita",
+        "body": "Un modal solo crea o confirma; lo que se edita se edita en el inspector.",
+        "section": "layout"
+      },
+      {
+        "name": "La sombra solo flota",
+        "body": "Si algo no se superpone a la pantalla, no lleva sombra: la profundidad de un panel es su capa neutra.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do elegir el violeta que escribe según el fondo: #a78bfa sobre oscuro, #6d28d9 sobre claro.",
+      "Do construir la profundidad con los cinco neutros antes de recurrir a una sombra.",
+      "Do acompañar cada estado con palabra o icono además del color.",
+      "Do mantener las medidas de densidad: 68 px de fila, 42 px de control, 24 px de sangría.",
+      "Do dejar el código oscuro en los dos temas.",
+      "Do respetar prefers-reduced-motion."
+    ],
+    "donts": [
+      "Don't usar #8b5cf6 como color de texto ni de icono sobre superficie oscura.",
+      "Don't poner el degradado de marca en el tablero, en una insignia o en texto corrido.",
+      "Don't estructurar una página con rejillas de tarjetas iguales ni anidar tarjetas.",
+      "Don't poner una ceja o etiqueta pequeña encima de un titular.",
+      "Don't usar cristal, desenfoque o halos de color como adorno.",
+      "Don't añadir sombra a un panel que no se superpone.",
+      "Don't introducir una familia tipográfica nueva ni redistribuir Inter o JetBrains Mono.",
+      "Don't redibujar, recolorear ni vectorizar el zorro."
+    ]
+  }
+}

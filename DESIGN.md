@@ -259,7 +259,10 @@ pila cae en la del sistema sin descargar nada.
 - **Title** (700, `clamp(22px, 3vw, 28px)`, −0.02em): los títulos de sección de la guía; en la
   interfaz equivalen el `h3` del panel (18 px) y el `h2` del modal (21 px).
 - **Body** (400, 15 px, 1.55): el texto de la interfaz; la guía lee a 16 px y 1.65, con las
-  líneas de apoyo limitadas a 74 caracteres y el párrafo de portada a 46.
+  líneas de apoyo limitadas a `74ch`, la última línea de cada párrafo repartida con
+  `text-wrap: pretty` y el texto corrido a la anchura de la columna —acotarlo corta los
+  párrafos contra tablas, tarjetas y código, que la ocupan entera—; el párrafo de portada
+  va a 46.
 - **Label** (750, 13 px, mayúsculas): etiquetas de propiedad y de campo. En las tablas de la
   guía bajan a 11,5 px con 0,06em de tracking; el índice lateral usa 11 px y 0,1em.
 - **Mono** (400, 13 px, 1.5): CLI, código, JSON, rutas y referencias de tarea.

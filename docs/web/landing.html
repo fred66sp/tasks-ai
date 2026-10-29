@@ -108,6 +108,10 @@
   code, kbd, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   img { max-width: 100%; }
   h1, h2, h3, p { margin: 0; }
+  /* Una palabra sola en la última línea deja un hueco bajo el párrafo. Donde el
+     navegador entiende `pretty` (Chromium, Safari) reparte la última línea; donde
+     no, se ignora. */
+  p { text-wrap: pretty; }
   .wrap {
     width: 100%;
     max-width: 1180px;

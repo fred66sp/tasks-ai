@@ -370,6 +370,34 @@
      que no toca y el botón de copiar copia la que se ve. */
   .code pre[hidden] { display: none; }
   .code .copy svg { width: 13px; height: 13px; }
+  /* El código tiene fondo oscuro en los dos temas, así que la paleta de
+     MicroLighter es una sola: los nombres de los resaltados son los que
+     registra la librería al analizar cada bloque. */
+  :root {
+    --syn-comment: #8b949e;
+    --syn-keyword: #ff7b72;
+    --syn-string: #a5d6ff;
+    --syn-constant: #79c0ff;
+    --syn-function: #d2a8ff;
+    --syn-variable: #ffa657;
+    --syn-property: #79c0ff;
+    --syn-tag: #7ee787;
+  }
+  ::highlight(comment), ::highlight(quote) { color: var(--syn-comment); }
+  ::highlight(keyword), ::highlight(storage), ::highlight(at-rule),
+  ::highlight(doctype), ::highlight(important), ::highlight(section) { color: var(--syn-keyword); }
+  ::highlight(string), ::highlight(regexp), ::highlight(attribute-value),
+  ::highlight(link), ::highlight(raw) { color: var(--syn-string); }
+  ::highlight(numeric), ::highlight(boolean), ::highlight(constant),
+  ::highlight(symbol), ::highlight(character-entity), ::highlight(anchor),
+  ::highlight(entity) { color: var(--syn-constant); }
+  ::highlight(function), ::highlight(decorator), ::highlight(animation) { color: var(--syn-function); }
+  ::highlight(type), ::highlight(support) { color: var(--syn-function); }
+  ::highlight(variable), ::highlight(interpolation) { color: var(--syn-variable); }
+  ::highlight(property), ::highlight(key), ::highlight(attribute-name) { color: var(--syn-property); }
+  ::highlight(tag), ::highlight(inserted) { color: var(--syn-tag); }
+  ::highlight(selector) { color: var(--syn-function); }
+  ::highlight(deleted) { color: var(--syn-keyword); }
   p code, li code, td code {
     background: var(--bg-soft);
     border: 1px solid var(--border);
@@ -565,15 +593,15 @@
       <div class="section-head"><span class="section-num">2</span><h2 class="title" data-i18n="empezar.2">Empezar en un proyecto</h2></div>
       <p class="sub" data-i18n="empezar.3">Compilar es el único paso que necesita Go. A partir de ahí, todo lo hace el binario.</p>
       <div class="code">
-        <pre data-lang="es"><code>go build ./cmd/tasks-ai      # deja el binario tasks-ai en la carpeta actual
+        <pre data-language="bash" data-lang="es"><code>go build ./cmd/tasks-ai      # deja el binario tasks-ai en la carpeta actual
 ./tasks-ai init              # instala el producto en el proyecto en el que estés</code></pre>
-        <pre data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
+        <pre data-language="bash" data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
 ./tasks-ai init              # installs the product in the project you are in</code></pre>
       </div>
       <p data-i18n="empezar.14">En Windows el binario se llama <code>tasks-ai.exe</code>: <code>go build</code> lo deja con ese nombre, <code>init</code> lo copia a <code>.tasks-ai\bin\tasks-ai.exe</code> y las dos extensiones buscan ese mismo archivo. Las órdenes de esta página se escriben con <code>./tasks-ai</code>; en PowerShell, <code>.\tasks-ai.exe</code> —y <code>.\tasks-ai.exe init</code> para instalar—.</p>
       <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones, el binario instalado, la extensión de Pi, el plugin de OpenCode y el contrato de etiquetas. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
       <div class="code">
-        <pre data-lang="es"><code>{
+        <pre data-language="json" data-lang="es"><code>{
   "dir": "/home/ana/informes/.tasks-ai",
   "db": "/home/ana/informes/.tasks-ai/tasks.db",
   "instructions": "/home/ana/informes/.tasks-ai/AGENTS.md",
@@ -584,7 +612,7 @@
   "opencode": "/home/ana/informes/.tasks-ai/extensions/opencode",
   "contract": "/home/ana/informes/.tasks-ai/CONTRATO_ETIQUETAS.md"
 }</code></pre>
-        <pre data-lang="en" hidden><code>{
+        <pre data-language="json" data-lang="en" hidden><code>{
   "dir": "/home/ana/reports/.tasks-ai",
   "db": "/home/ana/reports/.tasks-ai/tasks.db",
   "instructions": "/home/ana/reports/.tasks-ai/AGENTS.md",
@@ -613,17 +641,17 @@
       </div>
       <h3 data-i18n="empezar.12">Primera tarea</h3>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai create --title "Preparar el informe trimestral" \
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai create --title "Preparar el informe trimestral" \
   --description "Reunir los datos de ventas y redactar el resumen." \
   --priority 1 --assignee "Alfredo" \
   --notes "Empieza por el capítulo de ventas."</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai create --title "Prepare the quarterly report" \
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai create --title "Prepare the quarterly report" \
   --description "Gather the sales figures and write the summary." \
   --priority 1 --assignee "Alfredo" \
   --notes "Start with the sales chapter."</code></pre>
       </div>
       <div class="code">
-        <pre data-lang="es"><code>{
+        <pre data-language="json" data-lang="es"><code>{
   "id": 1,
   "ref": "tk-1",
   "title": "Preparar el informe trimestral",
@@ -639,7 +667,7 @@
   "close_reason": null,
   "notes": "Empieza por el capítulo de ventas."
 }</code></pre>
-        <pre data-lang="en" hidden><code>{
+        <pre data-language="json" data-lang="en" hidden><code>{
   "id": 1,
   "ref": "tk-1",
   "title": "Prepare the quarterly report",
@@ -658,8 +686,8 @@
       </div>
       <p data-i18n="empezar.13">La respuesta es la tarea entera, y es la misma forma que devuelven <code>show</code>, <code>update</code> y <code>close</code>. Si el título falta, no se crea nada:</p>
       <div class="code">
-        <pre data-lang="es"><code>{ "error": "the task title is missing: use --title" }      # salida 2</code></pre>
-        <pre data-lang="en" hidden><code>{ "error": "the task title is missing: use --title" }      # exit 2</code></pre>
+        <pre data-language="json" data-lang="es"><code>{ "error": "the task title is missing: use --title" }      # salida 2</code></pre>
+        <pre data-language="json" data-lang="en" hidden><code>{ "error": "the task title is missing: use --title" }      # exit 2</code></pre>
       </div>
     </section>
 
@@ -710,7 +738,7 @@
       <h3 class="cmd" data-i18n="comandos.4"><code>init</code><span class="sig">— instala el producto en el proyecto</span></h3>
       <p data-i18n="comandos.5">Deja <code>.tasks-ai/</code> con el catálogo de etiquetas puesto —los ocho tipos y <code>ODD</code>, <code>epic</code> y <code>task</code>, cada una con su descripción— y el contrato en <code>.tasks-ai/CONTRATO_ETIQUETAS.md</code>, y devuelve lo que dejó. Con <code>--prefix</code> el prefijo de las referencias se fija al instalar, y pedir uno distinto del que ya tienen los ajustes se rechaza. No es repetible: un proyecto ya instalado lo rechaza, y una instalación a medias se completa sin borrar nada, respetando las etiquetas que ya existan. Un árbol que traiga un enlace simbólico dentro de <code>.tasks-ai/</code> se rechaza: el producto no escribe a través de un enlace.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai init
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "...",
 #   "binary": "...", "extension": "...", "opencode": "...", "contract": "..." }
 
@@ -722,7 +750,7 @@
 
 ./tasks-ai init      # segunda vez sobre el mismo proyecto
 # { "error": "the project already has the product installed in /home/ana/informes/.tasks-ai" }   salida 1</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai init
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "...",
 #   "binary": "...", "extension": "...", "opencode": "...", "contract": "..." }
 
@@ -753,7 +781,7 @@
         </table>
       </div>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai create --title "Revisar el tono del resumen" --parent tk-1 --priority 3
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai create --title "Revisar el tono del resumen" --parent tk-1 --priority 3
 # devuelve la tarea con "parent_id": 1
 
 ./tasks-ai create --title "Arreglar el recuento" --tags "fix,ODD"
@@ -761,7 +789,7 @@
 
 ./tasks-ai create --title "Probar" --priority 9
 # { "error": "priority 9 is outside the range 0-3" }   salida 2</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai create --title "Review the summary's tone" --parent tk-1 --priority 3
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai create --title "Review the summary's tone" --parent tk-1 --priority 3
 # returns the task with "parent_id": 1
 
 ./tasks-ai create --title "Fix the counter" --tags "fix,ODD"
@@ -774,7 +802,7 @@
       <h3 class="cmd" data-i18n="comandos.18"><code>list</code><span class="sig">— todas las tareas del proyecto</span></h3>
       <p data-i18n="comandos.19">Devuelve el listado entero, las cerradas incluidas, cada una con su referencia, su estado, su título y si está bloqueada. No hay filtros ni paginación: el listado es el proyecto.</p>
       <div class="code">
-        <pre><code>./tasks-ai list
+        <pre data-language="bash"><code>./tasks-ai list
 # [ { "id": 1, "ref": "tk-1", "title": "...", "status": "open", "blocked": true, ... },
 #   { "id": 2, "ref": "tk-2", "title": "...", "status": "done", "blocked": false, ... } ]</code></pre>
       </div>
@@ -782,13 +810,13 @@
       <h3 class="cmd" data-i18n="comandos.20"><code>show</code><span class="sig">— una tarea con lo que la rodea</span></h3>
       <p data-i18n="comandos.21">Es la única orden que trae el contexto: las hijas, las bloqueantes, los dependientes y los comentarios. Para saber por qué una tarea está bloqueada, o qué espera a qué, se mira aquí.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai show tk-1
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai show tk-1
 # { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
 #   "dependents": [], "comments": [ { "id": 1, "body": "...", "created_at": "..." } ] }
 
 ./tasks-ai show tk-99
 # { "error": "there is no task with reference \"tk-99\"" }   salida 1</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai show tk-1
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai show tk-1
 # { "id": 1, "ref": "tk-1", ..., "children": [ ... ], "blockers": [ ... ],
 #   "dependents": [], "comments": [ { "id": 1, "body": "...", "created_at": "..." } ] }
 
@@ -814,14 +842,14 @@
         </table>
       </div>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai update --status in_progress tk-2      # en curso
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai update --status in_progress tk-2      # en curso
 ./tasks-ai update --tags "docs,fix" tk-1         # toda la lista de etiquetas
 ./tasks-ai update --assignee "" tk-2             # le quita el responsable
 ./tasks-ai update --parent tk-1 tk-3             # la cuelga de tk-1; --parent "" la deja en su nivel
 
 ./tasks-ai update --status done tk-1
 # { "error": "status \"done\" is not set here: closing goes through close, with its reason" }   salida 2</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai update --status in_progress tk-2      # in progress
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai update --status in_progress tk-2      # in progress
 ./tasks-ai update --tags "docs,fix" tk-1         # the whole tag list
 ./tasks-ai update --assignee "" tk-2             # clears the assignee
 ./tasks-ai update --parent tk-1 tk-3             # hangs it under tk-1; --parent "" leaves it on its own
@@ -845,12 +873,12 @@
         </table>
       </div>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai close --reason done tk-2
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai close --reason done tk-2
 # { ..., "status": "done", "close_reason": "done" }
 
 ./tasks-ai close tk-1
 # { "error": "the close reason is missing: use --reason with one of done, duplicate, absorbed, stale, superseded" }   salida 2</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-2
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai close --reason done tk-2
 # { ..., "status": "done", "close_reason": "done" }
 
 ./tasks-ai close tk-1
@@ -860,10 +888,10 @@
       <h3 class="cmd" data-i18n="comandos.44"><code>reopen</code><span class="sig">— devuelve una cerrada a pendiente</span></h3>
       <p data-i18n="comandos.45">Quita el motivo de cierre y deja el estado en <code>open</code>. Reabrir algo que no está cerrado se rechaza, y no hay más vuelta atrás que volver a cerrarla.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai reopen tk-2
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai reopen tk-2
 ./tasks-ai reopen tk-1
 # { "error": "cannot reopen task \"tk-1\": it is not closed" }   salida 1</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai reopen tk-2
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai reopen tk-2
 ./tasks-ai reopen tk-1
 # { "error": "cannot reopen task \"tk-1\": it is not closed" }   exit 1</code></pre>
       </div>
@@ -871,12 +899,12 @@
       <h3 class="cmd" data-i18n="comandos.46"><code>block</code> y <code>unblock</code><span class="sig">— dependencias entre tareas</span></h3>
       <p data-i18n="comandos.47"><code>block</code> deja la primera bloqueada por la segunda; <code>unblock</code> retira ese bloqueo. Las dos devuelven la primera tarea tal como queda. Una tarea no puede bloquearse por sí misma, y los ciclos se permiten: el producto no impide que A espere a B y B a A.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai block tk-1 tk-2      # tk-1 espera a tk-2
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai block tk-1 tk-2      # tk-1 espera a tk-2
 ./tasks-ai unblock tk-1 tk-2    # deja de esperar
 
 ./tasks-ai block tk-1 tk-1
 # { "error": "task \"tk-1\" cannot be blocked by itself" }   salida 2</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai block tk-1 tk-2      # tk-1 waits for tk-2
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai block tk-1 tk-2      # tk-1 waits for tk-2
 ./tasks-ai unblock tk-1 tk-2    # stops waiting
 
 ./tasks-ai block tk-1 tk-1
@@ -886,13 +914,13 @@
       <h3 class="cmd" data-i18n="comandos.48"><code>comment</code> <code>comment list</code> <code>comment edit</code><span class="sig">— el histórico de la tarea</span></h3>
       <p data-i18n="comandos.49">El cuerpo es obligatorio. Cada comentario tiene su identidad y su fecha: <code>comment</code> añade uno y devuelve la tarea tal como está, <code>comment list</code> devuelve los de la tarea del primero al último, y <code>comment edit &lt;referencia&gt; &lt;id&gt;</code> cambia el cuerpo de uno conservando su identidad y su fecha. El <code>id</code> se entiende dentro de la tarea: un número que no es de sus comentarios se rechaza como una referencia que no resuelve.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai comment --body "Decidido: el informe se entrega el viernes." tk-1
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai comment --body "Decidido: el informe se entrega el viernes." tk-1
 ./tasks-ai comment list tk-1
 # [ { "id": 1, "body": "Decidido: el informe se entrega el viernes.", "created_at": "..." } ]
 
 ./tasks-ai comment edit tk-1 1 --body "Decidido: el informe se entrega el lunes."
 # la tarea, con el cuerpo cambiado y la misma identidad y fecha en el comentario</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai comment --body "Decided: the report ships on Friday." tk-1
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai comment --body "Decided: the report ships on Friday." tk-1
 ./tasks-ai comment list tk-1
 # [ { "id": 1, "body": "Decided: the report ships on Friday.", "created_at": "..." } ]
 
@@ -903,10 +931,10 @@
       <h3 class="cmd" data-i18n="comandos.50"><code>tags</code><span class="sig">— el catálogo con su uso</span></h3>
       <p data-i18n="comandos.51">Devuelve todas las etiquetas ordenadas por nombre: identidad, nombre, color, descripción y número de tareas que la llevan.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai tags
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai tags
 # [ { "id": 3, "name": "docs", "color": "blue",
 #     "description": "Documentación, ADR, contrato o informe", "uses": 1 }, ... ]</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai tags
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai tags
 # [ { "id": 3, "name": "docs", "color": "blue",
 #     "description": "Documentation, ADR, contract or report", "uses": 1 }, ... ]</code></pre>
       </div>
@@ -924,12 +952,12 @@
         </table>
       </div>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai tag create --name "revision" --color blue --description "Revisión de textos"
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai tag create --name "revision" --color blue --description "Revisión de textos"
 ./tasks-ai tag edit --color green revision
 ./tasks-ai tag delete revision
 # warning: the tag "revision" was used by the tasks tk-1; their assignments have been deleted
 # { "id": 12, "name": "revision", "color": "green", "description": "..." }</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai tag create --name "revision" --color blue --description "Text review"
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai tag create --name "revision" --color blue --description "Text review"
 ./tasks-ai tag edit --color green revision
 ./tasks-ai tag delete revision
 # warning: the tag "revision" was used by the tasks tk-1; their assignments have been deleted
@@ -940,7 +968,7 @@
       <h3 class="cmd" data-i18n="comandos.60"><code>serve</code><span class="sig">— la interfaz y la API del producto</span></h3>
       <p data-i18n="comandos.61">Arranca la interfaz web y la API en la dirección y el puerto de los ajustes, y anuncia los cambios por un canal abierto para que dos sesiones se vean. Lo que escribe va por la salida de errores.</p>
       <div class="code">
-        <pre><code>./tasks-ai serve
+        <pre data-language="bash"><code>./tasks-ai serve
 # time=... level=INFO msg="listening on http://127.0.0.1:8890"</code></pre>
       </div>
       <p data-i18n="comandos.62">La raíz redirige a la interfaz y la API conserva sus rutas <code>/api/...</code>; el detalle está en la sección 7 y en la 8.</p>
@@ -948,14 +976,14 @@
       <h3 class="cmd" data-i18n="comandos.63"><code>completion</code><span class="sig">— el autocompletado de la shell</span></h3>
       <p data-i18n="comandos.64">La orden que añade pflag a cualquier binario: genera el guion de autocompletado para la shell que se le pida. No toca las tareas.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai completion bash      # también zsh, fish y powershell</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai completion bash      # also zsh, fish and powershell</code></pre>
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai completion bash      # también zsh, fish y powershell</code></pre>
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai completion bash      # also zsh, fish and powershell</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.80"><code>adr</code><span class="sig">— las decisiones durables del proyecto</span></h3>
       <p data-i18n="comandos.81">Un ADR guarda una decisión con su contexto y sus consecuencias. Vive en la misma base que las tareas y se escribe con el producto; <code>docs/decisions/</code> es una exportación generada, versionada para que Git guarde la revisión de cada decisión.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai adr create --title "Adoptar SQLite" --deciders "Ana"   # ADR-001, en proposed
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai adr create --title "Adoptar SQLite" --deciders "Ana"   # ADR-001, en proposed
 ./tasks-ai adr edit 1 --decision "Se usa SQLite como única base."  # el cuerpo se escribe mientras sigue en proposed
 ./tasks-ai adr edit 1 --status accepted                            # aceptarla congela el cuerpo
 ./tasks-ai adr edit 1 --note "Se comprobó en producción"           # solo «más información» admite añadidos
@@ -965,7 +993,7 @@
 ./tasks-ai adr import --dir docs/decisions                         # guarda los ADR que aún no están
 ./tasks-ai adr export --dir docs/decisions                         # escribe la exportación y su índice
 ./tasks-ai adr export --dir docs/decisions --check                 # sale con 1 si hay deriva</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai adr create --title "Adopt SQLite" --deciders "Ana"   # ADR-001, in proposed
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai adr create --title "Adopt SQLite" --deciders "Ana"   # ADR-001, in proposed
 ./tasks-ai adr edit 1 --decision "SQLite is the only database."  # the body is written while it stays proposed
 ./tasks-ai adr edit 1 --status accepted                          # accepting it freezes the body
 ./tasks-ai adr edit 1 --note "Checked in production"             # only more information takes additions
@@ -1018,9 +1046,9 @@
       <p data-i18n="ciclo.27"><strong>Bloqueada.</strong> Una tarea está bloqueada mientras tenga alguna bloqueante sin cerrar. No es un estado que se guarde: se calcula en cada lectura, y por eso quitar el bloqueo la devuelve a lo que era sin tocar la base.</p>
       <p data-i18n="ciclo.28"><strong>El cierre en cascada no existe.</strong> Cerrar una subtarea no cierra a su padre, y cerrar un padre con subtareas abiertas se rechaza sin escribir nada. Quien cierra decide qué cierra.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai close --reason done tk-1
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai close --reason done tk-1
 # { "error": "cannot close task \"tk-1\": it has open subtasks" }   salida 1</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai close --reason done tk-1
 # { "error": "cannot close task \"tk-1\": it has open subtasks" }   exit 1</code></pre>
       </div>
       <div class="note"><p data-i18n="ciclo.29"><strong>Notas y comentarios no son lo mismo.</strong> <code>notes</code> es un solo texto que se sobrescribe y guarda el plan —los pasos y lo que hay que tener presente al retomar la tarea—, no el estado: el estado lo dicen la propia tarea, sus bloqueos y Git. Los comentarios son el histórico de la tarea —cada uno con su identidad y su fecha, y con el cuerpo editable— y sirven para lo que no debe perderse: la petición, la decisión con su razón y la evidencia.</p></div>
@@ -1033,11 +1061,11 @@
       <h3 data-i18n="recetas.4">Una épica con subtareas</h3>
       <p data-i18n="recetas.5">La épica es una tarea normal; las subtareas se crean con <code>--parent</code>. El listado deja ver el padre en cada hija, y la interfaz las anida y muestra el progreso.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai create --title "Publicar la versión 2"                     # tk-3
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai create --title "Publicar la versión 2"                     # tk-3
 ./tasks-ai create --title "Actualizar las capturas" --parent tk-3     # tk-4
 ./tasks-ai create --title "Escribir las notas" --parent tk-3          # tk-5
 ./tasks-ai show tk-3      # las hijas, con su estado y su progreso</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai create --title "Ship version 2"                        # tk-3
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai create --title "Ship version 2"                        # tk-3
 ./tasks-ai create --title "Update the screenshots" --parent tk-3     # tk-4
 ./tasks-ai create --title "Write the release notes" --parent tk-3    # tk-5
 ./tasks-ai show tk-3      # the children, with their status and progress</code></pre>
@@ -1046,11 +1074,11 @@
       <h3 data-i18n="recetas.6">Encadenar trabajo con dependencias</h3>
       <p data-i18n="recetas.7">Cuando una tarea no se puede empezar hasta que otra esté cerrada, se bloquea. El bloqueo se resuelve solo al cerrar la bloqueante, sin quitar nada a mano.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai block tk-5 tk-4        # escribir las notas espera a las capturas
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai block tk-5 tk-4        # escribir las notas espera a las capturas
 ./tasks-ai list                   # tk-5 sale bloqueada mientras tk-4 siga abierta
 ./tasks-ai close --reason done tk-4
 ./tasks-ai list                   # tk-5 deja de estar bloqueada</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai block tk-5 tk-4        # writing the notes waits for the screenshots
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai block tk-5 tk-4        # writing the notes waits for the screenshots
 ./tasks-ai list                   # tk-5 shows blocked while tk-4 is open
 ./tasks-ai close --reason done tk-4
 ./tasks-ai list                   # tk-5 is no longer blocked</code></pre>
@@ -1059,10 +1087,10 @@
       <h3 data-i18n="recetas.8">Ordenar el trabajo con etiquetas</h3>
       <p data-i18n="recetas.9">El catálogo nace con la instalación y se amplía cuando hace falta; las tareas lo llevan por nombre. Una etiqueta con color y descripción se lee mejor en la pantalla, y renombrarla no rompe ninguna tarea.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai tag create --name "urgente" --color red --description "Entrega de esta semana"
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai tag create --name "urgente" --color red --description "Entrega de esta semana"
 ./tasks-ai update --tags "docs,urgente" tk-1
 ./tasks-ai tags                   # el uso de cada una</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai tag create --name "urgent" --color red --description "Delivery this week"
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai tag create --name "urgent" --color red --description "Delivery this week"
 ./tasks-ai update --tags "docs,urgent" tk-1
 ./tasks-ai tags                   # how many tasks carry each one</code></pre>
       </div>
@@ -1070,16 +1098,16 @@
       <h3 data-i18n="recetas.10">Dejar constancia de una decisión</h3>
       <p data-i18n="recetas.11">Lo que hay que poder releer meses después va en un comentario; el plan de la tarea va en las notas, que se pueden sustituir sin miedo.</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai comment --body "Se descarta el PDF: el informe se entrega en HTML." tk-1
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai comment --body "Se descarta el PDF: el informe se entrega en HTML." tk-1
 ./tasks-ai update --notes "Revisar el tono de la introducción; después, el índice." tk-1</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai comment --body "PDF is out: the report ships as HTML." tk-1
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai comment --body "PDF is out: the report ships as HTML." tk-1
 ./tasks-ai update --notes "Review the tone of the introduction; then the index." tk-1</code></pre>
       </div>
 
       <h3 data-i18n="recetas.12">Trabajar con un agente</h3>
       <p data-i18n="recetas.13">La carpeta del producto lleva sus propias instrucciones. El agente las encuentra si el proyecto las enlaza, y a partir de ahí usa las mismas órdenes que una persona: no hay una superficie distinta para él.</p>
       <div class="code">
-        <pre data-lang="es"><code># en el archivo de instrucciones del proyecto
+        <pre data-language="bash" data-lang="es"><code># en el archivo de instrucciones del proyecto
 @.tasks-ai/AGENTS.md
 
 # lo que el agente hace después, igual que una persona
@@ -1087,7 +1115,7 @@
 ./tasks-ai update --status in_progress tk-2
 ./tasks-ai comment --body "Prueba añadida y en verde." tk-2
 ./tasks-ai close --reason done tk-2</code></pre>
-        <pre data-lang="en" hidden><code># in the project's instruction file
+        <pre data-language="bash" data-lang="en" hidden><code># in the project's instruction file
 @.tasks-ai/AGENTS.md
 
 # what the agent does next, same as a person
@@ -1103,12 +1131,12 @@
       <div class="section-head"><span class="section-num">7</span><h2 class="title" data-i18n="interfaz.2">La interfaz web</h2></div>
       <p class="sub" data-i18n="interfaz.3">La misma base, en el navegador. No hay nada que construir ni que instalar: la interfaz viaja dentro del binario.</p>
       <div class="code">
-        <pre><code>./tasks-ai serve
+        <pre data-language="bash"><code>./tasks-ai serve
 # time=2026-10-17T10:30:49+02:00 level=INFO msg="listening on http://127.0.0.1:8891"</code></pre>
       </div>
       <p data-i18n="interfaz.4">La dirección y el puerto salen de <code>settings.json</code>. La raíz responde con una redirección a la interfaz —código <code>302</code>—, así que abrir <code>http://127.0.0.1:8890/</code> es suficiente.</p>
       <div class="code">
-        <pre><code>curl -s -D - -o /dev/null http://127.0.0.1:8891/
+        <pre data-language="bash"><code>curl -s -D - -o /dev/null http://127.0.0.1:8891/
 # HTTP/1.1 302 Found
 # Location: /task-manager/app-vue.html</code></pre>
       </div>
@@ -1177,16 +1205,16 @@
       </div>
       <p data-i18n="api.29">El cuerpo de un error es siempre <code>{"error": "..."}</code>, con el código que corresponde, y nunca un error dentro de una respuesta correcta. Cada petición de escritura contiene un único valor JSON: cualquier contenido posterior es entrada inválida y no modifica el proyecto. El estado del producto se consulta con una petición y responde la versión, la versión del esquema y el prefijo en uso:</p>
       <div class="code">
-        <pre><code>curl -s http://127.0.0.1:8891/api/status
+        <pre data-language="bash"><code>curl -s http://127.0.0.1:8891/api/status
 # {"version":"0.1.0","schema":6,"prefix":"tk"}</code></pre>
       </div>
       <h3 data-i18n="api.30">El canal de cambios</h3>
       <p data-i18n="api.31"><code>GET /api/events</code> mantiene un canal abierto y emite un evento por aviso, en el orden en que ocurrieron. Cada evento lleva el nombre <code>workspace.changed</code> y el aviso en JSON: el recurso que cambió, sin decir quién lo pidió.</p>
       <div class="code">
-        <pre data-lang="es"><code>id: 11
+        <pre data-language="yaml" data-lang="es"><code>id: 11
 event: workspace.changed
 data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title":"Preparar el informe trimestral de ventas"}]}</code></pre>
-        <pre data-lang="en" hidden><code>id: 11
+        <pre data-language="yaml" data-lang="en" hidden><code>id: 11
 event: workspace.changed
 data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title":"Prepare the quarterly report"}]}</code></pre>
       </div>
@@ -1228,9 +1256,9 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
       <h3 data-i18n="agente.9">La extensión de Pi</h3>
       <p data-i18n="agente.10">El paquete que dejó <code>init</code> se registra en el proyecto con la primera orden, y se retira con la segunda:</p>
       <div class="code">
-        <pre data-lang="es"><code>pi install -l .tasks-ai/extensions/pi              # registra la extensión instalada
+        <pre data-language="bash" data-lang="es"><code>pi install -l .tasks-ai/extensions/pi              # registra la extensión instalada
 pi remove -l --approve .tasks-ai/extensions/pi     # la retira y deja la configuración como estaba</code></pre>
-        <pre data-lang="en" hidden><code>pi install -l .tasks-ai/extensions/pi              # registers the installed extension
+        <pre data-language="bash" data-lang="en" hidden><code>pi install -l .tasks-ai/extensions/pi              # registers the installed extension
 pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the configuration as it was</code></pre>
       </div>
       <p data-i18n="agente.11">Con el paquete registrado, arranca Pi desde la raíz del proyecto: la extensión encuentra el tablero subiendo desde el directorio de trabajo, igual que el CLI, y ejecuta el binario instalado o, si falta, el del <code>PATH</code>.</p>
@@ -1244,10 +1272,10 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
       <h3 data-i18n="agente.25">La extensión de OpenCode</h3>
       <p data-i18n="agente.26">El proyecto la carga desde su <code>opencode.jsonc</code>:</p>
       <div class="code">
-        <pre data-lang="es"><code>{
+        <pre data-language="json" data-lang="es"><code>{
   "plugins": ["./.tasks-ai/extensions/opencode"]
 }</code></pre>
-        <pre data-lang="en" hidden><code>{
+        <pre data-language="json" data-lang="en" hidden><code>{
   "plugins": ["./.tasks-ai/extensions/opencode"]
 }</code></pre>
       </div>
@@ -1264,7 +1292,7 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
       <div class="section-head"><span class="section-num">10</span><h2 class="title" data-i18n="configuracion.2">La configuración</h2></div>
       <p class="sub" data-i18n="configuracion.3">Un archivo, cuatro claves, y la posibilidad de editarlo a mano. El producto lo escribe al instalar y no vuelve a tocarlo.</p>
       <div class="code">
-        <pre><code>{
+        <pre data-language="json"><code>{
   "prefix": "tk",
   "db": "tasks.db",
   "http": { "host": "127.0.0.1", "port": 8890 },
@@ -1286,10 +1314,10 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
       <h3 data-i18n="configuracion.18">Cambiar el prefijo</h3>
       <p data-i18n="configuracion.19">El prefijo cambia lo que se escribe, no lo que se guarda: la base no se reescribe y las referencias del prefijo anterior dejan de resolver. El producto lo avisa al arrancar y sigue con el nuevo, así que el cambio se hace una vez y se deja. Fijarlo al instalar con <code>init --prefix</code> evita el cambio.</p>
       <div class="code">
-        <pre data-lang="es"><code># settings.json con "prefix": "inf"
+        <pre data-language="bash" data-lang="es"><code># settings.json con "prefix": "inf"
 ./tasks-ai create --title "Preparar el informe"      # devuelve "ref": "inf-6"
 ./tasks-ai show tk-1                                 # ya no resuelve: la tarea es inf-1</code></pre>
-        <pre data-lang="en" hidden><code># settings.json with "prefix": "inf"
+        <pre data-language="bash" data-lang="en" hidden><code># settings.json with "prefix": "inf"
 ./tasks-ai create --title "Prepare the report"      # returns "ref": "inf-6"
 ./tasks-ai show tk-1                                # no longer resolves: the task is inf-1</code></pre>
       </div>
@@ -1344,11 +1372,11 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
       <h3 data-i18n="errores.29">Cuando la orden no llega a ejecutarse</h3>
       <p data-i18n="errores.30">Si el error no es JSON, el problema está antes del producto: el binario no se ejecuta. Un binario copiado sin permiso de ejecución responde <code>EACCES</code> desde la interfaz y <code>Permission denied</code> desde la terminal, y se arregla con un permiso, no con otra orden:</p>
       <div class="code">
-        <pre data-lang="es"><code>./tasks-ai list
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai list
 # bash: ./tasks-ai: Permission denied          código 126
 
 chmod +x tasks-ai                              # y vuelve a probar</code></pre>
-        <pre data-lang="en" hidden><code>./tasks-ai list
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai list
 # bash: ./tasks-ai: Permission denied          code 126
 
 chmod +x tasks-ai                              # then try again</code></pre>
@@ -1381,6 +1409,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
 
 
 
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<script type="module" src="https://cdn.jsdelivr.net/npm/microlighter@2.0.0/dist/microlighter.min.js"></script>
 <script type="application/json" id="tasks-ai-en">
 {
  "header.1": "tasks-ai<small>local-first task manager</small>",

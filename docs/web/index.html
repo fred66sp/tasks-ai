@@ -32,7 +32,7 @@
     --accent: #6d28d9;
     --accent-2: #2563eb;
     --accent-3: #06b6d4;
-    --accent-soft: rgba(124, 58, 237, .10);
+    --accent-soft: rgba(109, 40, 217, .10);
     --ok: #10b981;
     --warn: #f59e0b;
     --ok-text: #065f46;
@@ -192,7 +192,7 @@
     border-radius: 999px;
     background: var(--bg-elev);
     color: var(--muted);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: .01em;
   }
@@ -210,7 +210,7 @@
   .hero p.lead {
     margin: 20px 0 0;
     max-width: 660px;
-    font-size: clamp(16px, 2.2vw, 19px);
+    font-size: clamp(16px, 2.2vw, 18px);
     color: var(--muted);
   }
   .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
@@ -250,11 +250,11 @@
       padding: 7px 12px;
       border-left: 2px solid var(--border);
       color: var(--muted);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 550;
     }
     .toc a:hover { color: var(--text); text-decoration: none; }
-    .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); border-radius: 0 8px 8px 0; }
+    .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
     /* Salida del índice hacia la portada, separada por filete como en SKILLS-AGP. */
     .toc .toc-extra { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
     .toc .toc-extra a { color: var(--accent); }
@@ -266,7 +266,7 @@
   .section-num {
     display: grid; place-items: center;
     width: 30px; height: 30px;
-    border-radius: 9px;
+    border-radius: 6px;
     background: var(--accent-soft);
     color: var(--accent);
     font-size: 13px;
@@ -280,7 +280,7 @@
      párrafos contra tablas, tarjetas y bloques de código, que la ocupan entera. */
   section p, section li { text-wrap: pretty; }
   section > p.sub { margin: 6px 0 24px; color: var(--muted); max-width: 74ch; }
-  h3 { margin: 30px 0 10px; font-size: 17px; letter-spacing: -.01em; text-wrap: balance; }
+  h3 { margin: 30px 0 10px; font-size: 18px; letter-spacing: -.01em; text-wrap: balance; }
 
   .grid { display: grid; gap: 16px; }
   .limits-grid + .limits-grid, .limits-grid + .limits-note { margin-top: 30px; }
@@ -293,17 +293,17 @@
     box-shadow: var(--shadow);
   }
   .card h3 { margin: 0 0 6px; font-size: 15px; }
-  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
   .card .card-ico {
     display: grid; place-items: center;
     width: 34px; height: 34px; margin-bottom: 12px;
-    border-radius: 9px;
+    border-radius: 10px;
     background: var(--accent-soft); color: var(--accent);
   }
   .card .card-ico svg { width: 18px; height: 18px; }
 
   .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); box-shadow: var(--shadow); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
   thead th {
     text-align: left;
     padding: 12px 16px;
@@ -318,7 +318,7 @@
   tbody td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
   tbody tr:last-child td { border-bottom: 0; }
   tbody tr:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
-  td code, th code { font-size: 12.8px; }
+  td code, th code { font-size: 12px; }
   tbody td:first-child { white-space: nowrap; }
   /* La tabla de errores lleva el mensaje en esa primera columna: ahí el
      texto tiene que poder partirse, o la tabla arrastra una barra. */
@@ -350,7 +350,7 @@
     border: 1px solid var(--code-border);
     border-radius: var(--radius);
     overflow-x: auto;
-    font-size: 13.2px;
+    font-size: 13px;
     line-height: 1.6;
     box-shadow: var(--shadow);
   }
@@ -364,9 +364,9 @@
     height: 30px;
     padding: 0 9px;
     border: 1px solid var(--code-border);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--code-bg) 60%, #ffffff 8%);
-    color: #c8d2e8;
+    border-radius: 6px;
+    background: #1f2937;
+    color: #c3cad5;
     font: inherit;
     font-size: 11.5px;
     font-weight: 600;
@@ -375,7 +375,7 @@
     transition: opacity .15s, border-color .15s;
   }
   .code:hover .copy, .code .copy:focus-visible { opacity: 1; }
-  .code .copy:hover { border-color: #3b4c72; }
+  .code .copy:hover { border-color: #475569; }
   @media (hover: none) { .code .copy { opacity: 1; } }
   .code .copy.copied { color: var(--ok); border-color: var(--ok); }
   /* Cada ejemplo puede tener su versión en los dos idiomas: se oculta la
@@ -424,7 +424,7 @@
     border-left: 1px solid var(--accent);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     background: var(--accent-soft);
-    font-size: 14px;
+    font-size: 15px;
     margin: 16px 0;
   }
   .note strong { color: var(--text); }
@@ -437,7 +437,7 @@
     max-width: 720px;
     margin-top: 28px;
     padding: 14px 16px;
-    border: 1px solid color-mix(in srgb, var(--ok) 42%, var(--border));
+    border: 1px solid color-mix(in srgb, var(--ok) 42%, transparent);
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--ok) 8%, var(--bg-elev));
   }
@@ -447,16 +447,16 @@
     place-items: center;
     width: 30px;
     height: 30px;
-    border-radius: 9px;
+    border-radius: 6px;
     background: color-mix(in srgb, var(--ok) 18%, transparent);
     color: var(--ok-text);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: .04em;
   }
-  .status-strip strong { display: block; font-size: 14px; }
+  .status-strip strong { display: block; font-size: 15px; }
   .status-strip span:not(.status-mark) { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
-  .status-strip--prep { border-color: color-mix(in srgb, var(--warn) 42%, var(--border)); background: color-mix(in srgb, var(--warn) 8%, var(--bg-elev)); }
+  .status-strip--prep { border-color: color-mix(in srgb, var(--warn) 42%, transparent); background: color-mix(in srgb, var(--warn) 8%, var(--bg-elev)); }
   .status-strip--prep .status-mark { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn-text); }
 
   .flow { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -471,7 +471,7 @@
   }
   .flow-step code { color: var(--accent); font-weight: 700; }
   .flow-step strong { display: block; margin-top: 10px; font-size: 15px; }
-  .flow-step p { margin: 5px 0 0; color: var(--muted); font-size: 13.5px; }
+  .flow-step p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
 
   .role-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 24px; }
   @media (min-width: 640px) { .role-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -491,8 +491,8 @@
     letter-spacing: .04em;
     text-transform: uppercase;
   }
-  .role-block h3 { margin: 10px 0 7px; font-size: 17px; }
-  .role-block p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .role-block h3 { margin: 10px 0 7px; font-size: 18px; }
+  .role-block p { margin: 0; color: var(--muted); font-size: 13px; }
   .role-block ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
   .role-block li + li { margin-top: 5px; }
 
@@ -500,7 +500,7 @@
     border-top: 1px solid var(--border);
     padding: 28px clamp(16px, 4vw, 40px);
     color: var(--muted);
-    font-size: 13.5px;
+    font-size: 13px;
     display: flex;
     flex-wrap: wrap;
     gap: 10px 20px;
@@ -533,20 +533,20 @@
   .sev-info { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
   .qa { border-bottom: 1px solid var(--border); padding: 18px 0; }
   .qa:last-child { border-bottom: 0; }
-  .qa h3 { margin: 0 0 6px; font-size: 15.5px; }
-  .qa p { margin: 0; color: var(--muted); font-size: 14px; }
+  .qa h3 { margin: 0 0 6px; font-size: 16px; }
+  .qa p { margin: 0; color: var(--muted); font-size: 15px; }
   .qa p + p { margin-top: 8px; }
-  ul.plain { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
+  ul.plain { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
   ul.plain li + li { margin-top: 6px; }
   .cmd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .cmd .sig { color: var(--muted); font-weight: 500; font-size: 13.5px; }
+  .cmd .sig { color: var(--muted); font-weight: 500; font-size: 13px; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   /* El conmutador recorta sus esquinas: el anillo va por dentro o no se ve. */
   .lang-switch button:focus-visible { outline-offset: -3px; }
   .code :focus-visible { outline-color: #c4b5fd; }
   .skip {
     position: absolute; left: 16px; top: -60px; z-index: 100;
-    padding: 10px 14px; border-radius: 8px;
+    padding: 10px 14px; border-radius: 6px;
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }

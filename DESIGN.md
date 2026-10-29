@@ -28,6 +28,7 @@ colors:
   violet-ink-hover: "#c4b5fd"
   violet-ink-day: "#6d28d9"
   violet-brand: "#8b5cf6"
+  violet-brand-deep: "#7c3aed"
   azure-brand: "#3882f6"
   azure-ink-day: "#2563eb"
   cyan-brand: "#06b6d4"
@@ -37,6 +38,9 @@ colors:
   warning-night: "#fbbf24"
   danger: "#f87171"
   danger-soft: "rgba(239, 68, 68, 0.14)"
+  success-day: "#065f46"
+  warning-day: "#92400e"
+  danger-day: "#b91c1c"
   priority-high: "#fb923c"
   priority-medium: "#fbbf24"
   priority-low: "#60a5fa"
@@ -76,6 +80,44 @@ typography:
     fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.5
+  doc-section:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "clamp(28px, 3.2vw, 40px)"
+    fontWeight: 750
+    lineHeight: 1.1
+    letterSpacing: "-0.03em"
+  doc-body:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.65
+  doc-label:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "11px"
+    fontWeight: 700
+    letterSpacing: "0.1em"
+  doc-table-label:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "11.5px"
+    fontWeight: 700
+    letterSpacing: "0.06em"
+  doc-compact:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "12px"
+    fontWeight: 700
+    letterSpacing: "0.05em"
+  doc-button:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "14.5px"
+    fontWeight: 650
+  panel-h3:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+  modal-h2:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "21px"
+    fontWeight: 700
 rounded:
   sm: "6px"
   md: "10px"
@@ -197,6 +239,9 @@ estados que siempre se acompaña de texto.
   contraste mínimo sobre la superficie oscura (4,19:1).
 - **Violeta de marca** (`#8b5cf6`): pintura, no tinta. Vive en el símbolo, en la cabecera de
   marca y en el degradado de la portada. No lleva texto.
+- **Violeta hondo** (`#7c3aed`): el violeta de marca un paso oscurecido; rellena el botón
+  primario de la documentación porque lleva texto blanco y el de marca no alcanza el
+  contraste. Tampoco es tinta.
 - **Violeta gastado** (`#6d28d9`): el mismo acento en la guía y la portada en tema claro, un
   paso oscurecido del violeta de marca para que el texto cumpla AA sobre fondo casi blanco.
 
@@ -238,6 +283,7 @@ de violeta a azul. En el tablero no aparece ninguno.
 
 **El estado no va solo en color.** Éxito, aviso y peligro llevan siempre palabra, icono o
 forma además del tono; cada uno tiene su relleno suave al 14–16 % para el fondo de insignias.
+Sobre papel claro su texto se oscurece a `#065f46`, `#92400e` y `#b91c1c` para mantener AA.
 
 ## Typography
 
@@ -258,6 +304,8 @@ pila cae en la del sistema sin descargar nada.
 - **Headline** (800, `clamp(34px, 6vw, 62px)`, 1.04, −0.035em): el titular de la guía.
 - **Title** (700, `clamp(22px, 3vw, 28px)`, −0.02em): los títulos de sección de la guía; en la
   interfaz equivalen el `h3` del panel (18 px) y el `h2` del modal (21 px).
+- **Section** (750, `clamp(28px, 3.2vw, 40px)`, 1.1, −0.03em): los títulos de sección de la
+  portada; su titular de cierre usa Headline.
 - **Body** (400, 15 px, 1.55): el texto de la interfaz; la guía lee a 16 px y 1.65, con las
   líneas de apoyo limitadas a `74ch`, la última línea de cada párrafo repartida con
   `text-wrap: pretty` y el texto corrido a la anchura de la columna —acotarlo corta los
@@ -352,9 +400,10 @@ fondo, borde y color.
 
 - **Shape:** 6 px de esquina, 42 px de altura, 16 px de relleno lateral, 750 de peso.
 - **Primary:** fondo `#a78bfa`, texto `#0a0f1c`; en hover pasa a `#c4b5fd`. El primario de la
-  guía y la portada es distinto a propósito: un degradado de violeta a azul, 10 px de esquina,
-  650 de peso y 14,5 px de texto; la portada lo fija en 44 px de alto y la guía en 11×18 px de
-  relleno, con `translateY(-1px)` al pasar por encima.
+  guía y la portada es distinto a propósito: un degradado de violeta a azul —la guía lo toma
+  de las tintas del tema, la portada del violeta hondo `#7c3aed` al azul `#2563eb`—, 10 px de
+  esquina, 650 de peso y 14,5 px de texto; la portada lo fija en 44 px de alto y la guía en
+  11×18 px de relleno, con `translateY(-1px)` al pasar por encima.
 - **Secondary:** borde `#334155` sobre `#1f2937`; el hover sube el borde a `#475569` y el fondo
   a `#252f3f`.
 - **Ghost:** sin fondo, texto `#c3cad5`; el hover pinta `#252f3f`. Es la acción de cabecera y de

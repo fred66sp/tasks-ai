@@ -128,8 +128,8 @@ es el equivalente para la persona, que lo usa desde la terminal y responde en JS
 | Forma de datos o de API | `docs/contracts.md` |
 | Diseño | `docs/architecture.md` |
 | Riesgo nuevo | `docs/known-risks.md` |
-| Comandos | La ayuda del producto y `docs/web/index.html` |
-| Instalación, binario o integración con un agente | `docs/web/index.html` y `docs/development.md` |
+| Comandos | La ayuda del producto y `docs/web/` |
+| Instalación, binario o integración con un agente | `docs/web/` y `docs/development.md` |
 | Interfaz web | `docs/web/index.html` |
 | Estructura | `docs/development.md` |
 

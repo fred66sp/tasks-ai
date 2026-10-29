@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="tasks-ai — el tablero de tu proyecto vive en el proyecto: una base SQLite, un binario en Go y dos superficies, línea de órdenes en JSON e interfaz web. Sin nada que desplegar ni cuenta que mantener.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="tasks-ai — el tablero vive en tu proyecto">
+<meta property="og:description" content="Tareas en una carpeta, en JSON y en el navegador. Un binario en Go, sin nada que desplegar ni cuenta que mantener.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" sizes="32x32" href="../tasks-ai-brand/favicons/favicon-32.png">
+<title>tasks-ai — el tablero vive en tu proyecto</title>
+<script>
+(function () {
+  try {
+    var p = JSON.parse(localStorage.getItem("tasks-ai:prefs") || "{}");
+    var t = p.theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+})();
+</script>
+<style>
+  /* Identidad: docs/tasks-ai-brand v3. Violeta #8B5CF6, azul #3882F6 y cian
+     #06B6D4; Inter para la voz y JetBrains Mono para datos y órdenes. Las
+     fuentes no se redistribuyen: si no están instaladas, cae en la pila del
+     sistema, sin descargar nada. */
+  :root {
+    --bg: #f8fafc;
+    --bg-elev: #ffffff;
+    --bg-soft: #f1f5f9;
+    --text: #0f172a;
+    --muted: #5b6779;
+    --line: #e2e8f0;
+    --line-strong: #cbd5e1;
+    --accent: #6d28d9;
+    --accent-2: #3882f6;
+    --accent-3: #06b6d4;
+    --accent-solid: #6d28d9;
+    --accent-solid-hover: #5b21b6;
+    --accent-soft: rgba(109, 40, 217, .09);
+    --focus: #6d28d9;
+    --band: #0a0f1c;
+    --band-text: #e5e7eb;
+    --band-muted: #94a3b8;
+    --band-line: #334155;
+    --term-bg: #070b14;
+    --term-bar: #0e1523;
+    --term-line: #1e293b;
+    --term-text: #e5e7eb;
+    --term-muted: #94a3b8;
+    --term-key: #a78bfa;
+    --term-str: #7dd3fc;
+    --term-num: #fbbf24;
+    --term-bool: #34d399;
+    --term-comment: #7b8a9f;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
+    --shadow-artifact: 0 1px 1px rgba(2, 6, 23, .18), 0 28px 70px -32px rgba(2, 6, 23, .6);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0f1c;
+    --bg-elev: #111827;
+    --bg-soft: #111827;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --line: #1e293b;
+    --line-strong: #334155;
+    --accent: #c4b5fd;
+    --accent-2: #60a5fa;
+    --accent-3: #22d3ee;
+    --accent-solid: #7c3aed;
+    --accent-solid-hover: #8b5cf6;
+    --accent-soft: rgba(167, 139, 250, .14);
+    --focus: #c4b5fd;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
+    --band: #111827;
+    --band-text: #e5e7eb;
+    --band-muted: #94a3b8;
+    --band-line: #334155;
+    --shadow-artifact: 0 1px 1px rgba(0, 0, 0, .5), 0 28px 70px -30px rgba(0, 0, 0, .9);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
+  .artifact :focus-visible, .code :focus-visible { outline-color: #c4b5fd; }
+  a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  a:hover { text-decoration-color: currentColor; }
+  strong { font-weight: 650; }
+  code, kbd, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  img { max-width: 100%; }
+  h1, h2, h3, p { margin: 0; }
+  .wrap {
+    width: 100%;
+    max-width: 1180px;
+    margin-inline: auto;
+    padding-inline: clamp(20px, 5vw, 48px);
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .skip {
+    position: absolute; left: 16px; top: -60px; z-index: 100;
+    padding: 10px 14px; border-radius: 8px;
+    background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
+  }
+  .skip:focus { top: 12px; }
+
+  /* Cabecera: la misma de la guía, con los enlaces de sección de la portada. */
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px clamp(16px, 4vw, 40px);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
+  .brand:hover { text-decoration: none; }
+  /* El paquete de marca trae un icono por fondo y se cambian con el tema. */
+  .brand-mark {
+    display: block; flex: none; width: 34px; height: 34px;
+    border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .brand-mark img { width: 100%; height: 100%; display: block; }
+  .brand-mark .brand-icon-dark { display: none; }
+  :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
+  :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
+  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
+  .brand-name small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .topbar-spacer { flex: 1; }
+  .site-nav { display: flex; align-items: center; gap: 4px; }
+  .site-nav a {
+    padding: 8px 10px; border-radius: 8px;
+    color: var(--muted); font-size: 14px; font-weight: 550; text-decoration: none;
+  }
+  .site-nav a:hover { color: var(--text); background: var(--bg-soft); }
+  .site-nav a.guide { color: var(--text); }
+  .site-nav a.active { color: var(--accent); background: var(--accent-soft); }
+  .lang-switch { display: inline-flex; flex: none; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg-elev); }
+  .lang-switch button {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .05em;
+    padding: 0 12px; height: 36px; cursor: pointer;
+  }
+  .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    flex: none; height: 36px; padding: 0 12px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg-elev); color: var(--text);
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .icon-btn:hover { border-color: var(--line-strong); }
+  .icon-btn:active { transform: translateY(1px); }
+  .icon-btn svg { width: 16px; height: 16px; }
+  :root[data-theme="light"] .icon-sun { display: none; }
+  :root[data-theme="dark"] .icon-moon { display: none; }
+
+  /* Botones */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    min-height: 44px; padding: 0 18px;
+    border: 1px solid transparent; border-radius: var(--radius-sm);
+    font: inherit; font-size: 14.5px; font-weight: 650; line-height: 1;
+    text-decoration: none; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .12s;
+  }
+  .btn svg { flex: none; }
+  .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 55%, #2563eb 100%); color: #fff; }
+  .btn-primary:hover { background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 55%, #1d4ed8 100%); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-ghost { background: var(--bg-elev); border-color: var(--line-strong); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--muted); }
+  .btn-ghost:active { transform: translateY(1px); }
+  .btn .arrow { transition: transform .15s; }
+  .btn:hover .arrow { transform: translateX(3px); }
+
+  /* Portada */
+  .hero {
+    position: relative; overflow: hidden;
+    padding-block: clamp(52px, 7vw, 92px) clamp(56px, 8vw, 104px);
+  }
+  /* La malla de color de SKILLS-AGP: radiales suaves sobre el fondo. */
+  .hero::before {
+    content: ""; position: absolute; inset: -30% -10% auto;
+    height: 620px;
+    background:
+      radial-gradient(55% 55% at 20% 30%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%),
+      radial-gradient(48% 48% at 72% 8%, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%),
+      radial-gradient(42% 42% at 94% 34%, color-mix(in srgb, var(--accent-3) 18%, transparent), transparent 70%);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: auto 0 0; height: 2px;
+    background: linear-gradient(90deg, #8b5cf6, #3882f6 55%, #06b6d4);
+  }
+  .hero-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(40px, 6vw, 72px);
+    align-items: start;
+  }
+  .hero h1 {
+    font-size: clamp(2.7rem, 5.4vw, 4.9rem);
+    line-height: .99;
+    letter-spacing: -.038em;
+    font-weight: 800;
+    max-width: 11ch;
+    text-wrap: balance;
+  }
+  .hero h1 .mark {
+    background: linear-gradient(112deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero .lead {
+    max-width: 46ch;
+    margin-top: 24px;
+    font-size: clamp(16.5px, 1.6vw, 18.5px);
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .hero .lead strong { color: var(--text); font-weight: 600; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .spec-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin-top: 26px;
+    font-family: var(--mono); font-size: 11.5px; color: var(--muted);
+  }
+  .spec-line span { white-space: nowrap; }
+  .spec-line span + span::before { content: "·"; margin-right: 8px; color: var(--line-strong); }
+
+  /* El tablero de ejemplo */
+  .artifact { margin: 0; }
+  .artifact-frame {
+    background: var(--term-bg);
+    border: 1px solid var(--term-line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-artifact);
+    overflow: hidden;
+    color: var(--term-text);
+  }
+  .artifact-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 14px;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-line);
+    font-family: var(--mono); font-size: 11px; color: var(--term-muted);
+  }
+  .artifact-bar .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .artifact-bar .path b { color: var(--term-text); font-weight: 500; }
+  .artifact-bar .local { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .artifact-bar .local::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, .16);
+  }
+
+  .board { padding: 10px 10px 12px; background: var(--term-bar); }
+  .board-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding: 2px 6px 8px;
+  }
+  .board-head .board-title {
+    font-size: 12px; font-weight: 650; letter-spacing: .01em; color: var(--term-text);
+  }
+  .board-head span { font-family: var(--mono); font-size: 11px; color: var(--term-muted); }
+
+  .task {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    padding: 10px 10px 11px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background .12s, border-color .12s;
+  }
+  .task + .task { margin-top: 2px; }
+  .task:hover { background: #182135; }
+  .task[aria-pressed="true"] { background: #1f2937; border-color: #334155; }
+  .task.sub { margin-left: 22px; width: calc(100% - 22px); position: relative; }
+  .task.sub::before {
+    content: ""; position: absolute; left: -11px; top: -6px; bottom: 50%;
+    width: 8px; border-left: 1px solid #334155; border-bottom: 1px solid #334155;
+    border-bottom-left-radius: 4px;
+  }
+  .task .ref {
+    font-family: var(--mono); font-size: 11px; line-height: 1.6;
+    color: var(--term-muted); letter-spacing: .01em;
+  }
+  .task[aria-pressed="true"] .ref { color: var(--term-key); }
+  .task .title {
+    display: block;
+    font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -.005em;
+    color: var(--term-text);
+    overflow-wrap: anywhere;
+  }
+  .task .meta {
+    display: flex; align-items: center; gap: 5px;
+    margin-top: 4px;
+    font-family: var(--mono); font-size: 11px; color: var(--term-muted);
+  }
+  .task .meta .tag { color: #7dd3fc; }
+  .task .meta .tag::before { content: "·"; margin-right: 4px; color: var(--term-comment); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .is-progress .status-dot { background: #a78bfa; }
+  .is-open .status-dot { background: #fbbf24; }
+  .is-blocked .status-dot { background: #f87171; }
+
+  .json { border-top: 1px solid var(--term-line); padding: 12px 14px 16px; background: var(--term-bg); }
+  .json-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    margin-bottom: 10px;
+    font-family: var(--mono); font-size: 11px; color: var(--term-muted);
+  }
+  .json-head .cmd { color: var(--term-text); }
+  .json-head .cmd b { color: var(--term-key); font-weight: 500; }
+  .json-head .cut { color: var(--term-muted); }
+  .json pre {
+    margin: 0;
+    font-size: 11.5px; line-height: 1.6;
+    color: #cbd5e1;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+  }
+  .json pre[hidden] { display: none; }
+  .json .k { color: var(--term-key); }
+  .json .s { color: var(--term-str); }
+  .json .n { color: var(--term-num); }
+  .json .b { color: var(--term-bool); }
+  .json .p { color: var(--term-comment); }
+  .artifact figcaption {
+    margin-top: 12px;
+    max-width: 56ch;
+    font-size: 12.5px; line-height: 1.55; color: var(--muted);
+  }
+  .artifact figcaption b { color: var(--text); font-weight: 600; }
+
+  /* Manifiesto */
+  .band {
+    background: var(--band);
+    background-image: linear-gradient(180deg, color-mix(in srgb, #8b5cf6 16%, transparent), transparent 62%);
+    color: var(--band-text);
+    padding-block: clamp(56px, 8vw, 96px);
+  }
+  .band .wrap { padding-block: 0; }
+  .band h2 {
+    max-width: 18ch;
+    font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+    line-height: 1.1; letter-spacing: -.03em; font-weight: 750;
+    color: #f8fafc;
+  }
+  .refusals {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 4vw, 48px);
+    margin-top: 44px;
+  }
+  .refusal { border-top: 1px solid var(--band-line); padding-top: 16px; }
+  .refusal strong {
+    display: block; margin-bottom: 8px;
+    font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+    line-height: 1.15; letter-spacing: -.03em; font-weight: 700;
+    color: #f8fafc;
+  }
+  .refusal p { font-size: 14.5px; line-height: 1.55; color: var(--band-muted); }
+  .band-foot {
+    max-width: 62ch;
+    margin-top: 40px; padding-top: 18px;
+    border-top: 1px solid var(--band-line);
+    font-size: 14.5px; color: #cbd5e1;
+  }
+  .band-foot strong { color: #f8fafc; }
+
+  /* Secciones */
+  .section { padding-block: clamp(60px, 8vw, 100px); border-top: 1px solid var(--line); }
+  .section h2 {
+    max-width: 22ch;
+    font-size: clamp(1.7rem, 3.2vw, 2.45rem);
+    line-height: 1.12; letter-spacing: -.03em; font-weight: 750;
+    text-wrap: balance;
+  }
+  .section .sub {
+    max-width: 56ch; margin-top: 14px;
+    font-size: clamp(16px, 1.5vw, 17.5px); color: var(--muted);
+  }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(32px, 6vw, 72px);
+    align-items: start;
+  }
+  .split > aside { padding-top: 6px; }
+  /* Las pistas del grid no crecen con el contenido: el código largo se
+     desplaza dentro de su bloque y no ensancha la página. */
+  .hero-grid > *, .split > *, .start-grid > *, .close-grid > * { min-width: 0; }
+
+  /* Modelo */
+  .pieces { margin: 40px 0 0; }
+  .piece {
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr);
+    gap: 20px;
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+  }
+  .piece:last-child { border-bottom: 1px solid var(--line); }
+  .piece dt {
+    font-family: var(--mono); font-size: 12px; line-height: 1.7;
+    color: var(--accent); letter-spacing: .01em;
+  }
+  .piece dd { margin: 0; font-size: 15.5px; color: var(--text); }
+  .piece dd code {
+    font-size: 12.5px; padding: 1px 5px; border-radius: 5px;
+    background: var(--bg-soft); border: 1px solid var(--line);
+  }
+  .pull {
+    padding-top: 18px;
+    border-top: 1px solid var(--line-strong);
+    font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+    line-height: 1.45; letter-spacing: -.015em; font-weight: 500;
+    color: var(--text);
+  }
+  .pull em { font-style: normal; color: var(--accent); }
+  .aside-note {
+    margin-top: 18px;
+    font-size: 13.5px; line-height: 1.55; color: var(--muted);
+  }
+
+  /* Agentes */
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .tools li {
+    font-family: var(--mono); font-size: 11.5px;
+    padding: 3px 7px; border: 1px solid var(--line);
+    border-radius: 6px; background: var(--bg-elev); color: var(--text);
+    list-style: none;
+  }
+  .tools-label { font-size: 13px; color: var(--muted); }
+  .aside-quote {
+    margin-top: 28px; padding-top: 16px;
+    border-top: 1px solid var(--line-strong);
+    font-size: 14px; line-height: 1.55; color: var(--text);
+  }
+  .aside-quote code { font-size: 12.5px; }
+  .aside-quote span { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+
+  /* Código */
+  .code {
+    position: relative;
+    margin-top: 26px;
+    border: 1px solid var(--term-line);
+    border-radius: 12px;
+    background: var(--term-bg);
+    overflow: hidden;
+  }
+  .code pre {
+    margin: 0; padding: 16px 18px;
+    font-size: 12.5px; line-height: 1.7;
+    color: var(--term-text);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+  }
+  .code .c { color: var(--term-comment); }
+  .code .k { color: var(--term-key); }
+  .code .s { color: var(--term-str); }
+  .code .copy {
+    position: absolute; top: 8px; right: 8px;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 34px; padding: 0 10px;
+    border: 1px solid #334155; border-radius: 7px;
+    background: #111827; color: #cbd5e1;
+    font-family: var(--font); font-size: 11.5px; font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s, border-color .15s, color .15s;
+  }
+  .code .copy:hover { border-color: #475569; color: #f8fafc; }
+  .code .copy svg { width: 13px; height: 13px; }
+  .code .copy.copied { color: #34d399; border-color: rgba(52, 211, 153, .45); }
+  @media (hover: hover) {
+    .code .copy { opacity: 0; }
+    .code:hover .copy, .code .copy:focus-visible { opacity: 1; }
+  }
+  .code.has-copy pre { padding-right: 96px; }
+
+  /* Empezar */
+  .start-head { max-width: 62ch; }
+  .start-code { max-width: 660px; margin-top: 30px; }
+  .steps {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(24px, 4vw, 44px);
+    margin: 44px 0 0; padding: 0;
+    list-style: none;
+  }
+  .step { border-top: 1px solid var(--line-strong); padding-top: 14px; }
+  .step .n {
+    display: block; margin-bottom: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+  }
+  .step h3 { font-size: 16px; font-weight: 700; letter-spacing: -.015em; }
+  .step p { margin-top: 4px; font-size: 14px; line-height: 1.55; color: var(--muted); }
+  .step p code { font-size: 12px; padding: 1px 4px; border-radius: 4px; background: var(--bg-soft); border: 1px solid var(--line); }
+  .start-cta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+    margin-top: 40px; padding-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+  .start-cta p { font-size: 14px; color: var(--muted); }
+
+  /* Límites */
+  .limits { margin: 0; padding: 0; list-style: none; }
+  .limits li { padding: 16px 0; border-top: 1px solid var(--line); }
+  .limits li:last-child { border-bottom: 1px solid var(--line); }
+  .limits strong { display: block; font-size: 15px; letter-spacing: -.01em; }
+  .limits p { margin-top: 3px; font-size: 14px; line-height: 1.55; color: var(--muted); }
+  .limits a { font-size: 14px; }
+  .text-link { display: inline-flex; align-items: center; gap: 5px; }
+  .text-link svg { flex: none; transition: transform .15s; }
+  .text-link:hover svg { transform: translateX(3px); }
+
+  /* Cierre */
+  .close { padding-block: clamp(64px, 9vw, 112px); border-top: 1px solid var(--line); }
+  .close-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
+  }
+  .close h2 {
+    font-size: clamp(2rem, 4.4vw, 3.5rem);
+    line-height: 1.02; letter-spacing: -.035em; font-weight: 800;
+    text-wrap: balance;
+  }
+  .close h2 .mark {
+    background: linear-gradient(112deg, var(--accent) 0%, var(--accent-2) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .close p { margin-top: 14px; font-size: 16.5px; color: var(--muted); }
+  .close-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 28px; }
+  .close-fox { width: clamp(96px, 12vw, 148px); height: auto; display: block; }
+
+  /* Pie */
+  .site-foot { border-top: 1px solid var(--line); }
+  .foot-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px;
+    padding-block: 28px;
+    font-size: 13px; color: var(--muted);
+  }
+  .foot-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 700; letter-spacing: -.01em; }
+  .foot-brand img { width: 22px; height: 22px; }
+  .foot-brand small { color: var(--muted); font-weight: 500; letter-spacing: 0; }
+  .foot-note { max-width: 42ch; }
+  .foot-links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-left: auto; }
+  .foot-links a { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); text-decoration: none; font-weight: 550; }
+  .foot-links a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+  .foot-links svg { width: 13px; height: 13px; }
+
+  /* Vuelta arriba: el mismo botón flotante de SKILLS-AGP, que aparece cuando
+     la cabecera ya no se ve. */
+  .to-top {
+    position: fixed; right: clamp(16px, 3vw, 28px); bottom: clamp(16px, 3vw, 28px); z-index: 60;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--line-strong); border-radius: 50%;
+    background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: var(--muted); box-shadow: var(--shadow);
+    opacity: 0; visibility: hidden; transform: translateY(10px);
+    transition: opacity .2s, transform .2s, visibility .2s, border-color .15s, color .15s;
+  }
+  .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
+  .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .to-top svg { width: 18px; height: 18px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-copy > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
+    .hero-copy > *:nth-child(2) { animation-delay: .05s; }
+    .hero-copy > *:nth-child(3) { animation-delay: .1s; }
+    .hero-copy > *:nth-child(4) { animation-delay: .15s; }
+    .hero-artifact { animation: rise .7s cubic-bezier(.2, .7, .2, 1) .12s backwards; }
+
+    /* Entrada al hacer scroll: la clase la pone el script, así que sin él no
+       se esconde nada. */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2, .7, .2, 1), transform .7s cubic-bezier(.2, .7, .2, 1); }
+    .reveal.in { opacity: 1; transform: none; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+
+  @media (min-width: 761px) {
+    .refusal strong { min-height: 2.3em; }
+  }
+  @media (max-width: 920px) {
+    .hero-grid, .split { grid-template-columns: 1fr; }
+    .hero h1 { max-width: 13ch; }
+    .artifacts, .hero-artifact { max-width: 620px; }
+    .split > aside { padding-top: 0; }
+    .close-grid { grid-template-columns: 1fr; }
+    .close-fox { width: 88px; justify-self: end; margin-top: -8px; }
+  }
+  @media (max-width: 520px) {
+    .topbar { gap: 8px; }
+    .brand-name small { display: none; }
+    .icon-btn span { display: none; }
+  }
+  @media (max-width: 1024px) {
+    .site-nav { display: none; }
+  }
+  @media (max-width: 760px) {
+    .refusals { grid-template-columns: 1fr; gap: 20px; margin-top: 32px; }
+    .refusal { padding-top: 12px; }
+    .steps { grid-template-columns: 1fr; gap: 18px; margin-top: 36px; }
+    .step { display: grid; grid-template-columns: 32px 1fr; column-gap: 10px; }
+    .step .n { grid-row: span 2; padding-top: 2px; }
+    .step h3 { margin: 0; }
+    .piece { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
+    .hero .lead { max-width: 60ch; }
+  }
+  @media (max-width: 520px) {
+    .hero { padding-top: 40px; }
+    .hero h1 { font-size: clamp(2.35rem, 11vw, 3rem); }
+    .hero-actions .btn { flex: 1 1 auto; }
+    .json pre, .code pre { font-size: 11px; }
+    .task { grid-template-columns: 40px minmax(0, 1fr); }
+    .artifact-bar { font-size: 11px; }
+    .artifact-bar .local { display: none; }
+    .foot-links { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="../tasks-ai-brand/app-icons/tasks-ai-light-128.png" alt="" width="34" height="34"><img class="brand-icon-dark" src="../tasks-ai-brand/app-icons/tasks-ai-dark-128.png" alt="" width="34" height="34"></span>
+    <span class="brand-name">tasks-ai<small>gestor de tareas local-first</small></span>
+  </a>
+  <span class="topbar-spacer"></span>
+  <nav class="site-nav" aria-label="Secciones">
+    <a href="#producto">El producto</a>
+    <a href="#agentes">Agentes</a>
+    <a href="#empezar">Empezar</a>
+    <a class="guide" href="index.html">Guía de uso</a>
+  </nav>
+  <!-- Selector visual: la portada no tiene versión inglesa, así que EN no lleva manejador. -->
+  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
+  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <span>Tema</span>
+  </button>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>Tu tablero vive en tu <span class="mark">proyecto.</span></h1>
+        <p class="lead">Una carpeta, una base SQLite y un binario en Go. Las tareas se quedan en el proyecto, se leen en JSON y se miran en el navegador, <strong>sin nada que desplegar ni cuenta que mantener</strong>.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#empezar">Empezar en dos minutos</a>
+          <a class="btn btn-ghost" href="index.html">Leer la guía
+            <svg class="arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+          </a>
+        </div>
+        <p class="spec-line"><span>Go</span><span>SQLite</span><span>JSON</span><span>API HTTP</span><span>interfaz incluida</span></p>
+      </div>
+
+      <figure class="hero-artifact artifact">
+        <div class="artifact-frame">
+          <div class="artifact-bar">
+            <span class="path"><b>.tasks-ai/</b>tasks.db</span>
+            <span class="local">base local</span>
+          </div>
+
+          <div class="board">
+            <div class="board-head">
+              <span class="board-title">Tablero</span>
+              <span>3 tareas</span>
+            </div>
+            <button class="task" type="button" data-ref="tk-1" aria-pressed="true">
+              <span class="ref">tk-1</span>
+              <span>
+                <span class="title">Preparar el informe trimestral</span>
+                <span class="meta is-progress"><i class="status-dot" aria-hidden="true"></i>en curso<span class="tag">#informe</span></span>
+              </span>
+            </button>
+            <button class="task sub" type="button" data-ref="tk-2" aria-pressed="false">
+              <span class="ref">tk-2</span>
+              <span>
+                <span class="title">Revisar el tono del resumen</span>
+                <span class="meta is-open"><i class="status-dot" aria-hidden="true"></i>pendiente · prioridad 3</span>
+              </span>
+            </button>
+            <button class="task" type="button" data-ref="tk-3" aria-pressed="false">
+              <span class="ref">tk-3</span>
+              <span>
+                <span class="title">Cerrar el capítulo de ventas</span>
+                <span class="meta is-blocked"><i class="status-dot" aria-hidden="true"></i>bloqueada por tk-2<span class="tag">#informe</span></span>
+              </span>
+            </button>
+          </div>
+
+          <div class="json">
+            <div class="json-head">
+              <span class="cmd">./tasks-ai show <b id="json-ref">tk-1</b></span>
+              <span class="cut">recortado</span>
+            </div>
+            <p class="sr-only" id="json-status" aria-live="polite">Mostrando tk-1</p>
+            <pre data-ref="tk-1"><code>{
+  <span class="k">"id"</span><span class="p">:</span> <span class="n">1</span><span class="p">,</span>
+  <span class="k">"ref"</span><span class="p">:</span> <span class="s">"tk-1"</span><span class="p">,</span>
+  <span class="k">"title"</span><span class="p">:</span> <span class="s">"Preparar el informe trimestral"</span><span class="p">,</span>
+  <span class="k">"status"</span><span class="p">:</span> <span class="s">"in_progress"</span><span class="p">,</span>
+  <span class="k">"blocked"</span><span class="p">:</span> <span class="b">false</span><span class="p">,</span>
+  <span class="k">"priority"</span><span class="p">:</span> <span class="n">1</span><span class="p">,</span>
+  <span class="k">"tags"</span><span class="p">:</span> [<span class="s">"informe"</span>]<span class="p">,</span>
+  <span class="k">"children"</span><span class="p">:</span> [
+    { <span class="k">"ref"</span><span class="p">:</span> <span class="s">"tk-2"</span><span class="p">,</span> <span class="k">"status"</span><span class="p">:</span> <span class="s">"open"</span> }
+  ]
+}</code></pre>
+            <pre data-ref="tk-2" hidden><code>{
+  <span class="k">"id"</span><span class="p">:</span> <span class="n">2</span><span class="p">,</span>
+  <span class="k">"ref"</span><span class="p">:</span> <span class="s">"tk-2"</span><span class="p">,</span>
+  <span class="k">"title"</span><span class="p">:</span> <span class="s">"Revisar el tono del resumen"</span><span class="p">,</span>
+  <span class="k">"status"</span><span class="p">:</span> <span class="s">"open"</span><span class="p">,</span>
+  <span class="k">"blocked"</span><span class="p">:</span> <span class="b">false</span><span class="p">,</span>
+  <span class="k">"priority"</span><span class="p">:</span> <span class="n">3</span><span class="p">,</span>
+  <span class="k">"parent_id"</span><span class="p">:</span> <span class="n">1</span><span class="p">,</span>
+  <span class="k">"tags"</span><span class="p">:</span> []<span class="p">,</span>
+  <span class="k">"close_reason"</span><span class="p">:</span> <span class="b">null</span>
+}</code></pre>
+            <pre data-ref="tk-3" hidden><code>{
+  <span class="k">"id"</span><span class="p">:</span> <span class="n">3</span><span class="p">,</span>
+  <span class="k">"ref"</span><span class="p">:</span> <span class="s">"tk-3"</span><span class="p">,</span>
+  <span class="k">"title"</span><span class="p">:</span> <span class="s">"Cerrar el capítulo de ventas"</span><span class="p">,</span>
+  <span class="k">"status"</span><span class="p">:</span> <span class="s">"open"</span><span class="p">,</span>
+  <span class="k">"blocked"</span><span class="p">:</span> <span class="b">true</span><span class="p">,</span>
+  <span class="k">"priority"</span><span class="p">:</span> <span class="n">2</span><span class="p">,</span>
+  <span class="k">"tags"</span><span class="p">:</span> [<span class="s">"informe"</span>]<span class="p">,</span>
+  <span class="k">"blockers"</span><span class="p">:</span> [
+    { <span class="k">"ref"</span><span class="p">:</span> <span class="s">"tk-2"</span> }
+  ]
+}</code></pre>
+          </div>
+        </div>
+        <figcaption><b>Datos de ejemplo.</b> Elige una tarea del tablero y verás su respuesta JSON. Son las dos superficies del mismo binario; las respuestas van recortadas a los campos que importan y la guía lo señala donde ocurre.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="band" id="porque">
+    <div class="wrap">
+      <h2>Tres cosas que no necesitas.</h2>
+      <div class="refusals">
+        <div class="refusal">
+          <strong>Un servidor que mantener.</strong>
+          <p>Nada que desplegar ni que dejar encendido. El tablero es un archivo dentro del proyecto.</p>
+        </div>
+        <div class="refusal">
+          <strong>Una cuenta.</strong>
+          <p>Registro y permisos sobran. Una persona, su máquina y su carpeta.</p>
+        </div>
+        <div class="refusal">
+          <strong>Sincronizar entre máquinas.</strong>
+          <p>Copiar el proyecto se lleva el tablero. Lo que no existe es una segunda copia que reconciliar.</p>
+        </div>
+      </div>
+      <p class="band-foot"><strong>Lo que sí hace falta</strong> es Go para compilar el binario. Node entra solo si tocas el código de la interfaz; usarla no lo necesita.</p>
+    </div>
+  </section>
+
+  <section class="section" id="producto">
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <h2>Lo que el tablero guarda.</h2>
+          <p class="sub">Las piezas con las que se piensa el trabajo. Las tablas que las guardan son un detalle de la implementación.</p>
+
+          <dl class="pieces">
+            <div class="piece">
+              <dt>tarea</dt>
+              <dd>Referencia visible <code>tk-1</code>, título, estado, prioridad, responsable, padre y notas.</dd>
+            </div>
+            <div class="piece">
+              <dt>dependencia</dt>
+              <dd>Qué espera a qué. <code>blocked</code> se calcula en cada lectura; no se guarda.</dd>
+            </div>
+            <div class="piece">
+              <dt>etiqueta</dt>
+              <dd>Un catálogo del proyecto con color y descripción, compartido por todas las tareas.</dd>
+            </div>
+            <div class="piece">
+              <dt>comentario</dt>
+              <dd>El histórico de cada tarea: decisiones, hallazgos y evidencia, con su fecha.</dd>
+            </div>
+            <div class="piece">
+              <dt>ADR</dt>
+              <dd>Las decisiones durables, con una exportación a texto para que Git guarde su revisión.</dd>
+            </div>
+          </dl>
+        </div>
+        <aside>
+          <p class="pull">El estado no se escribe en el texto: lo marcan la tarea, sus bloqueos y Git. Por eso una tarea cerrada sigue en el listado y <em>una decisión se sustituye, no se borra</em>.</p>
+          <p class="aside-note">El modelo completo, campo a campo, está en la guía. Aquí solo importa una cosa: no hay una segunda fuente de verdad que mantener en sincronía.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="agentes">
+    <div class="wrap split">
+      <div>
+        <h2>Los agentes leen JSON, no párrafos.</h2>
+        <p class="sub">El CLI del tablero habla JSON: las tareas entran y salen como datos, los errores también, y el código de salida dice qué pasó. Las extensiones de Pi y de OpenCode convierten esas órdenes en herramientas con esquema, y el tablero entra en cada turno del agente: lo que está en curso, lo que se puede empezar y su árbol.</p>
+
+        <div class="code">
+          <pre><code><span class="c"># el detalle: hijas, bloqueantes y comentarios</span>
+./tasks-ai show tk-1
+{ <span class="k">"ref"</span>: <span class="s">"tk-1"</span>, <span class="k">"status"</span>: <span class="s">"in_progress"</span>,
+  <span class="k">"children"</span>: [ ... ], <span class="k">"blockers"</span>: [ ... ],
+  <span class="k">"dependents"</span>: [], <span class="k">"comments"</span>: [ ... ] }</code></pre>
+        </div>
+      </div>
+      <aside>
+        <p class="tools-label">Las mismas herramientas en Pi y en OpenCode:</p>
+        <ul class="tools">
+          <li>tasks_board</li>
+          <li>tasks_show</li>
+          <li>tasks_create</li>
+          <li>tasks_update</li>
+          <li>tasks_close</li>
+          <li>tasks_reopen</li>
+          <li>tasks_block</li>
+          <li>tasks_unblock</li>
+          <li>tasks_comment</li>
+          <li>tasks_comment_list</li>
+          <li>tasks_comment_edit</li>
+        </ul>
+        <p class="aside-quote">Con la extensión cargada y un tablero en el proyecto, la herramienta <code>todo</code> del arnés deja de estar disponible: el tablero es la única lista.<span>En un proyecto sin tablero, las herramientas devuelven el rechazo del producto y la sesión sigue.</span></p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="empezar">
+    <div class="wrap">
+      <div class="start-head">
+        <h2>Dos minutos y un binario.</h2>
+        <p class="sub">Compilar es el único paso que pide Go. A partir de ahí, todo lo hace el binario.</p>
+      </div>
+      <div class="code start-code">
+        <pre><code>go build ./cmd/tasks-ai
+./tasks-ai init
+./tasks-ai create --title <span class="s">"Informe"</span>
+./tasks-ai serve</code></pre>
+      </div>
+
+      <ol class="steps">
+        <li class="step">
+          <span class="n" aria-hidden="true">01</span>
+          <h3>Compila.</h3>
+          <p>Deja el binario en la carpeta del proyecto. No necesita Node, ni una base de datos aparte.</p>
+        </li>
+        <li class="step">
+          <span class="n" aria-hidden="true">02</span>
+          <h3>Instala.</h3>
+          <p><code>init</code> escribe <code>.tasks-ai/</code> con la base, los ajustes, las instrucciones y las dos extensiones de agente.</p>
+        </li>
+        <li class="step">
+          <span class="n" aria-hidden="true">03</span>
+          <h3>Trabaja.</h3>
+          <p>Crea tareas por la terminal y míralas con <code>serve</code> en <code>http://127.0.0.1:8890</code>. Las dos superficies escriben lo mismo.</p>
+        </li>
+      </ol>
+
+      <div class="start-cta">
+        <a class="btn btn-primary" href="index.html">Abrir la guía completa
+          <svg class="arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+        </a>
+        <p>La guía repasa cada orden, cada opción y cada mensaje de error, copiados del binario real.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="limites">
+    <div class="wrap split">
+      <div>
+        <h2>Lo que no hace.</h2>
+        <p class="sub">También está en la guía. Mejor saberlo antes de instalar nada.</p>
+        <p class="aside-note"><a class="text-link" href="index.html#limites">Los límites completos, en la guía
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+        </a></p>
+      </div>
+      <ul class="limits">
+        <li>
+          <strong>Sincronizar</strong>
+          <p>La base es un archivo local. Ni se sincroniza ni se comparte sola.</p>
+        </li>
+        <li>
+          <strong>Distinguir personas</strong>
+          <p>No hay cuentas ni permisos. Escucha en <code>127.0.0.1</code> por omisión y supone una persona en su máquina.</p>
+        </li>
+        <li>
+          <strong>Borrar tareas</strong>
+          <p>Se cierran con un motivo y siguen en el listado. Una decisión se sustituye, no se borra.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="close">
+    <div class="wrap close-grid">
+      <div>
+        <h2>Un binario. Una carpeta.<br>Tu <span class="mark">proyecto</span>.</h2>
+        <p>El tablero no sale de ahí.</p>
+        <div class="close-actions">
+          <a class="btn btn-primary" href="#empezar">Empezar en dos minutos</a>
+          <a class="btn btn-ghost" href="index.html">Leer la guía</a>
+        </div>
+      </div>
+      <img class="close-fox" src="../tasks-ai-brand/logos/fox-transparent-384.png" width="384" height="384" alt="" loading="lazy">
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-row">
+    <span class="foot-brand">
+      <img src="../tasks-ai-brand/logos/fox-transparent-128.png" width="22" height="22" alt="">
+      tasks-ai <small>· local-first · Go · SQLite</small>
+    </span>
+    <p class="foot-note">Este repositorio se gobierna con su propio tablero.</p>
+    <nav class="foot-links" aria-label="Enlaces">
+      <a href="index.html">Guía de uso</a>
+      <a href="../../CHANGELOG.md">Changelog</a>
+      <a href="#top">Arriba
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4"></path></svg>
+      </a>
+    </nav>
+  </div>
+</footer>
+
+<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba" title="Volver arriba">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+</a>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "tasks-ai:prefs";
+  var root = document.documentElement;
+  var prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { prefs = {}; }
+
+  function savePrefs() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) {}
+  }
+
+  // El tema se comparte con la guía: las dos leen la misma preferencia.
+  var themeBtn = document.getElementById("theme-toggle");
+  function themeLabel() {
+    var dark = root.getAttribute("data-theme") === "dark";
+    themeBtn.setAttribute("aria-label", dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
+  }
+  themeLabel();
+  themeBtn.addEventListener("click", function () {
+    prefs.theme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", prefs.theme);
+    themeLabel();
+    savePrefs();
+  });
+
+  // Una tarea seleccionada en el tablero enseña su propia respuesta JSON.
+  var rows = Array.prototype.slice.call(document.querySelectorAll(".task[data-ref]"));
+  var panes = Array.prototype.slice.call(document.querySelectorAll(".json pre[data-ref]"));
+  var jsonRef = document.getElementById("json-ref");
+
+  function select(ref) {
+    rows.forEach(function (row) {
+      row.setAttribute("aria-pressed", row.getAttribute("data-ref") === ref ? "true" : "false");
+    });
+    panes.forEach(function (pane) {
+      pane.hidden = pane.getAttribute("data-ref") !== ref;
+    });
+    if (jsonRef) { jsonRef.textContent = ref; }
+    var status = document.getElementById("json-status");
+    if (status) { status.textContent = "Mostrando " + ref; }
+  }
+
+  rows.forEach(function (row) {
+    row.addEventListener("click", function () { select(row.getAttribute("data-ref")); });
+  });
+
+  // Botón de copiar en cada bloque de código, como en la guía.
+  var COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5v-1a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1"></path></svg>';
+  var CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"></path></svg>';
+
+  document.querySelectorAll(".code").forEach(function (block) {
+    var pre = block.querySelector("pre");
+    if (!pre) { return; }
+    block.classList.add("has-copy");
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy";
+    btn.innerHTML = COPY + "<span>Copiar</span>";
+    btn.setAttribute("aria-label", "Copiar el código");
+    block.appendChild(btn);
+
+    var timer = null;
+    btn.addEventListener("click", function () {
+      var text = pre.textContent;
+      var done = function () {
+        btn.classList.add("copied");
+        btn.innerHTML = CHECK + "<span>Copiado</span>";
+        btn.setAttribute("aria-label", "Código copiado");
+        if (timer) { clearTimeout(timer); }
+        timer = setTimeout(function () {
+          btn.classList.remove("copied");
+          btn.innerHTML = COPY + "<span>Copiar</span>";
+          btn.setAttribute("aria-label", "Copiar el código");
+        }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+
+  var toTop = document.getElementById("to-top");
+  if (toTop) {
+    var update = function () { toTop.classList.toggle("is-visible", window.scrollY > 480); };
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+  }
+
+  // La sección que ocupa la franja superior de la ventana marca su enlace.
+  if ("IntersectionObserver" in window) {
+    var links = {};
+    document.querySelectorAll(".site-nav a").forEach(function (a) {
+      var href = a.getAttribute("href");
+      if (href && href.charAt(0) === "#" && href.length > 1) { links[href.slice(1)] = a; }
+    });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) { return; }
+        Object.keys(links).forEach(function (id) { links[id].classList.remove("active"); });
+        if (links[entry.target.id]) { links[entry.target.id].classList.add("active"); }
+      });
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+    Object.keys(links).forEach(function (id) {
+      var section = document.getElementById(id);
+      if (section) { observer.observe(section); }
+    });
+  }
+  // Las secciones entran una sola vez al asomar por la ventana.
+  var sections = document.querySelectorAll("main > section:not(.hero)");
+  if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    var reveal = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) { return; }
+        entry.target.classList.add("in");
+        reveal.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: 0 });
+    Array.prototype.forEach.call(sections, function (section) {
+      section.classList.add("reveal");
+      reveal.observe(section);
+    });
+  }
+})();
+</script>
+</body>
+</html>

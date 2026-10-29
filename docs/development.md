@@ -163,7 +163,7 @@ la tarea que cambia una decisión.
 3. Antes del commit: se lee la tarea entera —descripción, notas y comentarios— y se repasa
    su criterio punto por punto sobre lo entregado; se revisan el diff y la documentación
    viva —`README.md`, `docs/PRD.md`, `docs/architecture.md`, `docs/contracts.md`,
-   `docs/known-risks.md` y `docs/web/index.html`—, cada una en lo que el cambio le toque;
+   `docs/known-risks.md` y `docs/web/`—, cada una en lo que el cambio le toque;
    y se ejecutan las comprobaciones:
    - `go test ./...`, que incluye la prueba de enlaces y títulos de los documentos y la
      de la guía de uso;

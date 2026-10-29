@@ -32,6 +32,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 | `docs/known-risks.md` | Riesgos vivos, resueltos y deuda aceptada | Requisitos, planes |
 | `docs/decisions/` | La exportación generada de las decisiones durables | El registro de lo trivial |
 | `docs/web/index.html` | La guía de uso del producto | Requisitos, decisiones |
+| `docs/web/landing.html` | La presentación del producto y su entrada a la guía | La referencia de comandos |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y sus normas | El contenido de la guía |
 | `.tasks-ai/` | El trabajo: tareas, criterios y evidencia | Documentación |
 

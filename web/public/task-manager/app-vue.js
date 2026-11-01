@@ -1649,7 +1649,7 @@
     <header class="tag-manager-header">
       <div>
         <h2 id="tag-manager-title">Gestor de etiquetas</h2>
-        <p>Cat\xE1logo compartido de Tacks</p>
+        <p>Cat\xE1logo del proyecto</p>
       </div><button class="tk-icon-button" type="button" aria-label="Cerrar gestor" title="Cerrar gestor" @click="$emit('close')">\xD7</button>
     </header>
     <div class="tag-manager-body">

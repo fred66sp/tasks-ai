@@ -28,7 +28,7 @@ export const TagManagerDrawer = {
     <header class="tag-manager-header">
       <div>
         <h2 id="tag-manager-title">Gestor de etiquetas</h2>
-        <p>Catálogo compartido de Tacks</p>
+        <p>Catálogo del proyecto</p>
       </div><button class="tk-icon-button" type="button" aria-label="Cerrar gestor" title="Cerrar gestor" @click="$emit('close')">×</button>
     </header>
     <div class="tag-manager-body">

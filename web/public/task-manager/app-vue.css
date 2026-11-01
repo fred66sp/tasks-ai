@@ -1455,6 +1455,10 @@ textarea:focus-visible {
   gap: 7px;
   margin-bottom: 16px;
 }
+fieldset.tag-manager-field {
+  border: 0;
+  padding: 0;
+}
 .tag-manager-label {
   color: var(--tk-color-text-secondary);
   font-size: 14px;

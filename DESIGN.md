@@ -193,14 +193,23 @@ components:
 
 **Creative North Star: "El archivador del proyecto"**
 
-Este documento describe cómo se aplica la identidad ya aprobada en el código que existe: la
-interfaz web que sirve el binario, la guía de uso y la portada. La identidad —símbolo,
-paleta, familias tipográficas y sus normas— es propiedad de
-[`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md); los valores del tema oscuro de la
-interfaz son propiedad de
-[`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css). Aquí se
-lee el conjunto, no se abre una segunda fuente. El frontmatter repite los valores porque el
-formato lo exige; si un número discrepa, manda el archivo que lo define.
+Este documento explica cómo aplicar la identidad aprobada al tablero, la guía de uso y la
+portada. Es la entrada al sistema visual, no una segunda paleta ni una descripción de Tacks.
+Cada dato se modifica en su fuente responsable:
+
+| Dato | Fuente responsable | Papel de este documento |
+|---|---|---|
+| Zorro, colores y familias de marca | [`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md) | Uso y restricciones; el paquete aprobado no se modifica. |
+| Color, densidad, radios y tipografía del tablero | [`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css) y sus [componentes](web/src/task-manager/styles/components.css) | Criterios de aplicación y correspondencia con la interfaz efectiva. |
+| Temas y composición de la documentación | [`docs/web/index.html`](docs/web/index.html) y [`docs/web/landing.html`](docs/web/landing.html) | Reglas compartidas y excepciones explícitas de cada superficie. |
+| Capacidades, estados y contratos de tarea | [`docs/PRD.md`](docs/PRD.md) y [`docs/contracts.md`](docs/contracts.md) | Solo representación visual; no redefine el negocio. |
+
+El frontmatter conserva los valores necesarios para las herramientas que leen `DESIGN.md`;
+es una proyección de esas fuentes, no el lugar donde se decide una paleta nueva. Los ejemplos
+de [`.impeccable/design.json`](.impeccable/design.json) son muestras para el panel visual:
+se contrastan con el CSS al cambiarlo, nunca se usan para construir el producto. El HTML
+de [Tacks](docs/02-gestor-tareas-system-desing_v2.html) es un antecedente histórico de patrones,
+no un contrato ni una fuente de tokens de tasks-ai.
 
 El mundo es un archivador, no una aplicación: todo el trabajo de un proyecto vive en un cajón
 —`.tasks-ai/`—, y el tablero es el expediente que se consulta. Por eso la pantalla no
@@ -263,7 +272,8 @@ estados que siempre se acompaña de texto.
 - **Superficie** (`#111827`): paneles, modales, tarjetas de documentación en tema oscuro.
 - **Realce** (`#1f2937`): botones secundarios, insignias neutras, superficies elevadas.
 - **Selección** (`#2a3750`): la fila elegida en el árbol y el botón en hover.
-- **Hueco** (`#070b16`): el interior de los campos y el fondo de los bloques de código.
+- **Hueco** (`#070b14` en el tablero, `#070b16` en los bloques de código de la guía):
+  superficies hundidas propias de cada soporte.
 - **Tinta** (`#e5e7eb` / `#c3cad5` / `#94a3b8` / `#6b7688`): texto principal, secundario,
   apagado y deshabilitado, en cuatro pasos que se distinguen sin mirar el tamaño.
 - **Bordes** (`#1e293b` / `#334155` / `#475569`): separación, control y énfasis; también el
@@ -382,8 +392,8 @@ no entra.
 La forma es de herramienta: esquinas pequeñas y bordes de un píxel. Los controles, las filas y
 las insignias de campo usan 6 px; los paneles, la marca y las tarjetas de la interfaz, 10 px;
 los modales y las tarjetas y tablas de la documentación, 16 px. Las insignias y las etiquetas
-del árbol son píldoras de 999 px. El símbolo de la marca vive en un cuadrado de 38 px —34 en
-la guía— con 10 px de esquina y sin fondo propio.
+del árbol son píldoras de 999 px. El símbolo de la marca vive en un cuadrado de 42 px en la
+cabecera del tablero —34 en la guía— con 10 px de esquina y sin fondo propio.
 
 La geometría que distingue al sistema no es el radio sino la línea: 1 px de borde en todo
 control, 3 px de barra violeta a la izquierda de la fila seleccionada, 2 px de subrayado en la
@@ -420,6 +430,12 @@ fondo, borde y color.
   prioridad tiene su propia rampa —crítica `#f87171`, alta `#fb923c`, media `#fbbf24`, baja
   `#60a5fa`— y las etiquetas del catálogo llevan su color con punto.
 
+El estado persistido de una tarea es `open`, `in_progress` o `done`. «Bloqueada» se calcula a
+partir de sus dependencias; no es un cuarto estado guardado. El árbol combina estado y
+prioridad con palabras y controles, no con un color aislado. El catálogo de etiquetas aporta
+los colores de cada etiqueta: su tono no es un estado ni una prioridad. La semántica de
+estos datos vive en [`docs/PRD.md`](docs/PRD.md), no en las muestras visuales.
+
 ### Cards / Containers
 
 - **Corner Style:** 10 px en la interfaz, 16 px en la documentación.
@@ -442,7 +458,7 @@ fondo, borde y color.
 
 ### Navigation
 
-La cabecera de 68 px lleva el símbolo de 38 px, el nombre del producto y una segunda línea de
+La cabecera de 68 px lleva el símbolo de 42 px, el nombre del producto y una segunda línea de
 13 px apagada; a la derecha, acciones compactas. En la interfaz no hay más navegación: el
 árbol es el índice. En la guía la barra superior fija lleva marca, selector de idioma y de
 tema, y el índice lateral marca la sección activa; las pestañas de la interfaz son texto de
@@ -459,6 +475,13 @@ apagados.
 **El aviso emergente.** 400 px como máximo, arriba a la derecha, sobre `#1f2937`, con una
 insignia circular de éxito, la sombra flotante y una entrada de 180 ms desde −8 px. Es la única
 confirmación de que algo se guardó.
+
+**El inspector.** Se abre al seleccionar una tarea y permite leer y corregir el expediente;
+en móvil ocupa la pantalla y ofrece una acción para volver al árbol. Los diálogos crean o
+confirman; los filtros y paneles no convierten una edición normal en un modal. Si no hay tarea
+seleccionada, el inspector explica cómo abrirla. Carga, vacío y error conservan el mismo
+marco y una salida comprensible; el indicador de carga y el color de error no sustituyen el
+texto. Los controles que solo muestran un icono tienen nombre accesible y foco visible.
 
 ## Do's and Don'ts
 

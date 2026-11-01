@@ -18,6 +18,7 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `internal/` | El núcleo del producto y sus superficies |
 | `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
 | `.impeccable/` | El sidecar del sistema visual: rampas, sombras, movimiento y los componentes que un panel de diseño dibuja; acompaña a [`DESIGN.md`](../DESIGN.md) |
+| `design-system.json` | El contrato máquina-legible del sistema visual —identidad, tokens del tablero, componentes y gobernanza—; su prosa es [`DESIGN.md`](../DESIGN.md), sus muestras la guía de diseño y lo contrasta `web/src/task-manager/design-tokens.test.js` |
 | `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |

@@ -238,6 +238,13 @@ se contrastan con el CSS al cambiarlo, nunca se usan para construir el producto.
 de [Tacks](docs/02-gestor-tareas-system-desing_v2.html) es un antecedente histórico de patrones,
 no un contrato ni una fuente de tokens de tasks-ai.
 
+El contrato [`design-system.json`](design-system.json) proyecta estas fuentes en el esquema
+`design-system.v1`: identidad, tokens del tablero, componentes efectivos y gobernanza. No
+decide por su cuenta ni abre una segunda paleta; una prueba
+(`web/src/task-manager/design-tokens.test.js`) lo contrasta con `tokens.css`, y su puerta es
+`check` de la skill `design-system-architect`. El catálogo sigue siendo la
+[guía navegable](docs/web/design-system.html); el contrato no genera otro.
+
 El mundo es un archivador, no una aplicación: todo el trabajo de un proyecto vive en un cajón
 —`.tasks-ai/`—, y el tablero es el expediente que se consulta. Por eso la pantalla no
 presenta nada ni se presenta a sí misma; ordena. Dos columnas y una cabecera, una fila por

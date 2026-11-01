@@ -45,6 +45,23 @@ colors:
   priority-medium: "#fbbf24"
   priority-low: "#60a5fa"
   code-canvas: "#070b16"
+  tag-blue: "#62a7ff"
+  tag-purple: "#b58bff"
+  tag-green: "#58d392"
+  tag-yellow: "#f2bf59"
+  tag-orange: "#ff9a55"
+  tag-red: "#ff7373"
+  notice-surface: "#121c27"
+  notice-panel: "#182431"
+  notice-line: "#344657"
+  notice-ink: "#f3f6f8"
+  notice-ink-muted: "#bac4ce"
+  overlay: "rgba(10, 16, 23, 0.78)"
+  overlay-modal: "rgba(3, 7, 12, 0.78)"
+  badge-border-warning: "rgba(242, 191, 89, 0.25)"
+  badge-border-success: "rgba(88, 211, 146, 0.25)"
+  badge-border-danger: "rgba(255, 115, 115, 0.25)"
+  badge-border-info: "rgba(98, 167, 255, 0.25)"
 typography:
   display:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -110,6 +127,12 @@ typography:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "14.5px"
     fontWeight: 650
+  task-title:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "26px"
+    fontWeight: 750
+    lineHeight: 1.24
+    letterSpacing: "-0.02em"
   panel-h3:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "18px"
@@ -119,8 +142,10 @@ typography:
     fontSize: "21px"
     fontWeight: 700
 rounded:
+  xs: "4px"
   sm: "6px"
   md: "10px"
+  notice: "8px"
   lg: "16px"
   pill: "999px"
 spacing:
@@ -194,7 +219,9 @@ components:
 **Creative North Star: "El archivador del proyecto"**
 
 Este documento explica cómo aplicar la identidad aprobada al tablero, la guía de uso y la
-portada. Es la entrada al sistema visual, no una segunda paleta ni una descripción de Tacks.
+portada. La [guía navegable](docs/web/design-system.html) dibuja las muestras con los valores
+de esas fuentes; este contrato fija las reglas sin abrir una segunda paleta ni describir Tacks
+como producto actual.
 Cada dato se modifica en su fuente responsable:
 
 | Dato | Fuente responsable | Papel de este documento |
@@ -230,7 +257,7 @@ temas, porque un bloque de comandos no cambia de significado según la hora.
 - Densidad funcional: los controles son de 42 px, los compactos de 36 y 24, y las filas del
   árbol de 68; el espacio se gasta en separar grupos, no en aire decorativo.
 - Neutros por capas: el fondo, la barra lateral, la superficie, el realce y la fila
-  seleccionada son cinco pasos del mismo azul nocturno.
+  seleccionada son pasos del mismo azul nocturno.
 - El violeta pertenece a la marca y al foco; cuando escribe, usa su variante legible.
 - Un degradado de marca solo en la portada, y el primario de violeta a azul en la guía y en
   la portada; ninguna otra decoración de color.
@@ -275,7 +302,7 @@ estados que siempre se acompaña de texto.
 - **Hueco** (`#070b14` en el tablero, `#070b16` en los bloques de código de la guía):
   superficies hundidas propias de cada soporte.
 - **Tinta** (`#e5e7eb` / `#c3cad5` / `#94a3b8` / `#6b7688`): texto principal, secundario,
-  apagado y deshabilitado, en cuatro pasos que se distinguen sin mirar el tamaño.
+  apagado y deshabilitado, en pasos que se distinguen sin mirar el tamaño.
 - **Bordes** (`#1e293b` / `#334155` / `#475569`): separación, control y énfasis; también el
   color de la barra de desplazamiento, que se hereda en toda la interfaz.
 - **Día** (`#f8fafc`, `#ffffff`, `#f1f5f9`, `#0f172a`, `#5f6b80`, `#e2e8f0`, `#cbd5e1`): el
@@ -455,6 +482,15 @@ estos datos vive en [`docs/PRD.md`](docs/PRD.md), no en las muestras visuales.
   resto de controles sí usa `outline: 2px solid #a78bfa` con 2 px de separación.
 - **Error / Disabled:** el error se escribe debajo del campo en `#f87171`; lo deshabilitado baja
   a 0,58 de opacidad y no se puede pulsar.
+
+### Notices
+
+Las notificaciones y la confirmación no reutilizan el modal del producto: usan su propio juego
+(`notice-surface`, `notice-panel`, `notice-line`, `notice-ink`) y un radio de 8 px
+(`rounded.notice`), sobre un velo `overlay` con desenfoque. Su dueño es
+`web/src/task-manager/notifications/toast-anchor.js`; aquí solo se declaran los valores. La
+confirmación nombra lo que se pierde y la acción destructiva va en rojo; el aviso emergente
+solo confirma que algo se guardó y no sustituye a un error que exige acción.
 
 ### Navigation
 

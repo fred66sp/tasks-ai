@@ -35,6 +35,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 | `docs/decisions/` | La exportación generada de las decisiones durables | El registro de lo trivial |
 | `docs/web/index.html` | La guía de uso del producto | Requisitos, decisiones |
 | `docs/web/landing.html` | La presentación del producto y su entrada a la guía | La referencia de comandos |
+| `docs/web/design-system.html` | La referencia navegable del sistema visual: muestras, estados y medidas | El contrato y los valores: viven en `DESIGN.md` y en el CSS |
 | `docs/tasks-ai-brand/` | La identidad visual aprobada y sus normas | El contenido de la guía |
 | `.tasks-ai/` | El trabajo: tareas, criterios y evidencia | Documentación |
 

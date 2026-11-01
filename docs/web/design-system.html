@@ -1,0 +1,1469 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Sistema de diseño de tasks-ai: fundamentos, componentes, patrones y estados del tablero.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../tasks-ai-brand/favicons/favicon-32.png">
+  <title>Sistema de diseño · tasks-ai</title>
+  <style>
+    :root {
+      --gutter: clamp(20px, 4.6vw, 64px);
+      --page: #f8fafc;
+      --surface: #ffffff;
+      --raised: #f1f5f9;
+      --ink: #0f172a;
+      --secondary: #334155;
+      --muted: #5f6b80;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --accent: #6d28d9;
+      --accent-soft: rgba(109, 40, 217, .07);
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+    :root[data-theme="dark"] {
+      --page: #0a0f1c;
+      --surface: #111827;
+      --raised: #1f2937;
+      --ink: #e5e7eb;
+      --secondary: #c3cad5;
+      --muted: #94a3b8;
+      --line: #1e293b;
+      --line-strong: #334155;
+      --accent: #a78bfa;
+      --accent-soft: rgba(167, 139, 250, .12);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 28px; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+    a:hover { text-decoration-thickness: 2px; }
+    h1, h2, h3, p, figure { margin-top: 0; }
+    code, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    code { font-size: .865em; overflow-wrap: anywhere; }
+    .skip {
+      position: absolute; top: -100px; left: 16px; z-index: 20;
+      padding: 10px 14px; border-radius: 6px; background: var(--surface); color: var(--ink);
+    }
+    .skip:focus { top: 12px; }
+
+    /* ---------- Estructura ---------- */
+    .shell {
+      display: grid;
+      grid-template-columns: 272px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .shell > * { min-width: 0; }
+    .rail {
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .rail-inner {
+      position: sticky; top: 0;
+      display: flex; flex-direction: column;
+      max-height: 100dvh; padding: 26px 20px 22px;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 11px;
+      margin-bottom: 6px;
+      color: var(--ink); font-size: 16px; font-weight: 780; letter-spacing: -.02em;
+      text-decoration: none;
+    }
+    .brand img { width: 34px; height: 34px; border-radius: 10px; }
+    .rail-title {
+      margin: 0 0 22px 45px;
+      color: var(--muted); font-size: 12.5px; font-weight: 600;
+    }
+    .rail nav { display: grid; gap: 1px; }
+    .rail nav a {
+      display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center;
+      padding: 7px 10px; border-radius: 6px;
+      color: var(--secondary); font-size: 14px; font-weight: 500;
+      text-decoration: none;
+    }
+    .rail nav a span {
+      color: var(--muted);
+      font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums;
+    }
+    .rail nav a:hover { background: var(--raised); color: var(--ink); }
+    .rail nav a[aria-current="true"] {
+      background: var(--accent-soft); color: var(--accent); font-weight: 650;
+    }
+    .rail nav a[aria-current="true"] span { color: var(--accent); }
+    .rail-foot {
+      margin-top: auto; padding-top: 22px; border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 13px;
+    }
+    .rail-foot a { color: var(--secondary); font-weight: 550; text-decoration: none; }
+    .rail-foot a:hover { color: var(--accent); text-decoration: underline; }
+
+    .content { width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px; }
+
+    /* ---------- Cabecera ---------- */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 18px 0 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 550; }
+    .theme {
+      display: inline-flex; width: 38px; height: 38px;
+      align-items: center; justify-content: center;
+      padding: 0; border: 1px solid var(--line-strong); border-radius: 6px;
+      background: var(--surface); color: var(--secondary); cursor: pointer;
+      transition: border-color 120ms, color 120ms;
+    }
+    .theme svg {
+      width: 18px; height: 18px; fill: none; stroke: currentColor;
+      stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .theme:hover { border-color: var(--accent); color: var(--accent); }
+
+    h1 {
+      max-width: 18ch;
+      margin: 60px 0 20px;
+      font-size: clamp(34px, 6vw, 62px);
+      font-weight: 800; line-height: 1.03; letter-spacing: -.042em;
+      text-wrap: balance;
+    }
+    .lead {
+      max-width: 62ch; margin-bottom: 34px;
+      color: var(--secondary); font-size: 18px; line-height: 1.6;
+    }
+    .meta {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px;
+      margin: 0 0 8px; padding: 0;
+      border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+      background: var(--line); list-style: none;
+    }
+    .meta li { padding: 14px 16px; background: var(--surface); }
+    .meta b {
+      display: block; margin-bottom: 3px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .meta span { color: var(--ink); font-size: 14px; font-weight: 600; }
+
+    /* ---------- Capítulos ---------- */
+    section { margin-top: 84px; scroll-margin-top: 24px; }
+    .chapter-head {
+      display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 0 18px;
+      align-items: start;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .chapter-num {
+      padding-top: 7px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 3.2vw, 40px); font-weight: 770;
+      line-height: 1.12; letter-spacing: -.028em; text-wrap: balance;
+    }
+    .chapter-lead {
+      max-width: 66ch; margin: 0 0 8px;
+      color: var(--secondary); font-size: 16px;
+    }
+    .chapter-body { grid-column: 2; min-width: 0; }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px; font-weight: 730; letter-spacing: -.012em;
+    }
+
+    /* ---------- Piezas de documentación ---------- */
+    .specimen {
+      margin: 26px 0;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: var(--surface); overflow: hidden;
+    }
+    .specimen__head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--raised);
+    }
+    .specimen__label {
+      color: var(--muted);
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: .11em; text-transform: uppercase;
+    }
+    .specimen__note { color: var(--muted); font-size: 12.5px; text-align: right; }
+    .specimen__body { padding: 24px 18px; }
+
+    .specimen--board { border-color: #243044; background: #0a0f1c; }
+    .specimen--board .specimen__head { border-bottom-color: #1e293b; background: #0e1523; }
+    .specimen--board .specimen__label { color: #94a3b8; }
+    .specimen--board .specimen__note { color: #94a3b8; }
+    .specimen--board .specimen__body { color: #e5e7eb; }
+    .specimen__scroll { overflow-x: auto; }
+
+    table.spec { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
+    table.spec caption {
+      padding-bottom: 10px; text-align: left;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    table.spec th, table.spec td {
+      padding: 11px 12px; border-bottom: 1px solid var(--line);
+      text-align: left; vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.spec th {
+      color: var(--muted); font-size: 11.5px; font-weight: 750;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    table.spec tbody tr:last-child td { border-bottom: 0; }
+    table.spec td:first-child { color: var(--ink); font-weight: 600; }
+    table.spec td code { color: var(--secondary); }
+
+    .rule {
+      margin: 0; padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+    .rule h3 { margin-bottom: 5px; }
+    .rule p { max-width: 68ch; margin: 0; color: var(--secondary); }
+
+    .sources {
+      margin: 22px 0; padding: 16px 18px;
+      border: 1px solid var(--line); border-radius: 6px;
+      background: var(--raised); color: var(--secondary); font-size: 14px;
+    }
+    .sources code { overflow-wrap: anywhere; }
+
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    /* ---------- Muestras: tokens ---------- */
+    .ramp { display: grid; gap: 2px; margin: 22px 0; }
+    .ramp__row {
+      display: grid; grid-template-columns: 64px minmax(0, 1fr) 190px 118px;
+      align-items: center; gap: 14px;
+      padding: 8px 10px; border-radius: 6px;
+    }
+    .ramp__row:hover { background: var(--raised); }
+    .ramp__chip {
+      height: 40px; border: 1px solid var(--line-strong); border-radius: 6px;
+      background: var(--swatch);
+    }
+    .ramp__name { font-size: 14px; font-weight: 600; }
+    .ramp__name small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
+    .ramp__token { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .ramp__hex { color: var(--secondary); font-family: var(--mono); font-size: 12px; text-align: right; }
+
+    .scale { display: grid; gap: 10px; margin: 22px 0; }
+    .scale__row {
+      display: grid; grid-template-columns: 84px 240px 64px;
+      align-items: center; gap: 14px; font-size: 13px;
+    }
+    .scale__track {
+      display: flex; align-items: center;
+      height: 22px; padding-left: 1px; border-radius: 6px;
+      background: color-mix(in srgb, var(--ink) 7%, transparent);
+    }
+    .scale__bar {
+      height: 22px; border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 42%, transparent);
+    }
+    .scale__value { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+
+    .radii { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; margin: 22px 0; }
+    .radii figure { margin: 0; }
+    .radii div {
+      width: 74px; height: 74px;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      background: var(--accent-soft);
+    }
+    .radii figcaption {
+      margin-top: 7px; color: var(--muted);
+      font-family: var(--mono); font-size: 11px; text-align: center;
+    }
+
+    /* ---------- Muestras: componentes del tablero ---------- */
+    .stack { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+    .ds-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 42px; padding: 0 16px;
+      border: 1px solid transparent; border-radius: 6px;
+      background: transparent; color: #e5e7eb;
+      font-family: inherit; font-size: 15px; font-weight: 750; line-height: 1;
+      white-space: nowrap; cursor: pointer;
+      transition: background 120ms, border-color 120ms, color 120ms;
+    }
+    .ds-button:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+    .ds-button--primary { background: #a78bfa; color: #0a0f1c; }
+    .ds-button--secondary { border-color: #334155; background: #1f2937; color: #e5e7eb; }
+    .ds-button--ghost { color: #c3cad5; }
+    .ds-button--danger { border-color: rgb(255 115 115 / .28); background: rgb(239 68 68 / .14); color: #f87171; }
+    .ds-button--compact { min-height: 24px; height: 24px; gap: 5px; padding: 0 8px; font-size: 12px; font-weight: 500; }
+    .ds-button--compact.ds-button--primary { font-weight: 650; }
+    .ds-button:disabled { opacity: .58; cursor: not-allowed; }
+    /* Estados forzados: el tablero real los produce con el ratón y el teclado. */
+    .is-hover.ds-button--primary { background: #c4b5fd; }
+    .is-hover.ds-button--secondary { border-color: #475569; background: #252f3f; }
+    .is-hover.ds-button--ghost { background: #252f3f; color: #e5e7eb; }
+    .is-focus { outline: 2px solid #a78bfa; outline-offset: 2px; }
+
+    .ds-field { display: grid; gap: 7px; max-width: 420px; }
+    .ds-label { color: #c3cad5; font-size: 13.5px; font-weight: 750; }
+    .ds-input, .ds-select {
+      min-height: 42px; padding: 0 13px;
+      border: 1px solid #334155; border-radius: 6px;
+      background: #070b14; color: #e5e7eb;
+      font-family: inherit; font-size: 15px;
+    }
+    .ds-input::placeholder { color: #6b7688; }
+    .ds-input:focus, .ds-select:focus {
+      outline: 0; border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgb(139 92 246 / .16);
+    }
+    .ds-select--compact { width: auto; min-width: 116px; min-height: 36px; padding-left: 11px; padding-right: 36px; font-size: 14px; }
+    .ds-help { color: #94a3b8; font-size: 12.5px; }
+
+    /* El select del producto: chevron propio, divisoria y borde izquierdo que
+       declara el estado o la prioridad del valor elegido. */
+    .ds-select {
+      appearance: none;
+      padding-right: 48px;
+      border-left: 3px solid transparent;
+      background-image:
+        linear-gradient(90deg, transparent calc(100% - 39px), #1e293b calc(100% - 39px), #1e293b calc(100% - 38px), transparent calc(100% - 38px)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='17' height='17' viewBox='0 0 24 24' fill='none' stroke='%23bac4ce' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center, calc(100% - 11px) center;
+    }
+    .ds-row .ds-select--priority { border-left-color: #fbbf24; }
+    .ds-row .ds-select--status:has(option[value="open"]:checked) { border-left-color: #f59e0b; }
+    .ds-row .ds-select--status:has(option[value="in_progress"]:checked) { border-left-color: #a78bfa; }
+    .ds-row .ds-select--status:has(option[value="done"]:checked) { border-left-color: #10b981; }
+    .ds-row .ds-select--status:has(option[value="blocked"]:checked) { border-left-color: #f87171; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="0"]:checked) { border-left-color: #f87171; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="1"]:checked) { border-left-color: #fb923c; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="2"]:checked) { border-left-color: #fbbf24; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="3"]:checked) { border-left-color: #60a5fa; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="open"]:checked) { border-left-color: #f59e0b; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="in_progress"]:checked) { border-left-color: #a78bfa; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="done"]:checked) { border-left-color: #10b981; }
+    .ds-prop .ds-select, .ds-modal .ds-select:has(option[value="blocked"]:checked) { border-left-color: #f87171; }
+
+    /* La insignia de la cabecera del inspector no es una píldora: es un
+       rectángulo macizo con el tono del estado y el texto invertido. */
+    .ds-badge--solid {
+      min-height: 26px; padding: 2px 9px;
+      border: 0; border-radius: 6px;
+      background: #a78bfa; color: #0a0f1c;
+    }
+
+    .ds-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      min-height: 26px; padding: 2px 9px;
+      border: 1px solid transparent; border-radius: 999px;
+      font-size: 13px; font-weight: 780; line-height: 1;
+      white-space: nowrap;
+    }
+    .ds-badge--warning { border-color: rgb(242 191 89 / .25); background: rgb(245 158 11 / .14); color: #f59e0b; }
+    .ds-badge--info { border-color: rgb(98 167 255 / .25); background: rgb(139 92 246 / .16); color: #a78bfa; }
+    .ds-badge--success { border-color: rgb(88 211 146 / .25); background: rgb(16 185 129 / .14); color: #10b981; }
+    .ds-badge--danger { border-color: rgb(255 115 115 / .25); background: rgb(239 68 68 / .14); color: #f87171; }
+
+    .ds-tabs { display: flex; gap: 28px; border-bottom: 1px solid #1e293b; }
+    .ds-tab {
+      position: relative; padding: 0 0 14px;
+      border: 0; background: none;
+      color: #94a3b8; font-family: inherit; font-size: 15px; font-weight: 750;
+      cursor: pointer;
+    }
+    .ds-tab:hover { color: #c3cad5; }
+    .ds-tab[aria-pressed="true"] { color: #e5e7eb; }
+    .ds-tab[aria-pressed="true"]::after {
+      position: absolute; left: 0; right: 0; bottom: -1px;
+      height: 2px; background: #a78bfa; content: "";
+    }
+
+    .ds-menu {
+      width: 236px; padding: 6px;
+      border: 1px solid #334155; border-radius: 10px;
+      background: #1f2937;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .52);
+    }
+    .ds-menu__item {
+      display: block; width: 100%; padding: 8px 10px;
+      border: 0; border-radius: 6px; background: none;
+      color: #e5e7eb; font-family: inherit; font-size: 14px; text-align: left;
+      cursor: pointer;
+    }
+    .ds-menu__item:hover { background: #252f3f; }
+    .ds-menu__item--danger { color: #f87171; }
+    .ds-menu__item:disabled { opacity: .5; cursor: not-allowed; }
+
+    .ds-tree { display: grid; gap: 2px; min-width: 570px; }
+    .ds-row {
+      position: relative;
+      display: grid; grid-template-columns: 34px 34px minmax(170px, 1fr) 120px 130px 38px;
+      align-items: center; gap: 7px;
+      min-height: 68px; padding: 7px;
+      border: 1px solid transparent; border-radius: 6px;
+      background: transparent; color: #e5e7eb;
+      cursor: pointer;
+      transition: background 120ms, border-color 120ms;
+    }
+    .ds-row:hover { background: #252f3f; }
+    .ds-row[aria-selected="true"] { border-color: rgb(98 167 255 / .38); background: #2a3750; }
+    .ds-row[aria-selected="true"]::before {
+      position: absolute; left: 0; top: 8px; bottom: 8px;
+      width: 3px; background: #a78bfa; content: "";
+    }
+    .ds-row--child { padding-left: 31px; }
+    .ds-row--child::after {
+      position: absolute; left: 19px; top: -3px; bottom: -3px;
+      width: 1px; background: #334155; opacity: .7; content: "";
+    }
+    .ds-expander {
+      display: grid; place-items: center;
+      width: 32px; height: 32px;
+      border: 0; border-radius: 6px; background: none;
+      color: #c3cad5; cursor: pointer;
+    }
+    .ds-expander svg {
+      width: 16px; height: 16px;
+      fill: none; stroke: currentColor; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: transform 180ms;
+    }
+    .ds-row[aria-expanded="true"] .ds-expander svg { transform: rotate(180deg); }
+    .ds-expander:hover { background: #1f2937; color: #e5e7eb; }
+    .ds-expander--empty { visibility: hidden; }
+    .ds-kind {
+      display: grid; place-items: center;
+      width: 30px; height: 30px; border-radius: 6px;
+      color: #e5e7eb; font-size: 13px; font-weight: 850;
+    }
+    .ds-kind--epic { background: rgb(167 139 250 / .16); }
+    .ds-kind--subtask { background: rgb(16 185 129 / .14); }
+    .ds-row__copy { min-width: 0; }
+    .ds-row__title {
+      overflow: hidden;
+      color: #e5e7eb; font-size: 16px; font-weight: 720;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .ds-row__meta {
+      display: flex; gap: 8px; margin-top: 2px;
+      color: #94a3b8; font-size: 13px;
+    }
+    .ds-icon-button {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 38px;
+      border: 1px solid transparent; border-radius: 6px;
+      background: none; color: #c3cad5;
+      font-size: 18px; line-height: 1; cursor: pointer;
+    }
+    .ds-icon-button:hover { background: #252f3f; color: #e5e7eb; }
+
+    .ds-inspector { border: 1px solid #1e293b; border-radius: 10px; background: #0a0f1c; overflow: hidden; }
+    .ds-inspector__head {
+      padding: 20px 24px;
+      border-bottom: 1px solid #1e293b;
+      background: linear-gradient(180deg, rgb(98 167 255 / .045), transparent), #0a0f1c;
+    }
+    .ds-inspector__top {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .ds-kicker {
+      color: #94a3b8; font-size: 13px; font-weight: 750;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .ds-inspector__title {
+      margin: 4px 0 0;
+      color: #e5e7eb; font-size: 26px; font-weight: 750;
+      line-height: 1.24; letter-spacing: -.02em;
+    }
+    .ds-inspector__desc { max-width: 68ch; margin: 10px 0 0; color: #c3cad5; font-size: 16px; }
+    .ds-inspector__actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .ds-props { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .ds-prop { display: grid; min-width: 180px; gap: 5px; }
+    .ds-prop__label {
+      color: #94a3b8; font-size: 12.5px; font-weight: 750; text-transform: uppercase;
+    }
+    .ds-inspector__tabs { padding: 0 24px; }
+    .ds-panel { border: 1px solid #1e293b; border-radius: 10px; background: #111827; }
+    .ds-panel-stack { display: grid; gap: 12px; padding: 18px 24px 24px; }
+    .ds-panel__head { padding: 14px 16px; border-bottom: 1px solid #1e293b; }
+    .ds-panel__head h4 { margin: 0; color: #e5e7eb; font-size: 16px; font-weight: 730; }
+    .ds-panel__body { padding: 16px; }
+    .ds-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .ds-card { padding: 12px; border-radius: 6px; background: #070b14; }
+    .ds-card__label {
+      color: #94a3b8; font-size: 11px; font-weight: 750;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .ds-card__value { margin-top: 4px; color: #e5e7eb; font-size: 14px; }
+
+    /* ---------- Etiquetas ---------- */
+    .ds-taglist { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ds-tag {
+      display: inline-flex; min-height: 28px; align-items: center; gap: 6px;
+      padding: 0 8px;
+      border: 1px solid #334155; border-radius: 6px;
+      background: #1f2937; color: #c3cad5;
+      font-size: 13px; font-weight: 750;
+    }
+    .ds-tag--sm { min-height: 22px; font-size: 12px; }
+    .ds-tag__dot { width: 9px; height: 9px; flex: 0 0 9px; border-radius: 50%; background: var(--tag); }
+    .ds-chipinput {
+      display: flex; min-height: 42px; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding: 6px; border: 1px solid #334155; border-radius: 4px; background: #070b14;
+    }
+    .ds-drawer {
+      display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+      width: 100%; max-width: 540px; overflow: hidden;
+      border: 1px solid #334155; border-radius: 10px; background: #111827;
+    }
+    .ds-drawer__head {
+      display: flex; min-height: 68px; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 0 20px; border-bottom: 1px solid #1e293b;
+    }
+    .ds-drawer__head h3 { margin: 0; color: #e5e7eb; font-size: 21px; font-weight: 750; }
+    .ds-drawer__head p { margin: 3px 0 0; color: #94a3b8; font-size: 13px; }
+    .ds-drawer__body { padding: 16px; }
+    .ds-drawer__toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-bottom: 16px; }
+    .ds-drawer__summary {
+      display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px;
+      color: #94a3b8; font-size: 13px;
+    }
+    .ds-tagrow {
+      display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+      min-height: 64px; align-items: center; gap: 12px;
+      padding: 8px 4px; border-bottom: 1px solid #1e293b;
+    }
+    .ds-tagrow:last-of-type { border-bottom: 0; }
+    .ds-tagrow__name { color: #e5e7eb; font-size: 14px; font-weight: 750; }
+    .ds-tagrow__desc {
+      margin-top: 3px; overflow: hidden;
+      color: #94a3b8; font-size: 13px; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .ds-tagrow__uses { color: #94a3b8; font-size: 13px; white-space: nowrap; }
+    .ds-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+    .ds-swatch {
+      width: 26px; height: 26px; padding: 0;
+      border: 2px solid transparent; border-radius: 50%;
+      background: var(--tag); cursor: pointer;
+    }
+    .ds-swatch[aria-checked="true"] {
+      border-color: #e5e7eb;
+      box-shadow: 0 0 0 2px #111827, 0 0 0 4px #a78bfa;
+    }
+    .ds-form {
+      margin-top: 20px; padding: 16px;
+      border: 1px solid #334155; border-radius: 6px; background: #070b14;
+    }
+    .ds-drawer__foot {
+      display: flex; min-height: 52px; align-items: center;
+      padding: 0 16px; border-top: 1px solid #1e293b;
+      color: #94a3b8; font-size: 13px;
+    }
+
+    /* ---------- Modales, confirmación y avisos ---------- */
+    .ds-stage {
+      display: grid; place-items: center;
+      padding: 28px 18px; border-radius: 8px;
+      background: rgba(3, 7, 12, 0.78);
+    }
+    .ds-modal {
+      display: grid; width: min(620px, 100%);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid #334155; border-radius: 16px; background: #111827;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .52);
+    }
+    .ds-modal__head {
+      display: flex; min-height: 62px; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 0 20px; border-bottom: 1px solid #1e293b;
+    }
+    .ds-modal__head h3 { margin: 0; color: #e5e7eb; font-size: 21px; font-weight: 750; }
+    .ds-modal__body { display: grid; gap: 16px; padding: 20px; }
+    .ds-modal__foot {
+      display: flex; min-height: 64px; align-items: center; justify-content: flex-end; gap: 8px;
+      padding: 0 20px; border-top: 1px solid #1e293b;
+    }
+    .ds-stage--confirm {
+      background: rgba(10, 16, 23, .78);
+      backdrop-filter: blur(5px);
+    }
+    .ds-confirm {
+      width: min(440px, 100%); overflow: hidden;
+      border: 1px solid #344657; border-radius: 8px; background: #182431;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .52);
+    }
+    .ds-confirm__head { padding: 18px 20px 0; }
+    .ds-confirm__head h3 { margin: 0; color: #f3f6f8; font-size: 18px; font-weight: 750; }
+    .ds-confirm__body { padding: 10px 20px 20px; color: #bac4ce; font-size: 15px; }
+    .ds-confirm__foot {
+      display: flex; justify-content: flex-end; gap: 8px;
+      padding: 14px 20px; border-top: 1px solid #253342; background: #121c27;
+    }
+    .ds-toast {
+      display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px;
+      width: min(400px, 100%); padding: 12px;
+      border: 1px solid #344657; border-radius: 8px;
+      background: #121c27; color: #bac4ce;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .52);
+    }
+    .ds-toast__icon {
+      display: grid; width: 24px; height: 24px; place-items: center;
+      border-radius: 50%; background: rgba(88, 211, 146, .16);
+      color: #58d392; font-weight: 850;
+    }
+    .ds-toast strong { display: block; color: #f3f6f8; }
+
+    .board-band {
+      margin: 96px calc(-1 * var(--gutter)) 0;
+      padding: 56px var(--gutter) 64px;
+      border-top: 1px solid #1e293b; border-bottom: 1px solid #1e293b;
+      background-color: #0a0f1c;
+      background-image: radial-gradient(circle at 88% 0, rgb(98 167 255 / .08), transparent 34%);
+      color: #e5e7eb;
+    }
+    .board-band .chapter-head { border-top-color: #1e293b; }
+    .board-band .chapter-num, .board-band .chapter-lead { color: #94a3b8; }
+    .board-band h2 { color: #e5e7eb; }
+    .board-band h3 { color: #e5e7eb; }
+    .board-band .rule { border-top-color: #1e293b; }
+    .board-band .rule p, .board-band p { color: #c3cad5; }
+    .board-band .specimen { border-color: #243044; background: #0a0f1c; }
+    .board-band .specimen__head { border-bottom-color: #1e293b; background: #0e1523; }
+    .board-band .specimen__label { color: #94a3b8; }
+    .board-band .specimen__note { color: #94a3b8; }
+
+    .closing {
+      margin-top: 88px; padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 13.5px;
+    }
+
+    /* ---------- Adaptación ---------- */
+    @media (max-width: 1020px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .rail { border-right: 0; border-bottom: 1px solid var(--line); }
+      .rail-inner { position: static; max-height: none; padding: 16px var(--gutter) 14px; }
+      .brand { margin-bottom: 12px; }
+      .rail-title { display: none; }
+      .rail nav { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+      .rail nav a { flex: 0 0 auto; grid-template-columns: auto; padding: 6px 10px; }
+      .rail nav a span { display: none; }
+      .rail-foot { display: none; }
+      .content { padding-top: 0; }
+      .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chapter-body { grid-column: 1 / -1; }
+    }
+    @media (max-width: 720px) {
+      h1 { margin-top: 36px; }
+      section { margin-top: 72px; }
+      .chapter-head { grid-template-columns: minmax(0, 1fr); }
+      .chapter-num { padding-top: 0; margin-bottom: 6px; }
+      .pair { grid-template-columns: minmax(0, 1fr); }
+      .specimen__head { display: block; padding: 10px 14px; }
+      .specimen__note { display: block; margin-top: 3px; text-align: left; }
+      .specimen__body { padding: 18px 14px; }
+      .ramp__row { grid-template-columns: 44px minmax(0, 1fr); }
+      .ramp__token, .ramp__hex { grid-column: 2; text-align: left; }
+      .scale__row { grid-template-columns: 74px minmax(0, 1fr); }
+      .scale__value { display: none; }
+      .ds-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .board-band { margin-top: 72px; padding: 40px var(--gutter) 44px; }
+      table.spec, table.spec tbody, table.spec tr, table.spec td { display: block; width: 100%; }
+      table.spec thead { display: none; }
+      table.spec tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+      table.spec tr:last-child { border-bottom: 0; }
+      table.spec td { padding: 2px 0; border: 0; }
+      table.spec td:first-child { font-weight: 700; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<div class="shell">
+  <aside class="rail" aria-label="Índice del sistema de diseño">
+    <div class="rail-inner">
+      <a class="brand" href="landing.html"><img src="../tasks-ai-brand/app-icons/tasks-ai-light-64.png" alt="" width="34" height="34">tasks-ai</a>
+      <p class="rail-title">Sistema de diseño</p>
+      <nav aria-label="Capítulos">
+        <a href="#fundamentos"><span>01</span>Fundamentos</a>
+        <a href="#marca"><span>02</span>Marca</a>
+        <a href="#color"><span>03</span>Color</a>
+        <a href="#tipografia"><span>04</span>Tipografía</a>
+        <a href="#espacio"><span>05</span>Espacio y forma</a>
+        <a href="#acciones"><span>06</span>Acciones y campos</a>
+        <a href="#insignias"><span>07</span>Insignias</a>
+        <a href="#etiquetas"><span>08</span>Etiquetas</a>
+        <a href="#espacio-trabajo"><span>09</span>Espacio de trabajo</a>
+        <a href="#modales"><span>10</span>Modales y avisos</a>
+        <a href="#estados"><span>11</span>Estados</a>
+        <a href="#accesibilidad"><span>12</span>Accesibilidad</a>
+        <a href="#evolucion"><span>13</span>Evolución</a>
+      </nav>
+      <div class="rail-foot"><a href="index.html">Guía de uso</a> · <a href="landing.html">Portada</a> · <a href="../PRD.md">PRD</a></div>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+    <header class="topbar">
+      <p>Referencia visual de tasks-ai</p>
+      <button class="theme" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro"><svg id="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+    </header>
+
+    <h1>Un tablero que ordena el trabajo.</h1>
+    <p class="lead">El proyecto vive en una carpeta y el tablero es su expediente. Este documento reúne las piezas que lo componen: los valores que ya usa la interfaz, sus estados y las reglas para cambiarlas sin abrir una segunda fuente.</p>
+    <ul class="meta">
+      <li><b>Superficies</b><span>Tablero · documentación</span></li>
+      <li><b>Temas</b><span>Nocturno · claro y oscuro</span></li>
+      <li><b>Densidad</b><span>Fila 68 px · control 42 px</span></li>
+      <li><b>Contrato</b><span><code>DESIGN.md</code></span></li>
+    </ul>
+
+    <section id="fundamentos" aria-labelledby="fundamentos-t">
+      <div class="chapter-head">
+        <div class="chapter-num">01</div>
+        <div>
+          <h2 id="fundamentos-t">El expediente manda</h2>
+          <p class="chapter-lead">La interfaz existe para encontrar, leer y corregir trabajo. Todo lo que no ayuda a eso ocupa sitio y se retira.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="rule"><h3>Una fila, un expediente</h3><p>El árbol es el índice y el inspector concentra el detalle. La fila ya dice estado, prioridad, tipo y padre; abrirla añade lo que no cabe.</p></div>
+          <div class="rule"><h3>La lectura antes que el adorno</h3><p>Los bordes de un píxel, las medidas repetidas y las capas del mismo azul nocturno construyen la jerarquía. El color solo aparece cuando significa algo.</p></div>
+          <div class="rule"><h3>La persona decide</h3><p>El agente trabaja con la salida JSON del mismo tablero; la persona confirma el alcance y comprueba el resultado. Ninguna muestra de esta página inventa un segundo registro del trabajo.</p></div>
+          <div class="rule"><h3>Un nombre para cada cosa</h3><p>Estado, prioridad, etiqueta y bloqueo son conceptos distintos. El color los acompaña; nunca los sustituye.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="marca" aria-labelledby="marca-t">
+      <div class="chapter-head">
+        <div class="chapter-num">02</div>
+        <div>
+          <h2 id="marca-t">El zorro no se reconstruye</h2>
+          <p class="chapter-lead">Se usa el bitmap aprobado, sin vectorizar, deformar ni recolorear. Para cada fondo se elige el icono del paquete.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="pair">
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Sobre claro</span><span class="specimen__note">180 px</span></div>
+              <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#fff">
+                <img src="../tasks-ai-brand/app-icons/tasks-ai-light-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo claro">
+              </div>
+            </div>
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Sobre nocturno</span><span class="specimen__note">180 px</span></div>
+              <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#0a0f1c">
+                <img src="../tasks-ai-brand/app-icons/tasks-ai-dark-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo oscuro">
+              </div>
+            </div>
+          </div>
+          <div class="sources">Activos y condiciones de uso: <a href="../tasks-ai-brand/README.md">paquete de marca</a>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 38 px con 10 px de esquina en la cabecera del tablero.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="color" aria-labelledby="color-t">
+      <div class="chapter-head">
+        <div class="chapter-num">03</div>
+        <div>
+          <h2 id="color-t">Cinco capas del mismo azul</h2>
+          <p class="chapter-lead">La profundidad no viene de una sombra: viene de apilar neutros del mismo tono. El violeta selecciona y marca el foco; los estados añaden significado con palabra.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Neutros del tablero · siempre nocturnos</caption>
+            <thead><tr><th>Paso</th><th>Papel</th><th>Token</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>Lienzo</td><td>Fondo de la aplicación</td><td><code>--tk-color-canvas</code></td><td><code>#0a0f1c</code></td></tr>
+              <tr><td>Barra lateral</td><td>Explorador y cabecera</td><td><code>--tk-color-sidebar</code></td><td><code>#0e1523</code></td></tr>
+              <tr><td>Superficie</td><td>Paneles, modales, tarjetas</td><td><code>--tk-color-surface</code></td><td><code>#111827</code></td></tr>
+              <tr><td>Realce</td><td>Botón secundario, insignia neutra</td><td><code>--tk-color-surface-raised</code></td><td><code>#1f2937</code></td></tr>
+              <tr><td>Hover</td><td>Fila y botón bajo el puntero</td><td><code>--tk-color-surface-hover</code></td><td><code>#252f3f</code></td></tr>
+              <tr><td>Selección</td><td>Fila elegida en el árbol</td><td><code>--tk-color-surface-selected</code></td><td><code>#2a3750</code></td></tr>
+              <tr><td>Hueco</td><td>Campos y tarjetas de propiedad</td><td><code>--tk-color-surface-inset</code></td><td><code>#070b14</code></td></tr>
+            </tbody>
+          </table>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Las cinco capas, apiladas</span><span class="specimen__note">Sin sombra</span></div>
+            <div class="specimen__body">
+              <div style="display:grid;gap:8px;max-width:520px">
+                <div style="padding:14px 16px;border-radius:6px;background:#0a0f1c;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Lienzo · #0a0f1c</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#0e1523;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Barra lateral · #0e1523</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#111827;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Superficie · #111827</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#1f2937;border:1px solid #334155;color:#94a3b8;font-size:13px">Realce · #1f2937</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#2a3750;border:1px solid rgb(98 167 255 / .38);color:#c3cad5;font-size:13px">Selección · #2a3750</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ramp">
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#8b5cf6"></div><div class="ramp__name">Violeta de marca<small>Pintura del símbolo y del degradado; nunca texto</small></div><div class="ramp__token">--tai-brand-primary</div><div class="ramp__hex">#8b5cf6</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#a78bfa"></div><div class="ramp__name">Violeta que escribe<small>Selección, enlace, foco y botón primario</small></div><div class="ramp__token">--tk-color-accent</div><div class="ramp__hex">#a78bfa</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#6d28d9"></div><div class="ramp__name">Violeta sobre papel<small>La misma tinta en la documentación clara</small></div><div class="ramp__token">--accent (documentación)</div><div class="ramp__hex">#6d28d9</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#3882f6"></div><div class="ramp__name">Azul de apoyo<small>Segunda parada del degradado de marca</small></div><div class="ramp__token">--tai-brand-secondary</div><div class="ramp__hex">#3882f6</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#06b6d4"></div><div class="ramp__name">Cian de cierre<small>Última parada; nunca comunica estado</small></div><div class="ramp__token">--tai-brand-accent</div><div class="ramp__hex">#06b6d4</div></div>
+          </div>
+
+          <div class="rule"><h3>El violeta de marca no lleva texto</h3><p><code>#8b5cf6</code> se queda en 4,19:1 sobre la superficie nocturna. Cuando el violeta nombra algo, es <code>#a78bfa</code> sobre oscuro o <code>#6d28d9</code> sobre claro.</p></div>
+          <div class="rule"><h3>El degradado tiene una sola casa</h3><p>Vive en la portada: la palabra marcada del titular, la malla y la regla de dos píxeles que la cierra. En el tablero no aparece ninguno.</p></div>
+          <div class="sources">Valores de marca: <a href="../tasks-ai-brand/design/tokens.css"><code>design/tokens.css</code></a>. Neutros y su uso: <code>web/src/task-manager/styles/tokens.css</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tipografia" aria-labelledby="tipografia-t">
+      <div class="chapter-head">
+        <div class="chapter-num">04</div>
+        <div>
+          <h2 id="tipografia-t">Una familia, dos oficios</h2>
+          <p class="chapter-lead">Inter escribe todo lo que se lee. JetBrains Mono se reserva para lo que se mide o se copia: comandos, JSON, rutas y referencias de tarea.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Escala</caption>
+            <thead><tr><th>Rol</th><th>Muestra</th><th>Cuerpo</th><th>Peso</th></tr></thead>
+            <tbody>
+              <tr><td>Titular</td><td style="font-size:28px;font-weight:800;letter-spacing:-.038em;line-height:1.05">El expediente</td><td><code>clamp(34px, 6vw, 62px)</code></td><td>800</td></tr>
+              <tr><td>Sección</td><td style="font-size:21px;font-weight:770;letter-spacing:-.028em">Cinco capas</td><td><code>clamp(28px, 3.2vw, 40px)</code></td><td>770</td></tr>
+              <tr><td>Título de tarea</td><td style="font-size:26px;font-weight:750;letter-spacing:-.02em">Publicar la guía</td><td><code>26px</code></td><td>750</td></tr>
+              <tr><td>Fila del árbol</td><td style="font-size:16px;font-weight:720">Publicar la guía navegable</td><td><code>16px</code></td><td>720</td></tr>
+              <tr><td>Cuerpo</td><td style="font-size:15px">El proyecto vive en una carpeta.</td><td><code>15px / 1.55</code></td><td>400</td></tr>
+              <tr><td>Etiqueta</td><td style="font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase">Propiedades</td><td><code>11–13px</code></td><td>750</td></tr>
+              <tr><td>Mono</td><td><code style="font-size:14px">tk-234 · open</code></td><td><code>13px / 1.5</code></td><td>400</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>La jerarquía es de peso</h3><p>Dos textos del mismo tamaño se separan por peso antes que por color: fila 720, título 750, insignia 780, titular 800. Nada que nombre algo baja de 500.</p></div>
+          <div class="rule"><h3>El titular no lleva ceja</h3><p>Ni la guía ni la portada ponen una etiqueta pequeña encima de un título. El número de capítulo va al margen, no sobre el texto.</p></div>
+          <div class="rule"><h3>La monoespaciada no disfraza</h3><p>Solo identifica, coteja y copia datos. El texto corrido en mono es un disfraz técnico y no entra.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="espacio" aria-labelledby="espacio-t">
+      <div class="chapter-head">
+        <div class="chapter-num">05</div>
+        <div>
+          <h2 id="espacio-t">Ritmo de herramienta</h2>
+          <p class="chapter-lead">Apretado dentro de un grupo, generoso entre grupos, y siempre más aire encima de un título que debajo. Las medidas del tablero son fijas; el espacio de la documentación se adapta.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="scale">
+            <div class="scale__row"><span>Espacio 2</span><span class="scale__track"><span class="scale__bar" style="width:8px"></span></span><span class="scale__value">8 px</span></div>
+            <div class="scale__row"><span>Espacio 3</span><span class="scale__track"><span class="scale__bar" style="width:12px"></span></span><span class="scale__value">12 px</span></div>
+            <div class="scale__row"><span>Espacio 4</span><span class="scale__track"><span class="scale__bar" style="width:16px"></span></span><span class="scale__value">16 px</span></div>
+            <div class="scale__row"><span>Espacio 5</span><span class="scale__track"><span class="scale__bar" style="width:20px"></span></span><span class="scale__value">20 px</span></div>
+            <div class="scale__row"><span>Espacio 6</span><span class="scale__track"><span class="scale__bar" style="width:24px"></span></span><span class="scale__value">24 px</span></div>
+            <div class="scale__row"><span>Control</span><span class="scale__track"><span class="scale__bar" style="width:42px;height:22px"></span></span><span class="scale__value">42 px</span></div>
+            <div class="scale__row"><span>Fila</span><span class="scale__track"><span class="scale__bar" style="width:68px;height:22px"></span></span><span class="scale__value">68 px</span></div>
+          </div>
+
+          <div class="radii">
+            <figure><div style="border-radius:6px"></div><figcaption>6 · control</figcaption></figure>
+            <figure><div style="border-radius:10px"></div><figcaption>10 · panel</figcaption></figure>
+            <figure><div style="border-radius:16px"></div><figcaption>16 · documento</figcaption></figure>
+            <figure><div style="border-radius:999px;width:74px;height:30px"></div><figcaption>999 · insignia</figcaption></figure>
+          </div>
+
+          <div class="rule"><h3>La geometría que distingue al sistema es la línea</h3><p>1 px de borde en todo control, 3 px de violeta a la izquierda de la fila seleccionada, 2 px de subrayado en la pestaña activa, 1 px discontinuo en el estado vacío y las líneas de anidado al 70 % de opacidad.</p></div>
+          <div class="rule"><h3>La sombra solo flota</h3><p>Si algo no se superpone a la pantalla, no lleva sombra: la profundidad de un panel es su capa neutra. La sombra queda para el modal, el aviso emergente y el menú desplegado.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="acciones" aria-labelledby="acciones-t">
+      <div class="chapter-head">
+        <div class="chapter-num">06</div>
+        <div>
+          <h2 id="acciones-t">Herramienta con etiqueta</h2>
+          <p class="chapter-lead">Los controles del tablero se muestran aquí con sus valores reales: misma altura, mismo radio, mismo peso y mismos estados que en la interfaz. Los ejemplos no llaman a la API.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Botones · variantes</span><span class="specimen__note">42 px · radio 6 px · peso 750</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <button class="ds-button ds-button--primary" type="button">Nueva tarea</button>
+                <button class="ds-button ds-button--secondary" type="button">Etiquetas</button>
+                <button class="ds-button ds-button--ghost" type="button">Cancelar</button>
+                <button class="ds-button ds-button--danger" type="button">Cerrar tarea</button>
+                <button class="ds-button ds-button--primary" type="button" disabled>Guardando…</button>
+              </div>
+              <div class="stack" style="margin-top:14px">
+                <button class="ds-button ds-button--secondary ds-button--compact" type="button">Editar</button>
+                <button class="ds-button ds-button--secondary ds-button--compact" type="button">Decisiones</button>
+                <button class="ds-button ds-button--primary ds-button--compact" type="button">Nueva tarea</button>
+                <span class="ds-help" style="color:#94a3b8">Compactos de cabecera · 24 px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Botón · estados</span><span class="specimen__note">El foco nunca depende del ratón</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <span style="display:grid;gap:8px;justify-items:center"><button class="ds-button ds-button--primary" type="button">Reposo</button><span class="ds-help" style="color:#94a3b8">normal</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="ds-button ds-button--primary is-hover" type="button">Hover</button><span class="ds-help" style="color:#94a3b8">#c4b5fd</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="ds-button ds-button--primary is-focus" type="button">Foco</button><span class="ds-help" style="color:#94a3b8">2 px + 2 px</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="ds-button ds-button--primary" type="button" disabled>Deshabilitado</button><span class="ds-help" style="color:#94a3b8">opacidad .58</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Campos</span><span class="specimen__note">Fondo hundido · borde 1 px</span></div>
+            <div class="specimen__body">
+              <div class="pair">
+                <label class="ds-field"><span class="ds-label">Título</span><input class="ds-input" value="Publicar la guía navegable"><span class="ds-help">El foco combina borde violeta y halo de 3 px.</span></label>
+                <label class="ds-field"><span class="ds-label">Prioridad</span><select class="ds-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select><span class="ds-help">El borde izquierdo declara el valor: naranja para alta.</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Pestañas y menú</span><span class="specimen__note">Subrayado de 2 px</span></div>
+            <div class="specimen__body">
+              <div class="pair" style="align-items:start">
+                <div>
+                  <nav class="ds-tabs" aria-label="Pestañas de muestra">
+                    <button class="ds-tab" type="button" aria-pressed="true">Detalle</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Subtareas</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Dependencias</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Comentarios</button>
+                  </nav>
+                  <p class="ds-help" style="margin:14px 0 0;color:#94a3b8">La pestaña activa se marca con texto y subrayado, no con una pastilla nueva. El grupo desplaza en horizontal si no cabe.</p>
+                </div>
+                <div>
+                  <div class="ds-menu" role="menu" aria-label="Opciones de la tarea">
+                    <button class="ds-menu__item" type="button" role="menuitem">Editar</button>
+                    <button class="ds-menu__item" type="button" role="menuitem">Copiar ID</button>
+                    <button class="ds-menu__item ds-menu__item--danger" type="button" role="menuitem">Cerrar tarea</button>
+                  </div>
+                  <p class="ds-help" style="margin:10px 0 0;color:#94a3b8">Menú de 10 px de esquina, sombra flotante y la acción destructiva al final.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="insignias" aria-labelledby="insignias-t">
+      <div class="chapter-head">
+        <div class="chapter-num">07</div>
+        <div>
+          <h2 id="insignias-t">Estado no es color</h2>
+          <p class="chapter-lead">El tablero guarda pendiente, en curso y hecha. «Bloqueada» se deriva de las dependencias y se explica; la prioridad y las etiquetas tienen su propia escala.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Insignias · cuatro variantes</span><span class="specimen__note">26 px · píldora</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <span class="ds-badge ds-badge--warning">Pendiente</span>
+                <span class="ds-badge ds-badge--info">En curso</span>
+                <span class="ds-badge ds-badge--success">Hecha</span>
+                <span class="ds-badge ds-badge--danger">Bloqueada</span>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Significado y origen</caption>
+            <thead><tr><th>Insignia</th><th>Origen</th><th>Tratamiento</th></tr></thead>
+            <tbody>
+              <tr><td>Pendiente</td><td><code>status: open</code></td><td><code>tk-badge--warning</code></td></tr>
+              <tr><td>En curso</td><td><code>status: in_progress</code></td><td><code>tk-badge--info</code></td></tr>
+              <tr><td>Hecha</td><td><code>status: done</code></td><td><code>tk-badge--success</code></td></tr>
+              <tr><td>Bloqueada</td><td>Dependencias sin resolver</td><td><code>tk-badge--danger</code></td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>La prioridad tiene su rampa</h3><p>Crítica <code>#f87171</code>, alta <code>#fb923c</code>, media <code>#fbbf24</code> y baja <code>#60a5fa</code>. La etiqueta del catálogo lleva su propio color con punto; su tono no es un estado.</p></div>
+          <div class="rule"><h3>El tono nunca va solo</h3><p>Cada insignia lleva palabra. Los controles del árbol combinan estado y prioridad con texto seleccionable, de modo que un lector de pantalla recibe la misma información que la vista.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="etiquetas" aria-labelledby="etiquetas-t">
+      <div class="chapter-head">
+        <div class="chapter-num">08</div>
+        <div>
+          <h2 id="etiquetas-t">Un color con nombre</h2>
+          <p class="chapter-lead">La etiqueta es catálogo, no estado: su color identifica un tema y se elige de una paleta cerrada. Se asigna en la tarea y se administra en un cajón lateral.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Etiquetas en la fila</span><span class="specimen__note">22 px · punto de 9 px</span></div>
+            <div class="specimen__body">
+              <div class="ds-taglist">
+                <span class="ds-tag ds-tag--sm"><span class="ds-tag__dot" style="--tag:#62a7ff"></span>docs</span>
+                <span class="ds-tag ds-tag--sm"><span class="ds-tag__dot" style="--tag:#b58bff"></span>improvement</span>
+                <span class="ds-tag ds-tag--sm"><span class="ds-tag__dot" style="--tag:#58d392"></span>ODD</span>
+              </div>
+              <p class="ds-help" style="margin:14px 0 0;color:#94a3b8">En el árbol la etiqueta baja a 22 px para no competir con el título. Su color nunca sustituye al nombre.</p>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Campos de etiquetas</span><span class="specimen__note">28 px · retirables</span></div>
+            <div class="specimen__body">
+              <div class="ds-chipinput">
+                <span class="ds-tag"><span class="ds-tag__dot" style="--tag:#62a7ff"></span>docs<button type="button" aria-label="Retirar docs" style="border:0;background:none;color:#94a3b8;cursor:pointer">×</button></span>
+                <span class="ds-tag"><span class="ds-tag__dot" style="--tag:#b58bff"></span>improvement<button type="button" aria-label="Retirar improvement" style="border:0;background:none;color:#94a3b8;cursor:pointer">×</button></span>
+                <span class="ds-help" style="color:#6b7688">Añadir etiqueta…</span>
+              </div>
+              <p class="ds-help" style="margin:14px 0 0;color:#94a3b8">El campo envuelve sus etiquetas y crece en alto. Una etiqueta que no exista en el catálogo se rechaza al guardar.</p>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Gestor de etiquetas · cajón</span><span class="specimen__note">540 px · cabecera 68 px</span></div>
+            <div class="specimen__body" style="padding:16px">
+              <div class="ds-drawer">
+                <div class="ds-drawer__head">
+                  <div>
+                    <h3>Etiquetas</h3>
+                    <p>4 etiquetas</p>
+                  </div>
+                  <button class="ds-button ds-button--primary ds-button--compact" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M12 5v14M5 12h14"/></svg>Nueva</button>
+                </div>
+                <div class="ds-drawer__body">
+                  <div class="ds-drawer__toolbar">
+                    <input class="ds-input" type="search" aria-label="Filtrar etiquetas" placeholder="Filtrar etiquetas">
+                    <button class="ds-button ds-button--secondary ds-button--compact" type="button">Limpiar</button>
+                  </div>
+                  <div class="ds-drawer__summary"><span>4 etiquetas</span><span>A–Z</span></div>
+                  <div>
+                    <div class="ds-tagrow">
+                      <span class="ds-tag__dot" style="--tag:#62a7ff"></span>
+                      <div><div class="ds-tagrow__name">docs</div><div class="ds-tagrow__desc">Documentación, guías y contratos</div></div>
+                      <span class="ds-tagrow__uses">7 usos</span>
+                      <span class="stack" style="gap:2px"><button class="ds-icon-button" type="button" aria-label="Editar docs">✎</button><button class="ds-icon-button" type="button" aria-label="Eliminar docs">×</button></span>
+                    </div>
+                    <div class="ds-tagrow">
+                      <span class="ds-tag__dot" style="--tag:#b58bff"></span>
+                      <div><div class="ds-tagrow__name">improvement</div><div class="ds-tagrow__desc">Mejora de algo que ya existe</div></div>
+                      <span class="ds-tagrow__uses">3 usos</span>
+                      <span class="stack" style="gap:2px"><button class="ds-icon-button" type="button" aria-label="Editar improvement">✎</button><button class="ds-icon-button" type="button" aria-label="Eliminar improvement">×</button></span>
+                    </div>
+                    <div class="ds-tagrow">
+                      <span class="ds-tag__dot" style="--tag:#58d392"></span>
+                      <div><div class="ds-tagrow__name">ODD</div><div class="ds-tagrow__desc">Trabajo del registro del producto</div></div>
+                      <span class="ds-tagrow__uses">2 usos</span>
+                      <span class="stack" style="gap:2px"><button class="ds-icon-button" type="button" aria-label="Editar ODD">✎</button><button class="ds-icon-button" type="button" aria-label="Eliminar ODD">×</button></span>
+                    </div>
+                  </div>
+                  <div class="ds-form">
+                    <div class="ds-field" style="margin-bottom:16px"><span class="ds-label">Nombre</span><input class="ds-input" value="release"></div>
+                    <div class="ds-field" style="margin-bottom:16px"><span class="ds-label">Descripción</span><input class="ds-input" placeholder="Para qué sirve esta etiqueta"></div>
+                    <span class="ds-label" style="display:block;margin-bottom:10px">Color</span>
+                    <div class="ds-swatches" role="radiogroup" aria-label="Color de la etiqueta">
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="true" aria-label="Azul" style="--tag:#62a7ff"></button>
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="false" aria-label="Violeta" style="--tag:#b58bff"></button>
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="false" aria-label="Verde" style="--tag:#58d392"></button>
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="false" aria-label="Amarillo" style="--tag:#f2bf59"></button>
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="false" aria-label="Naranja" style="--tag:#ff9a55"></button>
+                      <button class="ds-swatch" type="button" role="radio" aria-checked="false" aria-label="Rojo" style="--tag:#ff7373"></button>
+                    </div>
+                    <div class="stack" style="justify-content:flex-end;margin-top:20px">
+                      <button class="ds-button ds-button--ghost ds-button--compact" type="button">Cancelar</button>
+                      <button class="ds-button ds-button--primary ds-button--compact" type="button">Guardar</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="ds-drawer__foot">Los usos proceden de las tareas reales.</div>
+              </div>
+            </div>
+          </div>
+
+          <table class="spec">
+            <caption>Paleta del catálogo</caption>
+            <thead><tr><th>Color</th><th>Identificador</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>Azul</td><td><code>blue</code></td><td><code>#62a7ff</code></td></tr>
+              <tr><td>Violeta</td><td><code>purple</code></td><td><code>#b58bff</code></td></tr>
+              <tr><td>Verde</td><td><code>green</code></td><td><code>#58d392</code></td></tr>
+              <tr><td>Amarillo</td><td><code>yellow</code></td><td><code>#f2bf59</code></td></tr>
+              <tr><td>Naranja</td><td><code>orange</code></td><td><code>#ff9a55</code></td></tr>
+              <tr><td>Rojo</td><td><code>red</code></td><td><code>#ff7373</code></td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>El color se elige, no se escribe</h3><p>La paleta vive en el producto y el CLI valida el identificador; la interfaz solo ofrece esos seis. Una etiqueta sin color recibe el azul por omisión.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="board-band" id="espacio-trabajo">
+      <section style="margin-top:0" aria-labelledby="espacio-trabajo-t">
+        <div class="chapter-head">
+          <div class="chapter-num">09</div>
+          <div>
+            <h2 id="espacio-trabajo-t">Explorador e inspector</h2>
+            <p class="chapter-lead">La pieza que define el producto: una fila por tarea a la izquierda, el expediente completo a la derecha. Selecciona una fila y recorre las pestañas; nada se guarda.</p>
+          </div>
+          <div class="chapter-body">
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Fila del árbol</span><span class="specimen__note">68 px · 6 columnas · 24 px de sangría</span></div>
+              <div class="specimen__body specimen__scroll" style="padding:16px">
+                <div class="ds-tree" role="tree" aria-label="Tareas de muestra">
+                  <article class="ds-row" role="treeitem" tabindex="0" aria-level="1" aria-selected="true" aria-expanded="true" data-ref="tk-231" data-type="Épica" data-title="Unificar el sistema de diseño" data-tags="ODD · improvement" data-count="3">
+                    <button class="ds-expander" type="button" aria-label="Contraer subtareas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+                    <div class="ds-kind ds-kind--epic">E</div>
+                    <div class="ds-row__copy"><div class="ds-row__title">Unificar el sistema de diseño</div><div class="ds-row__meta"><span>tk-231</span><span>Épica</span></div></div>
+                    <select class="ds-select ds-select--compact ds-select--priority" aria-label="Prioridad de tk-231"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
+                    <select class="ds-select ds-select--compact ds-select--status" aria-label="Estado de tk-231"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option><option value="blocked">Bloqueada</option></select>
+                    <button class="ds-icon-button" type="button" aria-label="Más opciones de tk-231">⋮</button>
+                  </article>
+                  <article class="ds-row ds-row--child" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-234" data-type="Subtarea" data-title="Publicar la guía navegable" data-tags="ODD · docs" data-count="0">
+                    <button class="ds-expander ds-expander--empty" type="button" disabled aria-hidden="true" tabindex="-1"></button>
+                    <div class="ds-kind ds-kind--subtask">S</div>
+                    <div class="ds-row__copy"><div class="ds-row__title">Publicar la guía navegable</div><div class="ds-row__meta"><span>tk-234</span><span>Subtarea</span></div></div>
+                    <select class="ds-select ds-select--compact ds-select--priority" aria-label="Prioridad de tk-234"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
+                    <select class="ds-select ds-select--compact ds-select--status" aria-label="Estado de tk-234"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option><option value="blocked">Bloqueada</option></select>
+                    <button class="ds-icon-button" type="button" aria-label="Más opciones de tk-234">⋮</button>
+                  </article>
+                  <article class="ds-row ds-row--child" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-232" data-type="Subtarea" data-title="Inventariar las fuentes visuales" data-tags="ODD · docs" data-count="0">
+                    <button class="ds-expander ds-expander--empty" type="button" disabled aria-hidden="true" tabindex="-1"></button>
+                    <div class="ds-kind ds-kind--subtask">S</div>
+                    <div class="ds-row__copy"><div class="ds-row__title">Inventariar las fuentes visuales</div><div class="ds-row__meta"><span>tk-232</span><span>Subtarea</span></div></div>
+                    <select class="ds-select ds-select--compact ds-select--priority" aria-label="Prioridad de tk-232"><option value="0">Crítica</option><option value="1">Alta</option><option value="2" selected>Media</option><option value="3">Baja</option></select>
+                    <select class="ds-select ds-select--compact ds-select--status" aria-label="Estado de tk-232"><option value="open">Pendiente</option><option value="in_progress">En curso</option><option value="done" selected>Hecha</option><option value="blocked">Bloqueada</option></select>
+                    <button class="ds-icon-button" type="button" aria-label="Más opciones de tk-232">⋮</button>
+                  </article>
+                </div>
+              </div>
+            </div>
+
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Inspector</span><span class="specimen__note">Título 26 px · paneles de 10 px</span></div>
+              <div class="specimen__body" style="padding:0">
+                <div class="ds-inspector">
+                  <div class="ds-inspector__head">
+                    <div class="ds-inspector__top">
+                      <div>
+                        <div class="ds-kicker" id="is-ref">tk-231 · Épica</div>
+                        <h3 class="ds-inspector__title" id="is-title">Unificar el sistema de diseño</h3>
+                        <p class="ds-inspector__desc">Unificar la guía, el contrato y las superficies en una sola referencia visual.</p>
+                      </div>
+                      <div class="ds-inspector__actions">
+                        <button class="ds-button ds-button--secondary ds-button--compact" type="button">Editar</button>
+                        <button class="ds-button ds-button--danger ds-button--compact" type="button">Cerrar tarea</button>
+                        <span class="ds-badge ds-badge--solid">En curso</span>
+                      </div>
+                    </div>
+                    <div class="ds-props">
+                      <label class="ds-prop"><span class="ds-prop__label">Prioridad</span><select class="ds-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select></label>
+                      <label class="ds-prop"><span class="ds-prop__label">Estado</span><select class="ds-select"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option><option value="blocked">Bloqueada</option></select></label>
+                      <div class="ds-prop"><span class="ds-prop__label">Responsable</span><span style="color:#e5e7eb;font-size:15px">Sin asignar</span></div>
+                    </div>
+                  </div>
+                  <nav class="ds-tabs ds-inspector__tabs" aria-label="Detalles de la tarea">
+                    <button class="ds-tab" type="button" aria-pressed="true">Detalle</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Subtareas</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Dependencias</button>
+                    <button class="ds-tab" type="button" aria-pressed="false">Comentarios</button>
+                  </nav>
+                  <div class="ds-panel-stack" id="is-detail">
+                    <div class="ds-panel">
+                      <div class="ds-panel__head"><h4>Propiedades</h4></div>
+                      <div class="ds-panel__body">
+                        <div class="ds-cards" id="is-panel-body">
+                          <div class="ds-card"><div class="ds-card__label">Tipo</div><div class="ds-card__value">Épica</div></div>
+                          <div class="ds-card"><div class="ds-card__label">Etiquetas</div><div class="ds-card__value">ODD · improvement</div></div>
+                          <div class="ds-card"><div class="ds-card__label">Bloqueos</div><div class="ds-card__value">0</div></div>
+                          <div class="ds-card"><div class="ds-card__label">Subtareas</div><div class="ds-card__value">3</div></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="ds-panel">
+                      <div class="ds-panel__head"><h4>Notas</h4></div>
+                      <div class="ds-panel__body" style="color:#c3cad5;font-size:15px">El contrato de diseño vive en <code>DESIGN.md</code>; esta guía reúne sus muestras. Una nota de la tarea describe el trabajo, nunca su estado.</div>
+                    </div>
+                  </div>
+                  <p class="ds-empty" id="is-panel-note" hidden style="margin:0;padding:18px 24px 24px;color:#94a3b8;font-size:14px">Muestra sin datos guardados.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rule"><h3>En móvil, el detalle ocupa la pantalla</h3><p>El explorador conserva su ancho mínimo y la ventana desplaza; al abrir una tarea, el inspector pasa a hoja completa con una acción para volver al árbol. El detalle nunca se convierte en un modal.</p></div>
+            <div class="rule"><h3>El modal no edita</h3><p>Un modal solo crea o confirma: crear tarea, crear etiqueta, borrar. Lo que se edita se edita en el inspector, que es la segunda columna y no interrumpe.</p></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section id="modales" aria-labelledby="modales-t">
+      <div class="chapter-head">
+        <div class="chapter-num">10</div>
+        <div>
+          <h2 id="modales-t">Interrumpir solo cuando toca</h2>
+          <p class="chapter-lead">El modal crea o confirma; no edita. El aviso emergente dice que algo se guardó. La confirmación destructiva nombra la tarea y lo que se pierde.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Crear tarea · diálogo</span><span class="specimen__note">620 px · radio 16 px · cabecera 62 px</span></div>
+            <div class="specimen__body" style="padding:0">
+              <div class="ds-stage">
+                <div class="ds-modal" role="dialog" aria-modal="true" aria-labelledby="dlg-new">
+                  <div class="ds-modal__head"><h3 id="dlg-new">Nueva tarea</h3><button class="ds-icon-button" type="button" aria-label="Cerrar">×</button></div>
+                  <div class="ds-modal__body">
+                    <label class="ds-field"><span class="ds-label">Título</span><input class="ds-input" value="Revisar los enlaces de la guía"></label>
+                    <div class="pair">
+                      <label class="ds-field"><span class="ds-label">Prioridad</span><select class="ds-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select></label>
+                      <label class="ds-field"><span class="ds-label">Tarea padre</span><select class="ds-select"><option value="tk-231">tk-231 · Unificar el sistema de diseño</option><option value="">Sin padre</option></select></label>
+                    </div>
+                    <label class="ds-field"><span class="ds-label">Descripción</span><textarea class="ds-input" rows="3" style="min-height:88px;padding:12px 13px">Comprobar que ninguna ruta se rompe al mover la documentación.</textarea></label>
+                  </div>
+                  <div class="ds-modal__foot"><button class="ds-button ds-button--ghost" type="button">Cancelar</button><button class="ds-button ds-button--primary" type="button">Crear tarea</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Confirmación · borrar etiqueta</span><span class="specimen__note">440 px · velo con desenfoque</span></div>
+            <div class="specimen__body" style="padding:0">
+              <div class="ds-stage ds-stage--confirm">
+                <div class="ds-confirm" role="alertdialog" aria-modal="true" aria-labelledby="dlg-close" aria-describedby="dlg-close-text">
+                  <div class="ds-confirm__head"><h3 id="dlg-close">Eliminar la etiqueta</h3></div>
+                  <div class="ds-confirm__body" id="dlg-close-text">Se quitará «docs» de las 7 tareas que la usan. Las tareas no se borran.</div>
+                  <div class="ds-confirm__foot"><button class="ds-button ds-button--ghost ds-button--compact" type="button">Cancelar</button><button class="ds-button ds-button--danger ds-button--compact" type="button">Eliminar</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Aviso emergente</span><span class="specimen__note">400 px · arriba a la derecha</span></div>
+            <div class="specimen__body">
+              <div class="ds-toast" role="status">
+                <span class="ds-toast__icon" aria-hidden="true">✓</span>
+                <div><strong>Tarea guardada</strong><span style="font-size:13px">tk-234 · En curso</span></div>
+              </div>
+              <p class="ds-help" style="margin:14px 0 0;color:#94a3b8">Entra desde arriba con 180 ms y se retira solo. Es la única confirmación de que algo se guardó; no sustituye al estado de la tarea.</p>
+            </div>
+          </div>
+
+          <table class="spec">
+            <caption>Cuándo aparece cada uno</caption>
+            <thead><tr><th>Pieza</th><th>Uso</th><th>No se usa para</th></tr></thead>
+            <tbody>
+              <tr><td>Diálogo</td><td>Crear una tarea o una etiqueta</td><td>Editar lo que ya existe</td></tr>
+              <tr><td>Confirmación</td><td>Borrar algo que no se deshace</td><td>Guardar un cambio normal</td></tr>
+              <tr><td>Aviso emergente</td><td>Confirmar que se guardó</td><td>Sustituir un error que necesita acción</td></tr>
+              <tr><td>Hoja lateral</td><td>Administrar el catálogo de etiquetas</td><td>Mostrar el detalle de una tarea</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="estados" aria-labelledby="estados-t">
+      <div class="chapter-head">
+        <div class="chapter-num">11</div>
+        <div>
+          <h2 id="estados-t">También cuando falta algo</h2>
+          <p class="chapter-lead">Carga, vacío y error conservan el mismo marco y una salida comprensible. Ninguno deja la pantalla muda ni inventa un estado nuevo de tarea.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Estados de la superficie</span><span class="specimen__note">Texto antes que color</span></div>
+            <div class="specimen__body">
+              <div class="pair">
+                <div style="display:grid;place-items:center;min-height:190px;padding:24px;border:1px dashed #334155;border-radius:10px;text-align:center">
+                  <div>
+                    <div style="display:grid;place-items:center;width:40px;height:40px;margin:0 auto 10px;border-radius:6px;background:rgb(167 139 250 / .16);color:#e5e7eb;font-weight:850">T</div>
+                    <h3 style="margin-bottom:4px">Selecciona una tarea</h3>
+                    <p style="margin:0;color:#94a3b8;font-size:14px">El detalle aparecerá aquí.</p>
+                  </div>
+                </div>
+                <div style="display:grid;align-content:center;gap:10px;min-height:190px;padding:24px;border:1px solid #1e293b;border-radius:10px;background:#111827">
+                  <h3 style="margin:0">No se pudo leer el tablero</h3>
+                  <p style="margin:0;color:#c3cad5;font-size:14px">La base no responde. Comprueba que <code>.tasks-ai/tasks.db</code> exista y vuelve a intentarlo.</p>
+                  <div class="stack" style="margin-top:4px">
+                    <button class="ds-button ds-button--secondary ds-button--compact" type="button">Reintentar</button>
+                    <span class="ds-help" style="color:#94a3b8">El error dice qué pasó y cómo seguir.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Qué debe existir en cada caso</caption>
+            <thead><tr><th>Situación</th><th>Qué se muestra</th><th>Qué no se hace</th></tr></thead>
+            <tbody>
+              <tr><td>Sin selección</td><td>Explicación y cómo abrir una tarea</td><td>Dejar el panel vacío</td></tr>
+              <tr><td>Cargando</td><td>Indicador con texto de espera</td><td>Sustituir el contenido por un esqueleto mudo</td></tr>
+              <tr><td>Error</td><td>Qué falló, causa y reintento</td><td>Mostrar solo un color de error</td></tr>
+              <tr><td>Sin resultados</td><td>Qué filtro los ocultó y cómo limpiarlo</td><td>Inventar tareas de ejemplo</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="accesibilidad" aria-labelledby="accesibilidad-t">
+      <div class="chapter-head">
+        <div class="chapter-num">12</div>
+        <div>
+          <h2 id="accesibilidad-t">Se entiende sin distinguir el tono</h2>
+          <p class="chapter-lead">Contraste AA, foco visible, recorrido completo por teclado y etiquetas en los campos. En zoom y en móvil se mantiene la lectura y el orden.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Contrato mínimo</caption>
+            <thead><tr><th>Requisito</th><th>Cómo se cumple</th></tr></thead>
+            <tbody>
+              <tr><td>Contraste</td><td>AA en cuerpo y controles; el violeta de texto es <code>#a78bfa</code> sobre oscuro y <code>#6d28d9</code> sobre claro</td></tr>
+              <tr><td>Foco</td><td><code>outline: 2px solid</code> con 2 px de separación; los campos suman halo violeta de 3 px</td></tr>
+              <tr><td>Teclado</td><td>Fila seleccionable con Enter y espacio; Escape cierra menús, cajón y diálogos, y el menú recibe el foco al abrirse</td></tr>
+              <tr><td>Nombre accesible</td><td>Cada control de solo icono lleva <code>aria-label</code>; cada campo, su etiqueta</td></tr>
+              <tr><td>Movimiento</td><td><code>prefers-reduced-motion</code> apaga el desplazamiento suave, el pulso del filtro y las transiciones</td></tr>
+              <tr><td>Reflujo</td><td>320 CSS px sin pérdida de contenido; el tablero conserva su ancho mínimo y desplaza</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>El relleno de un campo no lleva lo imprescindible</h3><p>Su tono es el deshabilitado (<code>#6b7688</code>) y se queda en 4,3:1 sobre el fondo hundido. Ningún dato que haga falta leer vive ahí: siempre está también en la etiqueta o en el valor.</p></div>
+          <div class="rule"><h3>Antes de dar por terminado un patrón</h3><p>Comprueba contraste, teclado, foco visible, reflujo a 320 px, texto al 200 % y los estados vacío, de carga, de error y deshabilitado cuando correspondan.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evolucion" aria-labelledby="evolucion-t">
+      <div class="chapter-head">
+        <div class="chapter-num">13</div>
+        <div>
+          <h2 id="evolucion-t">Cambiar sin abrir otra fuente</h2>
+          <p class="chapter-lead">Cada dato tiene un dueño. Se modifica allí y después se comprueba en las superficies; esta página muestra la decisión, no la sustituye.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Quién posee cada dato</caption>
+            <thead><tr><th>Qué cambia</th><th>Dónde se decide</th><th>Dónde se comprueba</th></tr></thead>
+            <tbody>
+              <tr><td>Zorro y paleta de marca</td><td><code>docs/tasks-ai-brand/</code></td><td>Iconos y temas</td></tr>
+              <tr><td>Tokens del tablero</td><td><code>web/src/task-manager/styles/tokens.css</code></td><td>Componentes de la interfaz</td></tr>
+              <tr><td>Uso visual y límites</td><td><code>DESIGN.md</code></td><td>Tablero, portada y guía</td></tr>
+              <tr><td>Estados y capacidades</td><td><a href="../PRD.md">PRD</a> y <a href="../contracts.md">contratos</a></td><td>CLI y tablero real</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>Marca</h3><p>Usa el paquete aprobado. No redibujes el zorro ni cambies su color para adaptarlo a una pantalla.</p></div>
+          <div class="rule"><h3>Interfaz</h3><p>Modifica el token o el componente propietario, contrasta los estados y actualiza <code>DESIGN.md</code> y esta muestra si cambia la regla.</p></div>
+          <div class="rule"><h3>Producto</h3><p>Una función nueva se decide en el tablero y el PRD; una muestra de esta página no la convierte en capacidad implementada.</p></div>
+          <div class="sources">El HTML de Tacks conservado en <code>docs/02-gestor-tareas-system-desing_v2.html</code> es el punto de partida histórico: su paleta, sus exportaciones y sus propuestas Vue/TypeScript no gobiernan tasks-ai.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="closing"><a href="landing.html">Portada</a> · <a href="index.html">Guía de uso</a> · Sistema de diseño de tasks-ai</footer>
+  </main>
+</div>
+<script>
+  (() => {
+    const root = document.documentElement;
+    const button = document.getElementById('theme-toggle');
+    const label = (theme) => theme === 'dark' ? 'claro' : 'oscuro';
+    const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/></svg>';
+    const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+    const showTheme = (theme) => {
+      root.dataset.theme = theme;
+      // El control muestra la acción, no el estado: luna para ir a oscuro.
+      button.innerHTML = theme === 'dark' ? SUN : MOON;
+      button.setAttribute('aria-label', `Cambiar a tema ${label(theme)}`);
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
+      showTheme(saved.theme === 'dark' || saved.theme === 'light' ? saved.theme :
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    } catch { showTheme('light'); }
+    button.addEventListener('click', () => {
+      const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      showTheme(theme);
+      try {
+        const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
+        localStorage.setItem('tasks-ai:prefs', JSON.stringify({ ...saved, theme }));
+      } catch { /* La página sigue siendo usable sin almacenamiento. */ }
+    });
+
+    // El índice marca el capítulo que se está leyendo. Se calcula por posición
+    // y no por intersección: dos capítulos pueden cruzarse a la vez y entonces
+    // el último en avisar dejaba marcado el que ya se había leído.
+    const links = [...document.querySelectorAll('.rail nav a')];
+    const chapters = links
+      .map((link) => ({ link, el: document.querySelector(link.getAttribute('href')) }))
+      .filter((chapter) => chapter.el);
+    const mark = () => {
+      const line = window.innerHeight * 0.28;
+      let active = null;
+      for (const chapter of chapters) {
+        if (chapter.el.getBoundingClientRect().top <= line) active = chapter;
+      }
+      for (const chapter of chapters) chapter.link.removeAttribute('aria-current');
+      if (active) active.link.setAttribute('aria-current', 'true');
+    };
+    window.addEventListener('scroll', mark, { passive: true });
+    window.addEventListener('resize', mark);
+    mark();
+
+    // Las muestras responden como el tablero, sin tocar datos.
+    const tree = document.querySelector('.ds-tree');
+    if (tree) {
+      const rows = [...tree.querySelectorAll('.ds-row')];
+      const select = (row) => {
+        rows.forEach((item) => item.setAttribute('aria-selected', String(item === row)));
+        document.getElementById('is-ref').textContent = `${row.dataset.ref} · ${row.dataset.type}`;
+        document.getElementById('is-title').textContent = row.dataset.title;
+        const cards = document.getElementById('is-panel-body').children;
+        cards[0].lastElementChild.textContent = row.dataset.type;
+        cards[1].lastElementChild.textContent = row.dataset.tags;
+        cards[3].lastElementChild.textContent = row.dataset.count;
+        document.getElementById('is-detail').hidden = false;
+        document.getElementById('is-panel-note').hidden = true;
+        document.querySelectorAll('.ds-inspector__tabs .ds-tab').forEach((tab) =>
+          tab.setAttribute('aria-pressed', String(tab.textContent === 'Detalle')));
+      };
+      rows.forEach((row) => {
+        row.addEventListener('click', (event) => { if (!event.target.closest('button, select')) select(row); });
+        row.addEventListener('keydown', (event) => {
+          if (event.target !== row) return;
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(row); }
+        });
+      });
+    }
+
+    document.querySelectorAll('.ds-tabs').forEach((tabs) => {
+      tabs.querySelectorAll('.ds-tab').forEach((tab) => tab.addEventListener('click', () => {
+        tabs.querySelectorAll('.ds-tab').forEach((item) => item.setAttribute('aria-pressed', String(item === tab)));
+        if (!tabs.classList.contains('ds-inspector__tabs')) return;
+        const detail = tab.textContent === 'Detalle';
+        document.getElementById('is-detail').hidden = !detail;
+        const note = document.getElementById('is-panel-note');
+        note.hidden = detail;
+        note.textContent = `Vista de ${tab.textContent.toLowerCase()}: muestra sin datos guardados.`;
+      }));
+    });
+  })();
+</script>
+</body>
+</html>

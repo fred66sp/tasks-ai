@@ -23,7 +23,7 @@ Cada documento responde a una pregunta. La estructura del código está en
 |---|---|---|
 | `README.md` | Qué es el producto y cómo arrancarlo | Estado, historia, decisiones |
 | `CONTRIBUTING.md` | Ramas, commits, integración y versiones | Requisitos, arquitectura |
-| `AGENTS.md` | Reglas de cada turno y enrutado al detalle | Estado, planes |
+| `AGENTS.md` | Mapa de navegación a las fuentes canónicas | Reglas, estado, planes |
 | `CHANGELOG.md` | Lo que cambió en cada versión publicada | Planes, estado |
 | `PRODUCT.md` | El registro durable del producto para el trabajo de diseño | Requisitos, estado, formas de datos |
 | `DESIGN.md` | Cómo se aplica la identidad visual en el código: tokens, forma y componentes | Identidad aprobada, requisitos |

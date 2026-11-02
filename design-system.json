@@ -877,6 +877,7 @@
     }
   ],
   "governance": {
+    "mode": "solo",
     "protected": [
       "identity.*",
       "tokens.color.*",
@@ -888,6 +889,20 @@
       "tokens.size.*"
     ],
     "exceptions": []
+  },
+  "catalog": {
+    "mode": "external",
+    "path": "docs/web",
+    "entry": "design-system.html",
+    "sources": [
+      "web/public/task-manager/app-vue.css",
+      "web/src/task-manager/notifications/toast-anchor.js"
+    ]
+  },
+  "implementation": {
+    "styles": [
+      "web/public/task-manager/app-vue.css"
+    ]
   },
   "sources": [
     {
@@ -947,10 +962,6 @@
     }
   ],
   "omitted": [
-    {
-      "section": "catalog",
-      "reason": "El catálogo es docs/web/design-system.html, revisado por la persona; generar otro crearía una segunda paleta."
-    },
     {
       "section": "adapters",
       "reason": "No hay un framework de componentes con informe de conformidad; la interfaz es Vue 3 montada desde JS."

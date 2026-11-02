@@ -246,6 +246,10 @@ textarea:focus-visible {
   background: transparent;
   color: var(--tk-color-text-secondary);
 }
+.tk-icon-button--compact {
+  width: 32px;
+  height: 32px;
+}
 .task-filter-button {
   position: relative;
 }
@@ -632,6 +636,7 @@ textarea:focus-visible {
 .task-inspector__title {
   margin: 4px 0 0;
   font-size: 26px;
+  font-weight: 750;
   line-height: 1.24;
   letter-spacing: -0.02em;
 }

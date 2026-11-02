@@ -57,13 +57,61 @@ test('la anatomía de la fila vive en el CSS del tablero', () => {  const page =
   assert.doesNotMatch(page, /grid-template-columns: 34px/, 'la guía vuelve a dibujar la fila');
 });
 
+test('el icono compacto y el título del inspector tienen su regla', () => {
+  const components = read('../../../web/src/task-manager/styles/components.css');
+
+  assert.match(components, /\.tk-icon-button--compact\s*\{[^}]*width:\s*32px/, 'el icono compacto no tiene tamaño propio');
+  assert.match(components, /\.task-inspector__title\s*\{[^}]*font-weight:\s*750/, 'el título del inspector no aplica el peso del contrato');
+});
+
+test('la guía asigna a cada etiqueta el color de su catálogo', () => {
+  const page = read('../../../docs/web/design-system.html');
+
+  assert.match(page, /--tag-color: #f2bf59;?"><\/span>improvement/, 'improvement no lleva el amarillo del catálogo');
+  assert.match(page, /--tag-color: #b58bff;?"><\/span>ODD/, 'ODD no lleva el violeta del catálogo');
+  assert.match(page, /tag-manager-dot" style="--tag-color: #62a7ff;"[\s\S]*?tag-manager-dot" style="--tag-color: #f2bf59;"[\s\S]*?tag-manager-dot" style="--tag-color: #b58bff;"/,
+    'el cajón no sigue el orden de colores del catálogo');
+  assert.doesNotMatch(page, /--tag-color: #b58bff;?"><\/span>improvement/, 'improvement conserva el color de ODD');
+  assert.doesNotMatch(page, /--tag-color: #58d392;?"><\/span>ODD/, 'ODD conserva el color de otra etiqueta');
+});
+
+test('la cabecera comparte geometría con la portada y la guía de uso', () => {
+  const landing = read('../../../docs/web/landing.html');
+  const guide = read('../../../docs/web/index.html');
+  const page = read('../../../docs/web/design-system.html');
+
+  for (const doc of [page, landing, guide]) {
+    assert.match(doc, /padding: 12px clamp\(16px, 4vw, 40px\)/, 'la cabecera no comparte el margen');
+    assert.match(doc, /background: color-mix\(in srgb, var\(--(?:page|bg)\) 82%, transparent\)/, 'la cabecera no comparte el velo');
+  }
+  for (const doc of [page, landing]) {
+    assert.match(doc, /\.site-nav a \{[\s\S]*?line-height: 1\.2/, 'los enlaces de sección cambian el alto de la barra');
+  }
+});
+
+test('la guía tiene vuelta arriba como la guía de uso', () => {
+  const page = read('../../../docs/web/design-system.html');
+
+  assert.match(page, /<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">/);
+  assert.match(page, /<header class="topbar" id="top">/);
+  assert.match(page, /toTop\.classList\.toggle\('is-visible', window\.scrollY > 480\)/);
+});
+
+test('cada sección lleva el resplandor del 09', () => {
+  const page = read('../../../docs/web/design-system.html');
+
+  assert.match(page, /section \{[^}]*radial-gradient\(circle at 88% 0, rgb\(98 167 255 \/ \.08\), transparent 34%\)/);
+  assert.match(page, /<section id="espacio-trabajo" aria-labelledby="espacio-trabajo-t">/);
+  assert.doesNotMatch(page, /board-band/);
+});
+
 test('el logo cambia con el tema', () => {
   const page = read('../../../docs/web/design-system.html');
 
   assert.match(page, /class="brand-icon-light"[^>]*tasks-ai-light-64\.png/);
   assert.match(page, /class="brand-icon-dark"[^>]*tasks-ai-dark-64\.png/);
-  assert.match(page, /:root\[data-theme="dark"\] \.brand \.brand-icon-light \{ display: none; \}/);
-  assert.match(page, /:root\[data-theme="dark"\] \.brand \.brand-icon-dark \{ display: block; \}/);
+  assert.match(page, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-light \{ display: none; \}/);
+  assert.match(page, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-dark \{ display: block; \}/);
 });
 
 test('la guía declara la paleta de etiquetas y avisos de DESIGN.md', () => {

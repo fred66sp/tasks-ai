@@ -77,6 +77,12 @@
         background: transparent;
         color: var(--tk-color-text-secondary);
       }
+      /* El modificador compacto perdió su regla al separar el CSS del
+         prototipo; 32 px es el tamaño que usaban las barras y las filas. */
+      .tk-icon-button--compact {
+        width: 32px;
+        height: 32px;
+      }
       .task-filter-button {
         position: relative;
       }
@@ -463,6 +469,7 @@
       .task-inspector__title {
         margin: 4px 0 0;
         font-size: 26px;
+        font-weight: 750;
         line-height: 1.24;
         letter-spacing: -0.02em;
       }

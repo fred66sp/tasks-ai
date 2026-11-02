@@ -1,0 +1,17 @@
+# Artefactos que no son documentación del repositorio: estado de la máquina.
+
+.opencode/
+.atl/
+
+# Exportación generada desde el tablero; la fuente es la base.
+
+docs/decisions/
+
+# Skills copiadas de su origen: viajan intactas y no se revisan aquí.
+
+skills/*/
+
+# Plantillas que el init copia al proyecto: su enlace se resuelve al instalar.
+
+internal/install/agent.md
+internal/install/contract_tags.md

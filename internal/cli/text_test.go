@@ -29,8 +29,8 @@ var textRefusals = []struct {
 }{
 	{
 		name:    "la descripción de una tarea nueva nombra un commit",
-		args:    []string{createCmd, "--title", "Otra", "--description", "el commit acd789f lo hizo"},
-		message: `the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-N`,
+		args:    []string{createCmd, "--title", "Otra", "--description", "el commit a1b2c3d lo hizo"},
+		message: `the description names a commit: "a1b2c3d"; a commit reaches its task through the commit message, with Refs: tk-N`,
 	},
 	{
 		name:    "las notas de una tarea nueva nombran una rama",

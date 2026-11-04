@@ -57,6 +57,7 @@ go build ./cmd/tasks-ai          # compila el binario
 ./tasks-ai adr export --dir docs/decisions  # escribe la exportación versionada de los ADR
 ./tasks-ai serve                 # arranca la API y la interfaz web
 ./serve.sh                       # deja ese servidor en segundo plano
+./serve-web.sh                   # sirve el repositorio para leer docs/web en el navegador
 ```
 
 `tasks-ai --help` y `tasks-ai <comando> --help` son la referencia de cada comando y sus

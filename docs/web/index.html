@@ -1079,6 +1079,7 @@
         <li data-i18n="interfaz.17">Al abrir o recargar la pantalla no aparece el historial de avisos anteriores: el canal cuenta lo que pasa mientras miras.</li>
       </ul>
       <div class="note"><p data-i18n="interfaz.18"><strong>Dos sesiones se ven porque el aviso se lee de la base.</strong> No hay memoria compartida entre procesos: un cambio pedido por la terminal llega al canal igual que uno pedido por la API.</p></div>
+      <div class="note"><p data-i18n="interfaz.23"><strong>El visor de escritorio (opcional).</strong> La interfaz siempre está disponible en el navegador. Para usarla como aplicación existe <code>tasks-viewer</code>: un ejecutable de escritorio que abre la misma pantalla en una ventana nativa. Corre en un webview —no carga un navegador completo—, aporta una experiencia de app y pesa poco por estar escrito en Go. Pide <code>tasks-ai serve</code> en marcha y un <code>config.json</code> junto al ejecutable con el destino que indiquen <code>settings.json</code> (<code>http.host</code> y <code>http.port</code>). La descarga para Windows 11 (amd64) trae el ejecutable y un <code>config.json</code> de ejemplo: <a href="downloads/tasks-viewer-windows-amd64.zip">tasks-viewer-windows-amd64.zip</a>. El código fuente del visor vive en <code>workspace/web-launcher</code>, fuera de este repositorio.</p></div>
     </section>
 
     <section id="api">
@@ -1579,6 +1580,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "interfaz.20": "The description, the notes and the comment body are drawn with the formatting they carry —emphasis, lists, links, tables— and keep their line breaks. Whatever executes or loads something is dropped when drawing it: text pasted from elsewhere is read, not obeyed.",
  "interfaz.21": "The decisions",
  "interfaz.22": "A view of its own lists the ADRs with their context, searches them on the server and reads and edits them in their card; the body is drawn as markdown.",
+   "interfaz.23": "<strong>The desktop viewer (optional).</strong> The interface is always available in the browser. To use it as an application there is <code>tasks-viewer</code>: a desktop executable that opens the same screen in a native window. It runs in a webview —it does not load a whole browser—, gives an app-like experience and weighs little because it is written in Go. It needs <code>tasks-ai serve</code> running and a <code>config.json</code> next to the executable with the target named by <code>settings.json</code> (<code>http.host</code> and <code>http.port</code>). The Windows 11 (amd64) download ships the executable and a sample <code>config.json</code>: <a href=\"downloads/tasks-viewer-windows-amd64.zip\">tasks-viewer-windows-amd64.zip</a>. The viewer's source lives in <code>workspace/web-launcher</code>, outside this repository.",
  "api.2": "The HTTP API",
  "api.3": "The same surface as the interface, in JSON over HTTP. It is there to integrate the manager with another tool or to automate without a shell.",
  "api.4": "Method and route",

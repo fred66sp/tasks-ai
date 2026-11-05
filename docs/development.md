@@ -16,7 +16,7 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `internal/install/` | La instalación en un proyecto: su carpeta con la base, los ajustes y las instrucciones |
 | `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
-| `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado y el conjunto de iconos de `icons/heroicons/`— y `web/embed.go`, que la incrusta en el binario |
+| `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado, la selección de iconos de `icons/heroicons/` y su hoja compartida `icons/icons.css`— y `web/embed.go`, que la incrusta en el binario |
 | `.impeccable/` | El sidecar del sistema visual: rampas, sombras, movimiento y los componentes que un panel de diseño dibuja; acompaña a [`DESIGN.md`](../DESIGN.md) |
 | `design-system.json` | El contrato máquina-legible del sistema visual —identidad, tokens del tablero, componentes y gobernanza—; su prosa es [`DESIGN.md`](../DESIGN.md), sus muestras la guía de diseño y lo contrasta `web/src/task-manager/design-tokens.test.js` |
 | `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |

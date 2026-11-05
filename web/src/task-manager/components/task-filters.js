@@ -38,17 +38,18 @@ export const TaskFilters = {
       @click="$emit('refresh')">Reintentar</button></div>
   <div v-show="errorMessage" class="workspace-notice workspace-notice--error" role="alert"><strong>No se pudo completar
       la operación</strong><span>{{ errorMessage }}</span><button class="tk-icon-button tk-icon-button--compact"
-      type="button" aria-label="Cerrar error" title="Cerrar error" @click="$emit('dismiss-error')">×</button></div>
+      type="button" aria-label="Cerrar error" title="Cerrar error"
+      @click="$emit('dismiss-error')"><tk-icon name="x-mark" /></button></div>
   <div v-show="refreshing" class="workspace-notice workspace-notice--loading" role="status"><strong>Actualizando
       datos</strong><span>Se mantiene visible el último estado confirmado.</span></div>
   <div class="task-search-row">
     <label><span class="sr-only">Buscar tareas</span><input :value="taskSearchQuery" class="tk-input" type="search"
         placeholder="Buscar por título, ID, etiqueta, descripción, notas o comentarios" @input="$emit('update-search', $event.target.value)" /></label>
     <button class="tk-icon-button task-filter-button" type="button" aria-label="Filtros" title="Mostrar filtros avanzados" :aria-expanded="advancedFiltersOpen"
-      @click.stop="$emit('toggle-filters')"><span class="tk-icon">☷</span><span v-if="hasAdvancedFilters" class="advanced-filter-indicator" aria-hidden="true"></span></button>
+      @click.stop="$emit('toggle-filters')"><tk-icon name="funnel" /><span v-if="hasAdvancedFilters" class="advanced-filter-indicator" aria-hidden="true"></span></button>
     <div class="menu-anchor"><button class="tk-icon-button" type="button" aria-label="Opciones del listado"
-        title="Opciones del listado" aria-haspopup="menu" :aria-expanded="listMenuOpen" @click.stop="$emit('toggle-list-menu')"><span
-          class="tk-icon">⋮</span></button>
+        title="Opciones del listado" aria-haspopup="menu" :aria-expanded="listMenuOpen"
+        @click.stop="$emit('toggle-list-menu')"><tk-icon name="ellipsis-vertical" /></button>
       <div v-show="listMenuOpen" ref="listMenu" tabindex="-1" class="tk-dropdown tk-dropdown--anchored is-open" role="menu" @click.stop><button
           class="tk-dropdown__item" type="button" role="menuitem" title="Expandir todas las tareas" @click="$emit('set-expanded', true)">Expandir todo</button><button
           class="tk-dropdown__item" type="button" role="menuitem" title="Plegar todas las tareas" @click="$emit('set-expanded', false)">Plegar todo</button></div>
@@ -57,9 +58,11 @@ export const TaskFilters = {
   <section v-show="advancedFiltersOpen" class="task-filter-popover" aria-label="Filtros avanzados" @click.stop>
     <div class="task-filter-popover__header"><strong>Filtros</strong>
       <div class="task-filter-popover__actions"><button v-show="hasAdvancedFilters" class="task-filter-clear"
-          type="button" title="Limpiar filtros" @click="$emit('clear-filters')"><span class="tk-icon">↻</span><span>Limpiar
+          type="button" title="Limpiar filtros" @click="$emit('clear-filters')"><tk-icon
+            name="arrow-path" /><span>Limpiar
             filtros</span></button><button class="tk-icon-button tk-icon-button--compact" type="button"
-          aria-label="Cerrar filtros" title="Cerrar filtros" @click="$emit('close-filters')">×</button></div>
+          aria-label="Cerrar filtros" title="Cerrar filtros"
+          @click="$emit('close-filters')"><tk-icon name="x-mark" /></button></div>
     </div>
     <fieldset>
       <legend>Estado</legend><label
@@ -96,6 +99,7 @@ export const TaskFilters = {
       <option v-for="tag in tagCatalog" :key="tag.name" :value="tag.name">{{ tag.name }}</option>
     </select><button class="tk-icon-button tk-icon-button--compact tag-manager-visibility" type="button"
       aria-label="Mostrar u ocultar etiquetas" title="Mostrar u ocultar etiquetas" :aria-pressed="taskChipsVisible"
-      @click="$emit('toggle-chips')">◉</button></div>
+      @click="$emit('toggle-chips')"><tk-icon v-if="taskChipsVisible" name="eye" /><tk-icon v-else
+        name="eye-slash" /></button></div>
 </div>`
 };

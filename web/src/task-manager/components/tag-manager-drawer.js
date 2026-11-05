@@ -29,15 +29,14 @@ export const TagManagerDrawer = {
       <div>
         <h2 id="tag-manager-title">Gestor de etiquetas</h2>
         <p>Catálogo del proyecto</p>
-      </div><button class="tk-icon-button" type="button" aria-label="Cerrar gestor" title="Cerrar gestor" @click="$emit('close')">×</button>
+      </div><button class="tk-icon-button" type="button" aria-label="Cerrar gestor" title="Cerrar gestor"
+        @click="$emit('close')"><tk-icon name="x-mark" /></button>
     </header>
     <div class="tag-manager-body">
       <div class="tag-manager-toolbar"><input :value="searchQuery" class="tk-input" type="search"
           placeholder="Buscar etiquetas" @input="$emit('update-search', $event.target.value)" /><button
           class="tk-button tk-button--secondary tk-button--compact" type="button" title="Nueva etiqueta"
-          @click="$emit('open-create')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" />
-            </svg></span>Nueva</button></div>
+          @click="$emit('open-create')"><tk-icon name="plus" />Nueva</button></div>
       <div class="tag-manager-summary"><span>{{ tags.length }}
           {{ tags.length === 1 ? 'etiqueta' : 'etiquetas' }}</span><span>A–Z</span></div>
       <div class="tag-manager-list">
@@ -48,17 +47,19 @@ export const TagManagerDrawer = {
             <div v-show="tag.description" class="tag-manager-description">{{ tag.description }}</div>
           </div><span class="tag-manager-uses">{{ tag.uses || 0 }} usos</span>
           <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button"
-              :aria-label="'Editar ' + tag.name" :title="'Editar ' + tag.name" @click="$emit('open-edit', tag)">✎</button><button
+              :aria-label="'Editar ' + tag.name" :title="'Editar ' + tag.name"
+              @click="$emit('open-edit', tag)"><tk-icon name="pencil" /></button><button
               class="tk-icon-button tk-icon-button--compact" type="button" :aria-label="'Eliminar ' + tag.name"
               :title="'Eliminar ' + tag.name"
-              @click="$emit('request-delete', tag)">×</button></div>
+              @click="$emit('request-delete', tag)"><tk-icon name="trash" /></button></div>
         </article>
         <div v-show="!visibleTags.length" class="tag-manager-empty">No hay etiquetas que coincidan.</div>
       </div>
       <form v-show="formMode" class="tag-manager-form" @submit.prevent="$emit('save')">
         <div class="tag-manager-form-header">
           <strong>{{ formMode === 'edit' ? 'Editar etiqueta' : 'Nueva etiqueta' }}</strong><button
-            class="tk-icon-button" type="button" aria-label="Cerrar formulario" title="Cerrar formulario" @click="$emit('close-form')">×</button>
+            class="tk-icon-button" type="button" aria-label="Cerrar formulario" title="Cerrar formulario"
+            @click="$emit('close-form')"><tk-icon name="x-mark" /></button>
         </div><label class="tag-manager-field"><span class="tag-manager-label">Nombre</span><input :value="draft.name"
             class="tk-input" maxlength="40" required @input="update('name', $event.target.value)" /></label><label
           class="tag-manager-field"><span class="tag-manager-label">Descripción</span><input :value="draft.description"

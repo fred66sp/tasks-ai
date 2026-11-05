@@ -229,7 +229,7 @@ Cada dato se modifica en su fuente responsable:
 | Zorro, colores y familias de marca | [`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md) | Uso y restricciones; el paquete aprobado no se modifica. |
 | Color, densidad, radios y tipografía del tablero | [`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css) y sus [componentes](web/src/task-manager/styles/components.css) | Criterios de aplicación y correspondencia con la interfaz efectiva. |
 | Temas y composición de la documentación | [`docs/web/index.html`](docs/web/index.html) y [`docs/web/landing.html`](docs/web/landing.html) | Reglas compartidas y excepciones explícitas de cada superficie. |
-| Iconos de la interfaz | [`web/public/icons/heroicons/24/outline/`](web/public/icons/heroicons/24/outline/) y su [`LICENSE`](web/public/icons/heroicons/LICENSE) | Origen único, tamaño, color y nombre accesible; el archivo no se redibuja. |
+| Iconos del producto y la documentación | [`web/public/icons/`](web/public/icons/) y su [`LICENSE`](web/public/icons/heroicons/LICENSE) | Origen único, hoja compartida, tamaño, color y nombre accesible; el archivo no se redibuja. |
 | Capacidades, estados y contratos de tarea | [`docs/PRD.md`](docs/PRD.md) y [`docs/contracts.md`](docs/contracts.md) | Solo representación visual; no redefine el negocio. |
 
 El frontmatter conserva los valores necesarios para las herramientas que leen `DESIGN.md`;
@@ -529,27 +529,33 @@ texto. Los controles que solo muestran un icono tienen nombre accesible y foco v
 
 ## Iconography
 
-**El trazo es instrumento.** El conjunto de trabajo de la interfaz es
-[Heroicons 24/outline](web/public/icons/heroicons/24/outline/): caja de 24,
-`viewBox="0 0 24 24"`, trazo de 1,5 px, extremos y uniones redondeados y
-`stroke="currentColor"`. La licencia MIT viaja con los archivos en
-[`LICENSE`](web/public/icons/heroicons/LICENSE).
+**El trazo es instrumento.** El conjunto de trabajo es una selección cerrada de veintitrés
+iconos de [Heroicons 24/outline](web/public/icons/heroicons/24/outline/): caja de 24,
+`viewBox="0 0 24 24"`, trazo de 1,5 px y extremos y uniones redondeados. La licencia MIT
+viaja con los archivos en [`LICENSE`](web/public/icons/heroicons/LICENSE). La [guía
+navegable](docs/web/design-system.html) cataloga la selección y dice qué control usa cada
+archivo.
 
-- **Tamaño:** 16 px en la fila y el control compacto, 18 px en la cabecera y el botón de
-  icono, 20 px en el panel. El icono no se escala fuera de su caja.
-- **Color:** hereda el color del texto del control; no se recolorea por archivo ni se usa
-  como decoración. El violeta de acento solo cuando el control es el acento.
+- **Tamaño:** en el tablero, 12 px en la insignia, 13 px en el botón compacto, 14 px en la
+  acción de limpiar, 18 px en la cabecera y el botón de icono, y 24 px en el estado vacío.
+  La documentación usa de 13 a 18 px en sus enlaces, su cabecera y su vuelta arriba. El
+  icono no se escala fuera de su caja.
+- **Color:** el archivo no se recolorea. La máscara de `web/public/icons/icons.css` pinta el
+  trazo con `currentColor`, así que el tono lo decide el control. El violeta de acento solo
+  cuando el control es el acento.
 - **Nombre:** un control de solo icono lleva `aria-label` y `title`; el icono decorativo va
   con `aria-hidden="true"`. El icono no sustituye a la palabra en crear, cerrar, guardar,
   eliminar o ejecutar.
-- **Origen:** un icono nuevo entra en el conjunto antes de usarse; no se mezcla otro juego
-  ni se redibuja el trazo del archivo.
-- **Sustitución:** cuando un componente adopta un archivo del conjunto, cambian el componente
-  y su muestra en la misma unidad y se conserva el nombre accesible. Mientras un componente
-  dibuje su propio trazo, ese trazo es el implementado.
+- **Selección:** solo entra un icono que el producto o la documentación use. Cuando se retira
+  el último uso, salen el archivo, su clase y su muestra en la misma unidad; la lista cerrada
+  la contrastan las pruebas con los archivos y con la guía.
+- **Origen:** no se mezcla otro juego ni se redibuja el trazo del archivo. Un icono nuevo se
+  justifica con la superficie que lo adopta.
 
-La [guía navegable](docs/web/design-system.html) cataloga los 72 archivos agrupados y enlaza
-cada uno desde la ruta pública; la interfaz sirve el conjunto en `/icons/`.
+Los componentes consumen el conjunto con el componente `TkIcon` y la clase `tk-icon--mask`;
+ya no dibujan trazos propios. El tablero y las tres páginas de `docs/web` cargan la misma
+hoja `web/public/icons/icons.css`; el tablero sirve los archivos en `/icons/` y la
+documentación los toma de `web/public/icons/`.
 
 ## Do's and Don'ts
 

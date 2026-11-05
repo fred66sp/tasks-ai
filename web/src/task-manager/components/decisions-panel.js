@@ -386,11 +386,10 @@ export const DecisionsPanel = {
         <p>Los ADR del proyecto</p>
       </div>
       <div class="decisions-header__actions"><button class="tk-button tk-button--secondary tk-button--compact"
-          type="button" title="Nueva decisión" @click="startNew()"><span class="tk-icon" aria-hidden="true"><svg
-            viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" />
-            </svg></span>Nueva decisión</button><button class="tk-icon-button" type="button"
-          aria-label="Cerrar decisiones" title="Cerrar decisiones" @click="$emit('close')">×</button></div>
+          type="button" title="Nueva decisión" @click="startNew()"><tk-icon
+            name="plus" />Nueva decisión</button><button class="tk-icon-button" type="button"
+          aria-label="Cerrar decisiones" title="Cerrar decisiones"
+          @click="$emit('close')"><tk-icon name="x-mark" /></button></div>
     </header>
     <div class="decisions-body" ref="scroller" @scroll="onScroll">
       <div class="decisions-stack">
@@ -414,14 +413,10 @@ export const DecisionsPanel = {
         <form v-if="creating" class="decisions-item is-open decisions-create" @submit.prevent="save()">
           <div class="decisions-form__bar"><span class="decisions-item__ref">Nueva decisión</span>
             <div class="decisions-actions"><button class="tk-button tk-button--ghost tk-button--compact" type="button"
-                title="Descartar cambios" @click="cancel()"><span class="tk-icon" aria-hidden="true"><svg
-                    viewBox="0 0 24 24">
-                    <path d="M6 6l12 12M18 6 6 18" />
-                  </svg></span>Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
-                type="submit" title="Guardar decisión" :disabled="busy"><span class="tk-icon" aria-hidden="true"><svg
-                    viewBox="0 0 24 24">
-                    <path d="m5 12 4 4L19 6" />
-                  </svg></span>Guardar</button></div>
+                title="Descartar cambios" @click="cancel()"><tk-icon
+                  name="x-mark" />Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
+                type="submit" title="Guardar decisión" :disabled="busy"><tk-icon
+                  name="check" />Guardar</button></div>
           </div>
           <div class="form-grid"><label class="tk-field span-2"><span class="tk-field__label">Título</span><input
                 class="tk-input" required :value="draft.title"
@@ -458,9 +453,7 @@ export const DecisionsPanel = {
                   :class="statusBadge(adr.status)">{{ statusLabel(adr.status) }}</span></span><span
                 class="decisions-item__meta"><time class="decisions-item__date" :datetime="adr.date">{{ adr.date
                 }}</time><span class="decisions-item__chev" :class="{ 'is-open': isOpen(adr.number) }"
-                aria-hidden="true"><span class="tk-icon"><svg viewBox="0 0 24 24">
-                    <path d="m6 9 6 6 6-6"></path>
-                  </svg></span></span></span></div>
+                aria-hidden="true"><tk-icon name="chevron-down" /></span></span></div>
             <h3 class="decisions-item__title">{{ adr.title }}</h3>
             <p v-if="!isOpen(adr.number)" class="decisions-item__excerpt">{{ excerpt(adr.context) }}</p>
           </div>
@@ -471,14 +464,10 @@ export const DecisionsPanel = {
             <form v-if="isEditing(adr.number) && details[adr.number]" class="decisions-form" @submit.prevent="save()">
               <div class="decisions-form__bar"><span class="decisions-item__ref">Editando {{ adr.ref }}</span>
                 <div class="decisions-actions"><button class="tk-button tk-button--ghost tk-button--compact"
-                    type="button" title="Descartar cambios" @click="cancel()"><span class="tk-icon"
-                      aria-hidden="true"><svg viewBox="0 0 24 24">
-                        <path d="M6 6l12 12M18 6 6 18" />
-                      </svg></span>Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
-                    type="submit" title="Guardar decisión" :disabled="busy"><span class="tk-icon"
-                      aria-hidden="true"><svg viewBox="0 0 24 24">
-                        <path d="m5 12 4 4L19 6" />
-                      </svg></span>Guardar</button></div>
+                    type="button" title="Descartar cambios" @click="cancel()"><tk-icon
+                      name="x-mark" />Cancelar</button><button class="tk-button tk-button--primary tk-button--compact"
+                    type="submit" title="Guardar decisión" :disabled="busy"><tk-icon
+                      name="check" />Guardar</button></div>
               </div>
               <div class="form-grid"><label class="tk-field span-2"><span class="tk-field__label">Título</span><input
                     class="tk-input" required :value="draft.title" :disabled="frozenBody"
@@ -517,10 +506,8 @@ export const DecisionsPanel = {
                       type="button"
                       @click="openReference(details[adr.number].superseded_by)">{{ details[adr.number].superseded_by
                       }}</button></span></p><button class="tk-button tk-button--secondary tk-button--compact"
-                  type="button" title="Editar decisión" @click="startEdit(adr.number)"><span class="tk-icon"
-                    aria-hidden="true"><svg viewBox="0 0 24 24">
-                      <path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Z" />
-                    </svg></span>Editar</button>
+                  type="button" title="Editar decisión" @click="startEdit(adr.number)"><tk-icon
+                    name="pencil" />Editar</button>
               </div>
               <section v-for="section in sectionsOf(details[adr.number])" :key="section.field" class="decisions-section"
                 :class="'decisions-section--' + section.field">
@@ -542,8 +529,6 @@ export const DecisionsPanel = {
     </div>
   </div>
   <button class="decisions-to-top" :class="{ 'is-visible': showToTop }" type="button" aria-label="Volver arriba"
-    title="Volver arriba" @click="scrollToTop()"><span class="tk-icon"><svg viewBox="0 0 24 24">
-        <path d="M6 15l6-6 6 6"></path>
-      </svg></span></button>
+    title="Volver arriba" @click="scrollToTop()"><tk-icon name="chevron-up" /></button>
 </section>`
 };

@@ -16,7 +16,8 @@ export const OverflowMenu = {
   template: `
     <div class="menu-anchor">
   <button :class="['tk-icon-button', { 'tk-icon-button--compact': compact }]" type="button" :aria-label="label"
-    aria-haspopup="menu" :aria-expanded="open" @click.stop="$emit('toggle')">⋮</button>
+    aria-haspopup="menu" :aria-expanded="open" @click.stop="$emit('toggle')"><tk-icon
+      name="ellipsis-vertical" /></button>
   <div v-show="open" ref="menu" tabindex="-1" :class="['tk-dropdown', menuClass, 'is-open']" role="menu" @click.stop>
     <template v-for="item in items" :key="item.id">
       <div v-if="item.separatorBefore" class="tk-dropdown__separator"></div>

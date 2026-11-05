@@ -3,6 +3,28 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
+const iconDir = new URL('../../../web/public/icons/heroicons/24/outline/', import.meta.url);
+const iconFiles = () => readdirSync(iconDir)
+  .filter((name) => name.endsWith('.svg'))
+  .map((name) => name.slice(0, -4))
+  .sort();
+const docPages = ['landing.html', 'index.html', 'design-system.html'];
+const docSource = () => docPages
+  .map((name) => read(`../../../docs/web/${name}`))
+  .join('\n');
+const productSource = () => [
+  'app-shell.js',
+  'components/decisions-panel.js',
+  'components/icon.js',
+  'components/new-task-dialog.js',
+  'components/overflow-menu.js',
+  'components/tag-manager-drawer.js',
+  'components/tag-picker-field.js',
+  'components/task-filters.js',
+  'components/task-inspector.js',
+  'components/task-list.js',
+  'components/task-row.js'
+].map((name) => read(`../../../web/src/task-manager/${name}`)).join('\n');
 
 test('la guía visual se puede abrir desde la portada y la guía de uso', () => {
   const page = read('../../../docs/web/design-system.html');
@@ -35,26 +57,96 @@ test('la guía consume el CSS del tablero y no mantiene una copia de los compone
   assert.doesNotMatch(page, /<iframe/i, 'un iframe no es un componente del sistema de diseño');
 });
 
-test('la guía cataloga el conjunto de iconos y cada archivo existe', () => {
+test('la guía cataloga la selección de iconos y cada archivo existe', () => {
   const page = read('../../../docs/web/design-system.html');
-  const dir = new URL('../../../web/public/icons/heroicons/24/outline/', import.meta.url);
+  const files = iconFiles();
 
-  const refs = [...page.matchAll(/--icon:\s*url\('\.\.\/\.\.\/web\/public\/icons\/heroicons\/24\/outline\/([a-z0-9-]+)\.svg'\)/g)]
+  const refs = [...page.matchAll(/<span class="icon-item__name">([a-z0-9-]+)<\/span>/g)]
     .map((match) => match[1]);
-  const files = readdirSync(dir)
-    .filter((name) => name.endsWith('.svg'))
-    .map((name) => name.slice(0, -4))
-    .sort();
 
   assert.ok(refs.length > 0, 'la guía no muestra el conjunto de iconos');
   assert.deepEqual([...refs].sort(), files, 'el catálogo no cubre exactamente los iconos del conjunto');
   assert.equal(new Set(refs).size, refs.length, 'hay iconos repetidos en el catálogo');
   for (const name of refs) {
-    assert.ok(existsSync(new URL(`${name}.svg`, dir)), `falta ${name}.svg en el conjunto`);
+    assert.match(page, new RegExp(`tk-icon--${name}" aria-hidden="true"></span>\\s*<span class="icon-item__name">${name}</span>`),
+      `${name} no se dibuja con la clase del conjunto`);
   }
   assert.ok(existsSync(new URL('../../../web/public/icons/heroicons/LICENSE', import.meta.url)),
     'falta la licencia del conjunto');
   assert.match(page, /web\/public\/icons\/heroicons\/LICENSE/, 'la guía no declara la licencia');
+});
+
+test('el producto dibuja solo iconos del conjunto', () => {
+  const files = iconFiles();
+  const source = productSource();
+  const used = [...source.matchAll(/<tk-icon[^>]*\bname="([a-z0-9-]+)"/g)]
+    .map((match) => match[1]);
+
+  assert.ok(used.length > 0, 'la interfaz no usa el componente de iconos');
+  for (const name of new Set(used)) {
+    assert.ok(files.includes(name), `la interfaz usa ${name}, que no está en el conjunto`);
+  }
+  assert.doesNotMatch(source, /<svg/i, 'la interfaz vuelve a dibujar un trazo propio');
+});
+
+test('la documentación dibuja solo iconos del conjunto', () => {
+  const files = iconFiles();
+  const source = docSource();
+  const used = [...source.matchAll(/tk-icon--([a-z0-9-]+)/g)]
+    .map((match) => match[1])
+    .filter((name) => name !== 'mask');
+
+  assert.ok(used.length > 0, 'la documentación no usa el conjunto de iconos');
+  for (const name of new Set(used)) {
+    assert.ok(files.includes(name), `la documentación usa ${name}, que no está en el conjunto`);
+  }
+  assert.doesNotMatch(source, /<svg/i, 'la documentación vuelve a dibujar un trazo propio');
+});
+
+test('el producto o la documentación usan cada archivo del conjunto', () => {
+  const files = iconFiles();
+  const product = [...productSource().matchAll(/<tk-icon[^>]*\bname="([a-z0-9-]+)"/g)]
+    .map((match) => match[1]);
+  const docs = [...docSource().matchAll(/tk-icon--([a-z0-9-]+)/g)]
+    .map((match) => match[1])
+    .filter((name) => name !== 'mask');
+
+  assert.deepEqual([...new Set([...product, ...docs])].sort(), files,
+    'hay un archivo en el conjunto que ninguna superficie usa');
+});
+
+test('la hoja de iconos asigna una clase a cada archivo', () => {
+  const files = iconFiles();
+  const css = read('../../../web/public/icons/icons.css');
+  const mapped = [...css.matchAll(
+    /\.tk-icon--([a-z0-9-]+)\s*\{\s*--icon:\s*url\('heroicons\/24\/outline\/([a-z0-9-]+)\.svg'\)/g
+  )].map((match) => {
+    assert.equal(match[1], match[2], `${match[1]} apunta a otro archivo`);
+    return match[1];
+  });
+
+  assert.deepEqual(mapped.sort(), files, 'la hoja de iconos no cubre exactamente el conjunto');
+});
+
+test('el producto y la documentación cargan la hoja de iconos', () => {
+  for (const name of docPages) {
+    assert.match(read(`../../../docs/web/${name}`), /href="\.\.\/\.\.\/web\/public\/icons\/icons\.css"/,
+      `${name} no carga la hoja compartida de iconos`);
+  }
+  assert.match(read('../../../web/public/task-manager/app-vue.html'), /href="\.\.\/icons\/icons\.css"/,
+    'el tablero no carga la hoja compartida de iconos');
+});
+
+test('las muestras de la guía usan solo clases del conjunto', () => {
+  const page = read('../../../docs/web/design-system.html');
+  const files = iconFiles();
+  const used = [...page.matchAll(/tk-icon--([a-z0-9-]+)/g)]
+    .map((match) => match[1])
+    .filter((name) => name !== 'mask');
+
+  for (const name of new Set(used)) {
+    assert.ok(files.includes(name), `la guía dibuja ${name}, que no está en el conjunto`);
+  }
 });
 
 test('la guía está bien anidada y no rompe la columna de contenido', () => {
@@ -84,6 +176,15 @@ test('el icono compacto y el título del inspector tienen su regla', () => {
 
   assert.match(components, /\.tk-icon-button--compact\s*\{[^}]*width:\s*32px/, 'el icono compacto no tiene tamaño propio');
   assert.match(components, /\.task-inspector__title\s*\{[^}]*font-weight:\s*750/, 'el título del inspector no aplica el peso del contrato');
+});
+
+test('el desplegable de la tarea gira una sola vez', () => {
+  const components = read('../../../web/src/task-manager/styles/components.css');
+
+  assert.match(components, /\.tree-expander\[aria-expanded="true"\] \.tk-icon\s*\{[^}]*rotate\(90deg\)/,
+    'el icono del desplegable no gira al abrirse');
+  assert.doesNotMatch(components, /\.tree-expander\[aria-expanded="true"\]\s*\{[^}]*transform/,
+    'el desplegable gira el botón y el icono: el chevron queda al revés');
 });
 
 test('la guía asigna a cada etiqueta el color de su catálogo', () => {

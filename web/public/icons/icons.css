@@ -1,0 +1,44 @@
+/* Iconos del producto y de su documentación. Este archivo es la única fuente de
+   la máscara y del archivo que resuelve cada nombre; lo cargan el tablero y las
+   tres páginas de docs/web. Las rutas son relativas a este CSS, así que
+   resuelven igual en /icons/icons.css que en /web/public/icons/icons.css.
+   Solo entran los iconos que alguna superficie usa; la lista la contrastan
+   design-guide.test.js con los archivos, con el producto y con la guía. */
+.tk-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+}
+
+.tk-icon--mask {
+  background-color: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.tk-icon--arrow-left { --icon: url('heroicons/24/outline/arrow-left.svg'); }
+.tk-icon--arrow-path { --icon: url('heroicons/24/outline/arrow-path.svg'); }
+.tk-icon--arrow-right { --icon: url('heroicons/24/outline/arrow-right.svg'); }
+.tk-icon--arrow-up { --icon: url('heroicons/24/outline/arrow-up.svg'); }
+.tk-icon--book-open { --icon: url('heroicons/24/outline/book-open.svg'); }
+.tk-icon--check { --icon: url('heroicons/24/outline/check.svg'); }
+.tk-icon--chevron-down { --icon: url('heroicons/24/outline/chevron-down.svg'); }
+.tk-icon--chevron-right { --icon: url('heroicons/24/outline/chevron-right.svg'); }
+.tk-icon--chevron-up { --icon: url('heroicons/24/outline/chevron-up.svg'); }
+.tk-icon--document-text { --icon: url('heroicons/24/outline/document-text.svg'); }
+.tk-icon--ellipsis-vertical { --icon: url('heroicons/24/outline/ellipsis-vertical.svg'); }
+.tk-icon--eye { --icon: url('heroicons/24/outline/eye.svg'); }
+.tk-icon--eye-slash { --icon: url('heroicons/24/outline/eye-slash.svg'); }
+.tk-icon--funnel { --icon: url('heroicons/24/outline/funnel.svg'); }
+.tk-icon--magnifying-glass { --icon: url('heroicons/24/outline/magnifying-glass.svg'); }
+.tk-icon--moon { --icon: url('heroicons/24/outline/moon.svg'); }
+.tk-icon--pencil { --icon: url('heroicons/24/outline/pencil.svg'); }
+.tk-icon--plus { --icon: url('heroicons/24/outline/plus.svg'); }
+.tk-icon--square-2-stack { --icon: url('heroicons/24/outline/square-2-stack.svg'); }
+.tk-icon--sun { --icon: url('heroicons/24/outline/sun.svg'); }
+.tk-icon--tag { --icon: url('heroicons/24/outline/tag.svg'); }
+.tk-icon--trash { --icon: url('heroicons/24/outline/trash.svg'); }
+.tk-icon--x-mark { --icon: url('heroicons/24/outline/x-mark.svg'); }

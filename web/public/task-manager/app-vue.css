@@ -471,9 +471,6 @@ textarea:focus-visible {
   background: var(--tk-color-surface-raised);
   color: var(--tk-color-text-primary);
 }
-.tree-expander[aria-expanded=true] {
-  transform: rotate(90deg);
-}
 .tree-expander .tk-icon {
   transition: transform 180ms;
 }
@@ -766,6 +763,11 @@ textarea:focus-visible {
   color: var(--tk-color-text-muted);
   font-size: 20px;
 }
+.empty-state__icon .tk-icon {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
+}
 .modal-layer {
   position: fixed;
   z-index: 150;
@@ -823,23 +825,6 @@ textarea:focus-visible {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-.tk-icon {
-  display: inline-flex;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  align-items: center;
-  justify-content: center;
-}
-.tk-icon svg {
-  width: 100%;
-  height: 100%;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 .workspace-header .brand-mark {
   width: 42px;
@@ -1542,6 +1527,11 @@ fieldset.tag-manager-field {
   background: transparent;
   color: var(--tk-color-text-muted);
   cursor: pointer;
+}
+.tag-manager-chip button .tk-icon {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
 }
 .tag-manager-source {
   display: none;

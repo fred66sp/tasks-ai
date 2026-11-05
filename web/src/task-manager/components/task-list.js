@@ -44,7 +44,7 @@ export const TaskList = {
       </task-row>
       <div v-show="!tasks.length && !loading" class="empty-state">
         <div>
-          <div class="empty-state__icon">⌕</div>
+          <div class="empty-state__icon"><tk-icon name="magnifying-glass" /></div>
           <h3>{{ hasTasks ? 'Sin resultados' : 'No hay tareas' }}</h3>
           <p>{{ hasTasks ? 'No hay tareas que coincidan con los filtros activos.' : 'Crea una tarea para comenzar.' }}
           </p>

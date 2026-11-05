@@ -28,13 +28,9 @@ export const TaskRow = {
   @keydown.enter.self.prevent="$emit('select', task.id)" @keydown.space.self.prevent="$emit('select', task.id)">
   <button v-show="task.children" class="tree-expander" type="button" :aria-expanded="expanded"
     :aria-label="expanded ? 'Contraer subtareas' : 'Expandir subtareas'"
-    @click.stop="$emit('toggle-expanded', task.id)"><span class="tk-icon"><svg viewBox="0 0 24 24">
-        <path d="m6 9 6 6 6-6"></path>
-      </svg></span></button>
+    @click.stop="$emit('toggle-expanded', task.id)"><tk-icon name="chevron-right" /></button>
   <button v-show="!task.children" class="tree-expander tree-expander--placeholder" type="button" disabled tabindex="-1"
-    aria-hidden="true"><span class="tk-icon"><svg viewBox="0 0 24 24">
-        <path d="m6 9 6 6 6-6"></path>
-      </svg></span></button>
+    aria-hidden="true"><tk-icon name="chevron-right" /></button>
   <div :class="['task-type-icon', 'task-type-icon--' + task.kind]">{{ task.icon }}</div>
   <div class="task-row__copy">
     <div class="task-row__title">{{ task.title }}</div>

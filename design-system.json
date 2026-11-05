@@ -897,12 +897,14 @@
     "sources": [
       "web/public/task-manager/app-vue.css",
       "web/src/task-manager/notifications/toast-anchor.js",
-      "web/public/icons/heroicons/24/outline"
+      "web/public/icons/heroicons/24/outline",
+      "web/public/icons/icons.css"
     ]
   },
   "implementation": {
     "styles": [
-      "web/public/task-manager/app-vue.css"
+      "web/public/task-manager/app-vue.css",
+      "web/public/icons/icons.css"
     ]
   },
   "sources": [
@@ -959,7 +961,12 @@
     {
       "path": "web/public/icons/heroicons/24/outline",
       "kind": "observed",
-      "note": "Conjunto de iconos Heroicons 24/outline y su licencia MIT"
+      "note": "Selección de 23 iconos Heroicons 24/outline usados por el producto y la documentación, y su licencia MIT"
+    },
+    {
+      "path": "web/public/icons/icons.css",
+      "kind": "observed",
+      "note": "Clase de máscara y archivo que resuelve cada icono del producto y de la documentación"
     },
     {
       "path": "docs/PRD.md",

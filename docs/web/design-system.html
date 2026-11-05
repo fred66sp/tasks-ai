@@ -9,6 +9,7 @@
   <!-- Las muestras usan el CSS del tablero, no una copia: este enlace es la
        fuente de los componentes y de sus tokens. La guía solo añade su marco. -->
   <link rel="stylesheet" href="../../web/public/task-manager/app-vue.css">
+  <link rel="stylesheet" href="../../web/public/icons/icons.css">
   <title>Sistema de diseño · tasks-ai</title>
   <style>
     :root {
@@ -167,7 +168,7 @@
     }
     .icon-btn:hover { border-color: var(--line-strong); }
     .icon-btn:active { transform: translateY(1px); }
-    .icon-btn svg { width: 16px; height: 16px; }
+    .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
     :root[data-theme="light"] .icon-sun { display: none; }
     :root[data-theme="dark"] .icon-moon { display: none; }
 
@@ -185,7 +186,7 @@
     .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
     .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
     .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-    .to-top svg { width: 18px; height: 18px; }
+    .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
 
     h1 {
       max-width: 18ch;
@@ -319,12 +320,7 @@
       padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
       background: var(--surface);
     }
-    .icon-item__glyph {
-      flex: none; width: 18px; height: 18px; margin-top: 1px;
-      background-color: var(--secondary);
-      -webkit-mask: var(--icon) center / contain no-repeat;
-      mask: var(--icon) center / contain no-repeat;
-    }
+    .icon-item .tk-icon { margin-top: 1px; color: var(--secondary); }
     .icon-item__name {
       min-width: 0; color: var(--muted);
       font-family: var(--mono); font-size: 11px; line-height: 1.35;
@@ -476,8 +472,8 @@
   </nav>
   <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
-    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
+    <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
     <span>Tema</span>
   </button>
 </header>
@@ -671,86 +667,46 @@
         <div class="chapter-num">06</div>
         <div>
           <h2 id="iconografia-t">El trazo también es herramienta</h2>
-          <p class="chapter-lead">El conjunto de trabajo sale de una sola familia: Heroicons 24/outline, caja de 24 y trazo de 1,5 px. Se dibujan a 16, 18 o 20 px, heredan el color del texto y acompañan a la palabra; no la sustituyen cuando la acción no es convencional.</p>
+          <p class="chapter-lead">El conjunto de trabajo no es un catálogo completo: son los 23 iconos que el producto y su documentación usan hoy. Salen de Heroicons 24/outline, caja de 24 y trazo de 1,5 px. Heredan el color del control y acompañan a la palabra; no la sustituyen cuando la acción no es convencional.</p>
         </div>
         <div class="chapter-body">
           <div class="specimen">
-            <div class="specimen__head"><span class="specimen__label">Conjunto de trabajo</span><span class="specimen__note">72 archivos · <code>web/public/icons/heroicons/24/outline/</code></span></div>
+            <div class="specimen__head"><span class="specimen__label">Selección de trabajo</span><span class="specimen__note">23 archivos · <code>web/public/icons/heroicons/24/outline/</code></span></div>
             <div class="specimen__body">
               <div class="icon-group">
                 <h3 class="icon-group__title">Navegación y estructura</h3>
                 <ul class="icon-grid">
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-down.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chevron-down</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-left.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chevron-left</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-right.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chevron-right</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-up.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chevron-up</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-left.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-left" aria-hidden="true"></span>
                     <span class="icon-item__name">arrow-left</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-right.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-right" aria-hidden="true"></span>
                     <span class="icon-item__name">arrow-right</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-up.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-up" aria-hidden="true"></span>
                     <span class="icon-item__name">arrow-up</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-down.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">arrow-down</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span>
+                    <span class="icon-item__name">book-open</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-path.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">arrow-path</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-down" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-down</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-top-right-on-square.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">arrow-top-right-on-square</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-right" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-right</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/squares-2x2.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">squares-2x2</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-up</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/list-bullet.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">list-bullet</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/numbered-list.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">numbered-list</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/queue-list.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">queue-list</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/table-cells.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">table-cells</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/folder-open.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">folder-open</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/ellipsis-horizontal.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">ellipsis-horizontal</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cursor-arrow-rays.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">cursor-arrow-rays</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span>
+                    <span class="icon-item__name">ellipsis-vertical</span>
                   </li>
                 </ul>
               </div>
@@ -758,222 +714,53 @@
                 <h3 class="icon-group__title">Acciones</h3>
                 <ul class="icon-grid">
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/plus.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">plus</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-path" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-path</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/minus.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">minus</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>
+                    <span class="icon-item__name">check</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/x-mark.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">x-mark</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/pencil-square.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">pencil-square</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/trash.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">trash</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/check-circle.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">check-circle</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/x-circle.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">x-circle</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-up-tray.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">arrow-up-tray</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-down-tray.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">arrow-down-tray</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/share.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">share</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/link.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">link</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/printer.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">printer</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/magnifying-glass.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">magnifying-glass</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/funnel.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--funnel" aria-hidden="true"></span>
                     <span class="icon-item__name">funnel</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/clipboard-document-check.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">clipboard-document-check</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--magnifying-glass" aria-hidden="true"></span>
+                    <span class="icon-item__name">magnifying-glass</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/wrench-screwdriver.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">wrench-screwdriver</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span>
+                    <span class="icon-item__name">pencil</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/rocket-launch.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">rocket-launch</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span>
+                    <span class="icon-item__name">plus</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/calculator.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">calculator</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>
+                    <span class="icon-item__name">square-2-stack</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span>
+                    <span class="icon-item__name">trash</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span>
+                    <span class="icon-item__name">x-mark</span>
                   </li>
                 </ul>
               </div>
               <div class="icon-group">
-                <h3 class="icon-group__title">Estado y aviso</h3>
+                <h3 class="icon-group__title">Visibilidad</h3>
                 <ul class="icon-grid">
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/exclamation-triangle.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">exclamation-triangle</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/information-circle.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">information-circle</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/question-mark-circle.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">question-mark-circle</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/shield-check.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">shield-check</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/shield-exclamation.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">shield-exclamation</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/no-symbol.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">no-symbol</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/bug-ant.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">bug-ant</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/eye.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--eye" aria-hidden="true"></span>
                     <span class="icon-item__name">eye</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/eye-slash.svg')" aria-hidden="true"></span>
+                    <span class="tk-icon tk-icon--mask tk-icon--eye-slash" aria-hidden="true"></span>
                     <span class="icon-item__name">eye-slash</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/clock.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">clock</span>
-                  </li>
-                </ul>
-              </div>
-              <div class="icon-group">
-                <h3 class="icon-group__title">Objeto y dominio</h3>
-                <ul class="icon-grid">
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/tag.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">tag</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/bookmark.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">bookmark</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/calendar-days.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">calendar-days</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/user-group.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">user-group</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-text.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">document-text</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-check.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">document-check</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-chart-bar.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">document-chart-bar</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chart-bar.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chart-bar</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chart-pie.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">chart-pie</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/presentation-chart-line.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">presentation-chart-line</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/circle-stack.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">circle-stack</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cube.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">cube</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cube-transparent.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">cube-transparent</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cpu-chip.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">cpu-chip</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/server.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">server</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/server-stack.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">server-stack</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/computer-desktop.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">computer-desktop</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/device-tablet.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">device-tablet</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/device-phone-mobile.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">device-phone-mobile</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/command-line.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">command-line</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/code-bracket.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">code-bracket</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/globe-alt.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">globe-alt</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/language.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">language</span>
-                  </li>
-                  <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/swatch.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">swatch</span>
                   </li>
                 </ul>
               </div>
@@ -981,30 +768,71 @@
                 <h3 class="icon-group__title">Tema</h3>
                 <ul class="icon-grid">
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/sun.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">sun</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--moon" aria-hidden="true"></span>
+                    <span class="icon-item__name">moon</span>
                   </li>
                   <li class="icon-item">
-                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/moon.svg')" aria-hidden="true"></span>
-                    <span class="icon-item__name">moon</span>
+                    <span class="tk-icon tk-icon--mask tk-icon--sun" aria-hidden="true"></span>
+                    <span class="icon-item__name">sun</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Objeto y dominio</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--document-text" aria-hidden="true"></span>
+                    <span class="icon-item__name">document-text</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--tag" aria-hidden="true"></span>
+                    <span class="icon-item__name">tag</span>
                   </li>
                 </ul>
               </div>
             </div>
           </div>
           <table class="spec">
+            <caption>Dónde se usa cada icono</caption>
+            <thead><tr><th>Icono</th><th>Uso en la interfaz y la documentación</th></tr></thead>
+            <tbody>
+              <tr><td><code>arrow-left</code></td><td>Volver a la portada desde la guía.</td></tr>
+              <tr><td><code>arrow-right</code></td><td>Leer la guía y abrir la guía completa en la portada; seguir un enlace de la portada.</td></tr>
+              <tr><td><code>arrow-up</code></td><td>Enlace «Arriba» del pie de la portada.</td></tr>
+              <tr><td><code>arrow-path</code></td><td>Actualizar datos y limpiar los filtros.</td></tr>
+              <tr><td><code>book-open</code></td><td>Volver a la portada desde la cabecera de la guía.</td></tr>
+              <tr><td><code>check</code></td><td>Cerrar una tarea, guardar una decisión y confirmar una copia.</td></tr>
+              <tr><td><code>chevron-down</code></td><td>Plegar y desplegar una decisión.</td></tr>
+              <tr><td><code>chevron-right</code></td><td>Expandir una tarea con subtareas; gira a <code>chevron-down</code> al abrirse.</td></tr>
+              <tr><td><code>chevron-up</code></td><td>Volver arriba en la guía, la portada y el panel de decisiones.</td></tr>
+              <tr><td><code>document-text</code></td><td>Abrir el panel de decisiones.</td></tr>
+              <tr><td><code>ellipsis-vertical</code></td><td>Menú de más opciones de la fila y del listado.</td></tr>
+              <tr><td><code>eye</code> / <code>eye-slash</code></td><td>Mostrar u ocultar las etiquetas de las filas.</td></tr>
+              <tr><td><code>funnel</code></td><td>Abrir los filtros avanzados.</td></tr>
+              <tr><td><code>magnifying-glass</code></td><td>Estado vacío de una búsqueda sin resultados.</td></tr>
+              <tr><td><code>moon</code> / <code>sun</code></td><td>Conmutar el tema en la guía, la portada y esta página.</td></tr>
+              <tr><td><code>pencil</code></td><td>Editar tarea, etiqueta, comentario o decisión.</td></tr>
+              <tr><td><code>plus</code></td><td>Crear tarea, etiqueta o decisión; añadir una etiqueta.</td></tr>
+              <tr><td><code>square-2-stack</code></td><td>Copiar un bloque de código en la guía y la portada.</td></tr>
+              <tr><td><code>tag</code></td><td>Abrir el gestor de etiquetas.</td></tr>
+              <tr><td><code>trash</code></td><td>Eliminar una etiqueta.</td></tr>
+              <tr><td><code>x-mark</code></td><td>Cerrar un panel o un diálogo, cancelar y retirar una etiqueta.</td></tr>
+            </tbody>
+          </table>
+          <table class="spec">
             <caption>Reglas del conjunto</caption>
             <thead><tr><th>Regla</th><th>Cómo se cumple</th></tr></thead>
             <tbody>
               <tr><td>Origen único</td><td>Heroicons 24/outline; no se mezcla con otro conjunto ni se redibuja un icono.</td></tr>
               <tr><td>Caja y trazo</td><td><code>viewBox="0 0 24 24"</code>, <code>stroke-width="1.5"</code> y extremos redondeados.</td></tr>
-              <tr><td>Tamaño</td><td>16, 18 o 20 px según el control; el icono no se escala fuera de su caja.</td></tr>
-              <tr><td>Color</td><td>Hereda el color del texto (<code>currentColor</code>); el tono lo decide el control, no el archivo.</td></tr>
+              <tr><td>Tamaño</td><td>De 12 a 18 px según el control y 24 px en el estado vacío; el icono no se escala fuera de su caja.</td></tr>
+              <tr><td>Color</td><td>Hereda el color del texto con una máscara (<code>currentColor</code>); el tono lo decide el control, no el archivo.</td></tr>
               <tr><td>Nombre</td><td>Un control de solo icono lleva <code>aria-label</code> y <code>title</code>; el icono decorativo va con <code>aria-hidden="true"</code>.</td></tr>
               <tr><td>Palabra</td><td>Crear, cerrar, guardar, eliminar y ejecutar llevan texto; el icono los acompaña.</td></tr>
+              <tr><td>Selección</td><td>Solo entra un icono que el producto o la documentación usen; cuando se retira el último uso, salen el archivo y su clase.</td></tr>
             </tbody>
           </table>
-          <div class="rule"><h3>Un icono nuevo entra aquí antes de usarse</h3><p>La interfaz sirve este conjunto en <code>/icons/</code> y la guía lo enlaza desde la ruta pública del repositorio. Sustituir un trazo propio por un archivo del conjunto es una unidad de trabajo: cambian el componente y su muestra, y el nombre accesible se conserva.</p></div>
+          <div class="rule"><h3>La lista es cerrada y se poda</h3><p>El tablero y las tres páginas de <code>docs/web</code> cargan <code>web/public/icons/icons.css</code>, que resuelve cada nombre a su archivo. Un icono nuevo se justifica con la superficie que lo adopta y entra con su archivo, su clase y su muestra; si un uso desaparece, el archivo sale en la misma unidad.</p></div>
           <div class="sources">Origen: <a href="https://heroicons.com/">Heroicons</a>, de Tailwind Labs, licencia MIT. El texto de la licencia viaja con los archivos en <code>web/public/icons/heroicons/LICENSE</code>.</div>
         </div>
       </div>
@@ -1148,9 +976,9 @@
             <div class="specimen__head"><span class="specimen__label">Campos de etiquetas</span><span class="specimen__note">28 px · retirables</span></div>
             <div class="specimen__body">
               <div class="tag-manager-chip-input">
-                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff"></span>docs<button type="button" aria-label="Retirar docs">×</button></span>
-                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #f2bf59"></span>improvement<button type="button" aria-label="Retirar improvement">×</button></span>
-                <button class="tk-icon-button tk-icon-button--compact tag-manager-add" type="button" aria-label="Añadir etiqueta">+</button>
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff"></span>docs<button type="button" aria-label="Retirar docs"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></span>
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #f2bf59"></span>improvement<button type="button" aria-label="Retirar improvement"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></span>
+                <button class="tk-icon-button tk-icon-button--compact tag-manager-add" type="button" aria-label="Añadir etiqueta"><span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span></button>
               </div>
               <p class="board-help" style="margin:14px 0 0">El campo envuelve sus etiquetas y crece en alto. Una etiqueta que no exista en el catálogo se rechaza al guardar.</p>
             </div>
@@ -1166,12 +994,12 @@
                       <h2 id="tag-manager-title">Gestor de etiquetas</h2>
                       <p>Catálogo del proyecto</p>
                     </div>
-                    <button class="tk-icon-button" type="button" aria-label="Cerrar gestor">×</button>
+                    <button class="tk-icon-button" type="button" aria-label="Cerrar gestor"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button>
                   </header>
                   <div class="tag-manager-body">
                     <div class="tag-manager-toolbar">
                       <input class="tk-input" type="search" placeholder="Buscar etiquetas" aria-label="Buscar etiquetas">
-                      <button class="tk-button tk-button--secondary tk-button--compact" type="button"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Nueva</button>
+                      <button class="tk-button tk-button--secondary tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span>Nueva</button>
                     </div>
                     <div class="tag-manager-summary"><span>3 etiquetas</span><span>A–Z</span></div>
                     <div class="tag-manager-list">
@@ -1179,23 +1007,23 @@
                         <span class="tag-manager-dot" style="--tag-color: #62a7ff;"></span>
                         <div class="tag-manager-copy"><div class="tag-manager-name">docs</div><div class="tag-manager-description">Documentación, guías y contratos</div></div>
                         <span class="tag-manager-uses">7 usos</span>
-                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar docs">✎</button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar docs">×</button></div>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar docs"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar docs"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
                       </article>
                       <article class="tag-manager-row">
                         <span class="tag-manager-dot" style="--tag-color: #f2bf59;"></span>
                         <div class="tag-manager-copy"><div class="tag-manager-name">improvement</div><div class="tag-manager-description">Mejora de algo que ya existe</div></div>
                         <span class="tag-manager-uses">3 usos</span>
-                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar improvement">✎</button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar improvement">×</button></div>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar improvement"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar improvement"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
                       </article>
                       <article class="tag-manager-row">
                         <span class="tag-manager-dot" style="--tag-color: #b58bff;"></span>
                         <div class="tag-manager-copy"><div class="tag-manager-name">ODD</div><div class="tag-manager-description">Trabajo del registro del producto</div></div>
                         <span class="tag-manager-uses">2 usos</span>
-                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar ODD">✎</button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar ODD">×</button></div>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar ODD"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar ODD"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
                       </article>
                     </div>
                     <form class="tag-manager-form">
-                      <div class="tag-manager-form-header"><strong>Nueva etiqueta</strong><button class="tk-icon-button" type="button" aria-label="Cerrar formulario">×</button></div>
+                      <div class="tag-manager-form-header"><strong>Nueva etiqueta</strong><button class="tk-icon-button" type="button" aria-label="Cerrar formulario"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></div>
                       <label class="tag-manager-field"><span class="tag-manager-label">Nombre</span><input class="tk-input" value="release" maxlength="40"></label>
                       <label class="tag-manager-field"><span class="tag-manager-label">Descripción</span><input class="tk-input" placeholder="Para qué sirve esta etiqueta" maxlength="90"></label>
                       <fieldset class="tag-manager-field">
@@ -1248,7 +1076,7 @@
               <div class="specimen__body specimen__scroll" style="padding:16px">
                 <div class="task-tree" role="tree" aria-label="Tareas de muestra">
                   <article class="task-row task-row--level-1 is-selected" role="treeitem" tabindex="0" aria-level="1" aria-selected="true" aria-expanded="true" data-ref="tk-231" data-type="Épica" data-title="Unificar el sistema de diseño" data-tags="ODD · improvement" data-count="3">
-                    <button class="tree-expander" type="button" aria-label="Contraer subtareas"><span class="tk-icon"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></button>
+                    <button class="tree-expander" type="button" aria-expanded="true" aria-label="Contraer subtareas"><span class="tk-icon tk-icon--mask tk-icon--chevron-right" aria-hidden="true"></span></button>
                     <div class="task-type-icon task-type-icon--epic">E</div>
                     <div class="task-row__copy">
                       <div class="task-row__title">Unificar el sistema de diseño</div>
@@ -1257,7 +1085,7 @@
                     </div>
                     <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-231"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
                     <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-231"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option></select></div>
-                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-231">⋮</button></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-231"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
                   </article>
                   <article class="task-row task-row--level-2" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-234" data-type="Subtarea" data-title="Publicar la guía navegable" data-tags="ODD · docs" data-count="0">
                     <button class="tree-expander tree-expander--placeholder" type="button" disabled aria-hidden="true" tabindex="-1"></button>
@@ -1269,7 +1097,7 @@
                     </div>
                     <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-234"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
                     <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-234"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option></select></div>
-                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-234">⋮</button></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-234"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
                   </article>
                   <article class="task-row task-row--level-2" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-232" data-type="Subtarea" data-title="Inventariar las fuentes visuales" data-tags="ODD · docs" data-count="0">
                     <button class="tree-expander tree-expander--placeholder" type="button" disabled aria-hidden="true" tabindex="-1"></button>
@@ -1281,7 +1109,7 @@
                     </div>
                     <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-232"><option value="0">Crítica</option><option value="1">Alta</option><option value="2" selected>Media</option><option value="3">Baja</option></select>
                     <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-232"><option value="open">Pendiente</option><option value="in_progress">En curso</option><option value="done" selected>Hecha</option></select></div>
-                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-232">⋮</button></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-232"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
                   </article>
 
                 </div>
@@ -1300,10 +1128,10 @@
                         <div class="task-inspector__description">Unificar la guía, el contrato y las superficies en una sola referencia visual.</div>
                       </div>
                       <div class="task-inspector__actions">
-                        <button class="tk-button tk-button--secondary tk-button--compact" type="button">Editar</button>
-                        <button class="tk-button tk-button--danger tk-button--compact" type="button">Cerrar tarea</button>
+                        <button class="tk-button tk-button--secondary tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span>Editar</button>
+                        <button class="tk-button tk-button--danger tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>Cerrar tarea</button>
                         <span class="tk-badge tk-badge--info">En curso</span>
-                        <button class="tk-icon-button" type="button" aria-label="Más opciones de la tarea">⋮</button>
+                        <button class="tk-icon-button" type="button" aria-label="Más opciones de la tarea"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button>
                       </div>
                     </div>
                     <div class="task-property-bar">
@@ -1359,7 +1187,7 @@
             <div class="specimen__body" style="padding:0">
               <div class="stage">
                 <div class="tk-modal" role="dialog" aria-labelledby="dlg-new">
-                  <div class="tk-modal__header"><h2 id="dlg-new">Nueva tarea</h2><button class="tk-icon-button" type="button" aria-label="Cerrar">×</button></div>
+                  <div class="tk-modal__header"><h2 id="dlg-new">Nueva tarea</h2><button class="tk-icon-button" type="button" aria-label="Cerrar"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></div>
                   <div class="tk-modal__body">
                     <label class="tk-field"><span class="tk-field__label">Título</span><input class="tk-input" value="Revisar los enlaces de la guía"></label>
                     <div class="pair">
@@ -1501,7 +1329,7 @@
   </main>
 </div>
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+  <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
 </a>
 <script>
   (() => {

@@ -12,6 +12,7 @@ guarda el contenido: lo enlaza.
 | Qué documento es dueño de cada dato | [`README.md`](README.md) → «Documentación» |
 | Ramas, commits, verificación, integración, versiones y operaciones que piden autorización | [`CONTRIBUTING.md`](CONTRIBUTING.md) → «Modelo», «Ramas», «Commits», «Verificación», «Integración», «CHANGELOG», «Versiones y etiquetas», «Operaciones que exigen autorización» |
 | Estructura del repositorio y mapa de paquetes | [`docs/development.md`](docs/development.md) → «Estructura» |
+| Mobilia común de las páginas de documentación y su publicabilidad | [`docs/web/assets/`](docs/web/assets/); la decisión, en [`docs/decisions/README.md`](docs/decisions/README.md) → ADR-018; la guarda, en `docs_web_test.go` |
 | Cómo se trabaja y qué se comprueba antes de cerrar | [`docs/development.md`](docs/development.md) → «Cómo se trabaja» |
 | Ejecutar el producto y recorrer sus comandos | [`docs/development.md`](docs/development.md) → «Ejecutar»; [`docs/web/index.html`](docs/web/index.html) → «Empezar en un proyecto», «Las órdenes» |
 | Requisitos, alcance y criterios de aceptación | [`docs/PRD.md`](docs/PRD.md) → «3. Alcance aprobado», «4. Requisitos aprobados», «5. Criterios de aceptación» |

@@ -1,0 +1,73 @@
+/* Tokens de las páginas de docs/web (ADR-018). Dueño de la identidad:
+   docs/tasks-ai-brand/ (v3: violeta #8B5CF6, azul #3882F6, cian #06B6D4, con
+   la variante oscurecida que mantiene el contraste AA donde el color lleva
+   texto). Estos valores se declaran aquí una sola vez para las tres páginas:
+   ninguna redeclara la paleta —ni el acento, ni sus suaves, ni los bordes—,
+   porque una componente compartida con tono distinto por página es justo lo
+   que la componentización vino a eliminar (revisión 2026-11-05). Lo que cada
+   página pinta propio —la franja y la terminal de la portada, el rail del
+   catálogo, el resaltado de código de la guía— usa nombres fuera de esta
+   paleta y vive en su <style>. Los alias del final son puentes de nombre
+   —la guía usó --border, el catálogo --page/--surface/--ink— y no declaran
+   ningún valor propio. */
+:root {
+  --bg: #f8fafc;
+  --bg-elev: #ffffff;
+  --bg-soft: #f1f5f9;
+  --text: #0f172a;
+  --muted: #5f6b80;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --accent: #6d28d9;
+  --accent-2: #3882f6;
+  --accent-3: #06b6d4;
+  --accent-soft: rgba(109, 40, 217, .10);
+  /* Foco sobre el código, que es oscuro en los dos temas: un valor, dos usos. */
+  --accent-on-dark: #a78bfa;
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --ok-text: #065f46;
+  --warn-text: #92400e;
+  --error-text: #b91c1c;
+  --code-bg: #0a0f1c;
+  --code-text: #e5e7eb;
+  --code-border: #1f2937;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
+  --shadow-lg: 0 20px 60px -30px rgba(15, 23, 42, .35);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  color-scheme: light;
+  /* Puentes de nombre: valores canónicos arriba, aquí solo se enlazan. */
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --page: var(--bg);
+  --surface: var(--bg-elev);
+  --raised: var(--bg-soft);
+  --ink: var(--text);
+}
+:root[data-theme="dark"] {
+  --bg: #0a0f1c;
+  --bg-elev: #111827;
+  --bg-soft: #1f2937;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --line: #1e293b;
+  --line-strong: #334155;
+  --accent: #a78bfa;
+  --accent-2: #60a5fa;
+  --accent-3: #06b6d4;
+  --accent-soft: rgba(167, 139, 250, .14);
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --ok-text: #34d399;
+  --warn-text: #fbbf24;
+  --error-text: #f87171;
+  --code-bg: #070b16;
+  --code-text: #e5e7eb;
+  --code-border: #1f2937;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
+  --shadow-lg: 0 24px 70px -34px rgba(0, 0, 0, .9);
+  color-scheme: dark;
+}

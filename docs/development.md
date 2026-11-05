@@ -9,6 +9,8 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 |---|---|
 | `docs/` | La documentación del producto: requisitos, decisiones, diseño, contratos y riesgos |
 | `docs/decisions/` | La exportación generada de los ADR: un archivo por decisión durable |
+| `docs/web/` | Las páginas de documentación —portada, guía y sistema de diseño—: se publican por sí solas, copiadas a cualquier sitio funcionan en `file://` o en un servidor estático sin red (`ADR-018`) |
+| `docs/web/assets/` | Lo común de esas páginas: `css/` (tokens y mobilia), `js/` (el guion clásico `docs.js` con las islas Vue), `vendor/` (copias locales de `icons.css`, `app-vue.css`, Vue, toast-anchor y MicroLighter, cada una con su licencia) e `img/` (activos de marca); la guarda del paquete raíz corta la deriva con sus dueños |
 | `cmd/tasks-ai/` | El punto de entrada del binario |
 | `internal/settings/` | Los ajustes del proyecto: su archivo en la carpeta del producto y sus valores por omisión |
 | `internal/store/` | La base SQLite: su esquema versionado y lo que guarda de las tareas |

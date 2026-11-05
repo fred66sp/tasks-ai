@@ -5,159 +5,39 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="tasks-ai — guía de uso del gestor de tareas local: un binario en Go con línea de órdenes, API HTTP e interfaz web, sobre una base SQLite dentro del proyecto." data-content-en="tasks-ai — usage guide for the local task manager: a single Go binary with a command line, an HTTP API and a web interface, on a SQLite database inside the project.">
 <meta name="color-scheme" content="light dark">
-<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32.png">
 <title data-title-en="tasks-ai — usage guide">tasks-ai — guía de uso</title>
-<script>
-(function () {
-  try {
-    var p = JSON.parse(localStorage.getItem("tasks-ai:prefs") || "{}");
-    var t = p.theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.setAttribute("data-theme", t);
-    document.documentElement.lang = "es";
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
+<!-- Iconos compartidos con el producto, tokens y mobilia (ADR-018): una sola
+     fuente para las tres páginas, cargada antes del estilo propio para que las
+     excepciones de la guía ganen por cascada. -->
+<link rel="stylesheet" href="assets/vendor/icons/icons.css">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/chrome.css">
+<script src="assets/vendor/vue.global.prod.js"></script>
+<script src="assets/js/docs.js"></script>
 <style>
-  /* Identidad visual: docs/tasks-ai-brand (v3, design/tokens.css). La marca es
-     violeta #8B5CF6, azul #3882F6 y cian #06B6D4; donde el color lleva texto se
-     usa la variante oscurecida que mantiene el contraste AA sobre el fondo claro. */
-  :root {
-    --bg: #f8fafc;
-    --bg-elev: #ffffff;
-    --bg-soft: #f1f5f9;
-    --text: #0f172a;
-    --muted: #5f6b80;
-    --border: #e2e8f0;
-    --border-strong: #cbd5e1;
-    --accent: #6d28d9;
-    --accent-2: #2563eb;
-    --accent-3: #06b6d4;
-    --accent-soft: rgba(109, 40, 217, .10);
-    --ok: #10b981;
-    --warn: #f59e0b;
-    --ok-text: #065f46;
-    --warn-text: #92400e;
-    --error-text: #b91c1c;
-    --code-bg: #0a0f1c;
-    --code-text: #e5e7eb;
-    --code-border: #1f2937;
-    --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
-    --shadow-lg: 0 20px 60px -30px rgba(15, 23, 42, .35);
-    --radius: 16px;
-    --radius-sm: 10px;
-    /* Inter y JetBrains Mono no se redistribuyen con la marca: si no estan
-       instaladas, el navegador cae en la pila del sistema, sin descargas. */
-    --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
-  }
-  :root[data-theme="dark"] {
-    --bg: #0a0f1c;
-    --bg-elev: #111827;
-    --bg-soft: #1f2937;
-    --text: #e5e7eb;
-    --muted: #94a3b8;
-    --border: #334155;
-    --border-strong: #475569;
-    --accent: #a78bfa;
-    --accent-2: #60a5fa;
-    --accent-3: #06b6d4;
-    --accent-soft: rgba(167, 139, 250, .14);
-    --ok: #34d399;
-    --warn: #fbbf24;
-    --ok-text: #34d399;
-    --warn-text: #fbbf24;
-    --error-text: #f87171;
-    --code-bg: #070b16;
-    --code-text: #e5e7eb;
-    --code-border: #1f2937;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
-    --shadow-lg: 0 24px 70px -34px rgba(0, 0, 0, .9);
-  }
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
-  body {
-    margin: 0;
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.65;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+  /* Identidad visual: docs/tasks-ai-brand (v3). La paleta completa, clara y
+     oscura, se declara una sola vez en assets/css/tokens.css (ADR-018): la
+     guía no tiene excepciones de color. Aquí solo la paleta de MicroLighter,
+     que es propia de su código, y el despeje del anclaje bajo la cabecera. */
+  :root {
+    /* El código tiene fondo oscuro en los dos temas, así que la paleta de
+       MicroLighter es una sola: los nombres de los resaltados son los que
+       registra la librería al analizar cada bloque. */
+    --syn-comment: #8b949e;
+    --syn-keyword: #ff7b72;
+    --syn-string: #a5d6ff;
+    --syn-constant: #79c0ff;
+    --syn-function: #d2a8ff;
+    --syn-variable: #ffa657;
+    --syn-property: #79c0ff;
+    --syn-tag: #7ee787;
   }
+  html { scroll-padding-top: 88px; }
+
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  code, pre, kbd { font-family: var(--mono); }
-
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px clamp(16px, 4vw, 40px);
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(14px);
-    backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 1px solid var(--border);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
-  .brand:hover { text-decoration: none; }
-  /* El paquete de marca trae un icono por fondo: el claro sobre su cuadro claro
-     y el oscuro sobre el suyo. Se cambian con el tema, sin tocar el arte. */
-  .brand-mark {
-    display: block;
-    width: 34px; height: 34px;
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-  .brand-mark img { width: 100%; height: 100%; display: block; }
-  .brand-mark .brand-icon-dark { display: none; }
-  :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
-  :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
-  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
-  .brand-name small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
-  .topbar-spacer { flex: 1; }
-
-  .lang-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-elev); }
-  .lang-switch button {
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    font: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .05em;
-    padding: 0 12px;
-    height: 36px;
-    cursor: pointer;
-  }
-  .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
-
-  .icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    height: 36px;
-    padding: 0 12px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg-elev);
-    color: var(--text);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color .15s, background .15s, transform .1s;
-  }
-  .icon-btn:hover { border-color: var(--border-strong); }
-  .icon-btn:active { transform: translateY(1px); }
-  .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
-  :root[data-theme="light"] .icon-sun { display: none; }
-  :root[data-theme="dark"] .icon-moon { display: none; }
   /* Entrada de vuelta a la portada, en la línea del catálogo de SKILLS-AGP:
      el lema se retira en pantallas estrechas con la regla de .icon-btn span:not(.tk-icon). */
   .catalog-btn { text-decoration: none; }
@@ -245,7 +125,6 @@
     font-size: clamp(16px, 2.2vw, 18px);
     color: var(--muted);
   }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
   .btn {
     display: inline-flex;
     align-items: center;
@@ -290,7 +169,7 @@
     .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
     /* Salida del índice hacia la portada, separada por filete como en SKILLS-AGP. */
     .toc .toc-extra { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
-    .toc .toc-extra a { color: var(--accent); }
+    .toc .toc-extra .icon-btn { color: var(--accent); }
   }
   main { min-width: 0; }
   section { scroll-margin-top: 88px; }
@@ -414,20 +293,6 @@
   /* Cada ejemplo puede tener su versión en los dos idiomas: se oculta la
      que no toca y el botón de copiar copia la que se ve. */
   .code pre[hidden] { display: none; }
-  .code .copy .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
-  /* El código tiene fondo oscuro en los dos temas, así que la paleta de
-     MicroLighter es una sola: los nombres de los resaltados son los que
-     registra la librería al analizar cada bloque. */
-  :root {
-    --syn-comment: #8b949e;
-    --syn-keyword: #ff7b72;
-    --syn-string: #a5d6ff;
-    --syn-constant: #79c0ff;
-    --syn-function: #d2a8ff;
-    --syn-variable: #ffa657;
-    --syn-property: #79c0ff;
-    --syn-tag: #7ee787;
-  }
   ::highlight(comment), ::highlight(quote) { color: var(--syn-comment); }
   ::highlight(keyword), ::highlight(storage), ::highlight(at-rule),
   ::highlight(doctype), ::highlight(important), ::highlight(section) { color: var(--syn-keyword); }
@@ -543,26 +408,6 @@
     margin: 0 auto;
   }
   .footer code { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
-  /* Vuelta arriba: el mismo botón flotante de SKILLS-AGP, que aparece cuando
-     la cabecera ya no se ve. */
-  .to-top {
-    position: fixed; right: clamp(16px, 3vw, 28px); bottom: clamp(16px, 3vw, 28px); z-index: 60;
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; padding: 0;
-    border: 1px solid var(--border-strong); border-radius: 50%;
-    background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    color: var(--muted); box-shadow: var(--shadow);
-    opacity: 0; visibility: hidden; transform: translateY(10px);
-    transition: opacity .2s, transform .2s, visibility .2s, border-color .15s, color .15s;
-  }
-  .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
-  .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
-  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
   .sev-info { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
   .qa { border-bottom: 1px solid var(--border); padding: 18px 0; }
   .qa:last-child { border-bottom: 0; }
@@ -573,18 +418,6 @@
   ul.plain li + li { margin-top: 6px; }
   .cmd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .cmd .sig { color: var(--muted); font-weight: 500; font-size: 13px; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  /* El conmutador recorta sus esquinas: el anillo va por dentro o no se ve. */
-  .lang-switch button:focus-visible { outline-offset: -3px; }
-  .code :focus-visible { outline-color: #c4b5fd; }
-  .skip {
-    position: absolute; left: 16px; top: -60px; z-index: 100;
-    padding: 10px 14px; border-radius: 6px;
-    background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
-  }
-  .skip:focus { top: 12px; }
-  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
-  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
   /* Entrada en cascada del contenido, mismo convenio que el catálogo de
      SKILLS-AGP: los bloques múltiples y los listados se escalonan con --d —
      la posición en el lote que entra, la fija el script— y el resto de
@@ -603,41 +436,14 @@
       animation-delay: calc(var(--d, 0) * 70ms);
     }
   }
-  /* En pantallas estrechas la cabecera solo conserva lo que se usa: la marca,
-     el idioma y el tema. El lema y el rótulo del botón se retiran antes de
-     dejar que el conmutador de idioma se recorte. */
-  @media (max-width: 520px) {
-    .topbar { gap: 8px; }
-    .brand-mark { flex: 0 0 auto; }
-    .brand-name small { display: none; }
-    .icon-btn span:not(.tk-icon) { display: none; }
-    .lang-switch { flex: 0 0 auto; }
-  }
-</style>
-  <!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
-  <link rel="stylesheet" href="../../web/public/icons/icons.css">
-</head>
+  </style>
+  </head>
 <body>
 
 <div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main" data-i18n="header.0">Saltar al contenido</a>
 
-<header class="topbar">
-  <a class="brand" href="#top">
-    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="data:image/png;base64,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" alt="" width="34" height="34"><img class="brand-icon-dark" src="data:image/png;base64,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" alt="" width="34" height="34"></span>
-    <span class="brand-name" data-i18n="header.1">tasks-ai<small>gestor de tareas local-first</small></span>
-  </a>
-  <span class="topbar-spacer"></span>
-  <a class="icon-btn catalog-btn" href="landing.html" aria-label="Volver a la portada" data-aria-en="Back to the landing page">
-    <span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span>
-    <span data-i18n="header.3">Portada</span>
-  </a>
-  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" lang="en">EN</button></div><button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-    <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
-    <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
-    <span data-i18n="header.2">Tema</span>
-  </button>
-</header>
+<header class="topbar" id="docs-topbar"></header>
 
 <section class="hero">
   <div class="hero-inner">
@@ -648,7 +454,7 @@
       <a class="btn btn-primary" href="#empezar" data-i18n="hero.17">Empezar</a>
       <a class="btn btn-ghost" href="#comandos" data-i18n="hero.18">Ver las órdenes</a>
       <a class="btn btn-ghost" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--arrow-left" aria-hidden="true"></span><span data-i18n="hero.23">Volver a la portada</span></a>
-      <a class="btn btn-ghost" href="design-system.html" data-i18n="hero.25">Sistema de diseño</a>
+      <a class="btn btn-ghost" href="design-system.html"><span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span><span data-i18n="hero.25">Sistema de diseño</span></a>
     </div>
     <div class="status-strip" role="status">
       <span class="status-mark" aria-hidden="true">OK</span>
@@ -658,7 +464,8 @@
 </section>
 
 <div class="layout">
-  <nav class="toc" aria-label="Índice de la página" data-aria-en="Page contents">
+  <nav class="toc" aria-label="Índice de la página" data-aria-en="Page contents"
+      data-spy data-spy-target="main section" data-spy-margin="-20% 0px -70% 0px">
     <h2 data-i18n="hero.1">En esta página</h2>
     <a href="#que-es" data-i18n="hero.2">1. Qué es tasks-ai</a>
     <a href="#empezar" data-i18n="hero.3">2. Empezar en un proyecto</a>
@@ -673,7 +480,10 @@
     <a href="#limites" data-i18n="hero.11">11. Lo que no hace</a>
     <a href="#errores" data-i18n="hero.12">12. Errores y qué significan</a>
     <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
-    <div class="toc-extra"><a href="landing.html" data-i18n="hero.24">Volver a la portada</a> · <a href="design-system.html" data-i18n="hero.25">Sistema de diseño</a></div>
+    <div class="toc-extra">
+      <a class="icon-btn" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span><span data-i18n="hero.24">Volver a la portada</span></a>
+      <a class="icon-btn" href="design-system.html"><span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span><span data-i18n="hero.25">Sistema de diseño</span></a>
+    </div>
   </nav>
 
   <main id="main">
@@ -1514,10 +1324,10 @@ chmod +x tasks-ai                              # then try again</code></pre>
   </main>
 </div>
 
-<footer class="footer">
+<div id="docs-footer"><page-footer class="footer">
   <span data-i18n="footer.1">tasks-ai · gestor de tareas local-first escrito en Go</span>
   <span data-i18n="footer.2">Una carpeta por proyecto · línea de órdenes, API e interfaz · <code>.tasks-ai/</code></span>
-</footer>
+</page-footer></div>
 
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba" data-aria-en="Back to top">
   <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
@@ -1526,8 +1336,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
 
 
 
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<script type="module" src="https://cdn.jsdelivr.net/npm/microlighter@2.0.0/dist/microlighter.min.js"></script>
+<script type="module" src="assets/vendor/microlighter/microlighter.min.js"></script>
 <script type="application/json" id="tasks-ai-en">
 {
  "header.0": "Skip to content",
@@ -1927,192 +1736,20 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "footer.2": "One folder per project · command line, API and interface · <code>.tasks-ai/</code>"
 }
 </script>
-<script>
-(function () {
-  "use strict";
-
-  var STORAGE_KEY = "tasks-ai:prefs";
-  var root = document.documentElement;
-  var EN = JSON.parse(document.getElementById("tasks-ai-en").textContent);
-
-  var COPY_ICON = '<span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>';
-  var CHECK_ICON = '<span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>';
-
-  // El texto original de cada nodo se guarda una vez: cambiar de idioma es
-  // devolverlo tal cual, no volver a traducir al español.
-  var originals = [];
-  document.querySelectorAll("[data-i18n]").forEach(function (el) {
-    originals.push({ el: el, key: el.getAttribute("data-i18n"), html: el.innerHTML });
-  });
-
-  function copyLabel(lang) { return lang === "en" ? "Copy" : "Copiar"; }
-  function copiedLabel(lang) { return lang === "en" ? "Copied" : "Copiado"; }
-
-  function refreshCopyButtons(lang) {
-    document.querySelectorAll(".code .copy").forEach(function (btn) {
-      if (btn.classList.contains("copied")) { return; }
-      btn.innerHTML = COPY_ICON + "<span>" + copyLabel(lang) + "</span>";
-      btn.setAttribute("aria-label", copyLabel(lang));
-    });
-  }
-
-  function updateThemeLabel(lang) {
-    var btn = document.getElementById("theme-toggle");
-    if (!btn) { return; }
-    var dark = root.getAttribute("data-theme") === "dark";
-    var label;
-    if (lang === "en") { label = dark ? "Switch to light theme" : "Switch to dark theme"; }
-    else { label = dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"; }
-    btn.setAttribute("aria-label", label);
-  }
-
-  // Las etiquetas de accesibilidad también cambian de idioma: quien usa un
-  // lector de pantalla no debería oír el índice en español dentro de la
-  // versión inglesa.
-  var ariaNodes = [];
-  document.querySelectorAll("[data-aria-en]").forEach(function (el) {
-    ariaNodes.push({ el: el, es: el.getAttribute("aria-label"), en: el.getAttribute("data-aria-en") });
-  });
-
-  var titleNode = document.querySelector("title[data-title-en]");
-  var descriptionNode = document.querySelector("meta[data-content-en]");
-  var titleEs = titleNode ? titleNode.textContent : "";
-  var descriptionEs = descriptionNode ? descriptionNode.getAttribute("content") : "";
-
-  function applyLang(lang) {
-    if (lang !== "en") { lang = "es"; }
-    root.lang = lang;
-    if (titleNode) { titleNode.textContent = lang === "en" ? titleNode.getAttribute("data-title-en") : titleEs; }
-    if (descriptionNode) { descriptionNode.setAttribute("content", lang === "en" ? descriptionNode.getAttribute("data-content-en") : descriptionEs); }
-    ariaNodes.forEach(function (item) {
-      item.el.setAttribute("aria-label", lang === "en" ? item.en : item.es);
-    });
-    originals.forEach(function (item) {
-      var translated = lang === "en" ? EN[item.key] : null;
-      item.el.innerHTML = translated == null ? item.html : translated;
-    });
-    document.querySelectorAll("[data-lang]").forEach(function (btn) {
-      btn.setAttribute("aria-pressed", btn.getAttribute("data-lang") === lang ? "true" : "false");
-    });
-    // Los ejemplos llevan su versión en cada idioma: se enseña una y se oculta
-    // la otra, y el bloque que solo tiene una se queda como está.
-    document.querySelectorAll(".code").forEach(function (block) {
-      var shown = null;
-      block.querySelectorAll("pre[data-lang]").forEach(function (pre) {
-        var mine = pre.getAttribute("data-lang") === lang;
-        pre.hidden = !mine;
-        if (mine) { shown = pre; }
-      });
-      var only = block.querySelector("pre:not([data-lang])");
-      if (only && shown) { only.hidden = true; }
-    });
-    refreshCopyButtons(lang);
-    updateThemeLabel(lang);
-  }
-
-  function applyTheme(theme) {
-    if (theme !== "dark" && theme !== "light") { theme = "light"; }
-    root.setAttribute("data-theme", theme);
-    updateThemeLabel(root.lang === "en" ? "en" : "es");
-  }
-
-  var prefs = {};
-  try { prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { prefs = {}; }
-
-  var initialTheme = prefs.theme;
-  if (initialTheme !== "dark" && initialTheme !== "light") {
-    initialTheme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-  var initialLang = prefs.lang === "en" ? "en" : "es";
-
-  applyTheme(initialTheme);
-  applyLang(initialLang);
-
-  function savePrefs() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) {}
-  }
-
-  document.querySelectorAll("[data-lang]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      prefs.lang = btn.getAttribute("data-lang");
-      applyLang(prefs.lang);
-      savePrefs();
-    });
-  });
-
-  var themeBtn = document.getElementById("theme-toggle");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", function () {
-      prefs.theme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      applyTheme(prefs.theme);
-      savePrefs();
-    });
-  }
-
-  // El botón de copiar no se escribe en el marcado: se crea aquí para que
-  // añadir un bloque de código no obligue a recordar su botón.
-  document.querySelectorAll(".code").forEach(function (block) {
-    if (block.querySelector(".copy")) { return; }
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "copy";
-    block.appendChild(btn);
-
-    btn.addEventListener("click", function () {
-      var visible = block.querySelector("pre:not([hidden])") || block.querySelector("pre");
-      var code = (visible && (visible.querySelector("code") || visible)) || null;
-      if (!code) { return; }
-      var lang = root.lang === "en" ? "en" : "es";
-      var done = function () {
-        btn.classList.add("copied");
-        btn.innerHTML = CHECK_ICON + "<span>" + copiedLabel(lang) + "</span>";
-        btn.setAttribute("aria-label", copiedLabel(lang));
-        setTimeout(function () {
-          btn.classList.remove("copied");
-          btn.innerHTML = COPY_ICON + "<span>" + copyLabel(lang) + "</span>";
-          btn.setAttribute("aria-label", copyLabel(lang));
-        }, 1600);
-      };
-      var text = code.textContent;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, done);
-      } else {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); } catch (e) {}
-        document.body.removeChild(ta);
-        done();
-      }
-    });
-  });
-
-  refreshCopyButtons(root.lang === "en" ? "en" : "es");
-
-  if ("IntersectionObserver" in window) {
-    var links = {};
-    document.querySelectorAll(".toc a").forEach(function (a) { links[a.getAttribute("href").slice(1)] = a; });
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          Object.keys(links).forEach(function (id) { links[id].classList.remove("active"); });
-          if (links[entry.target.id]) { links[entry.target.id].classList.add("active"); }
-        }
-      });
-    }, { rootMargin: "-20% 0px -70% 0px", threshold: 0 });
-    document.querySelectorAll("main section").forEach(function (s) { observer.observe(s); });
-  }
-
-  var toTop = document.getElementById("to-top");
-  if (toTop) {
-    var updateToTop = function () { toTop.classList.toggle("is-visible", window.scrollY > 480); };
-    window.addEventListener("scroll", updateToTop, { passive: true });
-    updateToTop();
-  }
-})();
+<script type="application/json" id="docs-config">
+{
+  "topbar": {
+    "brand": { "href": "#top", "tagline": { "es": "gestor de tareas local-first", "i18n": "header.1" } },
+    "navStyle": "catalog",
+    "nav": [
+      { "href": "landing.html", "es": "Portada", "i18n": "header.3",
+        "ariaEs": "Volver a la portada", "ariaEn": "Back to the landing page", "icon": "book-open" }
+    ],
+    "lang": "live",
+    "langAria": "Idioma / Language"
+  },
+  "copy": true
+}
 </script>
 <script>
 (function () {

@@ -31,3 +31,4 @@ decisiones.
 - [ADR-015: El adaptador de OpenCode envuelve el CLI](015-the-opencode-adapter-wraps-the-cli.md) (accepted, 2026-10-26)
 - [ADR-016: Los ADR viven en la base y se exportan a texto](016-los-adr-viven-en-la-base-y-se-exportan-a-texto.md) (accepted, 2026-10-26)
 - [ADR-017: El servidor solo contesta a su propio nombre](017-el-servidor-solo-contesta-a-su-propio-nombre.md) (accepted, 2026-10-28)
+- [ADR-018: docs/web se publica sola: assets comunes, islas Vue y vendor local](018-docs-web-se-publica-sola-assets-comunes-islas-vue-y-vendor-local.md) (accepted, 2026-11-05)

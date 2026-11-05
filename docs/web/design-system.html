@@ -5,72 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="Sistema de diseño de tasks-ai: fundamentos, componentes, patrones y estados del tablero.">
-  <link rel="icon" type="image/png" sizes="32x32" href="../tasks-ai-brand/favicons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32.png">
   <!-- Las muestras usan el CSS del tablero, no una copia: este enlace es la
        fuente de los componentes y de sus tokens. La guía solo añade su marco. -->
-  <link rel="stylesheet" href="../../web/public/task-manager/app-vue.css">
-  <link rel="stylesheet" href="../../web/public/icons/icons.css">
+  <link rel="stylesheet" href="assets/vendor/app-vue.css">
+  <link rel="stylesheet" href="assets/vendor/icons/icons.css">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/chrome.css">
+  <script src="assets/vendor/vue.global.prod.js"></script>
+  <script src="assets/js/docs.js"></script>
   <title>Sistema de diseño · tasks-ai</title>
   <style>
+
+    /* Catálogo (ADR-018): la paleta vive en assets/css/tokens.css y el catálogo
+       no tiene excepciones de color. Aquí solo marco propio —el canal por el que
+       entra el CSS del tablero— y los neutros y medidas que usa su rail. */
     :root {
       --gutter: clamp(20px, 4.6vw, 64px);
-      --page: #f8fafc;
-      --surface: #ffffff;
-      --raised: #f1f5f9;
-      --ink: #0f172a;
       --secondary: #334155;
-      --muted: #5f6b80;
-      --line: #e2e8f0;
-      --line-strong: #cbd5e1;
-      --accent: #6d28d9;
-      --accent-soft: rgba(109, 40, 217, .07);
-      --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
       --topbar-height: 61px;
-      --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-      color-scheme: light;
     }
-    :root[data-theme="dark"] {
-      --page: #0a0f1c;
-      --surface: #111827;
-      --raised: #1f2937;
-      --ink: #e5e7eb;
-      --secondary: #c3cad5;
-      --muted: #94a3b8;
-      --line: #1e293b;
-      --line-strong: #334155;
-      --accent: #a78bfa;
-      --accent-soft: rgba(167, 139, 250, .12);
-      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
-      color-scheme: dark;
-    }
+    :root[data-theme="dark"] { --secondary: #c3cad5; }
+    html { scroll-padding-top: calc(var(--topbar-height) + 8px); }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topbar-height) + 8px); }
-    body {
-      margin: 0;
-      background: var(--page);
-      color: var(--ink);
-      font-family: var(--font);
-      font-size: 16px;
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
-    }
-    ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
     a:hover { text-decoration-thickness: 2px; }
     h1, h2, h3, p, figure { margin-top: 0; }
-    code, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
     code { font-size: .865em; overflow-wrap: anywhere; }
-    .skip {
-      position: absolute; top: -100px; left: 16px; z-index: 20;
-      padding: 10px 14px; border-radius: 6px; background: var(--surface); color: var(--ink);
-    }
-    .skip:focus { top: 12px; }
-    /* La cabecera es sticky y siempre está en el viewport, así que no sirve
-       como destino de #top: el ancla real vive al principio del documento. */
-    .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
 
     /* ---------- Estructura ---------- */
     .shell {
@@ -89,21 +50,6 @@
       max-height: calc(100dvh - var(--topbar-height)); padding: 26px 20px 22px;
       min-width: 0;
       overflow-y: auto;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
-    .brand:hover { text-decoration: none; }
-    .brand-mark {
-      display: block; flex: none; width: 34px; height: 34px;
-      border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
-    }
-    .brand-mark img { width: 100%; height: 100%; display: block; }
-    .brand-mark .brand-icon-dark { display: none; }
-    :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
-    :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
-    .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
-    .brand-name small {
-      display: block; font-weight: 500; color: var(--muted);
-      font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
     }
     .rail-title {
       margin: 0 0 22px 10px;
@@ -127,66 +73,6 @@
     .rail-chapters a[aria-current="true"] span { color: var(--accent); }
 
     .content { width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px; }
-
-    /* ---------- Cabecera ---------- */
-    .topbar {
-      position: sticky; top: 0; z-index: 40;
-      display: flex; align-items: center; gap: 16px;
-      padding: 12px clamp(16px, 4vw, 40px);
-      background: color-mix(in srgb, var(--page) 82%, transparent);
-      -webkit-backdrop-filter: saturate(180%) blur(14px);
-      backdrop-filter: saturate(180%) blur(14px);
-      border-bottom: 1px solid var(--line);
-    }
-    .topbar-spacer { flex: 1; }
-    .site-nav { display: flex; flex: none; align-items: center; gap: 4px; }
-    .site-nav a {
-      padding: 8px 10px; border-radius: 6px;
-      color: var(--muted); font-size: 15px; font-weight: 550; line-height: 1.2;
-      text-decoration: none; white-space: nowrap;
-    }
-    .site-nav a:hover { color: var(--ink); background: var(--raised); text-decoration: none; }
-    .lang-switch {
-      display: inline-flex; flex: none;
-      border: 1px solid var(--line); border-radius: 10px;
-      overflow: hidden; background: var(--surface);
-    }
-    .lang-switch button {
-      border: 0; background: transparent; color: var(--muted);
-      font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .05em;
-      padding: 0 12px; height: 36px; cursor: pointer;
-    }
-    .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
-    .lang-switch button[aria-disabled="true"] { cursor: default; }
-    .icon-btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-      flex: none; height: 36px; padding: 0 12px;
-      border: 1px solid var(--line); border-radius: 10px;
-      background: var(--surface); color: var(--ink);
-      font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: border-color .15s, background .15s, transform .1s;
-    }
-    .icon-btn:hover { border-color: var(--line-strong); }
-    .icon-btn:active { transform: translateY(1px); }
-    .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
-    :root[data-theme="light"] .icon-sun { display: none; }
-    :root[data-theme="dark"] .icon-moon { display: none; }
-
-    .to-top {
-      position: fixed; right: clamp(16px, 3vw, 28px); bottom: clamp(16px, 3vw, 28px); z-index: 60;
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 44px; height: 44px; padding: 0;
-      border: 1px solid var(--line-strong); border-radius: 50%;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-      color: var(--muted); box-shadow: var(--shadow);
-      opacity: 0; visibility: hidden; transform: translateY(10px);
-      transition: opacity .2s, transform .2s, visibility .2s, border-color .15s, color .15s;
-    }
-    .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
-    .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
-    .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-    .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
 
     h1 {
       max-width: 18ch;
@@ -408,7 +294,9 @@
       color: var(--secondary); font-weight: 600; text-decoration: none;
     }
     .closing a:hover { background: var(--raised); color: var(--ink); }
-    .closing span { margin-left: auto; }
+    .closing a.icon-btn { padding: 0 12px; }
+    .closing a.icon-btn:hover { background: transparent; color: var(--accent); border-color: var(--accent); }
+    .closing > span { margin-left: auto; }
 
     /* ---------- Adaptación ---------- */
     @media (max-width: 1020px) {
@@ -445,43 +333,17 @@
       table.spec td { padding: 2px 0; border: 0; }
       table.spec td:first-child { font-weight: 700; }
     }
-    @media (max-width: 520px) {
-      .topbar { gap: 8px; }
-      .brand-name small { display: none; }
-      .icon-btn span:not(.tk-icon) { display: none; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
-    }
   </style>
 </head>
 <body>
 <div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
-<header class="topbar">
-  <a class="brand" href="landing.html">
-    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="../tasks-ai-brand/app-icons/tasks-ai-light-64.png" alt="" width="34" height="34"><img class="brand-icon-dark" src="../tasks-ai-brand/app-icons/tasks-ai-dark-64.png" alt="" width="34" height="34"></span>
-    <span class="brand-name">tasks-ai<small>gestor de tareas local-first</small></span>
-  </a>
-  <span class="topbar-spacer"></span>
-  <nav class="site-nav" aria-label="Documentación">
-    <a href="landing.html">Portada</a>
-    <a href="index.html">Guía de uso</a>
-    <a href="../PRD.md">PRD</a>
-  </nav>
-  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
-  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-    <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
-    <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
-    <span>Tema</span>
-  </button>
-</header>
+<header class="topbar" id="docs-topbar"></header>
 <div class="shell">
   <aside class="rail" aria-label="Índice del sistema de diseño">
     <div class="rail-inner">
       <p class="rail-title">Sistema de diseño</p>
-      <nav class="rail-chapters" aria-label="Capítulos">
+      <nav class="rail-chapters" aria-label="Capítulos" data-spy data-spy-mode="position" data-spy-line="0.28" data-spy-mark="aria-current" data-spy-target="#fundamentos,#marca,#color,#tipografia,#espacio,#iconografia,#acciones,#insignias,#etiquetas,#espacio-trabajo,#modales,#estados,#accesibilidad,#evolucion">
         <a href="#fundamentos"><span>01</span>Fundamentos</a>
         <a href="#marca"><span>02</span>Marca</a>
         <a href="#color"><span>03</span>Color</a>
@@ -538,17 +400,17 @@
             <div class="specimen">
               <div class="specimen__head"><span class="specimen__label">Sobre claro</span><span class="specimen__note">180 px</span></div>
               <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#fff">
-                <img src="../tasks-ai-brand/app-icons/tasks-ai-light-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo claro">
+                <img src="assets/img/app-icons/tasks-ai-light-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo claro">
               </div>
             </div>
             <div class="specimen">
               <div class="specimen__head"><span class="specimen__label">Sobre nocturno</span><span class="specimen__note">180 px</span></div>
               <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#0a0f1c">
-                <img src="../tasks-ai-brand/app-icons/tasks-ai-dark-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo oscuro">
+                <img src="assets/img/app-icons/tasks-ai-dark-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo oscuro">
               </div>
             </div>
           </div>
-          <div class="sources">Activos y condiciones de uso: <a href="../tasks-ai-brand/README.md">paquete de marca</a>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 38 px con 10 px de esquina en la cabecera del tablero.</div>
+          <div class="sources">Activos y condiciones de uso: <code>docs/tasks-ai-brand/</code>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 38 px con 10 px de esquina en la cabecera del tablero.</div>
         </div>
       </div>
     </section>
@@ -598,7 +460,7 @@
 
           <div class="rule"><h3>El violeta de marca no lleva texto</h3><p><code>#8b5cf6</code> se queda en 4,19:1 sobre la superficie nocturna. Cuando el violeta nombra algo, es <code>#a78bfa</code> sobre oscuro o <code>#6d28d9</code> sobre claro.</p></div>
           <div class="rule"><h3>El degradado tiene una sola casa</h3><p>Vive en la portada: la palabra marcada del titular, la malla y la regla de dos píxeles que la cierra. En el tablero no aparece ninguno.</p></div>
-          <div class="sources">Valores de marca: <a href="../tasks-ai-brand/design/tokens.css"><code>design/tokens.css</code></a>. Neutros y su uso: <code>web/src/task-manager/styles/tokens.css</code>.</div>
+          <div class="sources">Valores de marca: <code>docs/tasks-ai-brand/design/tokens.css</code>. Neutros y su uso: <code>web/src/task-manager/styles/tokens.css</code>.</div>
         </div>
       </div>
     </section>
@@ -1310,11 +1172,11 @@
             <thead><tr><th>Qué cambia</th><th>Dónde se decide</th><th>Dónde se comprueba</th></tr></thead>
             <tbody>
               <tr><td>Zorro y paleta de marca</td><td><code>docs/tasks-ai-brand/</code></td><td>Iconos y temas</td></tr>
-              <tr><td>Iconos</td><td><code>web/public/icons/heroicons/</code> y su <a href="../../web/public/icons/heroicons/LICENSE">licencia</a></td><td>Este capítulo y los componentes que los adoptan</td></tr>
+              <tr><td>Iconos</td><td><code>web/public/icons/heroicons/</code> y su <a href="assets/vendor/icons/LICENSE">licencia</a></td><td>Este capítulo y los componentes que los adoptan</td></tr>
               <tr><td>Tokens del tablero</td><td><code>web/src/task-manager/styles/tokens.css</code></td><td>Componentes de la interfaz</td></tr>
               <tr><td>Componentes y estados</td><td><code>web/src/task-manager/styles/</code> y <code>web/public/task-manager/app-vue.css</code></td><td>La guía carga ese CSS y dibuja las muestras con sus clases</td></tr>
               <tr><td>Uso visual y límites</td><td><code>DESIGN.md</code></td><td>Tablero, portada y guía</td></tr>
-              <tr><td>Estados y capacidades</td><td><a href="../PRD.md">PRD</a> y <a href="../contracts.md">contratos</a></td><td>CLI y tablero real</td></tr>
+              <tr><td>Estados y capacidades</td><td><code>docs/PRD.md</code> y <code>docs/contracts.md</code></td><td>CLI y tablero real</td></tr>
             </tbody>
           </table>
           <div class="rule"><h3>Marca</h3><p>Usa el paquete aprobado. No redibujes el zorro ni cambies su color para adaptarlo a una pantalla.</p></div>
@@ -1325,56 +1187,29 @@
       </div>
     </section>
 
-    <footer class="closing"><a href="landing.html">Portada</a><a href="index.html">Guía de uso</a><span>Sistema de diseño de tasks-ai</span></footer>
+    <div id="docs-footer"><page-footer class="closing"><a class="icon-btn" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span>Portada</a><a class="icon-btn" href="index.html"><span class="tk-icon tk-icon--mask tk-icon--document-text" aria-hidden="true"></span>Guía de uso</a><span>Sistema de diseño de tasks-ai</span></page-footer></div>
   </main>
 </div>
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">
   <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
 </a>
+<script type="application/json" id="docs-config">
+{
+  "topbar": {
+    "brand": { "href": "landing.html", "tagline": { "es": "gestor de tareas local-first" } },
+    "navStyle": "site",
+    "navAria": "Documentación",
+    "nav": [
+      { "href": "landing.html", "es": "Portada", "icon": "book-open" },
+      { "href": "index.html", "es": "Guía de uso", "icon": "document-text" }
+    ],
+    "lang": "locked",
+    "langAria": "Idioma / Language"
+  }
+}
+</script>
 <script>
   (() => {
-    const root = document.documentElement;
-    const button = document.getElementById('theme-toggle');
-    const label = (theme) => theme === 'dark' ? 'claro' : 'oscuro';
-    const showTheme = (theme) => {
-      root.dataset.theme = theme;
-      // La luna y el sol se alternan por CSS; el botón anuncia la acción.
-      button.setAttribute('aria-label', `Cambiar a tema ${label(theme)}`);
-    };
-    try {
-      const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
-      showTheme(saved.theme === 'dark' || saved.theme === 'light' ? saved.theme :
-        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-    } catch { showTheme('light'); }
-    button.addEventListener('click', () => {
-      const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
-      showTheme(theme);
-      try {
-        const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
-        localStorage.setItem('tasks-ai:prefs', JSON.stringify({ ...saved, theme }));
-      } catch { /* La página sigue siendo usable sin almacenamiento. */ }
-    });
-
-    // El índice marca el capítulo que se está leyendo. Se calcula por posición
-    // y no por intersección: dos capítulos pueden cruzarse a la vez y entonces
-    // el último en avisar dejaba marcado el que ya se había leído.
-    const links = [...document.querySelectorAll('.rail-chapters a')];
-    const chapters = links
-      .map((link) => ({ link, el: document.querySelector(link.getAttribute('href')) }))
-      .filter((chapter) => chapter.el);
-    const mark = () => {
-      const line = window.innerHeight * 0.28;
-      let active = null;
-      for (const chapter of chapters) {
-        if (chapter.el.getBoundingClientRect().top <= line) active = chapter;
-      }
-      for (const chapter of chapters) chapter.link.removeAttribute('aria-current');
-      if (active) active.link.setAttribute('aria-current', 'true');
-    };
-    window.addEventListener('scroll', mark, { passive: true });
-    window.addEventListener('resize', mark);
-    mark();
-
     // Las muestras responden como el tablero, sin tocar datos.
     const tree = document.querySelector('.task-tree');
     if (tree) {
@@ -1415,20 +1250,13 @@
         note.textContent = `Vista de ${tab.textContent.toLowerCase()}: muestra sin datos guardados.`;
       }));
     });
-
-    const toTop = document.getElementById('to-top');
-    if (toTop) {
-      const updateToTop = () => toTop.classList.toggle('is-visible', window.scrollY > 480);
-      window.addEventListener('scroll', updateToTop, { passive: true });
-      updateToTop();
-    }
   })();
 </script>
 <script>
   (() => {
     const toast = document.getElementById('demo-toast');
     const confirm = document.getElementById('demo-confirm');
-    import('../../web/src/task-manager/notifications/toast-anchor.js')
+    import('./assets/vendor/toast-anchor/toast-anchor-wrapper.js')
       .then(({ notifySuccess, confirmAction }) => {
         toast.disabled = false;
         confirm.disabled = false;

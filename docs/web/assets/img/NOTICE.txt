@@ -1,0 +1,3 @@
+Imágenes copiadas de docs/tasks-ai-brand/, que es el dueño de la marca.
+No se redibujan ni se recolorean: son copias byte a byte de los originales.
+Para actualizarlas, vuelve a copiarlas desde docs/tasks-ai-brand/.

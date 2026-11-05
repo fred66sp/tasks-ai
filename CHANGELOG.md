@@ -8,6 +8,14 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- `docs/web/` se publica por sí sola (`ADR-018`): nace `docs/web/assets/` con el CSS común
+  (`css/tokens.css` y `css/chrome.css`), el guion de mobilia (`js/docs.js`, islas Vue sin
+  router ni construcción) y las copias locales de todo lo que las tres páginas consumían
+  fuera (`vendor/`: hoja de iconos, CSS del tablero, Vue, toast-anchor y MicroLighter con
+  sus licencias; `img/`: activos de marca). Copiada la carpeta a cualquier sitio, abre en
+  `file://` o en un servidor estático sin red. La guarda `docs_web_test.go` corta la
+  deriva con los dueños y prohíbe rutas relativas que salgan de la carpeta; `make
+  docs-vendor` refresca las copias.
 - El sistema de diseño incorpora la iconografía: el tablero y su documentación usan 23
   iconos de Heroicons 24/outline desde `web/public/icons/heroicons/`, con su licencia y una
   única hoja compartida, `web/public/icons/icons.css`. Los componentes y las tres páginas de

@@ -1,0 +1,4 @@
+microlighter@2.0.0 (MIT, Dave Rupert), vendorizado desde el registry de npm.
+Hasta ahora se cargaba desde https://cdn.jsdelivr.net/npm/microlighter@2.0.0.
+Ahora vive local para que docs/web funcione publicada y sin red.
+Incluye dist/grammars porque el resaltador importa sus dependencias en tiempo de ejecución.

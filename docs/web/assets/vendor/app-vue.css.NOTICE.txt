@@ -1,0 +1,4 @@
+Artefacto generado: app-vue.css se construye desde web/src/task-manager/styles con `npm run build` en web/ (ADR-010).
+El dueño del origen es web/; este directorio solo guarda una copia para que docs/web sea autocontenido.
+Para refrescarlo, vuelve a copiarlo desde web/public/task-manager/app-vue.css.
+No lo edites aquí: cualquier cambio se pierde en la siguiente copia.

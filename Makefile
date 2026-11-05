@@ -3,7 +3,7 @@
 BINARY := tasks-ai
 GO     := go
 
-.PHONY: help install test test-race coverage lint lint-fix fmt check-web clean
+.PHONY: help install test test-race coverage lint lint-fix fmt check-web docs-vendor clean
 
 help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
@@ -41,6 +41,14 @@ fmt: ## Formatea el código
 check-web: ## Comprueba las pruebas de la interfaz y que lo construido coincide con su fuente
 	cd web && npm test && npm run build
 	git diff --exit-code -- web/public
+
+docs-vendor: ## Refresca las copias vendorizadas de docs/web desde sus dueños (ADR-018)
+	cp web/public/icons/icons.css docs/web/assets/vendor/icons/icons.css
+	rm -rf docs/web/assets/vendor/icons/heroicons
+	cp -r web/public/icons/heroicons docs/web/assets/vendor/icons/heroicons
+	cp web/public/task-manager/app-vue.css docs/web/assets/vendor/app-vue.css
+	cp web/public/vendor/vue.global.prod.js docs/web/assets/vendor/vue.global.prod.js
+	cp web/public/vendor/toast-anchor.mjs docs/web/assets/vendor/toast-anchor/toast-anchor.mjs
 
 clean: ## Retira lo que generan las pruebas
 	rm -rf coverage/

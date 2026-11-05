@@ -321,7 +321,7 @@ estados que siempre se acompaña de texto.
 **El violeta que escribe.** El violeta de marca (`#8b5cf6`) no lleva texto nunca. Si el
 violeta nombra algo, es `#a78bfa` sobre oscuro o `#6d28d9` sobre claro.
 
-**La gradiente tiene una sola casa.** El degradado de marca —violeta `#8b5cf6`, azul
+**El degradado tiene una sola casa.** El degradado de marca —violeta `#8b5cf6`, azul
 `#3882f6`, cian `#06b6d4`— vive en la portada: la palabra marcada del titular, la malla y la
 regla de dos píxeles que la cierra. En la guía solo el botón primario lleva un degradado, y es
 de violeta a azul. En el tablero no aparece ninguno.

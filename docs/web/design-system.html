@@ -448,7 +448,7 @@
     @media (max-width: 520px) {
       .topbar { gap: 8px; }
       .brand-name small { display: none; }
-      .icon-btn span { display: none; }
+      .icon-btn span:not(.tk-icon) { display: none; }
     }
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -1320,7 +1320,7 @@
           <div class="rule"><h3>Marca</h3><p>Usa el paquete aprobado. No redibujes el zorro ni cambies su color para adaptarlo a una pantalla.</p></div>
           <div class="rule"><h3>Interfaz</h3><p>Modifica el token o el componente propietario, contrasta los estados y actualiza <code>DESIGN.md</code> y esta muestra si cambia la regla.</p></div>
           <div class="rule"><h3>Producto</h3><p>Una función nueva se decide en el tablero y el PRD; una muestra de esta página no la convierte en capacidad implementada.</p></div>
-          <div class="sources">El HTML de Tacks conservado en <code>docs/02-gestor-tareas-system-desing_v2.html</code> es el punto de partida histórico: su paleta, sus exportaciones y sus propuestas Vue/TypeScript no gobiernan tasks-ai.</div>
+          <div class="sources">El prototipo de Tacks, retirado del repositorio en el commit <code>cddf4df</code>, es el punto de partida histórico: su paleta, sus exportaciones y sus propuestas Vue/TypeScript no gobiernan tasks-ai.</div>
         </div>
       </div>
     </section>

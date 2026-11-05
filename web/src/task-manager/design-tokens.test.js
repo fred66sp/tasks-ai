@@ -64,6 +64,35 @@ test('tokens.css no declara variables que falten en el contrato', () => {
   }
 });
 
+const frontmatter = read('../../../DESIGN.md').split('---')[1] ?? '';
+const frontmatterSection = (name) => new Map(
+  [...(frontmatter.match(new RegExp(`^${name}:\\n((?:^ {2,}.*\\n?)*)`, 'm'))?.[1] ?? '')
+    .matchAll(/^  "?([a-z0-9-]+)"?: "([^"]+)"$/gm)]
+    .map(([, key, value]) => [key, value])
+);
+
+test('el frontmatter de DESIGN.md coincide en las claves que comparte con el contrato', () => {
+  const colors = frontmatterSection('colors');
+  for (const [path, token] of tokens) {
+    if (!path.startsWith('color.')) continue;
+    const key = path.slice('color.'.length).replaceAll('.', '-');
+    if (!colors.has(key)) continue;
+    assert.equal(
+      colors.get(key),
+      normalize(resolveToken(token.$value)),
+      `DESIGN.md: colors.${key} no coincide con ${path}`
+    );
+  }
+  for (const [section, prefix] of [['rounded', 'radius'], ['spacing', 'space']]) {
+    for (const [key, value] of frontmatterSection(section)) {
+      const token = tokens.get(`${prefix}.${key}`);
+      if (!token) continue;
+      assert.equal(value, normalize(resolveToken(token.$value)),
+        `DESIGN.md: ${section}.${key} no coincide con ${prefix}.${key}`);
+    }
+  }
+});
+
 test('el tipo declarado corresponde a la forma del valor', () => {
   for (const [path, token] of tokens) {
     const value = String(resolveToken(token.$value));

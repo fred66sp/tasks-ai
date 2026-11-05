@@ -549,11 +549,6 @@ textarea:focus-visible {
   line-height: 1;
   white-space: nowrap;
 }
-.tk-badge > .tk-icon {
-  width: 12px;
-  height: 12px;
-  flex-basis: 12px;
-}
 .tk-badge--neutral {
   border-color: var(--tk-color-border-subtle);
   background: var(--tk-color-surface-raised);

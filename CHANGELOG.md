@@ -21,6 +21,9 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Corregido
 
+- La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia
+  de estado del tablero muestra solo su palabra: se retiró el trazo propio que quedaba
+  negro en los dos temas.
 - El desplegable de una tarea gira solo su chevron; antes giraban el botón y el icono, y la
   flecha quedaba al revés al abrir la tarea.
 - La vuelta arriba de la documentación apunta a un ancla real al principio del documento y

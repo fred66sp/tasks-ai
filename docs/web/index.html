@@ -159,7 +159,7 @@
   :root[data-theme="light"] .icon-sun { display: none; }
   :root[data-theme="dark"] .icon-moon { display: none; }
   /* Entrada de vuelta a la portada, en la línea del catálogo de SKILLS-AGP:
-     el lema se retira en pantallas estrechas con la regla de .icon-btn span. */
+     el lema se retira en pantallas estrechas con la regla de .icon-btn span:not(.tk-icon). */
   .catalog-btn { text-decoration: none; }
   .catalog-btn:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
 
@@ -610,7 +610,7 @@
     .topbar { gap: 8px; }
     .brand-mark { flex: 0 0 auto; }
     .brand-name small { display: none; }
-    .icon-btn span { display: none; }
+    .icon-btn span:not(.tk-icon) { display: none; }
     .lang-switch { flex: 0 0 auto; }
   }
 </style>

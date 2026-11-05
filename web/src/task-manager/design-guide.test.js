@@ -12,19 +12,10 @@ const docPages = ['landing.html', 'index.html', 'design-system.html'];
 const docSource = () => docPages
   .map((name) => read(`../../../docs/web/${name}`))
   .join('\n');
-const productSource = () => [
-  'app-shell.js',
-  'components/decisions-panel.js',
-  'components/icon.js',
-  'components/new-task-dialog.js',
-  'components/overflow-menu.js',
-  'components/tag-manager-drawer.js',
-  'components/tag-picker-field.js',
-  'components/task-filters.js',
-  'components/task-inspector.js',
-  'components/task-list.js',
-  'components/task-row.js'
-].map((name) => read(`../../../web/src/task-manager/${name}`)).join('\n');
+const productSource = () => readdirSync(new URL('../../../web/src/', import.meta.url), { recursive: true })
+  .filter((name) => (name.endsWith('.js') || name.endsWith('.css')) && !name.endsWith('.test.js'))
+  .map((name) => read(`../../../web/src/${name}`))
+  .join('\n');
 
 test('la guía visual se puede abrir desde la portada y la guía de uso', () => {
   const page = read('../../../docs/web/design-system.html');

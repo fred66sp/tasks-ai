@@ -236,8 +236,8 @@ El frontmatter conserva los valores necesarios para las herramientas que leen `D
 es una proyección de esas fuentes, no el lugar donde se decide una paleta nueva. Los ejemplos
 de [`.impeccable/design.json`](.impeccable/design.json) son muestras para el panel visual:
 se contrastan con el CSS al cambiarlo, nunca se usan para construir el producto. El HTML
-de [Tacks](docs/02-gestor-tareas-system-desing_v2.html) es un antecedente histórico de patrones,
-no un contrato ni una fuente de tokens de tasks-ai.
+de Tacks, retirado del repositorio en el commit `cddf4df`, es un antecedente histórico de
+patrones, no un contrato ni una fuente de tokens de tasks-ai.
 
 El contrato [`design-system.json`](design-system.json) proyecta estas fuentes en el esquema
 `design-system.v1`: identidad, tokens del tablero, componentes efectivos y gobernanza. No
@@ -536,8 +536,8 @@ viaja con los archivos en [`LICENSE`](web/public/icons/heroicons/LICENSE). La [g
 navegable](docs/web/design-system.html) cataloga la selección y dice qué control usa cada
 archivo.
 
-- **Tamaño:** en el tablero, 12 px en la insignia, 13 px en el botón compacto, 14 px en la
-  acción de limpiar, 18 px en la cabecera y el botón de icono, y 24 px en el estado vacío.
+- **Tamaño:** en el tablero, 13 px en el botón compacto, 14 px en la acción de limpiar,
+  18 px en la cabecera y el botón de icono, y 24 px en el estado vacío.
   La documentación usa de 13 a 18 px en sus enlaces, su cabecera y su vuelta arriba. El
   icono no se escala fuera de su caja.
 - **Color:** el archivo no se recolorea. La máscara de `web/public/icons/icons.css` pinta el

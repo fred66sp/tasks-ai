@@ -63,10 +63,10 @@ export const TagPickerField = {
   <div class="tag-manager-chip-input">
     <span v-for="tag in modelValue" :key="tag" class="tag-manager-chip"><span class="tag-manager-chip-dot"
         :style="{ '--tag-color': tagColor(tag) }"></span>{{ tag }}<button type="button" :aria-label="'Retirar ' + tag"
-        :disabled="busy" @click="remove(tag)">×</button></span>
+        :disabled="busy" @click="remove(tag)"><tk-icon name="x-mark" /></button></span>
     <span v-show="!modelValue.length">Sin etiquetas</span>
     <button class="tk-icon-button tk-icon-button--compact tag-manager-add" type="button" aria-label="Añadir etiqueta"
-      :disabled="busy" @click.stop="open = !open">+</button>
+      :disabled="busy" @click.stop="open = !open"><tk-icon name="plus" /></button>
     <div v-show="open" class="tag-manager-picker" role="dialog" aria-label="Seleccionar etiqueta existente" @click.stop>
       <input v-model="search" class="tk-input tag-manager-picker-search" type="search" placeholder="Buscar etiquetas"
         aria-label="Buscar etiquetas existentes">

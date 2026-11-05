@@ -93,8 +93,8 @@ prefijo con el que se compusieron las referencias de sus tareas.
 El número se asigna dentro de la transacción que crea el ADR y no se reutiliza; el
 `slug` y el número no cambian nunca. No hay borrado. Un ADR pasa a `superseded` con un
 sustituto que existe, que no es él mismo y que no lo sustituye ya: la cadena de
-sustituciones no admite ciclos, y un rechazo no escribe nada. El cuerpo —título,
-`context`, `decision`, `consequences` y `alternatives`— se congela al salir de
+sustituciones no admite ciclos, y un rechazo no escribe nada. El cuerpo (título,
+`context`, `decision`, `consequences` y `alternatives`) se congela al salir de
 `proposed`: después solo se admiten cambios de estado y añadidos fechados en
 `more_info`. Un cambio de decisión se publica como ADR nuevo que sustituye al anterior.
 
@@ -127,7 +127,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `tags` responde el catálogo ordenado por nombre, cada etiqueta con su identidad
   interna, su nombre, su color, su descripción y el número de tareas que la usan.
 - `tag create` crea una etiqueta y responde con la guardada: el color que falta es el
-  de por omisión de la paleta, un color desconocido es entrada inválida —código `2`— y
+  de por omisión de la paleta, un color desconocido es entrada inválida (código `2`) y
   un nombre que ya existe lo rechaza la regla que lo impone —código `1`—.
 - `tag edit` cambia solo lo que se pide, como `update` cambia una tarea, y responde con
   la etiqueta tal como queda. Un cambio sin ningún campo es entrada inválida, un nombre
@@ -146,7 +146,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - `update --status` cambia el estado: `in_progress` pone la tarea en curso y solo
   cabe desde `open`, y `open` la devuelve a pendiente —desde `done` es reabrir, y le
   quita el motivo de cierre—. `done` no se pone por el cambio: cerrar va por `close`,
-  con su motivo, y pedirlo se rechaza como entrada inválida —código `2`— sin tocar la
+  con su motivo, y pedirlo se rechaza como entrada inválida (código `2`) sin tocar la
   tarea.
 - `update --parent <ref>` cambia el padre de la tarea: la referencia del nuevo padre
   lo asigna a quien no tiene o lo mueve al que se dé, y un valor vacío lo quita y
@@ -166,7 +166,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
 - Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y
   refresca `updated_at`; reabrir la devuelve a `open` y le quita el motivo. Cerrar una
   tarea ya cerrada y reabrir una no cerrada se rechazan. Cerrar una tarea con subtareas
-  abiertas —estado distinto de `done`— se rechaza sin escribir nada, y cerrar una
+  abiertas (estado distinto de `done`) se rechaza sin escribir nada, y cerrar una
   subtarea no cierra a su padre.
 - `block` deja la primera tarea bloqueada por la segunda y `unblock` retira ese
   bloqueo; las dos responden con la primera tarea tal como queda. Una referencia que
@@ -175,7 +175,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   rechazada no escribe nada.
 - `comment <referencia> --body` añade un comentario a la tarea y responde con la tarea
   tal como queda. El cuerpo es obligatorio: vacío o reducido a espacios es entrada
-  inválida —código `2`— y no escribe nada.
+  inválida (código `2`) y no escribe nada.
 - `comment list <referencia>` responde los comentarios de la tarea, del primero al
   último, cada uno con su `id`, su `body` y su `created_at`. Una referencia que no
   resuelve se rechaza con el código `1`.
@@ -183,7 +183,7 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   con ese número y responde con la tarea tal como queda: la identidad y la fecha del
   comentario no cambian. El `id` se entiende dentro de la tarea: un número que no es de
   ningún comentario de esa tarea se rechaza con el código `1` sin tocar nada, y un cuerpo
-  vacío es entrada inválida —código `2`—. La herramienta no ofrece borrar un comentario:
+  vacío es entrada inválida (código `2`). La herramienta no ofrece borrar un comentario:
   lo que estaba mal se corrige editando su cuerpo.
 - `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix`, `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones y al plugin de OpenCode—, `binary` —el binario copiado en `.tasks-ai/bin/tasks-ai`—, `extension` —la carpeta `.tasks-ai/extensions/pi/` con la extensión del agente—, `opencode` —la carpeta `.tasks-ai/extensions/opencode/` con el plugin del agente OpenCode— y `contract` —el contrato de las etiquetas en `.tasks-ai/CONTRATO_ETIQUETAS.md`—. La instalación deja además el catálogo con el vocabulario del contrato —los ocho tipos y `ODD`, `epic` y `task`—, cada etiqueta con su descripción y su color, y **no pisa lo que el proyecto ya tenga**: una etiqueta que existe conserva nombre, color, descripción y asignaciones. No es repetible sobre una instalación completa: la rechaza. A una instalación anterior, a la que le falta el binario, alguna de las extensiones o el contrato, le añade lo que falta sin tocar lo que tiene, y una intenta anterior dejó a medias se completa sin borrar nada.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
@@ -227,7 +227,7 @@ Un ADR se presenta así:
 - `adr edit <número>` cambia solo lo que nombra, como `update` cambia una tarea. `--note`
   añade una entrada fechada a «Más información»; es la única forma de escribir en el
   cuerpo de un ADR que ya no está en `proposed`, y pedir cualquier otro campo del cuerpo
-  se rechaza como entrada inválida —código `2`— sin escribir nada. `--status` cambia el
+  se rechaza como entrada inválida (código `2`) sin escribir nada. `--status` cambia el
   estado y actualiza `date`; un estado desconocido es entrada inválida, y
   `--status superseded` exige `--superseded-by` con un ADR que exista —si no existe, la
   salida es `1`—, que no sea él mismo y que no forme un ciclo. Un `--superseded-by` sin
@@ -252,14 +252,14 @@ Un ADR se presenta así:
 | `GET /api/tasks` | Lista de tareas |
 | `GET /api/tasks/:ref` | Detalle con bloqueantes, dependientes, hijas y comentarios |
 | `POST /api/tasks` | Crear tarea o subtarea, con las etiquetas que se le den |
-| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad, estado —`open` o `in_progress`— o padre —referencia visible del nuevo padre, o vacío para quitarlo; los rechazos son los del CLI—, y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
+| `PATCH /api/tasks/:ref` | Cambiar título, descripción, notas, responsable, etiquetas, prioridad, estado (`open` o `in_progress`) o padre (referencia visible del nuevo padre, o vacío para quitarlo; los rechazos son los del CLI), y devolver la tarea a `open`; cerrarla tiene su propia ruta, con su motivo. El estado va solo en el cambio: pedirlo junto a cualquier otro campo se rechaza como entrada inválida |
 | `POST /api/tasks/:ref/close` | Cerrar con motivo |
 | `POST /api/tasks/:ref/blockers` | Añadir un bloqueo |
 | `DELETE /api/tasks/:ref/blockers/:blockerRef` | Retirar un bloqueo |
 | `POST /api/tasks/:ref/comments` | Añadir un comentario |
 | `GET /api/tasks/:ref/comments` | Los comentarios de la tarea, del primero al último, con su identidad |
 | `PATCH /api/tasks/:ref/comments/:id` | Cambiar el cuerpo de un comentario, conservando su identidad y su fecha |
-| `GET /api/comments` | Todos los comentarios del proyecto, cada uno con la referencia visible de la tarea que lo lleva —`ref`, `id`, `body`, `created_at`—, agrupados por tarea y del primero al último. Es el índice que el buscador de la interfaz recorre |
+| `GET /api/comments` | Todos los comentarios del proyecto, cada uno con la referencia visible de la tarea que lo lleva (`ref`, `id`, `body`, `created_at`), agrupados por tarea y del primero al último. Es el índice que el buscador de la interfaz recorre |
 | `GET /api/tags` | Catálogo de etiquetas con su uso |
 | `POST /api/tags` | Crear etiqueta |
 | `PATCH /api/tags/:name` | Renombrar, recolorear o describir |
@@ -295,7 +295,7 @@ no pertenece a esa tarea es `404`, y un cuerpo vacío es `400`.
 
 Crear un ADR responde `201` y leerlo o editarlo, `200`; un número que no existe es `404`.
 Un cuerpo congelado, un estado desconocido y una sustitución sin sustituto son entrada
-inválida —`400`—, como en el CLI, y un sustituto que no existe es `404`.
+inválida (`400`), como en el CLI, y un sustituto que no existe es `404`.
 
 `GET /api/adrs?q=…` devuelve solo los ADR que contienen ese texto en alguno de sus
 campos —número, referencia, `slug`, título, estado, fecha, decisores, contexto, decisión,
@@ -429,7 +429,7 @@ ninguna toca la base ni recompone un mensaje del producto.
 
 ### Parámetros y validación
 
-- Las referencias se escriben tal cual las escribe el producto —`tk-18`—: la extensión no
+- Las referencias se escriben tal cual las escribe el producto (`tk-18`): la extensión no
   compone ninguna ni acepta el número interno suelto.
 - Lo que la extensión declara en su esquema es la misma regla que impone el CLI: una
   prioridad de `0` a `3`, un motivo de cierre de los cinco conocidos, un cuerpo de
@@ -458,7 +458,7 @@ quien lea su JSON recibe la tarea completa.
 
 ### Errores
 
-- La salida `2` es el mal uso: una bandera que no encaja o una entrada que el núcleo
+- La salida `2` es el mal uso. Una bandera que no encaja o una entrada que el núcleo
   rechaza como inválida. La salida `1` es el fallo: el proyecto no está instalado, la
   referencia no resuelve, una regla lo impide.
 - Las dos llegan como error de la herramienta con el mensaje del producto tal cual, y con
@@ -482,13 +482,13 @@ La tabla de herramientas es una sola: Pi y OpenCode ofrecen las mismas, con los 
 parámetros y los mismos textos, porque las dos envuelven el mismo CLI y comparten la
 proyección del tablero. Cambian el host, no el contrato.
 
-- **Pi** declara los parámetros con typebox, que le aporta el host, y el resumen del
+- Pi declara los parámetros con typebox, que le aporta el host, y el resumen del
 tablero entra antes de arrancar el agente. Añade el comando `/board` y la línea y el
 bloque del TUI.
-- **OpenCode** declara los parámetros con esquema JSON y el resumen entra en el sistema
+- OpenCode declara los parámetros con esquema JSON y el resumen entra en el sistema
 de cada petición. El host le aporta su paquete de plugins; no tiene TUI ni comando
 propio.
-- **Ninguno de los dos usa el TODO del arnés como registro de trabajo.** En OpenCode,
+- Ninguno de los dos usa el TODO del arnés como registro de trabajo. En OpenCode,
 `.opencode/todo.md` es cuaderno de sesión: el tablero es la única fuente.
 
 ## 8. El texto de las tareas
@@ -506,21 +506,21 @@ los que enseñan qué se rechaza, viven en este documento, que el validador no m
 ### Lo que se rechaza
 
 Las listas se leen sobre el texto tal como se escribe, sin distinguir mayúsculas. Los
-ejemplos que se rechazan son textos que el tablero guardó y hubo que reescribir, salvo el
-nombre de rama, que es el que el repositorio usó; los que se aceptan son textos que el
-tablero ya lleva y la comprobación deja pasar.
+ejemplos que se rechazan muestran la forma de cada lista: el hash es un ejemplo que no
+resuelve a ningún commit y el nombre de rama es el que el repositorio usó; los que se
+aceptan son textos que el tablero ya lleva y la comprobación deja pasar.
 
-**`R1` — un hash de commit.** De siete a cuarenta caracteres hexadecimales, con al menos
+**`R1`: un hash de commit.** De siete a cuarenta caracteres hexadecimales, con al menos
 una letra.
 
 ```text
 \b(?=[0-9a-fA-F]*[a-fA-F])[0-9a-fA-F]{7,40}\b
 ```
 
-- Se rechaza: `acd789f`.
+- Se rechaza: `a1b2c3d`.
 - Se acepta: `hashes de commit, nombres de rama, referencias a commits pendientes`.
 
-**`R2` — el nombre de una rama.** Uno de los prefijos de rama del flujo de Git seguido
+**`R2`: el nombre de una rama.** Uno de los prefijos de rama del flujo de Git seguido
 de su nombre.
 
 ```text
@@ -530,7 +530,7 @@ de su nombre.
 - Se rechaza: `feat/rich-task-text`.
 - Se acepta: `Decidir la proteccion de rama del repositorio`.
 
-**`R3` — una referencia a un remoto.**
+**`R3`: una referencia a un remoto.**
 
 ```text
 \borigin/[a-z0-9][a-z0-9._-]*
@@ -539,7 +539,7 @@ de su nombre.
 - Se rechaza: `origin/HEAD`.
 - Se acepta: `sin referencias de Git`.
 
-**`R4` — una declaración de estado con su marcador.** El marcador va al principio del
+**`R4`: una declaración de estado con su marcador.** El marcador va al principio del
 texto o detrás de un signo de puntuación, seguido de dos puntos.
 
 ```text
@@ -549,7 +549,7 @@ texto o detrás de un signo de puntuación, seguido de dos puntos.
 - Se rechaza: `Hecho: el criterio comprobado contra el binario real`.
 - Se acepta: `El modelo tiene tres estados (abierta, en curso y cerrada)`.
 
-**`R5` — una declaración del estado de la entrega.**
+**`R5`: una declaración del estado de la entrega.**
 
 ```text
 \b(?:sin commitear|sin subir|sin fusionar|pendientes? de commit|pendientes? de push)\b
@@ -581,7 +581,7 @@ escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra e
 
 | Regla | Mensaje |
 |---|---|
-| `R1` | `the description names a commit: "acd789f"; a commit reaches its task through the commit message, with Refs: tk-N` |
+| `R1` | `the description names a commit: "a1b2c3d"; a commit reaches its task through the commit message, with Refs: tk-N` |
 | `R2` | `the notes name a branch: "feat/rich-task-text"; the board does not store Git` |
 | `R3` | `the comment names a remote reference: "origin/HEAD"; the board does not store Git` |
 | `R4` | `the title declares the state of the task: "Hecho:"; state what was done, found or decided instead` |

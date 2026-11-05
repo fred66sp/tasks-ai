@@ -8,10 +8,26 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- El sistema de diseño incorpora la iconografía: el tablero y su documentación usan 23
+  iconos de Heroicons 24/outline desde `web/public/icons/heroicons/`, con su licencia y una
+  única hoja compartida, `web/public/icons/icons.css`. Los componentes y las tres páginas de
+  `docs/web` ya no dibujan trazos propios: consumen el conjunto con una máscara que hereda el
+  color del texto. La guía navegable documenta la selección, dónde se usa cada icono y sus
+  reglas.
 - Los ADR del proyecto viven en el tablero, con las mismas superficies que las tareas: el
   CLI (`adr`), la API HTTP (`/api/adrs`) y la vista de Decisiones de la interfaz.
   `docs/decisions/` pasa a ser su exportación generada, y `adr export --check` detecta la
   deriva entre la base y el directorio versionado.
+
+### Corregido
+
+- La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia
+  de estado del tablero muestra solo su palabra: se retiró el trazo propio que quedaba
+  negro en los dos temas.
+- El desplegable de una tarea gira solo su chevron; antes giraban el botón y el icono, y la
+  flecha quedaba al revés al abrir la tarea.
+- La vuelta arriba de la documentación apunta a un ancla real al principio del documento y
+  no a la cabecera sticky, que siempre estaba en pantalla y dejaba la página donde estaba.
 
 ### Cambiado
 

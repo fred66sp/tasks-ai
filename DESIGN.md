@@ -45,6 +45,23 @@ colors:
   priority-medium: "#fbbf24"
   priority-low: "#60a5fa"
   code-canvas: "#070b16"
+  tag-blue: "#62a7ff"
+  tag-purple: "#b58bff"
+  tag-green: "#58d392"
+  tag-yellow: "#f2bf59"
+  tag-orange: "#ff9a55"
+  tag-red: "#ff7373"
+  notice-surface: "#121c27"
+  notice-panel: "#182431"
+  notice-line: "#344657"
+  notice-ink: "#f3f6f8"
+  notice-ink-muted: "#bac4ce"
+  overlay: "rgba(10, 16, 23, 0.78)"
+  overlay-modal: "rgba(3, 7, 12, 0.78)"
+  badge-border-warning: "rgba(242, 191, 89, 0.25)"
+  badge-border-success: "rgba(88, 211, 146, 0.25)"
+  badge-border-danger: "rgba(255, 115, 115, 0.25)"
+  badge-border-info: "rgba(98, 167, 255, 0.25)"
 typography:
   display:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
@@ -110,6 +127,12 @@ typography:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "14.5px"
     fontWeight: 650
+  task-title:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+    fontSize: "26px"
+    fontWeight: 750
+    lineHeight: 1.24
+    letterSpacing: "-0.02em"
   panel-h3:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
     fontSize: "18px"
@@ -119,8 +142,10 @@ typography:
     fontSize: "21px"
     fontWeight: 700
 rounded:
+  xs: "4px"
   sm: "6px"
   md: "10px"
+  notice: "8px"
   lg: "16px"
   pill: "999px"
 spacing:
@@ -193,14 +218,33 @@ components:
 
 **Creative North Star: "El archivador del proyecto"**
 
-Este documento describe cómo se aplica la identidad ya aprobada en el código que existe: la
-interfaz web que sirve el binario, la guía de uso y la portada. La identidad —símbolo,
-paleta, familias tipográficas y sus normas— es propiedad de
-[`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md); los valores del tema oscuro de la
-interfaz son propiedad de
-[`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css). Aquí se
-lee el conjunto, no se abre una segunda fuente. El frontmatter repite los valores porque el
-formato lo exige; si un número discrepa, manda el archivo que lo define.
+Este documento explica cómo aplicar la identidad aprobada al tablero, la guía de uso y la
+portada. La [guía navegable](docs/web/design-system.html) dibuja las muestras con los valores
+de esas fuentes; este contrato fija las reglas sin abrir una segunda paleta ni describir Tacks
+como producto actual.
+Cada dato se modifica en su fuente responsable:
+
+| Dato | Fuente responsable | Papel de este documento |
+|---|---|---|
+| Zorro, colores y familias de marca | [`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md) | Uso y restricciones; el paquete aprobado no se modifica. |
+| Color, densidad, radios y tipografía del tablero | [`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css) y sus [componentes](web/src/task-manager/styles/components.css) | Criterios de aplicación y correspondencia con la interfaz efectiva. |
+| Temas y composición de la documentación | [`docs/web/index.html`](docs/web/index.html) y [`docs/web/landing.html`](docs/web/landing.html) | Reglas compartidas y excepciones explícitas de cada superficie. |
+| Iconos del producto y la documentación | [`web/public/icons/`](web/public/icons/) y su [`LICENSE`](web/public/icons/heroicons/LICENSE) | Origen único, hoja compartida, tamaño, color y nombre accesible; el archivo no se redibuja. |
+| Capacidades, estados y contratos de tarea | [`docs/PRD.md`](docs/PRD.md) y [`docs/contracts.md`](docs/contracts.md) | Solo representación visual; no redefine el negocio. |
+
+El frontmatter conserva los valores necesarios para las herramientas que leen `DESIGN.md`;
+es una proyección de esas fuentes, no el lugar donde se decide una paleta nueva. Los ejemplos
+de [`.impeccable/design.json`](.impeccable/design.json) son muestras para el panel visual:
+se contrastan con el CSS al cambiarlo, nunca se usan para construir el producto. El HTML
+de Tacks, retirado del repositorio en el commit `cddf4df`, es un antecedente histórico de
+patrones, no un contrato ni una fuente de tokens de tasks-ai.
+
+El contrato [`design-system.json`](design-system.json) proyecta estas fuentes en el esquema
+`design-system.v1`: identidad, tokens del tablero, componentes efectivos y gobernanza. No
+decide por su cuenta ni abre una segunda paleta; una prueba
+(`web/src/task-manager/design-tokens.test.js`) lo contrasta con `tokens.css`, y su puerta es
+`check` de la skill `design-system-architect`. El catálogo sigue siendo la
+[guía navegable](docs/web/design-system.html); el contrato no genera otro.
 
 El mundo es un archivador, no una aplicación: todo el trabajo de un proyecto vive en un cajón
 —`.tasks-ai/`—, y el tablero es el expediente que se consulta. Por eso la pantalla no
@@ -221,7 +265,7 @@ temas, porque un bloque de comandos no cambia de significado según la hora.
 - Densidad funcional: los controles son de 42 px, los compactos de 36 y 24, y las filas del
   árbol de 68; el espacio se gasta en separar grupos, no en aire decorativo.
 - Neutros por capas: el fondo, la barra lateral, la superficie, el realce y la fila
-  seleccionada son cinco pasos del mismo azul nocturno.
+  seleccionada son pasos del mismo azul nocturno.
 - El violeta pertenece a la marca y al foco; cuando escribe, usa su variante legible.
 - Un degradado de marca solo en la portada, y el primario de violeta a azul en la guía y en
   la portada; ninguna otra decoración de color.
@@ -263,9 +307,10 @@ estados que siempre se acompaña de texto.
 - **Superficie** (`#111827`): paneles, modales, tarjetas de documentación en tema oscuro.
 - **Realce** (`#1f2937`): botones secundarios, insignias neutras, superficies elevadas.
 - **Selección** (`#2a3750`): la fila elegida en el árbol y el botón en hover.
-- **Hueco** (`#070b16`): el interior de los campos y el fondo de los bloques de código.
+- **Hueco** (`#070b14` en el tablero, `#070b16` en los bloques de código de la guía):
+  superficies hundidas propias de cada soporte.
 - **Tinta** (`#e5e7eb` / `#c3cad5` / `#94a3b8` / `#6b7688`): texto principal, secundario,
-  apagado y deshabilitado, en cuatro pasos que se distinguen sin mirar el tamaño.
+  apagado y deshabilitado, en pasos que se distinguen sin mirar el tamaño.
 - **Bordes** (`#1e293b` / `#334155` / `#475569`): separación, control y énfasis; también el
   color de la barra de desplazamiento, que se hereda en toda la interfaz.
 - **Día** (`#f8fafc`, `#ffffff`, `#f1f5f9`, `#0f172a`, `#5f6b80`, `#e2e8f0`, `#cbd5e1`): el
@@ -276,7 +321,7 @@ estados que siempre se acompaña de texto.
 **El violeta que escribe.** El violeta de marca (`#8b5cf6`) no lleva texto nunca. Si el
 violeta nombra algo, es `#a78bfa` sobre oscuro o `#6d28d9` sobre claro.
 
-**La gradiente tiene una sola casa.** El degradado de marca —violeta `#8b5cf6`, azul
+**El degradado tiene una sola casa.** El degradado de marca —violeta `#8b5cf6`, azul
 `#3882f6`, cian `#06b6d4`— vive en la portada: la palabra marcada del titular, la malla y la
 regla de dos píxeles que la cierra. En la guía solo el botón primario lleva un degradado, y es
 de violeta a azul. En el tablero no aparece ninguno.
@@ -382,8 +427,8 @@ no entra.
 La forma es de herramienta: esquinas pequeñas y bordes de un píxel. Los controles, las filas y
 las insignias de campo usan 6 px; los paneles, la marca y las tarjetas de la interfaz, 10 px;
 los modales y las tarjetas y tablas de la documentación, 16 px. Las insignias y las etiquetas
-del árbol son píldoras de 999 px. El símbolo de la marca vive en un cuadrado de 38 px —34 en
-la guía— con 10 px de esquina y sin fondo propio.
+del árbol son píldoras de 999 px. El símbolo de la marca vive en un cuadrado de 42 px en la
+cabecera del tablero —34 en la guía— con 10 px de esquina y sin fondo propio.
 
 La geometría que distingue al sistema no es el radio sino la línea: 1 px de borde en todo
 control, 3 px de barra violeta a la izquierda de la fila seleccionada, 2 px de subrayado en la
@@ -420,6 +465,12 @@ fondo, borde y color.
   prioridad tiene su propia rampa —crítica `#f87171`, alta `#fb923c`, media `#fbbf24`, baja
   `#60a5fa`— y las etiquetas del catálogo llevan su color con punto.
 
+El estado persistido de una tarea es `open`, `in_progress` o `done`. «Bloqueada» se calcula a
+partir de sus dependencias; no es un cuarto estado guardado. El árbol combina estado y
+prioridad con palabras y controles, no con un color aislado. El catálogo de etiquetas aporta
+los colores de cada etiqueta: su tono no es un estado ni una prioridad. La semántica de
+estos datos vive en [`docs/PRD.md`](docs/PRD.md), no en las muestras visuales.
+
 ### Cards / Containers
 
 - **Corner Style:** 10 px en la interfaz, 16 px en la documentación.
@@ -440,9 +491,18 @@ fondo, borde y color.
 - **Error / Disabled:** el error se escribe debajo del campo en `#f87171`; lo deshabilitado baja
   a 0,58 de opacidad y no se puede pulsar.
 
+### Notices
+
+Las notificaciones y la confirmación no reutilizan el modal del producto: usan su propio juego
+(`notice-surface`, `notice-panel`, `notice-line`, `notice-ink`) y un radio de 8 px
+(`rounded.notice`), sobre un velo `overlay` con desenfoque. Su dueño es
+`web/src/task-manager/notifications/toast-anchor.js`; aquí solo se declaran los valores. La
+confirmación nombra lo que se pierde y la acción destructiva va en rojo; el aviso emergente
+solo confirma que algo se guardó y no sustituye a un error que exige acción.
+
 ### Navigation
 
-La cabecera de 68 px lleva el símbolo de 38 px, el nombre del producto y una segunda línea de
+La cabecera de 68 px lleva el símbolo de 42 px, el nombre del producto y una segunda línea de
 13 px apagada; a la derecha, acciones compactas. En la interfaz no hay más navegación: el
 árbol es el índice. En la guía la barra superior fija lleva marca, selector de idioma y de
 tema, y el índice lateral marca la sección activa; las pestañas de la interfaz son texto de
@@ -460,6 +520,43 @@ apagados.
 insignia circular de éxito, la sombra flotante y una entrada de 180 ms desde −8 px. Es la única
 confirmación de que algo se guardó.
 
+**El inspector.** Se abre al seleccionar una tarea y permite leer y corregir el expediente;
+en móvil ocupa la pantalla y ofrece una acción para volver al árbol. Los diálogos crean o
+confirman; los filtros y paneles no convierten una edición normal en un modal. Si no hay tarea
+seleccionada, el inspector explica cómo abrirla. Carga, vacío y error conservan el mismo
+marco y una salida comprensible; el indicador de carga y el color de error no sustituyen el
+texto. Los controles que solo muestran un icono tienen nombre accesible y foco visible.
+
+## Iconography
+
+**El trazo es instrumento.** El conjunto de trabajo es una selección cerrada de veintitrés
+iconos de [Heroicons 24/outline](web/public/icons/heroicons/24/outline/): caja de 24,
+`viewBox="0 0 24 24"`, trazo de 1,5 px y extremos y uniones redondeados. La licencia MIT
+viaja con los archivos en [`LICENSE`](web/public/icons/heroicons/LICENSE). La [guía
+navegable](docs/web/design-system.html) cataloga la selección y dice qué control usa cada
+archivo.
+
+- **Tamaño:** en el tablero, 13 px en el botón compacto, 14 px en la acción de limpiar,
+  18 px en la cabecera y el botón de icono, y 24 px en el estado vacío.
+  La documentación usa de 13 a 18 px en sus enlaces, su cabecera y su vuelta arriba. El
+  icono no se escala fuera de su caja.
+- **Color:** el archivo no se recolorea. La máscara de `web/public/icons/icons.css` pinta el
+  trazo con `currentColor`, así que el tono lo decide el control. El violeta de acento solo
+  cuando el control es el acento.
+- **Nombre:** un control de solo icono lleva `aria-label` y `title`; el icono decorativo va
+  con `aria-hidden="true"`. El icono no sustituye a la palabra en crear, cerrar, guardar,
+  eliminar o ejecutar.
+- **Selección:** solo entra un icono que el producto o la documentación use. Cuando se retira
+  el último uso, salen el archivo, su clase y su muestra en la misma unidad; la lista cerrada
+  la contrastan las pruebas con los archivos y con la guía.
+- **Origen:** no se mezcla otro juego ni se redibuja el trazo del archivo. Un icono nuevo se
+  justifica con la superficie que lo adopta.
+
+Los componentes consumen el conjunto con el componente `TkIcon` y la clase `tk-icon--mask`;
+ya no dibujan trazos propios. El tablero y las tres páginas de `docs/web` cargan la misma
+hoja `web/public/icons/icons.css`; el tablero sirve los archivos en `/icons/` y la
+documentación los toma de `web/public/icons/`.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -472,6 +569,8 @@ confirmación de que algo se guardó.
 - **Do** mantener las medidas de densidad: 68 px de fila, 42 px de control, 24 px de sangría,
   8/12/16/20/24 de ritmo.
 - **Do** dejar el código oscuro en los dos temas, con el fondo `#070b16` o `#0a0f1c`.
+- **Do** usar un icono del conjunto cuando la acción sea convencional y acompañarlo de texto
+  en crear, cerrar, guardar, eliminar o ejecutar.
 - **Do** respetar `prefers-reduced-motion`: la entrada de la portada y el pulso del filtro se
   apagan, y el resto de transiciones no pasan de 180 ms.
 
@@ -488,5 +587,7 @@ confirmación de que algo se guardó.
   más de 1 px salvo la barra de 3 px de la fila seleccionada.
 - **Don't** introducir una familia tipográfica nueva ni redistribuir Inter o JetBrains Mono:
   el paquete de marca no las incluye.
+- **Don't** mezclar iconos de otro conjunto, escalar un icono fuera de su caja de 24 ni
+  recolorear un archivo del conjunto.
 - **Don't** redibujar, recolorear ni vectorizar el zorro: el paquete trae el arte bitmap en los
   tamaños que enumera.

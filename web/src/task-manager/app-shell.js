@@ -20,29 +20,20 @@ export const AppShell = {
       </div>
       <div class="workspace-header__actions">
         <button class="tk-button tk-button--ghost tk-button--compact" type="button" aria-label="Actualizar datos"
-          title="Actualizar datos" :disabled="refreshing || loading" @click.stop="reloadWorkspace()"><span
-            class="tk-icon" :class="{ 'is-spinning': refreshing }" aria-hidden="true"><svg viewBox="0 0 24 24">
-              <path d="M20 11a8 8 0 1 1-2.3-5.7M20 4v7h-7" />
-            </svg></span></button>
+          title="Actualizar datos" :disabled="refreshing || loading"
+          @click.stop="reloadWorkspace()"><tk-icon name="arrow-path" :spinning="refreshing" /></button>
         <button class="tk-button tk-button--secondary tk-button--compact" type="button" data-decisions-open=""
           aria-label="Decisiones" title="Decisiones" :disabled="unavailable || loading"
-          @click.stop="isDecisionsOpen = true"><span
-            class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
-              <path d="M7 3h7l4 4v14H7zM14 3v5h4M10 13h5M10 17h5" />
-            </svg></span><span class="tk-button__label">Decisiones</span></button>
+          @click.stop="isDecisionsOpen = true"><tk-icon
+            name="document-text" /><span class="tk-button__label">Decisiones</span></button>
         <button class="tk-button tk-button--secondary tk-button--compact" type="button" data-tag-manager-open=""
           aria-label="Etiquetas" title="Etiquetas" :disabled="unavailable || loading"
-          @click.stop="isTagManagerOpen = true"><span
-            class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
-              <path d="M20 13 12 21l-9-9V3h9l8 8a2 2 0 0 1 0 2Z" />
-              <circle cx="7.5" cy="7.5" r="1" />
-            </svg></span><span class="tk-button__label">Etiquetas</span></button>
+          @click.stop="isTagManagerOpen = true"><tk-icon
+            name="tag" /><span class="tk-button__label">Etiquetas</span></button>
         <button class="tk-button tk-button--primary tk-button--compact" type="button" aria-label="Nueva tarea"
           title="Nueva tarea" :disabled="unavailable || loading"
-          @click.stop="newTaskDraft = emptyTaskDraft(); isNewTaskOpen = true"><span class="tk-icon"
-            aria-hidden="true"><svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" />
-            </svg></span><span class="tk-button__label">Nueva tarea</span></button>
+          @click.stop="newTaskDraft = emptyTaskDraft(); isNewTaskOpen = true"><tk-icon
+            name="plus" /><span class="tk-button__label">Nueva tarea</span></button>
       </div>
     </header>
     <section class="workspace-body">

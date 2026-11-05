@@ -93,14 +93,10 @@ export const TaskInspector = {
             :class="{ 'tk-rich-text--plain': plainText(task.description) }" v-html="descriptionHtml()"></div>
         </div>
         <div class="task-inspector__actions"><button class="tk-button tk-button--secondary tk-button--compact"
-            type="button" title="Editar tarea" @click="emitAction('edit.open')"><span class="tk-icon"
-              aria-hidden="true"><svg viewBox="0 0 24 24">
-                <path d="m4 20 4.5-1 11-11a2 2 0 0 0-3-3l-11 11L4 20Z" />
-              </svg></span>Editar</button><button class="tk-button tk-button--danger tk-button--compact" type="button"
+            type="button" title="Editar tarea" @click="emitAction('edit.open')"><tk-icon
+              name="pencil" />Editar</button><button class="tk-button tk-button--danger tk-button--compact" type="button"
             title="Cerrar tarea" :disabled="task.status === 'done' || busy('close:' + task.id)"
-            @click="emitAction('task.close')"><span class="tk-icon" aria-hidden="true"><svg viewBox="0 0 24 24">
-                <path d="m5 12 4 4L19 6" />
-              </svg></span>Cerrar tarea</button><task-badge kind="status" :value="task.status"></task-badge>
+            @click="emitAction('task.close')"><tk-icon name="check" />Cerrar tarea</button><task-badge kind="status" :value="task.status"></task-badge>
           <overflow-menu :open="menuOpen" :items="menuItems" label="Más opciones de la tarea"
             menu-class="tk-dropdown--inspector" :compact="false" @toggle="emitAction('menu.toggle')"
             @select="selectMenuAction"></overflow-menu>
@@ -280,7 +276,7 @@ export const TaskInspector = {
                   <div class="comment-card__meta"><span v-show="commentMeta(comment)">{{ commentMeta(comment) }}</span><button
                       class="tk-icon-button" type="button" title="Editar comentario" aria-label="Editar comentario"
                       :disabled="busy('comment-edit:' + task.id) || busy('comment:' + task.id)"
-                      @click="emitAction('comment.edit.start', { comment })">✎</button></div>
+                      @click="emitAction('comment.edit.start', { comment })"><tk-icon name="pencil" /></button></div>
                 </template>
               </article>
               <p v-show="!comments.length">Sin comentarios.</p>

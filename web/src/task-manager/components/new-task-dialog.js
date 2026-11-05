@@ -26,7 +26,7 @@ export const NewTaskDialog = {
     @submit.prevent="$emit('submit')">
     <header class="tk-modal__header">
       <h2 id="new-task-title">{{ draft.parent ? 'Nueva subtarea' : 'Nueva tarea' }}</h2><button class="tk-icon-button"
-        type="button" aria-label="Cerrar" @click="$emit('close')">×</button>
+        type="button" aria-label="Cerrar" @click="$emit('close')"><tk-icon name="x-mark" /></button>
     </header>
     <div class="tk-modal__body">
       <div class="form-grid"><label class="tk-field span-2"><span class="tk-field__label">Título</span><input

@@ -155,11 +155,11 @@
   }
   .icon-btn:hover { border-color: var(--border-strong); }
   .icon-btn:active { transform: translateY(1px); }
-  .icon-btn svg { width: 16px; height: 16px; }
+  .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
   :root[data-theme="light"] .icon-sun { display: none; }
   :root[data-theme="dark"] .icon-moon { display: none; }
   /* Entrada de vuelta a la portada, en la línea del catálogo de SKILLS-AGP:
-     el lema se retira en pantallas estrechas con la regla de .icon-btn span. */
+     el lema se retira en pantallas estrechas con la regla de .icon-btn span:not(.tk-icon). */
   .catalog-btn { text-decoration: none; }
   .catalog-btn:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
 
@@ -259,6 +259,7 @@
     transition: transform .12s, box-shadow .2s, border-color .15s;
   }
   .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn .tk-icon { width: 15px; height: 15px; flex-basis: 15px; }
   .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: var(--shadow); }
   .btn-ghost { background: var(--bg-elev); border-color: var(--border-strong); color: var(--text); }
 
@@ -332,7 +333,7 @@
     border-radius: 10px;
     background: var(--accent-soft); color: var(--accent);
   }
-  .card .card-ico svg { width: 18px; height: 18px; }
+  .card .card-ico .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
 
   .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); box-shadow: var(--shadow); }
   table { width: 100%; border-collapse: collapse; font-size: 15px; }
@@ -413,7 +414,7 @@
   /* Cada ejemplo puede tener su versión en los dos idiomas: se oculta la
      que no toca y el botón de copiar copia la que se ve. */
   .code pre[hidden] { display: none; }
-  .code .copy svg { width: 13px; height: 13px; }
+  .code .copy .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
   /* El código tiene fondo oscuro en los dos temas, así que la paleta de
      MicroLighter es una sola: los nombres de los resaltados son los que
      registra la librería al analizar cada bloque. */
@@ -558,7 +559,7 @@
   .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
   .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
   .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .to-top svg { width: 18px; height: 18px; }
+  .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
   @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
@@ -582,6 +583,8 @@
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }
+  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
+  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
   /* Entrada en cascada del contenido, mismo convenio que el catálogo de
      SKILLS-AGP: los bloques múltiples y los listados se escalonan con --d —
      la posición en el lote que entra, la fija el script— y el resto de
@@ -607,13 +610,16 @@
     .topbar { gap: 8px; }
     .brand-mark { flex: 0 0 auto; }
     .brand-name small { display: none; }
-    .icon-btn span { display: none; }
+    .icon-btn span:not(.tk-icon) { display: none; }
     .lang-switch { flex: 0 0 auto; }
   }
 </style>
+  <!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
+  <link rel="stylesheet" href="../../web/public/icons/icons.css">
 </head>
 <body>
 
+<div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main" data-i18n="header.0">Saltar al contenido</a>
 
 <header class="topbar">
@@ -623,17 +629,17 @@
   </a>
   <span class="topbar-spacer"></span>
   <a class="icon-btn catalog-btn" href="landing.html" aria-label="Volver a la portada" data-aria-en="Back to the landing page">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"></path><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19"></path></svg>
+    <span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span>
     <span data-i18n="header.3">Portada</span>
   </a>
   <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" lang="en">EN</button></div><button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
-    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
+    <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
     <span data-i18n="header.2">Tema</span>
   </button>
 </header>
 
-<section class="hero" id="top">
+<section class="hero">
   <div class="hero-inner">
     <span class="pill" data-i18n="hero.14"><span class="dot" aria-hidden="true"></span>un binario · línea de órdenes y API · una base por proyecto</span>
     <h1 data-i18n="hero.15">Aprende a manejar tasks-ai <span class="grad">de principio a fin</span></h1>
@@ -641,7 +647,8 @@
     <div class="hero-actions">
       <a class="btn btn-primary" href="#empezar" data-i18n="hero.17">Empezar</a>
       <a class="btn btn-ghost" href="#comandos" data-i18n="hero.18">Ver las órdenes</a>
-      <a class="btn btn-ghost" href="landing.html"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 19l-7-7 7-7"></path></svg><span data-i18n="hero.23">Volver a la portada</span></a>
+      <a class="btn btn-ghost" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--arrow-left" aria-hidden="true"></span><span data-i18n="hero.23">Volver a la portada</span></a>
+      <a class="btn btn-ghost" href="design-system.html" data-i18n="hero.25">Sistema de diseño</a>
     </div>
     <div class="status-strip" role="status">
       <span class="status-mark" aria-hidden="true">OK</span>
@@ -666,7 +673,7 @@
     <a href="#limites" data-i18n="hero.11">11. Lo que no hace</a>
     <a href="#errores" data-i18n="hero.12">12. Errores y qué significan</a>
     <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
-    <div class="toc-extra"><a href="landing.html" data-i18n="hero.24">Volver a la portada</a></div>
+    <div class="toc-extra"><a href="landing.html" data-i18n="hero.24">Volver a la portada</a> · <a href="design-system.html" data-i18n="hero.25">Sistema de diseño</a></div>
   </nav>
 
   <main id="main">
@@ -1230,7 +1237,7 @@
 ./tasks-ai comment --body "Test added and green." tk-2
 ./tasks-ai close --reason done tk-2</code></pre>
       </div>
-      <div class="note"><p data-i18n="recetas.14"><strong>Una tarea deja de ser «del agente» en cuanto la escribe.</strong> El responsable es texto libre: si quieres distinguir quién hizo qué, escríbelo con <code>--assignee</code> o déjalo en los comentarios. El producto no guarda un autor por operación.</p></div>
+      <div class="note"><p data-i18n="recetas.14"><strong>Una tarea no pasa a ser «del agente» porque la escriba un agente.</strong> El responsable es texto libre: si quieres distinguir quién hizo qué, escríbelo con <code>--assignee</code> o déjalo en los comentarios. El producto no guarda un autor por operación.</p></div>
     </section>
 
     <section id="interfaz">
@@ -1513,7 +1520,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
 </footer>
 
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba" data-aria-en="Back to top">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+  <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
 </a>
 
 
@@ -1550,6 +1557,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "hero.21": "Every command, every option, every error message and every response on this page was copied from the real binary. Long responses are trimmed to the fields that matter, and the page says when they are.",
  "hero.23": "Back to the landing page",
  "hero.24": "Back to the landing page",
+ "hero.25": "Design system",
  "que-es.2": "What tasks-ai is",
  "que-es.3": "A task manager for the project you are in, not a service you connect to. There is no server to maintain and no account to create: there is a binary and a folder.",
  "que-es.4": "Tasks live in <code>.tasks-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.tasks-ai/</code> folder with it.",
@@ -1632,7 +1640,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.2": "The commands",
  "comandos.3": "They all answer in JSON. Errors are JSON too, with an <code>error</code> object, and the exit code separates two cases: <code>2</code> when the usage or the input is not valid, and <code>1</code> for any other rejection.",
  "comandos.4": "<code>init</code><span class=\"sig\">— installs the product in the project</span>",
- "comandos.5": "Leaves <code>.tasks-ai/</code> with the tag catalogue in place —the eight types and <code>ODD</code>, <code>epic</code> and <code>task</code>, each with its description— and the contract in <code>.tasks-ai/CONTRATO_ETIQUETAS.md</code>, and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything, respecting the tags that already exist. A tree that brings a symbolic link inside <code>.tasks-ai/</code> is rejected: the product does not write through a link.",
+ "comandos.5": "Leaves <code>.tasks-ai/</code> with the tag catalogue in place —the eight types and <code>ODD</code>, <code>epic</code> and <code>task</code>, each with its description— and the contract in <code>.tasks-ai/CONTRATO_ETIQUETAS.md</code>, and returns what it left. With <code>--prefix</code> the prefix of the references is fixed at install time, and asking for one different from the one the settings already have is rejected. It is not repeatable: an installed project rejects it, and a half-finished install is completed without deleting anything, respecting the tags that already exist. A tree that contains a symbolic link inside <code>.tasks-ai/</code> is rejected: the product does not write through a link.",
  "comandos.6": "<code>create</code><span class=\"sig\">— creates a task or a subtask</span>",
  "comandos.7": "The title is mandatory. With <code>--parent</code> the task is born as a subtask of the one given, and with <code>--tags</code> it is born with its tags, separated by commas.",
  "comandos.8": "Option",
@@ -1701,7 +1709,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.76": "<strong>No rejection writes.</strong> An operation that ends with a non-zero code leaves the database as it was: no half-created tasks and no half-written reasons.",
  "comandos.80": "<code>adr</code><span class=\"sig\">— the durable decisions of the project</span>",
  "comandos.81": "An ADR keeps a decision with its context and its consequences. It lives in the same database as the tasks and is written with the product; <code>docs/decisions/</code> is a generated export, versioned so Git keeps the review of every decision.",
- "comandos.82": "The body — title, context, decision, consequences and alternatives — freezes when it leaves <code>proposed</code>: after that only dated additions to <em>more information</em> are accepted, and a change of decision is published as a new ADR that supersedes the previous one. There is no deletion. <code>adr import --dir</code> reads a directory of files and stores the ADRs that are not in the database yet, without duplicating them.",
+ "comandos.82": "The body —title, context, decision, consequences and alternatives— freezes when it leaves <code>proposed</code>: after that only dated additions to <em>more information</em> are accepted, and a change of decision is published as a new ADR that supersedes the previous one. There is no deletion. <code>adr import --dir</code> reads a directory of files and stores the ADRs that are not in the database yet, without duplicating them.",
  "ciclo.2": "The lifecycle",
  "ciclo.3": "Three statuses and two derived rules. Knowing which transitions are legal avoids half of the errors.",
  "ciclo.4": "Pending",
@@ -1740,7 +1748,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "recetas.11": "What has to be readable months later goes in a comment; the plan for the task goes in the notes, which can be replaced without fear.",
  "recetas.12": "Working with an agent",
  "recetas.13": "The product folder carries its own instructions. The agent finds them if the project links them, and from there it uses the same commands a person does: there is no separate surface for it.",
- "recetas.14": "<strong>A task stops being \"the agent's\" the moment it writes one.</strong> The assignee is free text: if you want to tell who did what, write it with <code>--assignee</code> or leave it in the comments. The product does not store an author per operation.",
+ "recetas.14": "<strong>A task does not become \"the agent's\" just because an agent writes it.</strong> The assignee is free text: if you want to tell who did what, write it with <code>--assignee</code> or leave it in the comments. The product does not store an author per operation.",
  "interfaz.2": "The web interface",
  "interfaz.3": "The same database, in the browser. There is nothing to build and nothing to install: the interface travels inside the binary.",
  "interfaz.4": "The address and port come from <code>settings.json</code>. The root answers with a redirect to the interface —code <code>302</code>— so opening <code>http://127.0.0.1:8890/</code> is enough.",
@@ -1814,7 +1822,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "agente.10": "The package <code>init</code> left is registered in the project with the first command and removed with the second:",
  "agente.11": "With the package registered, start Pi from the project root: the extension finds the board by walking up from the working directory, just like the CLI, and runs the installed binary or, if it is missing, the one on the <code>PATH</code>.",
  "agente.12": "The context the agent receives",
- "agente.13": "The board is a projection: reference, title, status, blocking status, priority, parent and tags. It includes no descriptions, notes or comments.",
+ "agente.13": "The board is a projection: reference, title, status, whether it is blocked, priority, parent and tags. It includes no descriptions, notes or comments.",
  "agente.14": "The tree is trimmed to 40 tasks, with a notice of how many are left out. The lists of tasks in progress and tasks you can start are trimmed to 8 each.",
  "agente.15": "When you request a task's detail, you receive its full description and the 10 most recent comments. These limits belong to the extensions: the CLI still returns everything.",
  "agente.16": "What it does not do",
@@ -1927,8 +1935,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
   var root = document.documentElement;
   var EN = JSON.parse(document.getElementById("tasks-ai-en").textContent);
 
-  var COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-  var CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  var COPY_ICON = '<span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>';
+  var CHECK_ICON = '<span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>';
 
   // El texto original de cada nodo se guarda una vez: cambiar de idioma es
   // devolverlo tal cual, no volver a traducir al español.

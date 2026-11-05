@@ -124,13 +124,15 @@
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }
+  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
+  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
 
   /* Cabecera: la misma de la guía, con los enlaces de sección de la portada. */
   .topbar {
     position: sticky; top: 0; z-index: 40;
     display: flex; align-items: center; gap: 16px;
     padding: 12px clamp(16px, 4vw, 40px);
-    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
     -webkit-backdrop-filter: saturate(180%) blur(14px);
     backdrop-filter: saturate(180%) blur(14px);
     border-bottom: 1px solid var(--line);
@@ -146,13 +148,15 @@
   .brand-mark .brand-icon-dark { display: none; }
   :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
   :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
-  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
+  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; line-height: 1.65; }
   .brand-name small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
   .topbar-spacer { flex: 1; }
-  .site-nav { display: flex; align-items: center; gap: 4px; }
+  .site-nav { display: flex; flex: none; align-items: center; gap: 4px; }
   .site-nav a {
     padding: 8px 10px; border-radius: 6px;
-    color: var(--muted); font-size: 15px; font-weight: 550; text-decoration: none;
+    color: var(--muted); font-size: 15px; font-weight: 550; line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
   }
   .site-nav a:hover { color: var(--text); background: var(--bg-soft); }
   .site-nav a.guide { color: var(--text); }
@@ -174,7 +178,7 @@
   }
   .icon-btn:hover { border-color: var(--line-strong); }
   .icon-btn:active { transform: translateY(1px); }
-  .icon-btn svg { width: 16px; height: 16px; }
+  .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
   :root[data-theme="light"] .icon-sun { display: none; }
   :root[data-theme="dark"] .icon-moon { display: none; }
 
@@ -187,7 +191,7 @@
     text-decoration: none; cursor: pointer;
     transition: background .15s, border-color .15s, transform .12s;
   }
-  .btn svg { flex: none; }
+  .btn .tk-icon { flex: none; width: 15px; height: 15px; flex-basis: 15px; }
   .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); color: #fff; }
   .btn-primary:hover { transform: translateY(-1px); }
   .btn-primary:active { transform: translateY(1px); }
@@ -503,7 +507,7 @@
     transition: opacity .15s, border-color .15s, color .15s;
   }
   .code .copy:hover { border-color: #475569; color: #f8fafc; }
-  .code .copy svg { width: 13px; height: 13px; }
+  .code .copy .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
   .code .copy.copied { color: #34d399; border-color: rgba(52, 211, 153, .45); }
   @media (hover: hover) {
     .code .copy { opacity: 0; }
@@ -543,8 +547,8 @@
   .limits p { margin-top: 3px; font-size: 14px; line-height: 1.55; color: var(--muted); }
   .limits a { font-size: 14px; }
   .text-link { display: inline-flex; align-items: center; gap: 5px; }
-  .text-link svg { flex: none; transition: transform .15s; }
-  .text-link:hover svg { transform: translateX(3px); }
+  .text-link .tk-icon { flex: none; width: 14px; height: 14px; flex-basis: 14px; transition: transform .15s; }
+  .text-link:hover .tk-icon { transform: translateX(3px); }
 
   /* Cierre */
   .close { padding-block: clamp(64px, 9vw, 112px); border-top: 1px solid var(--line); }
@@ -581,7 +585,7 @@
   .foot-links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-left: auto; }
   .foot-links a { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); text-decoration: none; font-weight: 550; }
   .foot-links a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
-  .foot-links svg { width: 13px; height: 13px; }
+  .foot-links .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
 
   /* Vuelta arriba: el mismo botón flotante de SKILLS-AGP, que aparece cuando
      la cabecera ya no se ve. */
@@ -599,7 +603,7 @@
   .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
   .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
   .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .to-top svg { width: 18px; height: 18px; }
+  .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
 
   @media (prefers-reduced-motion: no-preference) {
     .hero-copy > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
@@ -636,9 +640,9 @@
   @media (max-width: 520px) {
     .topbar { gap: 8px; }
     .brand-name small { display: none; }
-    .icon-btn span { display: none; }
+    .icon-btn span:not(.tk-icon) { display: none; }
   }
-  @media (max-width: 1024px) {
+  @media (max-width: 1240px) {
     .site-nav { display: none; }
   }
   @media (max-width: 760px) {
@@ -662,8 +666,11 @@
     .foot-links { margin-left: 0; }
   }
 </style>
+  <!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
+  <link rel="stylesheet" href="../../web/public/icons/icons.css">
 </head>
 <body>
+<div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
 
 <header class="topbar">
@@ -676,19 +683,20 @@
     <a href="#producto">El producto</a>
     <a href="#agentes">Agentes</a>
     <a href="#empezar">Empezar</a>
+    <a href="design-system.html">Sistema de diseño</a>
     <a class="guide" href="index.html">Guía de uso</a>
   </nav>
   <!-- Selector visual: la portada no tiene versión inglesa, así que EN no lleva manejador. -->
   <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
   <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
+        <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
     <span>Tema</span>
   </button>
 </header>
 
 <main id="main">
-  <section class="hero" id="top">
+  <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <h1>Tu tablero vive en tu <span class="mark">proyecto.</span></h1>
@@ -696,7 +704,7 @@
         <div class="hero-actions">
           <a class="btn btn-primary" href="#empezar">Empezar en dos minutos</a>
           <a class="btn btn-ghost" href="index.html">Leer la guía
-            <svg class="arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+            <span class="tk-icon tk-icon--mask tk-icon--arrow-right arrow" aria-hidden="true"></span>
           </a>
         </div>
         <p class="spec-line"><span>Go</span><span>SQLite</span><span>JSON</span><span>API HTTP</span><span>interfaz incluida</span></p>
@@ -911,7 +919,7 @@
 
       <div class="start-cta">
         <a class="btn btn-primary" href="index.html">Abrir la guía completa
-          <svg class="arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+          <span class="tk-icon tk-icon--mask tk-icon--arrow-right arrow" aria-hidden="true"></span>
         </a>
         <p>La guía repasa cada orden, cada opción y cada mensaje de error, copiados del binario real.</p>
       </div>
@@ -924,7 +932,7 @@
         <h2>Lo que no hace.</h2>
         <p class="sub">También está en la guía. Mejor saberlo antes de instalar nada.</p>
         <p class="aside-note"><a class="text-link" href="index.html#limites">Los límites completos, en la guía
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h10M8.5 4l4 4-4 4"></path></svg>
+          <span class="tk-icon tk-icon--mask tk-icon--arrow-right arrow" aria-hidden="true"></span>
         </a></p>
       </div>
       <ul class="limits">
@@ -968,16 +976,17 @@
     <p class="foot-note">Este repositorio se gobierna con su propio tablero.</p>
     <nav class="foot-links" aria-label="Enlaces">
       <a href="index.html">Guía de uso</a>
+      <a href="design-system.html">Sistema de diseño</a>
       <a href="../../CHANGELOG.md">Changelog</a>
       <a href="#top">Arriba
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M4 7l4-4 4 4"></path></svg>
+        <span class="tk-icon tk-icon--mask tk-icon--arrow-up" aria-hidden="true"></span>
       </a>
     </nav>
   </div>
 </footer>
 
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba" title="Volver arriba">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+  <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
 </a>
 
 <script>
@@ -1029,8 +1038,8 @@
   });
 
   // Botón de copiar en cada bloque de código, como en la guía.
-  var COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 3.5v-1a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1"></path></svg>';
-  var CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5"></path></svg>';
+  var COPY = '<span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>';
+  var CHECK = '<span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>';
 
   document.querySelectorAll(".code").forEach(function (block) {
     var pre = block.querySelector("pre");

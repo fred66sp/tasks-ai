@@ -1,0 +1,1447 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Sistema de diseño de tasks-ai: fundamentos, componentes, patrones y estados del tablero.">
+  <link rel="icon" type="image/png" sizes="32x32" href="../tasks-ai-brand/favicons/favicon-32.png">
+  <!-- Las muestras usan el CSS del tablero, no una copia: este enlace es la
+       fuente de los componentes y de sus tokens. La guía solo añade su marco. -->
+  <link rel="stylesheet" href="../../web/public/task-manager/app-vue.css">
+  <link rel="stylesheet" href="../../web/public/icons/icons.css">
+  <title>Sistema de diseño · tasks-ai</title>
+  <style>
+    :root {
+      --gutter: clamp(20px, 4.6vw, 64px);
+      --page: #f8fafc;
+      --surface: #ffffff;
+      --raised: #f1f5f9;
+      --ink: #0f172a;
+      --secondary: #334155;
+      --muted: #5f6b80;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --accent: #6d28d9;
+      --accent-soft: rgba(109, 40, 217, .07);
+      --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
+      --topbar-height: 61px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color-scheme: light;
+    }
+    :root[data-theme="dark"] {
+      --page: #0a0f1c;
+      --surface: #111827;
+      --raised: #1f2937;
+      --ink: #e5e7eb;
+      --secondary: #c3cad5;
+      --muted: #94a3b8;
+      --line: #1e293b;
+      --line-strong: #334155;
+      --accent: #a78bfa;
+      --accent-soft: rgba(167, 139, 250, .12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: calc(var(--topbar-height) + 8px); }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+    a:hover { text-decoration-thickness: 2px; }
+    h1, h2, h3, p, figure { margin-top: 0; }
+    code, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    code { font-size: .865em; overflow-wrap: anywhere; }
+    .skip {
+      position: absolute; top: -100px; left: 16px; z-index: 20;
+      padding: 10px 14px; border-radius: 6px; background: var(--surface); color: var(--ink);
+    }
+    .skip:focus { top: 12px; }
+    /* La cabecera es sticky y siempre está en el viewport, así que no sirve
+       como destino de #top: el ancla real vive al principio del documento. */
+    .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
+
+    /* ---------- Estructura ---------- */
+    .shell {
+      display: grid;
+      grid-template-columns: 272px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    .shell > * { min-width: 0; }
+    .rail {
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .rail-inner {
+      position: sticky; top: var(--topbar-height);
+      display: flex; flex-direction: column;
+      max-height: calc(100dvh - var(--topbar-height)); padding: 26px 20px 22px;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+    .brand:hover { text-decoration: none; }
+    .brand-mark {
+      display: block; flex: none; width: 34px; height: 34px;
+      border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
+    }
+    .brand-mark img { width: 100%; height: 100%; display: block; }
+    .brand-mark .brand-icon-dark { display: none; }
+    :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
+    :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
+    .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; }
+    .brand-name small {
+      display: block; font-weight: 500; color: var(--muted);
+      font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .rail-title {
+      margin: 0 0 22px 10px;
+      color: var(--muted); font-size: 12.5px; font-weight: 600;
+    }
+    .rail-chapters { display: grid; gap: 1px; }
+    .rail-chapters a {
+      display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center;
+      padding: 7px 10px; border-radius: 6px;
+      color: var(--secondary); font-size: 14px; font-weight: 500;
+      text-decoration: none;
+    }
+    .rail-chapters a span {
+      color: var(--muted);
+      font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums;
+    }
+    .rail-chapters a:hover { background: var(--raised); color: var(--ink); }
+    .rail-chapters a[aria-current="true"] {
+      background: var(--accent-soft); color: var(--accent); font-weight: 650;
+    }
+    .rail-chapters a[aria-current="true"] span { color: var(--accent); }
+
+    .content { width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px; }
+
+    /* ---------- Cabecera ---------- */
+    .topbar {
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; gap: 16px;
+      padding: 12px clamp(16px, 4vw, 40px);
+      background: color-mix(in srgb, var(--page) 82%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-spacer { flex: 1; }
+    .site-nav { display: flex; flex: none; align-items: center; gap: 4px; }
+    .site-nav a {
+      padding: 8px 10px; border-radius: 6px;
+      color: var(--muted); font-size: 15px; font-weight: 550; line-height: 1.2;
+      text-decoration: none; white-space: nowrap;
+    }
+    .site-nav a:hover { color: var(--ink); background: var(--raised); text-decoration: none; }
+    .lang-switch {
+      display: inline-flex; flex: none;
+      border: 1px solid var(--line); border-radius: 10px;
+      overflow: hidden; background: var(--surface);
+    }
+    .lang-switch button {
+      border: 0; background: transparent; color: var(--muted);
+      font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .05em;
+      padding: 0 12px; height: 36px; cursor: pointer;
+    }
+    .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+    .lang-switch button[aria-disabled="true"] { cursor: default; }
+    .icon-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      flex: none; height: 36px; padding: 0 12px;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: var(--surface); color: var(--ink);
+      font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: border-color .15s, background .15s, transform .1s;
+    }
+    .icon-btn:hover { border-color: var(--line-strong); }
+    .icon-btn:active { transform: translateY(1px); }
+    .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
+    :root[data-theme="light"] .icon-sun { display: none; }
+    :root[data-theme="dark"] .icon-moon { display: none; }
+
+    .to-top {
+      position: fixed; right: clamp(16px, 3vw, 28px); bottom: clamp(16px, 3vw, 28px); z-index: 60;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; padding: 0;
+      border: 1px solid var(--line-strong); border-radius: 50%;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      color: var(--muted); box-shadow: var(--shadow);
+      opacity: 0; visibility: hidden; transform: translateY(10px);
+      transition: opacity .2s, transform .2s, visibility .2s, border-color .15s, color .15s;
+    }
+    .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
+    .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+    .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
+
+    h1 {
+      max-width: 18ch;
+      margin: 60px 0 20px;
+      font-size: clamp(34px, 6vw, 62px);
+      font-weight: 800; line-height: 1.04; letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+    .lead {
+      max-width: 62ch; margin-bottom: 34px;
+      color: var(--secondary); font-size: 18px; line-height: 1.6;
+    }
+    .meta {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px;
+      margin: 0 0 8px; padding: 0;
+      border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+      background: var(--line); list-style: none;
+    }
+    .meta li { padding: 14px 16px; background: var(--surface); }
+    .meta b {
+      display: block; margin-bottom: 3px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .meta span { color: var(--ink); font-size: 14px; font-weight: 600; }
+
+    /* ---------- Capítulos ---------- */
+    section {
+      margin-top: 84px;
+      background-image: radial-gradient(circle at 88% 0, rgb(98 167 255 / .08), transparent 34%);
+    }
+    .chapter-head {
+      display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 0 18px;
+      align-items: start;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .chapter-num {
+      padding-top: 7px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 3.2vw, 40px); font-weight: 750;
+      line-height: 1.1; letter-spacing: -.03em; text-wrap: balance;
+    }
+    .chapter-lead {
+      max-width: 66ch; margin: 0 0 8px;
+      color: var(--secondary); font-size: 16px;
+    }
+    .chapter-body { grid-column: 2; min-width: 0; }
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px; font-weight: 730; letter-spacing: -.012em;
+    }
+
+    /* ---------- Piezas de documentación ---------- */
+    .specimen {
+      margin: 26px 0;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: var(--surface); overflow: hidden;
+    }
+    .specimen__head {
+      display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--raised);
+    }
+    .specimen__label {
+      color: var(--muted);
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      letter-spacing: .11em; text-transform: uppercase;
+    }
+    .specimen__note { color: var(--muted); font-size: 12.5px; text-align: right; }
+    .specimen__body { padding: 24px 18px; }
+
+    .specimen--board { border-color: #243044; background: #0a0f1c; }
+    .specimen--board .specimen__head { border-bottom-color: #1e293b; background: #0e1523; }
+    .specimen--board .specimen__label { color: #94a3b8; }
+    .specimen--board .specimen__note { color: #94a3b8; }
+    .specimen--board .specimen__body { color: #e5e7eb; }
+    .specimen__scroll { overflow-x: auto; }
+
+    table.spec { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
+    table.spec caption {
+      padding-bottom: 10px; text-align: left;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    table.spec th, table.spec td {
+      padding: 11px 12px; border-bottom: 1px solid var(--line);
+      text-align: left; vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    table.spec th {
+      color: var(--muted); font-size: 11.5px; font-weight: 750;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    table.spec tbody tr:last-child td { border-bottom: 0; }
+    table.spec td:first-child { color: var(--ink); font-weight: 600; }
+    table.spec td code { color: var(--secondary); }
+
+    .rule {
+      margin: 0; padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+    .rule h3 { margin-bottom: 5px; }
+    .rule p { max-width: 68ch; margin: 0; color: var(--secondary); }
+
+    .sources {
+      margin: 22px 0; padding: 16px 18px;
+      border: 1px solid var(--line); border-radius: 6px;
+      background: var(--raised); color: var(--secondary); font-size: 14px;
+    }
+    .sources code { overflow-wrap: anywhere; }
+
+    /* ---------- Muestras: iconos ---------- */
+    .icon-group + .icon-group { margin-top: 24px; }
+    .icon-group__title {
+      margin: 0 0 10px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .icon-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 8px; margin: 0; padding: 0; list-style: none;
+    }
+    .icon-item {
+      display: flex; align-items: flex-start; gap: 9px; min-width: 0;
+      padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--surface);
+    }
+    .icon-item .tk-icon { margin-top: 1px; color: var(--secondary); }
+    .icon-item__name {
+      min-width: 0; color: var(--muted);
+      font-family: var(--mono); font-size: 11px; line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+
+    /* ---------- Muestras: tokens ---------- */
+    .ramp { display: grid; gap: 2px; margin: 22px 0; }
+    .ramp__row {
+      display: grid; grid-template-columns: 64px minmax(0, 1fr) 190px 118px;
+      align-items: center; gap: 14px;
+      padding: 8px 10px; border-radius: 6px;
+    }
+    .ramp__row:hover { background: var(--raised); }
+    .ramp__chip {
+      height: 40px; border: 1px solid var(--line-strong); border-radius: 6px;
+      background: var(--swatch);
+    }
+    .ramp__name { font-size: 14px; font-weight: 600; }
+    .ramp__name small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; }
+    .ramp__token { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .ramp__hex { color: var(--secondary); font-family: var(--mono); font-size: 12px; text-align: right; }
+
+    .scale { display: grid; gap: 10px; margin: 22px 0; }
+    .scale__row {
+      display: grid; grid-template-columns: 84px 240px 64px;
+      align-items: center; gap: 14px; font-size: 13px;
+    }
+    .scale__track {
+      display: flex; align-items: center;
+      height: 22px; padding-left: 1px; border-radius: 6px;
+      background: color-mix(in srgb, var(--ink) 7%, transparent);
+    }
+    .scale__bar {
+      height: 22px; border-radius: 6px;
+      background: color-mix(in srgb, var(--accent) 42%, transparent);
+    }
+    .scale__value { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+
+    .radii { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; margin: 22px 0; }
+    .radii figure { margin: 0; }
+    .radii div {
+      width: 74px; height: 74px;
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      background: var(--accent-soft);
+    }
+    .radii figcaption {
+      margin-top: 7px; color: var(--muted);
+      font-family: var(--mono); font-size: 11px; text-align: center;
+    }
+
+    /* ---------- Muestras: el tablero real ----------
+       Las muestras usan las clases y el CSS de web/src/task-manager; la guía
+       solo aporta el marco, los estados forzados y las piezas que el producto
+       construye con estilos en línea (aviso y confirmación). */
+    .stack { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .board-help { color: #94a3b8; font-size: 12.5px; }
+
+    .is-hover.tk-button--primary { background: var(--tk-color-accent-hover); }
+    .is-hover.tk-button--secondary { border-color: var(--tk-color-border-strong); background: var(--tk-color-surface-hover); }
+    .is-hover.tk-button--ghost { background: var(--tk-color-surface-hover); color: var(--tk-color-text-primary); }
+    .is-focus { outline: 2px solid var(--tk-color-accent); outline-offset: 2px; }
+
+    .menu-frame { position: relative; width: 236px; }
+    .menu-frame .tk-dropdown { position: static; display: block; width: 100%; }
+
+    .stage { display: grid; place-items: center; padding: 28px 18px; background: rgba(3, 7, 12, .78); }
+    .stage--blur { backdrop-filter: blur(5px); }
+    /* El modal real mide contra la ventana; la muestra vive dentro de la columna
+       de la guía, así que se limita a su contenedor. */
+    .stage .tk-modal { width: min(620px, 100%); }
+    .drawer-frame { position: relative; height: 900px; overflow: hidden; border-radius: 10px; }
+    .drawer-frame .tag-manager-drawer { position: absolute; top: 0; right: 0; width: min(540px, 100%); height: 100%; }
+
+    .closing {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px 4px;
+      margin-top: 88px; padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted); font-size: 13px;
+    }
+    .closing a {
+      padding: 6px 9px; border-radius: 6px;
+      color: var(--secondary); font-weight: 600; text-decoration: none;
+    }
+    .closing a:hover { background: var(--raised); color: var(--ink); }
+    .closing span { margin-left: auto; }
+
+    /* ---------- Adaptación ---------- */
+    @media (max-width: 1020px) {
+      .shell { grid-template-columns: minmax(0, 1fr); }
+      .rail { border-right: 0; border-bottom: 1px solid var(--line); }
+      .rail-inner { position: static; max-height: none; padding: 16px var(--gutter) 14px; }
+      .rail-title { display: none; }
+      .rail-chapters { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
+      .rail-chapters a { flex: 0 0 auto; grid-template-columns: auto; padding: 6px 10px; }
+      .rail-chapters a span { display: none; }
+      .content { padding-top: 0; }
+      .meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chapter-body { grid-column: 1 / -1; }
+    }
+    @media (max-width: 720px) {
+      h1 { margin-top: 36px; }
+      section { margin-top: 72px; }
+      .site-nav { display: none; }
+      .chapter-head { grid-template-columns: minmax(0, 1fr); }
+      .chapter-num { padding-top: 0; margin-bottom: 6px; }
+      .pair { grid-template-columns: minmax(0, 1fr); }
+      .specimen__head { display: block; padding: 10px 14px; }
+      .specimen__note { display: block; margin-top: 3px; text-align: left; }
+      .specimen__body { padding: 18px 14px; }
+      .ramp__row { grid-template-columns: 44px minmax(0, 1fr); }
+      .ramp__token, .ramp__hex { grid-column: 2; text-align: left; }
+      .scale__row { grid-template-columns: 74px minmax(0, 1fr); }
+      .scale__value { display: none; }
+      .property-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table.spec, table.spec tbody, table.spec tr, table.spec td { display: block; width: 100%; }
+      table.spec thead { display: none; }
+      table.spec tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+      table.spec tr:last-child { border-bottom: 0; }
+      table.spec td { padding: 2px 0; border: 0; }
+      table.spec td:first-child { font-weight: 700; }
+    }
+    @media (max-width: 520px) {
+      .topbar { gap: 8px; }
+      .brand-name small { display: none; }
+      .icon-btn span:not(.tk-icon) { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="top" class="page-top" aria-hidden="true"></div>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="topbar">
+  <a class="brand" href="landing.html">
+    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="../tasks-ai-brand/app-icons/tasks-ai-light-64.png" alt="" width="34" height="34"><img class="brand-icon-dark" src="../tasks-ai-brand/app-icons/tasks-ai-dark-64.png" alt="" width="34" height="34"></span>
+    <span class="brand-name">tasks-ai<small>gestor de tareas local-first</small></span>
+  </a>
+  <span class="topbar-spacer"></span>
+  <nav class="site-nav" aria-label="Documentación">
+    <a href="landing.html">Portada</a>
+    <a href="index.html">Guía de uso</a>
+    <a href="../PRD.md">PRD</a>
+  </nav>
+  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
+  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
+    <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
+    <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
+    <span>Tema</span>
+  </button>
+</header>
+<div class="shell">
+  <aside class="rail" aria-label="Índice del sistema de diseño">
+    <div class="rail-inner">
+      <p class="rail-title">Sistema de diseño</p>
+      <nav class="rail-chapters" aria-label="Capítulos">
+        <a href="#fundamentos"><span>01</span>Fundamentos</a>
+        <a href="#marca"><span>02</span>Marca</a>
+        <a href="#color"><span>03</span>Color</a>
+        <a href="#tipografia"><span>04</span>Tipografía</a>
+        <a href="#espacio"><span>05</span>Espacio y forma</a>
+        <a href="#iconografia"><span>06</span>Iconografía</a>
+        <a href="#acciones"><span>07</span>Acciones y campos</a>
+        <a href="#insignias"><span>08</span>Insignias</a>
+        <a href="#etiquetas"><span>09</span>Etiquetas</a>
+        <a href="#espacio-trabajo"><span>10</span>Espacio de trabajo</a>
+        <a href="#modales"><span>11</span>Modales y avisos</a>
+        <a href="#estados"><span>12</span>Estados</a>
+        <a href="#accesibilidad"><span>13</span>Accesibilidad</a>
+        <a href="#evolucion"><span>14</span>Evolución</a>
+      </nav>
+    </div>
+  </aside>
+
+  <main class="content" id="main">
+    <h1>Un tablero que ordena el trabajo.</h1>
+    <p class="lead">El proyecto vive en una carpeta y el tablero es su expediente. Este documento reúne las piezas que lo componen: los valores que ya usa la interfaz, sus estados y las reglas para cambiarlas sin abrir una segunda fuente.</p>
+    <ul class="meta">
+      <li><b>Superficies</b><span>Tablero · documentación</span></li>
+      <li><b>Temas</b><span>Nocturno · claro y oscuro</span></li>
+      <li><b>Densidad</b><span>Fila 68 px · control 42 px</span></li>
+      <li><b>Contrato</b><span><code>DESIGN.md</code></span></li>
+    </ul>
+
+    <section id="fundamentos" aria-labelledby="fundamentos-t">
+      <div class="chapter-head">
+        <div class="chapter-num">01</div>
+        <div>
+          <h2 id="fundamentos-t">El expediente manda</h2>
+          <p class="chapter-lead">La interfaz existe para encontrar, leer y corregir trabajo. Todo lo que no ayuda a eso ocupa sitio y se retira.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="rule"><h3>Una fila, un expediente</h3><p>El árbol es el índice y el inspector concentra el detalle. La fila ya dice estado, prioridad, tipo y padre; abrirla añade lo que no cabe.</p></div>
+          <div class="rule"><h3>La lectura antes que el adorno</h3><p>Los bordes de un píxel, las medidas repetidas y las capas del mismo azul nocturno construyen la jerarquía. El color solo aparece cuando significa algo.</p></div>
+          <div class="rule"><h3>La persona decide</h3><p>El agente trabaja con la salida JSON del mismo tablero; la persona confirma el alcance y comprueba el resultado. Ninguna muestra de esta página inventa un segundo registro del trabajo.</p></div>
+          <div class="rule"><h3>Un nombre para cada cosa</h3><p>Estado, prioridad, etiqueta y bloqueo son conceptos distintos. El color los acompaña; nunca los sustituye.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="marca" aria-labelledby="marca-t">
+      <div class="chapter-head">
+        <div class="chapter-num">02</div>
+        <div>
+          <h2 id="marca-t">El zorro no se reconstruye</h2>
+          <p class="chapter-lead">Se usa el bitmap aprobado, sin vectorizar, deformar ni recolorear. Para cada fondo se elige el icono del paquete.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="pair">
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Sobre claro</span><span class="specimen__note">180 px</span></div>
+              <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#fff">
+                <img src="../tasks-ai-brand/app-icons/tasks-ai-light-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo claro">
+              </div>
+            </div>
+            <div class="specimen">
+              <div class="specimen__head"><span class="specimen__label">Sobre nocturno</span><span class="specimen__note">180 px</span></div>
+              <div class="specimen__body" style="display:grid;place-items:center;min-height:180px;background:#0a0f1c">
+                <img src="../tasks-ai-brand/app-icons/tasks-ai-dark-180.png" width="120" height="120" alt="Icono aprobado de tasks-ai para fondo oscuro">
+              </div>
+            </div>
+          </div>
+          <div class="sources">Activos y condiciones de uso: <a href="../tasks-ai-brand/README.md">paquete de marca</a>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 38 px con 10 px de esquina en la cabecera del tablero.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="color" aria-labelledby="color-t">
+      <div class="chapter-head">
+        <div class="chapter-num">03</div>
+        <div>
+          <h2 id="color-t">Cinco capas del mismo azul</h2>
+          <p class="chapter-lead">La profundidad no viene de una sombra: viene de apilar neutros del mismo tono. El violeta selecciona y marca el foco; los estados añaden significado con palabra.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Neutros del tablero · siempre nocturnos</caption>
+            <thead><tr><th>Paso</th><th>Papel</th><th>Token</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>Lienzo</td><td>Fondo de la aplicación</td><td><code>--tk-color-canvas</code></td><td><code>#0a0f1c</code></td></tr>
+              <tr><td>Barra lateral</td><td>Explorador y cabecera</td><td><code>--tk-color-sidebar</code></td><td><code>#0e1523</code></td></tr>
+              <tr><td>Superficie</td><td>Paneles, modales, tarjetas</td><td><code>--tk-color-surface</code></td><td><code>#111827</code></td></tr>
+              <tr><td>Realce</td><td>Botón secundario, insignia neutra</td><td><code>--tk-color-surface-raised</code></td><td><code>#1f2937</code></td></tr>
+              <tr><td>Hover</td><td>Fila y botón bajo el puntero</td><td><code>--tk-color-surface-hover</code></td><td><code>#252f3f</code></td></tr>
+              <tr><td>Selección</td><td>Fila elegida en el árbol</td><td><code>--tk-color-surface-selected</code></td><td><code>#2a3750</code></td></tr>
+              <tr><td>Hueco</td><td>Campos y tarjetas de propiedad</td><td><code>--tk-color-surface-inset</code></td><td><code>#070b14</code></td></tr>
+            </tbody>
+          </table>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Las cinco capas, apiladas</span><span class="specimen__note">Sin sombra</span></div>
+            <div class="specimen__body">
+              <div style="display:grid;gap:8px;max-width:520px">
+                <div style="padding:14px 16px;border-radius:6px;background:#0a0f1c;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Lienzo · #0a0f1c</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#0e1523;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Barra lateral · #0e1523</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#111827;border:1px solid #1e293b;color:#94a3b8;font-size:13px">Superficie · #111827</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#1f2937;border:1px solid #334155;color:#94a3b8;font-size:13px">Realce · #1f2937</div>
+                <div style="padding:14px 16px;border-radius:6px;background:#2a3750;border:1px solid rgb(98 167 255 / .38);color:#c3cad5;font-size:13px">Selección · #2a3750</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ramp">
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#8b5cf6"></div><div class="ramp__name">Violeta de marca<small>Pintura del símbolo y del degradado; nunca texto</small></div><div class="ramp__token">--tai-brand-primary</div><div class="ramp__hex">#8b5cf6</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#a78bfa"></div><div class="ramp__name">Violeta que escribe<small>Selección, enlace, foco y botón primario</small></div><div class="ramp__token">--tk-color-accent</div><div class="ramp__hex">#a78bfa</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#6d28d9"></div><div class="ramp__name">Violeta sobre papel<small>La misma tinta en la documentación clara</small></div><div class="ramp__token">--accent (documentación)</div><div class="ramp__hex">#6d28d9</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#3882f6"></div><div class="ramp__name">Azul de apoyo<small>Segunda parada del degradado de marca</small></div><div class="ramp__token">--tai-brand-secondary</div><div class="ramp__hex">#3882f6</div></div>
+            <div class="ramp__row"><div class="ramp__chip" style="--swatch:#06b6d4"></div><div class="ramp__name">Cian de cierre<small>Última parada; nunca comunica estado</small></div><div class="ramp__token">--tai-brand-accent</div><div class="ramp__hex">#06b6d4</div></div>
+          </div>
+
+          <div class="rule"><h3>El violeta de marca no lleva texto</h3><p><code>#8b5cf6</code> se queda en 4,19:1 sobre la superficie nocturna. Cuando el violeta nombra algo, es <code>#a78bfa</code> sobre oscuro o <code>#6d28d9</code> sobre claro.</p></div>
+          <div class="rule"><h3>El degradado tiene una sola casa</h3><p>Vive en la portada: la palabra marcada del titular, la malla y la regla de dos píxeles que la cierra. En el tablero no aparece ninguno.</p></div>
+          <div class="sources">Valores de marca: <a href="../tasks-ai-brand/design/tokens.css"><code>design/tokens.css</code></a>. Neutros y su uso: <code>web/src/task-manager/styles/tokens.css</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tipografia" aria-labelledby="tipografia-t">
+      <div class="chapter-head">
+        <div class="chapter-num">04</div>
+        <div>
+          <h2 id="tipografia-t">Una familia, dos oficios</h2>
+          <p class="chapter-lead">Inter escribe todo lo que se lee. JetBrains Mono se reserva para lo que se mide o se copia: comandos, JSON, rutas y referencias de tarea.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Escala</caption>
+            <thead><tr><th>Rol</th><th>Muestra</th><th>Cuerpo</th><th>Peso</th></tr></thead>
+            <tbody>
+              <tr><td>Titular</td><td style="font-size:28px;font-weight:800;letter-spacing:-.035em;line-height:1.04">El expediente</td><td><code>clamp(34px, 6vw, 62px)</code></td><td>800</td></tr>
+              <tr><td>Sección</td><td style="font-size:21px;font-weight:750;letter-spacing:-.03em">Cinco capas</td><td><code>clamp(28px, 3.2vw, 40px)</code></td><td>750</td></tr>
+              <tr><td>Título de tarea</td><td style="font-size:26px;font-weight:750;letter-spacing:-.02em">Publicar la guía</td><td><code>26px</code></td><td>750</td></tr>
+              <tr><td>Fila del árbol</td><td style="font-size:16px;font-weight:720">Publicar la guía navegable</td><td><code>16px</code></td><td>720</td></tr>
+              <tr><td>Cuerpo</td><td style="font-size:15px">El proyecto vive en una carpeta.</td><td><code>15px / 1.55</code></td><td>400</td></tr>
+              <tr><td>Etiqueta</td><td style="font-size:11px;font-weight:750;letter-spacing:.08em;text-transform:uppercase">Propiedades</td><td><code>11–13px</code></td><td>750</td></tr>
+              <tr><td>Mono</td><td><code style="font-size:14px">tk-234 · open</code></td><td><code>13px / 1.5</code></td><td>400</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>La jerarquía es de peso</h3><p>Dos textos del mismo tamaño se separan por peso antes que por color: fila 720, título 750, insignia 780, titular 800. Nada que nombre algo baja de 500.</p></div>
+          <div class="rule"><h3>El titular no lleva ceja</h3><p>Ni la guía ni la portada ponen una etiqueta pequeña encima de un título. El número de capítulo va al margen, no sobre el texto.</p></div>
+          <div class="rule"><h3>La monoespaciada no disfraza</h3><p>Solo identifica, coteja y copia datos. El texto corrido en mono es un disfraz técnico y no entra.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="espacio" aria-labelledby="espacio-t">
+      <div class="chapter-head">
+        <div class="chapter-num">05</div>
+        <div>
+          <h2 id="espacio-t">Ritmo de herramienta</h2>
+          <p class="chapter-lead">Apretado dentro de un grupo, generoso entre grupos, y siempre más aire encima de un título que debajo. Las medidas del tablero son fijas; el espacio de la documentación se adapta.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="scale">
+            <div class="scale__row"><span>Espacio 2</span><span class="scale__track"><span class="scale__bar" style="width:8px"></span></span><span class="scale__value">8 px</span></div>
+            <div class="scale__row"><span>Espacio 3</span><span class="scale__track"><span class="scale__bar" style="width:12px"></span></span><span class="scale__value">12 px</span></div>
+            <div class="scale__row"><span>Espacio 4</span><span class="scale__track"><span class="scale__bar" style="width:16px"></span></span><span class="scale__value">16 px</span></div>
+            <div class="scale__row"><span>Espacio 5</span><span class="scale__track"><span class="scale__bar" style="width:20px"></span></span><span class="scale__value">20 px</span></div>
+            <div class="scale__row"><span>Espacio 6</span><span class="scale__track"><span class="scale__bar" style="width:24px"></span></span><span class="scale__value">24 px</span></div>
+            <div class="scale__row"><span>Control</span><span class="scale__track"><span class="scale__bar" style="width:42px;height:22px"></span></span><span class="scale__value">42 px</span></div>
+            <div class="scale__row"><span>Fila</span><span class="scale__track"><span class="scale__bar" style="width:68px;height:22px"></span></span><span class="scale__value">68 px</span></div>
+          </div>
+
+          <div class="radii">
+            <figure><div style="border-radius:6px"></div><figcaption>6 · control</figcaption></figure>
+            <figure><div style="border-radius:10px"></div><figcaption>10 · panel</figcaption></figure>
+            <figure><div style="border-radius:16px"></div><figcaption>16 · documento</figcaption></figure>
+            <figure><div style="border-radius:999px;width:74px;height:30px"></div><figcaption>999 · insignia</figcaption></figure>
+          </div>
+
+          <div class="rule"><h3>La geometría que distingue al sistema es la línea</h3><p>1 px de borde en todo control, 3 px de violeta a la izquierda de la fila seleccionada, 2 px de subrayado en la pestaña activa, 1 px discontinuo en el estado vacío y las líneas de anidado al 70 % de opacidad.</p></div>
+          <div class="rule"><h3>La sombra solo flota</h3><p>Si algo no se superpone a la pantalla, no lleva sombra: la profundidad de un panel es su capa neutra. La sombra queda para el modal, el aviso emergente y el menú desplegado.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="iconografia" aria-labelledby="iconografia-t">
+      <div class="chapter-head">
+        <div class="chapter-num">06</div>
+        <div>
+          <h2 id="iconografia-t">El trazo también es herramienta</h2>
+          <p class="chapter-lead">El conjunto de trabajo no es un catálogo completo; son los 23 iconos que el producto y su documentación usan hoy. Salen de Heroicons 24/outline, caja de 24 y trazo de 1,5 px. Heredan el color del control y acompañan a la palabra; no la sustituyen cuando la acción no es convencional.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen">
+            <div class="specimen__head"><span class="specimen__label">Selección de trabajo</span><span class="specimen__note">23 archivos · <code>web/public/icons/heroicons/24/outline/</code></span></div>
+            <div class="specimen__body">
+              <div class="icon-group">
+                <h3 class="icon-group__title">Navegación y estructura</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-left" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-left</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-right" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-right</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-up" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-up</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span>
+                    <span class="icon-item__name">book-open</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-down" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-down</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-right" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-right</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-up</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span>
+                    <span class="icon-item__name">ellipsis-vertical</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Acciones</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--arrow-path" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-path</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>
+                    <span class="icon-item__name">check</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--funnel" aria-hidden="true"></span>
+                    <span class="icon-item__name">funnel</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--magnifying-glass" aria-hidden="true"></span>
+                    <span class="icon-item__name">magnifying-glass</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span>
+                    <span class="icon-item__name">pencil</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span>
+                    <span class="icon-item__name">plus</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>
+                    <span class="icon-item__name">square-2-stack</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span>
+                    <span class="icon-item__name">trash</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span>
+                    <span class="icon-item__name">x-mark</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Visibilidad</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--eye" aria-hidden="true"></span>
+                    <span class="icon-item__name">eye</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--eye-slash" aria-hidden="true"></span>
+                    <span class="icon-item__name">eye-slash</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Tema</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--moon" aria-hidden="true"></span>
+                    <span class="icon-item__name">moon</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--sun" aria-hidden="true"></span>
+                    <span class="icon-item__name">sun</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Objeto y dominio</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--document-text" aria-hidden="true"></span>
+                    <span class="icon-item__name">document-text</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="tk-icon tk-icon--mask tk-icon--tag" aria-hidden="true"></span>
+                    <span class="icon-item__name">tag</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Dónde se usa cada icono</caption>
+            <thead><tr><th>Icono</th><th>Uso en la interfaz y la documentación</th></tr></thead>
+            <tbody>
+              <tr><td><code>arrow-left</code></td><td>Volver a la portada desde la guía.</td></tr>
+              <tr><td><code>arrow-right</code></td><td>Leer la guía y abrir la guía completa en la portada; seguir un enlace de la portada.</td></tr>
+              <tr><td><code>arrow-up</code></td><td>Enlace «Arriba» del pie de la portada.</td></tr>
+              <tr><td><code>arrow-path</code></td><td>Actualizar datos y limpiar los filtros.</td></tr>
+              <tr><td><code>book-open</code></td><td>Volver a la portada desde la cabecera de la guía.</td></tr>
+              <tr><td><code>check</code></td><td>Cerrar una tarea, guardar una decisión y confirmar una copia.</td></tr>
+              <tr><td><code>chevron-down</code></td><td>Plegar y desplegar una decisión.</td></tr>
+              <tr><td><code>chevron-right</code></td><td>Expandir una tarea con subtareas; gira a <code>chevron-down</code> al abrirse.</td></tr>
+              <tr><td><code>chevron-up</code></td><td>Volver arriba en la guía, la portada y el panel de decisiones.</td></tr>
+              <tr><td><code>document-text</code></td><td>Abrir el panel de decisiones.</td></tr>
+              <tr><td><code>ellipsis-vertical</code></td><td>Menú de más opciones de la fila y del listado.</td></tr>
+              <tr><td><code>eye</code> / <code>eye-slash</code></td><td>Mostrar u ocultar las etiquetas de las filas.</td></tr>
+              <tr><td><code>funnel</code></td><td>Abrir los filtros avanzados.</td></tr>
+              <tr><td><code>magnifying-glass</code></td><td>Estado vacío de una búsqueda sin resultados.</td></tr>
+              <tr><td><code>moon</code> / <code>sun</code></td><td>Conmutar el tema en la guía, la portada y esta página.</td></tr>
+              <tr><td><code>pencil</code></td><td>Editar tarea, etiqueta, comentario o decisión.</td></tr>
+              <tr><td><code>plus</code></td><td>Crear tarea, etiqueta o decisión; añadir una etiqueta.</td></tr>
+              <tr><td><code>square-2-stack</code></td><td>Copiar un bloque de código en la guía y la portada.</td></tr>
+              <tr><td><code>tag</code></td><td>Abrir el gestor de etiquetas.</td></tr>
+              <tr><td><code>trash</code></td><td>Eliminar una etiqueta.</td></tr>
+              <tr><td><code>x-mark</code></td><td>Cerrar un panel o un diálogo, cancelar y retirar una etiqueta.</td></tr>
+            </tbody>
+          </table>
+          <table class="spec">
+            <caption>Reglas del conjunto</caption>
+            <thead><tr><th>Regla</th><th>Cómo se cumple</th></tr></thead>
+            <tbody>
+              <tr><td>Origen único</td><td>Heroicons 24/outline; no se mezcla con otro conjunto ni se redibuja un icono.</td></tr>
+              <tr><td>Caja y trazo</td><td><code>viewBox="0 0 24 24"</code>, <code>stroke-width="1.5"</code> y extremos redondeados.</td></tr>
+              <tr><td>Tamaño</td><td>De 12 a 18 px según el control y 24 px en el estado vacío; el icono no se escala fuera de su caja.</td></tr>
+              <tr><td>Color</td><td>Hereda el color del texto con una máscara (<code>currentColor</code>); el tono lo decide el control, no el archivo.</td></tr>
+              <tr><td>Nombre</td><td>Un control de solo icono lleva <code>aria-label</code> y <code>title</code>; el icono decorativo va con <code>aria-hidden="true"</code>.</td></tr>
+              <tr><td>Palabra</td><td>Crear, cerrar, guardar, eliminar y ejecutar llevan texto; el icono los acompaña.</td></tr>
+              <tr><td>Selección</td><td>Solo entra un icono que el producto o la documentación usen; cuando se retira el último uso, salen el archivo y su clase.</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>La lista es cerrada y se poda</h3><p>El tablero y las tres páginas de <code>docs/web</code> cargan <code>web/public/icons/icons.css</code>, que resuelve cada nombre a su archivo. Un icono nuevo se justifica con la superficie que lo adopta y entra con su archivo, su clase y su muestra; si un uso desaparece, el archivo sale en la misma unidad.</p></div>
+          <div class="sources">Origen: <a href="https://heroicons.com/">Heroicons</a>, de Tailwind Labs, licencia MIT. El texto de la licencia viaja con los archivos en <code>web/public/icons/heroicons/LICENSE</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="acciones" aria-labelledby="acciones-t">
+      <div class="chapter-head">
+        <div class="chapter-num">07</div>
+        <div>
+          <h2 id="acciones-t">Herramienta con etiqueta</h2>
+          <p class="chapter-lead">Los controles del tablero se muestran aquí con su CSS y sus clases: misma altura, mismo radio, mismo peso y mismos estados que en la interfaz. Los ejemplos no llaman a la API.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Botones · variantes</span><span class="specimen__note">42 px · radio 6 px · peso 750</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <button class="tk-button tk-button--primary" type="button">Nueva tarea</button>
+                <button class="tk-button tk-button--secondary" type="button">Etiquetas</button>
+                <button class="tk-button tk-button--ghost" type="button">Cancelar</button>
+                <button class="tk-button tk-button--danger" type="button">Cerrar tarea</button>
+                <button class="tk-button tk-button--primary" type="button" disabled>Guardando…</button>
+              </div>
+              <div class="stack" style="margin-top:14px">
+                <button class="tk-button tk-button--secondary tk-button--compact" type="button">Editar</button>
+                <button class="tk-button tk-button--secondary tk-button--compact" type="button">Decisiones</button>
+                <button class="tk-button tk-button--primary tk-button--compact" type="button">Nueva tarea</button>
+                <span class="board-help">Compactos de cabecera · 24 px</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Botón · estados</span><span class="specimen__note">El foco nunca depende del ratón</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <span style="display:grid;gap:8px;justify-items:center"><button class="tk-button tk-button--primary" type="button">Reposo</button><span class="board-help">normal</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="tk-button tk-button--primary is-hover" type="button">Hover</button><span class="board-help">#c4b5fd</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="tk-button tk-button--primary is-focus" type="button">Foco</button><span class="board-help">2 px + 2 px</span></span>
+                <span style="display:grid;gap:8px;justify-items:center"><button class="tk-button tk-button--primary" type="button" disabled>Deshabilitado</button><span class="board-help">opacidad .58</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Campos</span><span class="specimen__note">Fondo hundido · borde 1 px</span></div>
+            <div class="specimen__body">
+              <div class="pair">
+                <label class="tk-field"><span class="tk-field__label">Título</span><input class="tk-input" value="Publicar la guía navegable"><span class="board-help">El foco combina borde violeta y halo de 3 px.</span></label>
+                <label class="task-property-control"><span class="task-property-control__label">Prioridad</span><select class="tk-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select><span class="board-help">El borde izquierdo declara el valor: naranja para alta.</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Pestañas y menú</span><span class="specimen__note">Subrayado de 2 px</span></div>
+            <div class="specimen__body">
+              <div class="pair" style="align-items:start">
+                <div>
+                  <nav class="tk-tabs" aria-label="Pestañas de muestra">
+                    <button class="tk-tab" type="button" aria-pressed="true">Detalle</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Subtareas</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Dependencias</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Comentarios</button>
+                  </nav>
+                  <p class="board-help" style="margin:14px 0 0">La pestaña activa se marca con texto y subrayado, no con una pastilla nueva. El grupo desplaza en horizontal si no cabe.</p>
+                </div>
+                <div>
+                  <div class="menu-frame">
+                    <div class="tk-dropdown" role="menu" aria-label="Opciones de la tarea">
+                      <button class="tk-dropdown__item" type="button" role="menuitem">Editar</button>
+                      <button class="tk-dropdown__item" type="button" role="menuitem">Copiar ID</button>
+                      <button class="tk-dropdown__item tk-dropdown__item--danger" type="button" role="menuitem">Cerrar tarea</button>
+                    </div>
+                  </div>
+                  <p class="board-help" style="margin:10px 0 0">Menú de 10 px de esquina, sombra flotante y la acción destructiva al final.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="insignias" aria-labelledby="insignias-t">
+      <div class="chapter-head">
+        <div class="chapter-num">08</div>
+        <div>
+          <h2 id="insignias-t">Estado no es color</h2>
+          <p class="chapter-lead">El tablero guarda pendiente, en curso y hecha. «Bloqueada» se deriva de las dependencias y se explica; la prioridad y las etiquetas tienen su propia escala.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Insignias · cuatro variantes</span><span class="specimen__note">26 px · píldora</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <span class="tk-badge tk-badge--warning">Pendiente</span>
+                <span class="tk-badge tk-badge--info">En curso</span>
+                <span class="tk-badge tk-badge--success">Hecha</span>
+                <span class="tk-badge tk-badge--danger">Bloqueada</span>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Significado y origen</caption>
+            <thead><tr><th>Insignia</th><th>Origen</th><th>Tratamiento</th></tr></thead>
+            <tbody>
+              <tr><td>Pendiente</td><td><code>status: open</code></td><td><code>tk-badge--warning</code></td></tr>
+              <tr><td>En curso</td><td><code>status: in_progress</code></td><td><code>tk-badge--info</code></td></tr>
+              <tr><td>Hecha</td><td><code>status: done</code></td><td><code>tk-badge--success</code></td></tr>
+              <tr><td>Bloqueada</td><td>Dependencias sin resolver</td><td><code>tk-badge--danger</code></td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>La prioridad tiene su rampa</h3><p>Crítica <code>#f87171</code>, alta <code>#fb923c</code>, media <code>#fbbf24</code> y baja <code>#60a5fa</code>. La etiqueta del catálogo lleva su propio color con punto; su tono no es un estado.</p></div>
+          <div class="rule"><h3>El tono nunca va solo</h3><p>Cada insignia lleva palabra. Los controles del árbol combinan estado y prioridad con texto seleccionable, de modo que un lector de pantalla recibe la misma información que la vista.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="etiquetas" aria-labelledby="etiquetas-t">
+      <div class="chapter-head">
+        <div class="chapter-num">09</div>
+        <div>
+          <h2 id="etiquetas-t">Un color con nombre</h2>
+          <p class="chapter-lead">La etiqueta es catálogo, no estado: su color identifica un tema y se elige de una paleta cerrada. Se asigna en la tarea y se administra en un cajón lateral.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Etiquetas en la fila</span><span class="specimen__note">22 px · punto de 9 px</span></div>
+            <div class="specimen__body">
+              <div class="tag-manager-task-chips">
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff"></span>docs</span>
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #f2bf59"></span>improvement</span>
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #b58bff"></span>ODD</span>
+              </div>
+              <p class="board-help" style="margin:14px 0 0">En el árbol la etiqueta baja a 22 px para no competir con el título. Su color nunca sustituye al nombre.</p>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Campos de etiquetas</span><span class="specimen__note">28 px · retirables</span></div>
+            <div class="specimen__body">
+              <div class="tag-manager-chip-input">
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff"></span>docs<button type="button" aria-label="Retirar docs"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></span>
+                <span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #f2bf59"></span>improvement<button type="button" aria-label="Retirar improvement"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></span>
+                <button class="tk-icon-button tk-icon-button--compact tag-manager-add" type="button" aria-label="Añadir etiqueta"><span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span></button>
+              </div>
+              <p class="board-help" style="margin:14px 0 0">El campo envuelve sus etiquetas y crece en alto. Una etiqueta que no exista en el catálogo se rechaza al guardar.</p>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Gestor de etiquetas · cajón</span><span class="specimen__note">540 px · cabecera 68 px</span></div>
+            <div class="specimen__body" style="padding:16px">
+              <div class="drawer-frame">
+                <aside class="tag-manager-drawer" role="dialog" aria-labelledby="tag-manager-title">
+                  <header class="tag-manager-header">
+                    <div>
+                      <h2 id="tag-manager-title">Gestor de etiquetas</h2>
+                      <p>Catálogo del proyecto</p>
+                    </div>
+                    <button class="tk-icon-button" type="button" aria-label="Cerrar gestor"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button>
+                  </header>
+                  <div class="tag-manager-body">
+                    <div class="tag-manager-toolbar">
+                      <input class="tk-input" type="search" placeholder="Buscar etiquetas" aria-label="Buscar etiquetas">
+                      <button class="tk-button tk-button--secondary tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--plus" aria-hidden="true"></span>Nueva</button>
+                    </div>
+                    <div class="tag-manager-summary"><span>3 etiquetas</span><span>A–Z</span></div>
+                    <div class="tag-manager-list">
+                      <article class="tag-manager-row">
+                        <span class="tag-manager-dot" style="--tag-color: #62a7ff;"></span>
+                        <div class="tag-manager-copy"><div class="tag-manager-name">docs</div><div class="tag-manager-description">Documentación, guías y contratos</div></div>
+                        <span class="tag-manager-uses">7 usos</span>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar docs"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar docs"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
+                      </article>
+                      <article class="tag-manager-row">
+                        <span class="tag-manager-dot" style="--tag-color: #f2bf59;"></span>
+                        <div class="tag-manager-copy"><div class="tag-manager-name">improvement</div><div class="tag-manager-description">Mejora de algo que ya existe</div></div>
+                        <span class="tag-manager-uses">3 usos</span>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar improvement"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar improvement"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
+                      </article>
+                      <article class="tag-manager-row">
+                        <span class="tag-manager-dot" style="--tag-color: #b58bff;"></span>
+                        <div class="tag-manager-copy"><div class="tag-manager-name">ODD</div><div class="tag-manager-description">Trabajo del registro del producto</div></div>
+                        <span class="tag-manager-uses">2 usos</span>
+                        <div class="tag-manager-actions"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Editar ODD"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span></button><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Eliminar ODD"><span class="tk-icon tk-icon--mask tk-icon--trash" aria-hidden="true"></span></button></div>
+                      </article>
+                    </div>
+                    <form class="tag-manager-form">
+                      <div class="tag-manager-form-header"><strong>Nueva etiqueta</strong><button class="tk-icon-button" type="button" aria-label="Cerrar formulario"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></div>
+                      <label class="tag-manager-field"><span class="tag-manager-label">Nombre</span><input class="tk-input" value="release" maxlength="40"></label>
+                      <label class="tag-manager-field"><span class="tag-manager-label">Descripción</span><input class="tk-input" placeholder="Para qué sirve esta etiqueta" maxlength="90"></label>
+                      <fieldset class="tag-manager-field">
+                        <legend class="tag-manager-label">Color</legend>
+                        <div class="tag-manager-colors" role="radiogroup" aria-label="Color de la etiqueta">
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="true" aria-label="Color blue" style="--tag-color: #62a7ff;"></button>
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="false" aria-label="Color purple" style="--tag-color: #b58bff;"></button>
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="false" aria-label="Color green" style="--tag-color: #58d392;"></button>
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="false" aria-label="Color yellow" style="--tag-color: #f2bf59;"></button>
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="false" aria-label="Color orange" style="--tag-color: #ff9a55;"></button>
+                          <button class="tag-manager-color" type="button" role="radio" aria-checked="false" aria-label="Color red" style="--tag-color: #ff7373;"></button>
+                        </div>
+                      </fieldset>
+                      <div class="tag-manager-form-actions"><button class="tk-button tk-button--ghost" type="button">Cancelar</button><button class="tk-button tk-button--primary" type="submit">Guardar</button></div>
+                    </form>
+                  </div>
+                  <footer class="tag-manager-footer">Los usos proceden de las tareas reales.</footer>
+                </aside>
+              </div>
+            </div>
+          </div>
+
+          <table class="spec">
+            <caption>Paleta del catálogo</caption>
+            <thead><tr><th>Color</th><th>Identificador</th><th>Valor</th></tr></thead>
+            <tbody>
+              <tr><td>Azul</td><td><code>blue</code></td><td><code>#62a7ff</code></td></tr>
+              <tr><td>Violeta</td><td><code>purple</code></td><td><code>#b58bff</code></td></tr>
+              <tr><td>Verde</td><td><code>green</code></td><td><code>#58d392</code></td></tr>
+              <tr><td>Amarillo</td><td><code>yellow</code></td><td><code>#f2bf59</code></td></tr>
+              <tr><td>Naranja</td><td><code>orange</code></td><td><code>#ff9a55</code></td></tr>
+              <tr><td>Rojo</td><td><code>red</code></td><td><code>#ff7373</code></td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>El color se elige, no se escribe</h3><p>La paleta vive en el producto y el CLI valida el identificador; la interfaz solo ofrece esos seis. Una etiqueta sin color recibe el azul por omisión.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="espacio-trabajo" aria-labelledby="espacio-trabajo-t">
+      <div class="chapter-head">
+          <div class="chapter-num">10</div>
+          <div>
+            <h2 id="espacio-trabajo-t">Explorador e inspector</h2>
+            <p class="chapter-lead">La pieza que define el producto: una fila por tarea a la izquierda, el expediente completo a la derecha. Selecciona una fila y recorre las pestañas; nada se guarda.</p>
+          </div>
+          <div class="chapter-body">
+            <div class="specimen specimen--board">
+              <div class="specimen__head"><span class="specimen__label">Fila del árbol</span><span class="specimen__note">68 px · 6 columnas · 24 px de sangría</span></div>
+              <div class="specimen__body specimen__scroll" style="padding:16px">
+                <div class="task-tree" role="tree" aria-label="Tareas de muestra">
+                  <article class="task-row task-row--level-1 is-selected" role="treeitem" tabindex="0" aria-level="1" aria-selected="true" aria-expanded="true" data-ref="tk-231" data-type="Épica" data-title="Unificar el sistema de diseño" data-tags="ODD · improvement" data-count="3">
+                    <button class="tree-expander" type="button" aria-expanded="true" aria-label="Contraer subtareas"><span class="tk-icon tk-icon--mask tk-icon--chevron-right" aria-hidden="true"></span></button>
+                    <div class="task-type-icon task-type-icon--epic">E</div>
+                    <div class="task-row__copy">
+                      <div class="task-row__title">Unificar el sistema de diseño</div>
+                      <div class="task-row__meta"><span>tk-231</span><span>Épica</span></div>
+                      <div class="tag-manager-task-chips"><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #b58bff;"></span>ODD</span><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #f2bf59;"></span>improvement</span></div>
+                    </div>
+                    <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-231"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
+                    <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-231"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option></select></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-231"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
+                  </article>
+                  <article class="task-row task-row--level-2" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-234" data-type="Subtarea" data-title="Publicar la guía navegable" data-tags="ODD · docs" data-count="0">
+                    <button class="tree-expander tree-expander--placeholder" type="button" disabled aria-hidden="true" tabindex="-1"></button>
+                    <div class="task-type-icon task-type-icon--subtask">S</div>
+                    <div class="task-row__copy">
+                      <div class="task-row__title">Publicar la guía navegable</div>
+                      <div class="task-row__meta"><span>tk-234</span><span>Subtarea</span></div>
+                      <div class="tag-manager-task-chips"><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #b58bff;"></span>ODD</span><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff;"></span>docs</span></div>
+                    </div>
+                    <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-234"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select>
+                    <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-234"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option></select></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-234"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
+                  </article>
+                  <article class="task-row task-row--level-2" role="treeitem" tabindex="0" aria-level="2" aria-selected="false" data-ref="tk-232" data-type="Subtarea" data-title="Inventariar las fuentes visuales" data-tags="ODD · docs" data-count="0">
+                    <button class="tree-expander tree-expander--placeholder" type="button" disabled aria-hidden="true" tabindex="-1"></button>
+                    <div class="task-type-icon task-type-icon--subtask">S</div>
+                    <div class="task-row__copy">
+                      <div class="task-row__title">Inventariar las fuentes visuales</div>
+                      <div class="task-row__meta"><span>tk-232</span><span>Subtarea</span></div>
+                      <div class="tag-manager-task-chips"><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #b58bff;"></span>ODD</span><span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: #62a7ff;"></span>docs</span></div>
+                    </div>
+                    <select class="tk-select tk-select--compact tk-priority-select task-row__priority" aria-label="Prioridad de tk-232"><option value="0">Crítica</option><option value="1">Alta</option><option value="2" selected>Media</option><option value="3">Baja</option></select>
+                    <div class="task-row__meta-column"><select class="tk-select tk-select--compact" aria-label="Estado de tk-232"><option value="open">Pendiente</option><option value="in_progress">En curso</option><option value="done" selected>Hecha</option></select></div>
+                    <div class="menu-anchor task-row__menu"><button class="tk-icon-button tk-icon-button--compact" type="button" aria-label="Más opciones de tk-232"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button></div>
+                  </article>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="specimen specimen--board">
+              <div class="specimen__head"><span class="specimen__label">Inspector</span><span class="specimen__note">Título 26 px · paneles de 10 px</span></div>
+              <div class="specimen__body" style="padding:0">
+                <div class="task-inspector">
+                  <header class="task-inspector__header">
+                    <div class="task-inspector__heading-row">
+                      <div class="task-inspector__heading">
+                        <div class="task-inspector__kicker" id="is-ref">tk-231 · Épica</div>
+                        <h3 class="task-inspector__title" id="is-title">Unificar el sistema de diseño</h3>
+                        <div class="task-inspector__description">Unificar la guía, el contrato y las superficies en una sola referencia visual.</div>
+                      </div>
+                      <div class="task-inspector__actions">
+                        <button class="tk-button tk-button--secondary tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--pencil" aria-hidden="true"></span>Editar</button>
+                        <button class="tk-button tk-button--danger tk-button--compact" type="button"><span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>Cerrar tarea</button>
+                        <span class="tk-badge tk-badge--info">En curso</span>
+                        <button class="tk-icon-button" type="button" aria-label="Más opciones de la tarea"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical" aria-hidden="true"></span></button>
+                      </div>
+                    </div>
+                    <div class="task-property-bar">
+                      <label class="task-property-control"><span class="task-property-control__label">Prioridad</span><select class="tk-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select></label>
+                      <label class="task-property-control"><span class="task-property-control__label">Estado</span><select class="tk-select"><option value="open">Pendiente</option><option value="in_progress" selected>En curso</option><option value="done">Hecha</option></select></label>
+                      <div class="task-property-control"><span class="task-property-control__label">Responsable</span><span class="task-property-control__value">Sin asignar</span></div>
+                    </div>
+                  </header>
+                  <nav class="tk-tabs task-inspector__tabs" aria-label="Detalles de la tarea">
+                    <button class="tk-tab" type="button" aria-pressed="true">Detalle</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Subtareas</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Dependencias</button>
+                    <button class="tk-tab" type="button" aria-pressed="false">Comentarios</button>
+                  </nav>
+                  <div class="tk-panel-stack" id="is-detail" style="padding:18px 24px 24px">
+                    <section class="tk-panel">
+                      <div class="tk-panel__header"><h3>Propiedades</h3></div>
+                      <div class="tk-panel__content">
+                        <div class="property-grid" id="is-panel-body">
+                          <div class="property-card"><div class="property-card__label">Tipo</div><div class="property-card__value">Épica</div></div>
+                          <div class="property-card"><div class="property-card__label">Etiquetas</div><div class="property-card__value">ODD · improvement</div></div>
+                          <div class="property-card"><div class="property-card__label">Bloqueos</div><div class="property-card__value">0</div></div>
+                          <div class="property-card"><div class="property-card__label">Subtareas</div><div class="property-card__value">3</div></div>
+                        </div>
+                      </div>
+                    </section>
+                    <section class="tk-panel">
+                      <div class="tk-panel__header"><h3>Notas</h3></div>
+                      <div class="tk-panel__content" style="color:var(--tk-color-text-secondary);font-size:15px">El contrato de diseño vive en <code>DESIGN.md</code>; esta guía reúne sus muestras. Una nota de la tarea describe el trabajo, nunca su estado.</div>
+                    </section>
+                  </div>
+                  <p class="empty-state" id="is-panel-note" hidden style="margin:0;padding:18px 24px 24px">Muestra sin datos guardados.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rule"><h3>En móvil, el detalle ocupa la pantalla</h3><p>El explorador conserva su ancho mínimo y la ventana desplaza; al abrir una tarea, el inspector pasa a hoja completa con una acción para volver al árbol. El detalle nunca se convierte en un modal.</p></div>
+            <div class="rule"><h3>El modal no edita</h3><p>Un modal solo crea o confirma: crear tarea, crear etiqueta, borrar. Lo que se edita se edita en el inspector, que es la segunda columna y no interrumpe.</p></div>
+          </div>
+        </div>
+    </section>
+
+    <section id="modales" aria-labelledby="modales-t">
+      <div class="chapter-head">
+        <div class="chapter-num">11</div>
+        <div>
+          <h2 id="modales-t">Interrumpir solo cuando toca</h2>
+          <p class="chapter-lead">El modal crea o confirma; no edita. El aviso emergente dice que algo se guardó. La confirmación destructiva nombra la tarea y lo que se pierde.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Crear tarea · diálogo</span><span class="specimen__note">620 px · radio 16 px · cabecera 62 px</span></div>
+            <div class="specimen__body" style="padding:0">
+              <div class="stage">
+                <div class="tk-modal" role="dialog" aria-labelledby="dlg-new">
+                  <div class="tk-modal__header"><h2 id="dlg-new">Nueva tarea</h2><button class="tk-icon-button" type="button" aria-label="Cerrar"><span class="tk-icon tk-icon--mask tk-icon--x-mark" aria-hidden="true"></span></button></div>
+                  <div class="tk-modal__body">
+                    <label class="tk-field"><span class="tk-field__label">Título</span><input class="tk-input" value="Revisar los enlaces de la guía"></label>
+                    <div class="pair">
+                      <label class="tk-field"><span class="tk-field__label">Prioridad</span><select class="tk-select"><option value="0">Crítica</option><option value="1" selected>Alta</option><option value="2">Media</option><option value="3">Baja</option></select></label>
+                      <label class="tk-field"><span class="tk-field__label">Tarea padre</span><select class="tk-select"><option value="tk-231">tk-231 · Unificar el sistema de diseño</option><option value="">Sin padre</option></select></label>
+                    </div>
+                    <label class="tk-field"><span class="tk-field__label">Descripción</span><textarea class="tk-textarea" rows="3">Comprobar que ninguna ruta se rompe al mover la documentación.</textarea></label>
+                  </div>
+                  <div class="tk-modal__footer"><button class="tk-button tk-button--ghost" type="button">Cancelar</button><button class="tk-button tk-button--primary" type="button">Crear tarea</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Aviso y confirmación</span><span class="specimen__note">toast-anchor · el mismo módulo del producto</span></div>
+            <div class="specimen__body">
+              <div class="stack">
+                <button class="tk-button tk-button--secondary" type="button" id="demo-toast" disabled>Mostrar aviso</button>
+                <button class="tk-button tk-button--danger" type="button" id="demo-confirm" disabled>Abrir confirmación</button>
+              </div>
+              <p class="board-help" style="margin:14px 0 0">El aviso aparece abajo a la derecha y la confirmación sobre la página. Los dibuja <code>toast-anchor</code> con la configuración de <code>web/src/task-manager/notifications/toast-anchor.js</code>; esta guía no los replica. Los botones se activan al abrir la guía desde el servidor.</p>
+            </div>
+          </div>
+
+          <table class="spec">
+            <caption>Cuándo aparece cada uno</caption>
+            <thead><tr><th>Pieza</th><th>Uso</th><th>No se usa para</th></tr></thead>
+            <tbody>
+              <tr><td>Diálogo</td><td>Crear una tarea o una etiqueta</td><td>Editar lo que ya existe</td></tr>
+              <tr><td>Confirmación</td><td>Borrar algo que no se deshace</td><td>Guardar un cambio normal</td></tr>
+              <tr><td>Aviso emergente</td><td>Confirmar que se guardó</td><td>Sustituir un error que necesita acción</td></tr>
+              <tr><td>Hoja lateral</td><td>Administrar el catálogo de etiquetas</td><td>Mostrar el detalle de una tarea</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="estados" aria-labelledby="estados-t">
+      <div class="chapter-head">
+        <div class="chapter-num">12</div>
+        <div>
+          <h2 id="estados-t">También cuando falta algo</h2>
+          <p class="chapter-lead">Carga, vacío y error conservan el mismo marco y una salida comprensible. Ninguno deja la pantalla muda ni inventa un estado nuevo de tarea.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen specimen--board">
+            <div class="specimen__head"><span class="specimen__label">Estados de la superficie</span><span class="specimen__note">Texto antes que color</span></div>
+            <div class="specimen__body">
+              <div class="pair">
+                <div style="display:grid;place-items:center;min-height:190px;padding:24px;border:1px dashed #334155;border-radius:10px;text-align:center">
+                  <div>
+                    <div style="display:grid;place-items:center;width:40px;height:40px;margin:0 auto 10px;border-radius:6px;background:rgb(167 139 250 / .16);color:#e5e7eb;font-weight:850">T</div>
+                    <h3 style="margin-bottom:4px">Selecciona una tarea</h3>
+                    <p style="margin:0;color:#94a3b8;font-size:14px">El detalle aparecerá aquí.</p>
+                  </div>
+                </div>
+                <div style="display:grid;align-content:center;gap:10px;min-height:190px;padding:24px;border:1px solid #1e293b;border-radius:10px;background:#111827">
+                  <h3 style="margin:0">No se pudo leer el tablero</h3>
+                  <p style="margin:0;color:#c3cad5;font-size:14px">La base no responde. Comprueba que <code>.tasks-ai/tasks.db</code> exista y vuelve a intentarlo.</p>
+                  <div class="stack" style="margin-top:4px">
+                    <button class="tk-button tk-button--secondary tk-button--compact" type="button">Reintentar</button>
+                    <span class="board-help">El error dice qué pasó y cómo seguir.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Qué debe existir en cada caso</caption>
+            <thead><tr><th>Situación</th><th>Qué se muestra</th><th>Qué no se hace</th></tr></thead>
+            <tbody>
+              <tr><td>Sin selección</td><td>Explicación y cómo abrir una tarea</td><td>Dejar el panel vacío</td></tr>
+              <tr><td>Cargando</td><td>Indicador con texto de espera</td><td>Sustituir el contenido por un esqueleto mudo</td></tr>
+              <tr><td>Error</td><td>Qué falló, causa y reintento</td><td>Mostrar solo un color de error</td></tr>
+              <tr><td>Sin resultados</td><td>Qué filtro los ocultó y cómo limpiarlo</td><td>Inventar tareas de ejemplo</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="accesibilidad" aria-labelledby="accesibilidad-t">
+      <div class="chapter-head">
+        <div class="chapter-num">13</div>
+        <div>
+          <h2 id="accesibilidad-t">Se entiende sin distinguir el tono</h2>
+          <p class="chapter-lead">Contraste AA, foco visible, recorrido completo por teclado y etiquetas en los campos. En zoom y en móvil se mantiene la lectura y el orden.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Contrato mínimo</caption>
+            <thead><tr><th>Requisito</th><th>Cómo se cumple</th></tr></thead>
+            <tbody>
+              <tr><td>Contraste</td><td>AA en cuerpo y controles; el violeta de texto es <code>#a78bfa</code> sobre oscuro y <code>#6d28d9</code> sobre claro</td></tr>
+              <tr><td>Foco</td><td><code>outline: 2px solid</code> con 2 px de separación; los campos suman halo violeta de 3 px</td></tr>
+              <tr><td>Teclado</td><td>Fila seleccionable con Enter y espacio; Escape cierra menús, cajón y diálogos, y el menú recibe el foco al abrirse</td></tr>
+              <tr><td>Nombre accesible</td><td>Cada control de solo icono lleva <code>aria-label</code>; cada campo, su etiqueta</td></tr>
+              <tr><td>Movimiento</td><td><code>prefers-reduced-motion</code> apaga el desplazamiento suave, el pulso del filtro y las transiciones</td></tr>
+              <tr><td>Reflujo</td><td>320 CSS px sin pérdida de contenido; el tablero conserva su ancho mínimo y desplaza</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>El relleno de un campo no lleva lo imprescindible</h3><p>Su tono es el deshabilitado (<code>#6b7688</code>) y se queda en 4,3:1 sobre el fondo hundido. Ningún dato que haga falta leer vive ahí: siempre está también en la etiqueta o en el valor.</p></div>
+          <div class="rule"><h3>Antes de dar por terminado un patrón</h3><p>Comprueba contraste, teclado, foco visible, reflujo a 320 px, texto al 200 % y los estados vacío, de carga, de error y deshabilitado cuando correspondan.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="evolucion" aria-labelledby="evolucion-t">
+      <div class="chapter-head">
+        <div class="chapter-num">14</div>
+        <div>
+          <h2 id="evolucion-t">Cambiar sin abrir otra fuente</h2>
+          <p class="chapter-lead">Cada dato tiene un dueño. Se modifica allí y después se comprueba en las superficies; esta página muestra la decisión, no la sustituye.</p>
+        </div>
+        <div class="chapter-body">
+          <table class="spec">
+            <caption>Quién posee cada dato</caption>
+            <thead><tr><th>Qué cambia</th><th>Dónde se decide</th><th>Dónde se comprueba</th></tr></thead>
+            <tbody>
+              <tr><td>Zorro y paleta de marca</td><td><code>docs/tasks-ai-brand/</code></td><td>Iconos y temas</td></tr>
+              <tr><td>Iconos</td><td><code>web/public/icons/heroicons/</code> y su <a href="../../web/public/icons/heroicons/LICENSE">licencia</a></td><td>Este capítulo y los componentes que los adoptan</td></tr>
+              <tr><td>Tokens del tablero</td><td><code>web/src/task-manager/styles/tokens.css</code></td><td>Componentes de la interfaz</td></tr>
+              <tr><td>Componentes y estados</td><td><code>web/src/task-manager/styles/</code> y <code>web/public/task-manager/app-vue.css</code></td><td>La guía carga ese CSS y dibuja las muestras con sus clases</td></tr>
+              <tr><td>Uso visual y límites</td><td><code>DESIGN.md</code></td><td>Tablero, portada y guía</td></tr>
+              <tr><td>Estados y capacidades</td><td><a href="../PRD.md">PRD</a> y <a href="../contracts.md">contratos</a></td><td>CLI y tablero real</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>Marca</h3><p>Usa el paquete aprobado. No redibujes el zorro ni cambies su color para adaptarlo a una pantalla.</p></div>
+          <div class="rule"><h3>Interfaz</h3><p>Modifica el token o el componente propietario, contrasta los estados y actualiza <code>DESIGN.md</code> y esta muestra si cambia la regla.</p></div>
+          <div class="rule"><h3>Producto</h3><p>Una función nueva se decide en el tablero y el PRD; una muestra de esta página no la convierte en capacidad implementada.</p></div>
+          <div class="sources">El prototipo de Tacks, retirado del repositorio en el commit <code>cddf4df</code>, es el punto de partida histórico: su paleta, sus exportaciones y sus propuestas Vue/TypeScript no gobiernan tasks-ai.</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="closing"><a href="landing.html">Portada</a><a href="index.html">Guía de uso</a><span>Sistema de diseño de tasks-ai</span></footer>
+  </main>
+</div>
+<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">
+  <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
+</a>
+<script>
+  (() => {
+    const root = document.documentElement;
+    const button = document.getElementById('theme-toggle');
+    const label = (theme) => theme === 'dark' ? 'claro' : 'oscuro';
+    const showTheme = (theme) => {
+      root.dataset.theme = theme;
+      // La luna y el sol se alternan por CSS; el botón anuncia la acción.
+      button.setAttribute('aria-label', `Cambiar a tema ${label(theme)}`);
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
+      showTheme(saved.theme === 'dark' || saved.theme === 'light' ? saved.theme :
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+    } catch { showTheme('light'); }
+    button.addEventListener('click', () => {
+      const theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      showTheme(theme);
+      try {
+        const saved = JSON.parse(localStorage.getItem('tasks-ai:prefs') || '{}');
+        localStorage.setItem('tasks-ai:prefs', JSON.stringify({ ...saved, theme }));
+      } catch { /* La página sigue siendo usable sin almacenamiento. */ }
+    });
+
+    // El índice marca el capítulo que se está leyendo. Se calcula por posición
+    // y no por intersección: dos capítulos pueden cruzarse a la vez y entonces
+    // el último en avisar dejaba marcado el que ya se había leído.
+    const links = [...document.querySelectorAll('.rail-chapters a')];
+    const chapters = links
+      .map((link) => ({ link, el: document.querySelector(link.getAttribute('href')) }))
+      .filter((chapter) => chapter.el);
+    const mark = () => {
+      const line = window.innerHeight * 0.28;
+      let active = null;
+      for (const chapter of chapters) {
+        if (chapter.el.getBoundingClientRect().top <= line) active = chapter;
+      }
+      for (const chapter of chapters) chapter.link.removeAttribute('aria-current');
+      if (active) active.link.setAttribute('aria-current', 'true');
+    };
+    window.addEventListener('scroll', mark, { passive: true });
+    window.addEventListener('resize', mark);
+    mark();
+
+    // Las muestras responden como el tablero, sin tocar datos.
+    const tree = document.querySelector('.task-tree');
+    if (tree) {
+      const rows = [...tree.querySelectorAll('.task-row')];
+      const select = (row) => {
+        rows.forEach((item) => {
+          item.classList.toggle('is-selected', item === row);
+          item.setAttribute('aria-selected', String(item === row));
+        });
+        document.getElementById('is-ref').textContent = `${row.dataset.ref} · ${row.dataset.type}`;
+        document.getElementById('is-title').textContent = row.dataset.title;
+        const cards = document.getElementById('is-panel-body').children;
+        cards[0].lastElementChild.textContent = row.dataset.type;
+        cards[1].lastElementChild.textContent = row.dataset.tags;
+        cards[3].lastElementChild.textContent = row.dataset.count;
+        document.getElementById('is-detail').hidden = false;
+        document.getElementById('is-panel-note').hidden = true;
+        document.querySelectorAll('.task-inspector__tabs .tk-tab').forEach((tab) =>
+          tab.setAttribute('aria-pressed', String(tab.textContent === 'Detalle')));
+      };
+      rows.forEach((row) => {
+        row.addEventListener('click', (event) => { if (!event.target.closest('button, select')) select(row); });
+        row.addEventListener('keydown', (event) => {
+          if (event.target !== row) return;
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(row); }
+        });
+      });
+    }
+
+    document.querySelectorAll('.tk-tabs').forEach((tabs) => {
+      tabs.querySelectorAll('.tk-tab').forEach((tab) => tab.addEventListener('click', () => {
+        tabs.querySelectorAll('.tk-tab').forEach((item) => item.setAttribute('aria-pressed', String(item === tab)));
+        if (!tabs.classList.contains('task-inspector__tabs')) return;
+        const detail = tab.textContent === 'Detalle';
+        document.getElementById('is-detail').hidden = !detail;
+        const note = document.getElementById('is-panel-note');
+        note.hidden = detail;
+        note.textContent = `Vista de ${tab.textContent.toLowerCase()}: muestra sin datos guardados.`;
+      }));
+    });
+
+    const toTop = document.getElementById('to-top');
+    if (toTop) {
+      const updateToTop = () => toTop.classList.toggle('is-visible', window.scrollY > 480);
+      window.addEventListener('scroll', updateToTop, { passive: true });
+      updateToTop();
+    }
+  })();
+</script>
+<script>
+  (() => {
+    const toast = document.getElementById('demo-toast');
+    const confirm = document.getElementById('demo-confirm');
+    import('../../web/src/task-manager/notifications/toast-anchor.js')
+      .then(({ notifySuccess, confirmAction }) => {
+        toast.disabled = false;
+        confirm.disabled = false;
+        toast.addEventListener('click', () => notifySuccess('Tarea guardada'));
+        confirm.addEventListener('click', () => confirmAction(
+          'Eliminar la etiqueta',
+          'Se quitará «docs» de las 7 tareas que la usan. Las tareas no se borran.'
+        ));
+      })
+      .catch(() => {
+        // file:// no carga módulos: los botones quedan deshabilitados.
+      });
+  })();
+</script>
+</body>
+</html>

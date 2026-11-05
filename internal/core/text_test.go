@@ -3,6 +3,9 @@ package core_test
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/store"
@@ -17,11 +20,18 @@ const (
 	fieldNotes       = "notes"
 	fieldComment     = "comment"
 
-	commitText   = "acd789f"
+	commitText   = "a1b2c3d"
 	deliveryText = "sin commitear"
 	noGitRemedy  = "the board does not store Git"
-	stateText    = "Hecho: el criterio comprobado contra el binario real"
 	openStatus   = "open"
+)
+
+// Las tres piezas del contrato que lee el test de los ejemplos: el encabezado
+// de cada regla, el texto que rechaza y el mensaje que le asigna la tabla.
+var (
+	ruleHeading = regexp.MustCompile("(?m)^\\*\\*`(R[0-9]+)`:")
+	ruleExample = regexp.MustCompile("(?m)^- Se rechaza: `([^`]+)`\\.$")
+	ruleMessage = regexp.MustCompile("(?m)^\\| `(R[0-9]+)` \\| `([^`]+)` \\|$")
 )
 
 // aWrite is one of the four paths that write a text in the product, with the
@@ -84,6 +94,49 @@ var theRejectedStates = []aState{
 	},
 }
 
+// contractExamples reads the rejected examples and their messages from the
+// contract, so this test follows the document instead of copying it.
+func contractExamples(t *testing.T) (map[string]string, map[string]string) {
+	t.Helper()
+
+	raw, err := os.ReadFile(filepath.Join("..", "..", "docs", "contracts.md"))
+	if err != nil {
+		t.Fatalf("leyendo el contrato: %v", err)
+	}
+
+	text := string(raw)
+
+	headings := ruleHeading.FindAllStringSubmatchIndex(text, -1)
+	examples := make(map[string]string, len(headings))
+
+	for i, heading := range headings {
+		rule := text[heading[2]:heading[3]]
+
+		end := len(text)
+		if i+1 < len(headings) {
+			end = headings[i+1][0]
+		}
+
+		match := ruleExample.FindStringSubmatch(text[heading[1]:end])
+		if match == nil {
+			t.Fatalf("el contrato no documenta el ejemplo de %s", rule)
+		}
+
+		examples[rule] = match[1]
+	}
+
+	messages := make(map[string]string)
+	for _, match := range ruleMessage.FindAllStringSubmatch(text, -1) {
+		messages[match[1]] = match[2]
+	}
+
+	if len(examples) != 5 || len(messages) != 5 {
+		t.Fatalf("el contrato documenta %d ejemplos y %d mensajes, se esperaban 5 y 5", len(examples), len(messages))
+	}
+
+	return examples, messages
+}
+
 // TestText_rejectsTheExamplesOfTheContractWithTheirMessage recorre el ejemplo
 // que el contrato rechaza en cada lista, en el campo con el que la tabla de
 // mensajes lo escribe, y comprueba el mensaje entero.
@@ -91,50 +144,43 @@ func TestText_rejectsTheExamplesOfTheContractWithTheirMessage(t *testing.T) {
 	t.Parallel()
 
 	apply, task := prepared(t)
+	examples, messages := contractExamples(t)
 
 	tests := []struct {
 		name  string
 		write aWrite
 		field string
-		text  string
-		want  string
+		rule  string
 	}{
 		{
 			name:  "a commit in the description",
 			write: theWrites[0],
 			field: fieldDescription,
-			text:  commitText,
-			want: `the description names a commit: "acd789f"; ` +
-				`a commit reaches its task through the commit message, with Refs: tk-N`,
+			rule:  "R1",
 		},
 		{
 			name:  "a branch in the notes",
 			write: theWrites[0],
 			field: fieldNotes,
-			text:  "feat/rich-task-text",
-			want:  `the notes name a branch: "feat/rich-task-text"; the board does not store Git`,
+			rule:  "R2",
 		},
 		{
 			name:  "a remote reference in the comment",
 			write: theWrites[2],
 			field: fieldComment,
-			text:  "origin/HEAD",
-			want:  `the comment names a remote reference: "origin/HEAD"; the board does not store Git`,
+			rule:  "R3",
 		},
 		{
-			name:  "the state of the task in the description",
+			name:  "the state of the task in the title",
 			write: theWrites[0],
-			field: fieldDescription,
-			text:  stateText,
-			want: `the description declares the state of the task: "Hecho:"; ` +
-				`state what was done, found or decided instead`,
+			field: fieldTitle,
+			rule:  "R4",
 		},
 		{
 			name:  "the state of the delivery in the notes",
 			write: theWrites[1],
 			field: fieldNotes,
-			text:  deliveryText,
-			want:  `the notes declare the state of the delivery: "sin commitear"; the board does not store Git`,
+			rule:  "R5",
 		},
 	}
 
@@ -142,14 +188,16 @@ func TestText_rejectsTheExamplesOfTheContractWithTheirMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := tt.write.write(t, apply, task, tt.field, tt.text)
+			text, want := examples[tt.rule], messages[tt.rule]
+
+			_, err := tt.write.write(t, apply, task, tt.field, text)
 
 			if !errors.Is(err, core.ErrInvalid) {
-				t.Fatalf("%s con %q devolvió %v, se esperaba ErrInvalid", tt.write.name, tt.text, err)
+				t.Fatalf("%s con %q devolvió %v, se esperaba ErrInvalid", tt.write.name, text, err)
 			}
 
-			if err.Error() != tt.want {
-				t.Errorf("el rechazo dice %q, se esperaba %q", err, tt.want)
+			if err.Error() != want {
+				t.Errorf("el rechazo dice %q, se esperaba %q", err, want)
 			}
 		})
 	}
@@ -174,8 +222,8 @@ func TestText_namesTheFirstListThatCatchesTheText(t *testing.T) {
 			name:  "un hash y una rama",
 			write: theWrites[0],
 			field: fieldDescription,
-			text:  "acd789f feat/rich-task-text",
-			want: `the description names a commit: "acd789f"; ` +
+			text:  "a1b2c3d feat/rich-task-text",
+			want: `the description names a commit: "a1b2c3d"; ` +
 				`a commit reaches its task through the commit message, with Refs: tk-N`,
 		},
 		{

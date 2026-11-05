@@ -1,0 +1,991 @@
+{
+  "schema": "design-system.v1",
+  "name": "tasks-ai",
+  "version": "0.1.0",
+  "status": "bootstrap",
+  "identity": {
+    "purpose": "El expediente de un proyecto dentro de una carpeta, leído por una persona y por un agente: un tablero que ordena el trabajo y una documentación que lo explica, sin presentarse a sí mismo.",
+    "principles": [
+      "Archivador antes que escenario: dos columnas, una fila por tarea y un panel de lectura; la rejilla de tarjetas no estructura una página.",
+      "La densidad es parte del sistema: 42 px de control, 68 px de fila y un ritmo de 8/12/16/20/24.",
+      "La profundidad son capas del mismo azul nocturno; la sombra queda para lo que de verdad flota.",
+      "El violeta pertenece a la marca y al foco; cuando escribe, usa su variante legible.",
+      "Ningún estado se comunica solo con color.",
+      "La marca aprobada de docs/tasks-ai-brand/ no se redibuja, recolorea ni vectoriza."
+    ]
+  },
+  "tokens": {
+    "color": {
+      "canvas": {
+        "$type": "color",
+        "$value": "#0a0f1c",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-canvas"
+          }
+        }
+      },
+      "sidebar": {
+        "$type": "color",
+        "$value": "#0e1523",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-sidebar"
+          }
+        }
+      },
+      "surface": {
+        "$type": "color",
+        "$value": "#111827",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface"
+          }
+        }
+      },
+      "surface-raised": {
+        "$type": "color",
+        "$value": "#1f2937",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface-raised"
+          }
+        }
+      },
+      "surface-hover": {
+        "$type": "color",
+        "$value": "#252f3f",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface-hover"
+          }
+        }
+      },
+      "surface-selected": {
+        "$type": "color",
+        "$value": "#2a3750",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface-selected"
+          }
+        }
+      },
+      "surface-alt": {
+        "$type": "color",
+        "$description": "Fila impar del registro, un paso por encima de la superficie.",
+        "$value": "#141c2c",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface-alt"
+          }
+        }
+      },
+      "surface-inset": {
+        "$type": "color",
+        "$description": "Superficie hundida de campos y tarjetas de propiedad.",
+        "$value": "#070b14",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-surface-inset"
+          }
+        }
+      },
+      "text-primary": {
+        "$type": "color",
+        "$value": "#e5e7eb",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-text-primary"
+          }
+        }
+      },
+      "text-secondary": {
+        "$type": "color",
+        "$value": "#c3cad5",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-text-secondary"
+          }
+        }
+      },
+      "text-muted": {
+        "$type": "color",
+        "$value": "#94a3b8",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-text-muted"
+          }
+        }
+      },
+      "text-disabled": {
+        "$type": "color",
+        "$value": "#6b7688",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-text-disabled"
+          }
+        }
+      },
+      "text-inverse": {
+        "$type": "color",
+        "$value": "#0a0f1c",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-text-inverse"
+          }
+        }
+      },
+      "border-subtle": {
+        "$type": "color",
+        "$value": "#1e293b",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-border-subtle"
+          }
+        }
+      },
+      "border-default": {
+        "$type": "color",
+        "$value": "#334155",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-border-default"
+          }
+        }
+      },
+      "border-strong": {
+        "$type": "color",
+        "$value": "#475569",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-border-strong"
+          }
+        }
+      },
+      "accent": {
+        "$type": "color",
+        "$description": "Violeta que escribe: texto, foco, pestaña activa y barra de la fila seleccionada. No es el violeta de marca (#8b5cf6).",
+        "$value": "#a78bfa",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-accent"
+          }
+        }
+      },
+      "accent-hover": {
+        "$type": "color",
+        "$description": "Hover del botón primario.",
+        "$value": "#c4b5fd",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-accent-hover"
+          }
+        }
+      },
+      "accent-soft": {
+        "$type": "color",
+        "$value": "rgba(139, 92, 246, 0.16)",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-accent-soft"
+          }
+        }
+      },
+      "success": {
+        "$type": "color",
+        "$value": "#10b981",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-success"
+          }
+        }
+      },
+      "success-soft": {
+        "$type": "color",
+        "$value": "rgba(16, 185, 129, 0.14)",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-success-soft"
+          }
+        }
+      },
+      "warning": {
+        "$type": "color",
+        "$value": "#f59e0b",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-warning"
+          }
+        }
+      },
+      "warning-soft": {
+        "$type": "color",
+        "$value": "rgba(245, 158, 11, 0.14)",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-warning-soft"
+          }
+        }
+      },
+      "danger": {
+        "$type": "color",
+        "$value": "#f87171",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-danger"
+          }
+        }
+      },
+      "danger-soft": {
+        "$type": "color",
+        "$value": "rgba(239, 68, 68, 0.14)",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-danger-soft"
+          }
+        }
+      },
+      "purple": {
+        "$type": "color",
+        "$description": "Violeta de la rampa de etiquetas; no es el acento.",
+        "$value": "#c4b5fd",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-purple"
+          }
+        }
+      },
+      "purple-soft": {
+        "$type": "color",
+        "$value": "rgba(167, 139, 250, 0.16)",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-color-purple-soft"
+          }
+        }
+      },
+      "priority": {
+        "critical": {
+          "$type": "color",
+          "$value": "#f87171",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-priority-critical"
+            }
+          }
+        },
+        "high": {
+          "$type": "color",
+          "$value": "#fb923c",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-priority-high"
+            }
+          }
+        },
+        "medium": {
+          "$type": "color",
+          "$value": "#fbbf24",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-priority-medium"
+            }
+          }
+        },
+        "low": {
+          "$type": "color",
+          "$value": "#60a5fa",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-priority-low"
+            }
+          }
+        }
+      },
+      "status": {
+        "open": {
+          "$type": "color",
+          "$description": "Estado persistido; la insignia lo acompaña de palabra.",
+          "$value": "{color.warning}",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-status-open"
+            }
+          }
+        },
+        "in-progress": {
+          "$type": "color",
+          "$description": "Estado persistido; la insignia lo acompaña de palabra.",
+          "$value": "{color.accent}",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-status-in-progress"
+            }
+          }
+        },
+        "done": {
+          "$type": "color",
+          "$description": "Estado persistido; la insignia lo acompaña de palabra.",
+          "$value": "{color.success}",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-status-done"
+            }
+          }
+        },
+        "blocked": {
+          "$type": "color",
+          "$description": "Se calcula a partir de las dependencias; no es un estado guardado.",
+          "$value": "{color.danger}",
+          "$extensions": {
+            "tasks-ai": {
+              "cssVar": "--tk-status-blocked"
+            }
+          }
+        }
+      }
+    },
+    "space": {
+      "2": {
+        "$type": "dimension",
+        "$value": "8px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-space-2"
+          }
+        }
+      },
+      "3": {
+        "$type": "dimension",
+        "$value": "12px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-space-3"
+          }
+        }
+      },
+      "4": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-space-4"
+          }
+        }
+      },
+      "5": {
+        "$type": "dimension",
+        "$value": "20px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-space-5"
+          }
+        }
+      },
+      "6": {
+        "$type": "dimension",
+        "$value": "24px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-space-6"
+          }
+        }
+      }
+    },
+    "radius": {
+      "sm": {
+        "$type": "dimension",
+        "$value": "6px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-radius-sm"
+          }
+        }
+      },
+      "md": {
+        "$type": "dimension",
+        "$value": "10px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-radius-md"
+          }
+        }
+      },
+      "lg": {
+        "$type": "dimension",
+        "$value": "16px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-radius-lg"
+          }
+        }
+      },
+      "pill": {
+        "$type": "dimension",
+        "$value": "999px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-radius-pill"
+          }
+        }
+      }
+    },
+    "size": {
+      "control": {
+        "$type": "dimension",
+        "$value": "42px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-control-height"
+          }
+        }
+      },
+      "control-compact": {
+        "$type": "dimension",
+        "$value": "36px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-control-height-compact"
+          }
+        }
+      },
+      "header": {
+        "$type": "dimension",
+        "$value": "68px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-header-height"
+          }
+        }
+      },
+      "tree-row": {
+        "$type": "dimension",
+        "$value": "68px",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-tree-row-height"
+          }
+        }
+      }
+    },
+    "font": {
+      "sans": {
+        "$type": "fontFamily",
+        "$description": "Inter con la pila del sistema; no se redistribuye.",
+        "$value": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-font-sans"
+          }
+        }
+      },
+      "mono": {
+        "$type": "fontFamily",
+        "$description": "JetBrains Mono para lo que se escribe o se mide; no se redistribuye.",
+        "$value": "\"JetBrains Mono\", \"SFMono-Regular\", Consolas, \"Liberation Mono\", monospace",
+        "$extensions": {
+          "tasks-ai": {
+            "cssVar": "--tk-font-mono"
+          }
+        }
+      }
+    }
+  },
+  "themes": {
+    "default": "dark",
+    "modes": {
+      "dark": {}
+    }
+  },
+  "components": {
+    "button": {
+      "description": "Acción con etiqueta: altura completa, radio corto y peso alto, con transición de 120 ms en fondo, borde y color.",
+      "when": [
+        "La acción principal, secundaria, neutra o destructiva de una vista o de una barra de panel."
+      ],
+      "when_not": [
+        "Navegar entre vistas o a otra página: eso es un enlace.",
+        "Sustituir un campo de edición."
+      ],
+      "variants": {
+        "primary": {
+          "backgroundColor": "{color.accent}",
+          "textColor": "{color.text-inverse}",
+          "rounded": "{radius.sm}",
+          "padding": "0 16px",
+          "height": "{size.control}"
+        },
+        "secondary": {
+          "backgroundColor": "{color.surface-raised}",
+          "borderColor": "{color.border-default}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "0 16px",
+          "height": "{size.control}"
+        },
+        "ghost": {
+          "backgroundColor": "transparent",
+          "textColor": "{color.text-secondary}",
+          "rounded": "{radius.sm}",
+          "padding": "0 16px",
+          "height": "{size.control}"
+        },
+        "danger": {
+          "backgroundColor": "{color.danger-soft}",
+          "borderColor": "rgba(255, 115, 115, 0.28)",
+          "textColor": "{color.danger}",
+          "rounded": "{radius.sm}",
+          "padding": "0 16px",
+          "height": "{size.control}"
+        },
+        "compact": {
+          "backgroundColor": "{color.surface-raised}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "0 8px",
+          "height": "24px",
+          "gap": "5px"
+        }
+      },
+      "states": ["default", "hover", "focus", "disabled"]
+    },
+    "icon-button": {
+      "description": "Acción de un solo icono, nombre accesible y foco visible.",
+      "when": [
+        "Una acción secundaria de cabecera, barra de panel o fila, cuando el icono basta."
+      ],
+      "when_not": [
+        "La acción principal de la vista.",
+        "Una acción cuyo significado no quepa en un icono conocido."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "transparent",
+          "textColor": "{color.text-secondary}",
+          "rounded": "{radius.sm}",
+          "width": "38px",
+          "height": "38px"
+        }
+      },
+      "states": ["default", "hover", "focus", "disabled"]
+    },
+    "field": {
+      "description": "Campo de una o varias líneas y selector: fondo hundido, borde de un píxel y foco violeta con halo.",
+      "when": [
+        "Capturar o corregir un dato del expediente."
+      ],
+      "when_not": [
+        "Confirmar una acción: eso es un botón.",
+        "Editar el estado en una fila del árbol: eso es un selector compacto de la propia fila."
+      ],
+      "variants": {
+        "input": {
+          "backgroundColor": "{color.surface-inset}",
+          "borderColor": "{color.border-default}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "0 13px",
+          "height": "{size.control}"
+        },
+        "textarea": {
+          "backgroundColor": "{color.surface-inset}",
+          "borderColor": "{color.border-default}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "12px 13px",
+          "height": "118px"
+        },
+        "select": {
+          "backgroundColor": "{color.surface-inset}",
+          "borderColor": "{color.border-default}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "0 13px",
+          "height": "{size.control}"
+        }
+      },
+      "states": ["default", "hover", "focus", "error", "disabled"]
+    },
+    "tab": {
+      "description": "Pestaña de texto que separa vistas de la misma barra; la activa lleva 2 px de violeta bajo el texto.",
+      "when": [
+        "Alternar vistas de contenido del mismo nivel."
+      ],
+      "when_not": [
+        "Navegar a otra página.",
+        "Filtrar una lista del árbol: el filtro no cambia de vista."
+      ],
+      "variants": {
+        "default": {
+          "textColor": "{color.text-muted}",
+          "padding": "0"
+        },
+        "selected": {
+          "textColor": "{color.text-primary}",
+          "borderColor": "{color.accent}",
+          "borderWidth": "2px"
+        }
+      },
+      "states": ["default", "hover", "selected", "focus"]
+    },
+    "badge": {
+      "description": "Píldora que nombra el estado persistido o la forma de una tarea. Siempre acompaña al texto; nunca comunica sola.",
+      "when": [
+        "Nombrar el estado de una tarea o marcar una condición junto a su título."
+      ],
+      "when_not": [
+        "Sustituir el texto del estado.",
+        "Etiquetar una tarea: eso es una etiqueta del catálogo, no una insignia."
+      ],
+      "variants": {
+        "neutral": {
+          "backgroundColor": "{color.surface-raised}",
+          "borderColor": "{color.border-subtle}",
+          "textColor": "{color.text-secondary}",
+          "rounded": "{radius.pill}",
+          "padding": "2px 9px",
+          "height": "26px"
+        },
+        "success": {
+          "backgroundColor": "{color.success-soft}",
+          "borderColor": "rgba(88, 211, 146, 0.25)",
+          "textColor": "{color.success}",
+          "rounded": "{radius.pill}",
+          "padding": "2px 9px",
+          "height": "26px"
+        },
+        "warning": {
+          "backgroundColor": "{color.warning-soft}",
+          "borderColor": "rgba(242, 191, 89, 0.25)",
+          "textColor": "{color.warning}",
+          "rounded": "{radius.pill}",
+          "padding": "2px 9px",
+          "height": "26px"
+        },
+        "danger": {
+          "backgroundColor": "{color.danger-soft}",
+          "borderColor": "rgba(255, 115, 115, 0.25)",
+          "textColor": "{color.danger}",
+          "rounded": "{radius.pill}",
+          "padding": "2px 9px",
+          "height": "26px"
+        },
+        "info": {
+          "backgroundColor": "{color.accent-soft}",
+          "borderColor": "rgba(98, 167, 255, 0.25)",
+          "textColor": "{color.accent}",
+          "rounded": "{radius.pill}",
+          "padding": "2px 9px",
+          "height": "26px"
+        }
+      },
+      "states": ["default"]
+    },
+    "tag": {
+      "description": "Etiqueta libre del catálogo: píldora con su punto de color. La paleta la posee web/src/task-manager/state/workspace-data.js y no es un token del tablero; DESIGN.md declara su dueño.",
+      "when": [
+        "Clasificar una tarea con una entrada del catálogo de etiquetas."
+      ],
+      "when_not": [
+        "Expresar el estado o la prioridad de una tarea: eso es una insignia.",
+        "Inventar un color fuera del catálogo."
+      ],
+      "states": ["default", "selected", "disabled"]
+    },
+    "task-row": {
+      "description": "La fila del árbol: 68 px, rejilla de 34 / 34 / 1fr / 120 / 130 / 38, 24 px de sangría por nivel y una guía vertical de 1 px. La seleccionada suma fondo, borde azul al 38 % y 3 px de violeta a la izquierda.",
+      "when": [
+        "Mostrar una tarea en el explorador y abrir su inspector al seleccionarla."
+      ],
+      "when_not": [
+        "Mostrar una tarea en una tarjeta o en una tabla de documentación."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "{color.sidebar}",
+          "textColor": "{color.text-primary}",
+          "rounded": "{radius.sm}",
+          "padding": "7px",
+          "height": "{size.tree-row}",
+          "gap": "7px"
+        },
+        "selected": {
+          "backgroundColor": "{color.surface-selected}",
+          "borderColor": "rgba(98, 167, 255, 0.38)",
+          "rounded": "{radius.sm}",
+          "padding": "7px",
+          "height": "{size.tree-row}"
+        }
+      },
+      "states": ["default", "hover", "selected", "expanded"]
+    },
+    "panel": {
+      "description": "Contenedor de una sección del inspector: superficie, borde de un píxel, radio de 10 px y cabecera de 52 px.",
+      "when": [
+        "Agrupar las propiedades y el contenido de una tarea dentro del inspector."
+      ],
+      "when_not": [
+        "Estructurar una página con tarjetas iguales.",
+        "Flotar sobre la pantalla: un panel no lleva sombra."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "{color.surface}",
+          "borderColor": "{color.border-subtle}",
+          "rounded": "{radius.md}"
+        }
+      },
+      "states": ["default"]
+    },
+    "property-card": {
+      "description": "Celda de una propiedad de la tarea: fondo hundido, radio de 6 px y etiqueta sobre el valor.",
+      "when": [
+        "Mostrar una propiedad corta en la rejilla de cuatro columnas del inspector."
+      ],
+      "when_not": [
+        "Editar el título o la descripción, que ocupan el ancho de la columna."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "{color.surface-inset}",
+          "borderColor": "{color.border-subtle}",
+          "rounded": "{radius.sm}",
+          "padding": "{space.3}"
+        }
+      },
+      "states": ["default"]
+    },
+    "modal": {
+      "description": "Ventana que crea o confirma, con velo oscuro, sombra flotante y foco protegido. Su cabecera y su pie no cambian de color con el tema.",
+      "when": [
+        "Crear una tarea o una etiqueta.",
+        "Confirmar algo que se pierde si se cancela."
+      ],
+      "when_not": [
+        "Editar una tarea: se edita en el inspector, que no interrumpe.",
+        "Mostrar un aviso emergente: eso es un notice."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "{color.surface}",
+          "borderColor": "{color.border-default}",
+          "rounded": "{radius.lg}",
+          "shadow": "0 30px 90px rgba(0, 0, 0, 0.52)"
+        }
+      },
+      "states": ["default", "focus"]
+    },
+    "notice": {
+      "description": "Aviso emergente y confirmación propia, con el juego notice-surface, notice-panel, notice-line y notice-ink, radio de 8 px y velo con desenfoque. Su dueño es web/src/task-manager/notifications/toast-anchor.js y no reutiliza el modal del producto.",
+      "when": [
+        "Confirmar que algo se guardó.",
+        "Pedir una confirmación que nombra lo que se pierde, con la acción destructiva en rojo."
+      ],
+      "when_not": [
+        "Sustituir un error que exige acción.",
+        "Crear o editar una tarea."
+      ],
+      "states": ["default", "success", "warning", "error", "info"]
+    },
+    "drawer": {
+      "description": "Cajón lateral de 540 px para el catálogo de etiquetas: superficie, borde de un píxel y el mismo velo de las capas flotantes.",
+      "when": [
+        "Gestionar el catálogo de etiquetas sin salir del tablero."
+      ],
+      "when_not": [
+        "Editar una tarea.",
+        "Sustituir un formulario de creación."
+      ],
+      "variants": {
+        "default": {
+          "backgroundColor": "{color.surface}",
+          "borderColor": "{color.border-subtle}",
+          "width": "540px"
+        }
+      },
+      "states": ["closed", "open"]
+    }
+  },
+  "patterns": {
+    "board-layout": {
+      "description": "Cabecera de 68 px y cuerpo en dos columnas: el explorador con minmax(600px, 38 %) y el inspector con el resto. A 1500 px el explorador se fija en 560 px; por debajo de 1180 la ventana desplaza; a 720 el explorador toma la pantalla y el inspector pasa a hoja fija con vuelta.",
+      "when": ["Componer una vista del producto que muestra y edita tareas."],
+      "when_not": ["Componer la portada o la guía: son documentación, no tablero."]
+    },
+    "documentation-page": {
+      "description": "Columna de 1180 px con márgenes de clamp(16px, 4vw, 40px), barra superior fija y translúcida, 88 px de reserva al desplazarse a un ancla y tema claro u oscuro por página. La portada alterna tramos claros con una banda nocturna y colapsa a una columna a 720 px.",
+      "when": ["Escribir una página de documentación del producto."],
+      "when_not": ["Construir el tablero o un componente de la interfaz."]
+    },
+    "task-detail": {
+      "description": "El inspector lee y corrige el expediente; los diálogos crean o confirman; los filtros y paneles no convierten una edición normal en un modal. Sin tarea seleccionada, el inspector explica cómo abrirla y conserva el mismo marco en carga, vacío y error.",
+      "when": ["Abrir la ficha de una tarea seleccionada."],
+      "when_not": ["Editar una etiqueta del catálogo, que vive en su cajón."]
+    }
+  },
+  "accessibility": {
+    "standard": "WCAG 2.2 AA",
+    "focusVisible": true,
+    "reducedMotion": true,
+    "contrast": {
+      "text": 4.5,
+      "largeText": 3,
+      "nonText": 3
+    },
+    "notes": [
+      "Los campos marcan el foco con borde violeta y halo de 3 px; el resto de controles usa outline de 2 px con 2 px de separación.",
+      "Los controles que solo muestran un icono tienen nombre accesible.",
+      "El estado nunca va solo en color: lleva palabra, icono o forma.",
+      "La medición de contraste, teclado, reflow y prefers-reduced-motion en el render es UNKNOWN hasta que se inspecciona."
+    ]
+  },
+  "constraints": {
+    "always": [
+      "Usa un token semántico de este contrato; no escribas un color literal cuando el token exista.",
+      "Acompaña cada estado con palabra o icono además del color.",
+      "Mantén el foco visible y respeta prefers-reduced-motion.",
+      "Modifica el token propietario y actualiza DESIGN.md y la muestra cuando cambie la regla."
+    ],
+    "never": [
+      "Usa #8b5cf6 como color de texto o de icono sobre superficie oscura.",
+      "Pon el degradado de marca en el tablero, en una insignia o en texto corrido.",
+      "Redibuja, recolorea o vectoriza el zorro del paquete aprobado.",
+      "Convierte una edición normal en un modal.",
+      "Añadas una sombra a un panel que no se superpone."
+    ]
+  },
+  "decisions": [
+    {
+      "id": "DS-001",
+      "decision": "DESIGN.md es el contrato documentado y design-system.json su proyección máquina-legible.",
+      "rationale": "La persona ya decidió que DESIGN.md se fusionara y depurara en tk-233; el contrato no abre una segunda paleta ni sustituye la prosa, la hace comprobable."
+    },
+    {
+      "id": "DS-002",
+      "decision": "Los tokens del tablero se declaran en el contrato y se comprueban contra tokens.css; tokens.css sigue siendo la fuente que consume el producto.",
+      "rationale": "El producto no puede leer DTCG en tiempo de ejecución; una prueba impide que la declaración y el CSS se desvíen en silencio."
+    },
+    {
+      "id": "DS-003",
+      "decision": "El catálogo visual es docs/web/design-system.html, revisado por la persona; el contrato no genera un catálogo paralelo.",
+      "rationale": "Un catálogo generado duplicaría las muestras y volvería a abrir la discusión que la guía actual ya cerró."
+    },
+    {
+      "id": "DS-004",
+      "decision": "Las paletas de etiquetas y de avisos se quedan en sus módulos JavaScript y el contrato declara su dueño.",
+      "rationale": "El producto las consume como datos, no como CSS; moverlas a tokens cambiaría código que ninguna necesidad actual pide. DESIGN.md y la muestra declaran su origen."
+    }
+  ],
+  "governance": {
+    "mode": "solo",
+    "protected": [
+      "identity.*",
+      "tokens.color.*",
+      "tokens.font.*"
+    ],
+    "configurable": [
+      "tokens.space.*",
+      "tokens.radius.*",
+      "tokens.size.*"
+    ],
+    "exceptions": []
+  },
+  "catalog": {
+    "mode": "external",
+    "path": "docs/web",
+    "entry": "design-system.html",
+    "sources": [
+      "web/public/task-manager/app-vue.css",
+      "web/src/task-manager/notifications/toast-anchor.js",
+      "web/public/icons/heroicons/24/outline",
+      "web/public/icons/icons.css"
+    ]
+  },
+  "implementation": {
+    "styles": [
+      "web/public/task-manager/app-vue.css",
+      "web/public/icons/icons.css"
+    ]
+  },
+  "sources": [
+    {
+      "path": "DESIGN.md",
+      "kind": "documented",
+      "note": "Reglas de aplicación, proyección de valores y dueño de cada dato"
+    },
+    {
+      "path": "web/src/task-manager/styles/tokens.css",
+      "kind": "observed",
+      "note": "50 variables CSS; fuente de los tokens del tablero"
+    },
+    {
+      "path": "web/src/task-manager/styles/components.css",
+      "kind": "observed",
+      "note": "Componentes y estados efectivos"
+    },
+    {
+      "path": "web/src/task-manager/design-guide.test.js",
+      "kind": "observed",
+      "note": "Prueba que fija las muestras y los valores de la guía"
+    },
+    {
+      "path": "docs/web/design-system.html",
+      "kind": "observed",
+      "note": "Catálogo visual revisado por la persona"
+    },
+    {
+      "path": "docs/web/index.html",
+      "kind": "observed",
+      "note": "Tema claro y oscuro de la guía de uso"
+    },
+    {
+      "path": "docs/web/landing.html",
+      "kind": "observed",
+      "note": "Portada y degradado de marca"
+    },
+    {
+      "path": "docs/tasks-ai-brand/",
+      "kind": "observed",
+      "note": "Identidad aprobada e inmutable"
+    },
+    {
+      "path": "web/src/task-manager/state/workspace-data.js",
+      "kind": "observed",
+      "note": "Paleta del catálogo de etiquetas"
+    },
+    {
+      "path": "web/src/task-manager/notifications/toast-anchor.js",
+      "kind": "observed",
+      "note": "Paleta de avisos y confirmaciones"
+    },
+    {
+      "path": "web/public/icons/heroicons/24/outline",
+      "kind": "observed",
+      "note": "Selección de 23 iconos Heroicons 24/outline usados por el producto y la documentación, y su licencia MIT"
+    },
+    {
+      "path": "web/public/icons/icons.css",
+      "kind": "observed",
+      "note": "Clase de máscara y archivo que resuelve cada icono del producto y de la documentación"
+    },
+    {
+      "path": "docs/PRD.md",
+      "kind": "documented",
+      "note": "Estados persistidos y bloqueo derivado"
+    }
+  ],
+  "omitted": [
+    {
+      "section": "adapters",
+      "reason": "No hay un framework de componentes con informe de conformidad; la interfaz es Vue 3 montada desde JS."
+    },
+    {
+      "section": "tokenSources",
+      "reason": "No existe un archivo DTCG previo; los tokens del tablero se declaran aquí y se comprueban contra tokens.css."
+    },
+    {
+      "section": "themes.light",
+      "reason": "El tablero solo tiene tema oscuro; el claro pertenece a las páginas de documentación y lo posee cada página."
+    }
+  ]
+}

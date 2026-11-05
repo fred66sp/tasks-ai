@@ -16,8 +16,9 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `internal/install/` | La instalación en un proyecto: su carpeta con la base, los ajustes y las instrucciones |
 | `internal/cli/` | La línea de comandos: comandos, banderas y respuesta en JSON |
 | `internal/` | El núcleo del producto y sus superficies |
-| `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado— y `web/embed.go`, que la incrusta en el binario |
+| `web/` | La interfaz web: el código de la de partida en `web/src/`, lo que el navegador descarga en `web/public/` —con el artefacto construido versionado, la selección de iconos de `icons/heroicons/` y su hoja compartida `icons/icons.css`— y `web/embed.go`, que la incrusta en el binario |
 | `.impeccable/` | El sidecar del sistema visual: rampas, sombras, movimiento y los componentes que un panel de diseño dibuja; acompaña a [`DESIGN.md`](../DESIGN.md) |
+| `design-system.json` | El contrato máquina-legible del sistema visual —identidad, tokens del tablero, componentes y gobernanza—; su prosa es [`DESIGN.md`](../DESIGN.md), sus muestras la guía de diseño y lo contrasta `web/src/task-manager/design-tokens.test.js` |
 | `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
 | `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
@@ -205,10 +206,12 @@ cd web && npm run watch  # la reconstruye al cambiar
 | `./tasks-ai init` | Instala el producto en el proyecto: crea `.tasks-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
 | `./tasks-ai serve` | Arranca la API y la interfaz web en la dirección y el puerto del settings: la interfaz responde en la raíz del servidor y la API en sus rutas `/api/...` |
 | `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
+| `./serve-web.sh` | Deja en segundo plano un servidor de ficheros para leer `docs/web/` en el navegador, con su pid y su registro en `.run/`; `./serve-web.sh status` dice si está en marcha y dónde escucha, y `./serve-web.sh stop` lo para. La raíz es el repositorio y no `docs/web` porque las páginas enlazan `../PRD.md`, `../contracts.md` y `../../web/public/...`; el puerto es 8765 y `PORT` lo cambia en las tres órdenes. Reconoce el servidor por el puerto que escucha, así que también lo ve y lo para si se arrancó a mano con `python3 -m http.server`; un proceso ajeno en ese puerto no se toca: se nombra con su pid y su línea de órdenes, y el script sale con error |
 | `./serve.sh` | Deja el servidor en segundo plano: compila el binario, lo arranca con `serve`, escribe su registro y su pid en `.run/` e informa de la dirección. `./serve.sh status` dice si está en marcha y `./serve.sh stop` lo para. Reconoce el servidor por el puerto que fija el settings, así que también lo ve y lo para si se arrancó a mano con `./tasks-ai serve`; un proceso ajeno en ese puerto no se toca: se nombra con su pid y su línea de órdenes, y el script sale con error |
 
-El tablero del trabajo se opera con el mismo binario: sus comandos y sus reglas están
-en [`AGENTS.md`](../AGENTS.md) y en [`.tasks-ai/AGENTS.md`](../.tasks-ai/AGENTS.md).
+El tablero del trabajo se opera con el mismo binario: sus comandos y sus reglas están en
+[`.tasks-ai/AGENTS.md`](../.tasks-ai/AGENTS.md). El mapa de las fuentes del repositorio está
+en [`AGENTS.md`](../AGENTS.md).
 
 ## Lo que no se hace
 

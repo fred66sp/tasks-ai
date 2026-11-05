@@ -26,6 +26,7 @@ guarda el contenido: lo enlaza.
 | Guía de uso: modelo, ciclo de vida, recetas, API y errores | [`docs/web/index.html`](docs/web/index.html) → «El modelo de datos», «El ciclo de vida», «Recetas», «La interfaz web», «La API HTTP», «Los agentes», «La configuración», «Errores y qué significan» |
 | Presentación del producto | [`docs/web/landing.html`](docs/web/landing.html) |
 | Sistema visual: contrato máquina-legible, prosa y muestras | [`design-system.json`](design-system.json); [`DESIGN.md`](DESIGN.md) → «Colors», «Typography», «Layout», «Components», «Do's and Don'ts»; [`docs/web/design-system.html`](docs/web/design-system.html) → «Un tablero que ordena el trabajo.» |
+| Iconos: origen, licencia, tamaño y catálogo | [`web/public/icons/heroicons/`](web/public/icons/heroicons/24/outline/); [`DESIGN.md`](DESIGN.md) → «Iconography»; [`docs/web/design-system.html`](docs/web/design-system.html) → «Iconografía» |
 | Identidad visual aprobada | [`docs/tasks-ai-brand/README.md`](docs/tasks-ai-brand/README.md); [`docs/tasks-ai-brand/AGENT-INTEGRATION.md`](docs/tasks-ai-brand/AGENT-INTEGRATION.md) |
 | Usuarios, propósito y principios de producto | [`PRODUCT.md`](PRODUCT.md) → «Users», «Product Purpose», «Product Principles» |
 | Qué cambió en cada versión | [`CHANGELOG.md`](CHANGELOG.md) → «[Sin publicar]» |

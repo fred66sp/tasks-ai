@@ -229,6 +229,7 @@ Cada dato se modifica en su fuente responsable:
 | Zorro, colores y familias de marca | [`docs/tasks-ai-brand/`](docs/tasks-ai-brand/README.md) | Uso y restricciones; el paquete aprobado no se modifica. |
 | Color, densidad, radios y tipografía del tablero | [`web/src/task-manager/styles/tokens.css`](web/src/task-manager/styles/tokens.css) y sus [componentes](web/src/task-manager/styles/components.css) | Criterios de aplicación y correspondencia con la interfaz efectiva. |
 | Temas y composición de la documentación | [`docs/web/index.html`](docs/web/index.html) y [`docs/web/landing.html`](docs/web/landing.html) | Reglas compartidas y excepciones explícitas de cada superficie. |
+| Iconos de la interfaz | [`web/public/icons/heroicons/24/outline/`](web/public/icons/heroicons/24/outline/) y su [`LICENSE`](web/public/icons/heroicons/LICENSE) | Origen único, tamaño, color y nombre accesible; el archivo no se redibuja. |
 | Capacidades, estados y contratos de tarea | [`docs/PRD.md`](docs/PRD.md) y [`docs/contracts.md`](docs/contracts.md) | Solo representación visual; no redefine el negocio. |
 
 El frontmatter conserva los valores necesarios para las herramientas que leen `DESIGN.md`;
@@ -526,6 +527,30 @@ seleccionada, el inspector explica cómo abrirla. Carga, vacío y error conserva
 marco y una salida comprensible; el indicador de carga y el color de error no sustituyen el
 texto. Los controles que solo muestran un icono tienen nombre accesible y foco visible.
 
+## Iconography
+
+**El trazo es instrumento.** El conjunto de trabajo de la interfaz es
+[Heroicons 24/outline](web/public/icons/heroicons/24/outline/): caja de 24,
+`viewBox="0 0 24 24"`, trazo de 1,5 px, extremos y uniones redondeados y
+`stroke="currentColor"`. La licencia MIT viaja con los archivos en
+[`LICENSE`](web/public/icons/heroicons/LICENSE).
+
+- **Tamaño:** 16 px en la fila y el control compacto, 18 px en la cabecera y el botón de
+  icono, 20 px en el panel. El icono no se escala fuera de su caja.
+- **Color:** hereda el color del texto del control; no se recolorea por archivo ni se usa
+  como decoración. El violeta de acento solo cuando el control es el acento.
+- **Nombre:** un control de solo icono lleva `aria-label` y `title`; el icono decorativo va
+  con `aria-hidden="true"`. El icono no sustituye a la palabra en crear, cerrar, guardar,
+  eliminar o ejecutar.
+- **Origen:** un icono nuevo entra en el conjunto antes de usarse; no se mezcla otro juego
+  ni se redibuja el trazo del archivo.
+- **Sustitución:** cuando un componente adopta un archivo del conjunto, cambian el componente
+  y su muestra en la misma unidad y se conserva el nombre accesible. Mientras un componente
+  dibuje su propio trazo, ese trazo es el implementado.
+
+La [guía navegable](docs/web/design-system.html) cataloga los 72 archivos agrupados y enlaza
+cada uno desde la ruta pública; la interfaz sirve el conjunto en `/icons/`.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -538,6 +563,8 @@ texto. Los controles que solo muestran un icono tienen nombre accesible y foco v
 - **Do** mantener las medidas de densidad: 68 px de fila, 42 px de control, 24 px de sangría,
   8/12/16/20/24 de ritmo.
 - **Do** dejar el código oscuro en los dos temas, con el fondo `#070b16` o `#0a0f1c`.
+- **Do** usar un icono del conjunto cuando la acción sea convencional y acompañarlo de texto
+  en crear, cerrar, guardar, eliminar o ejecutar.
 - **Do** respetar `prefers-reduced-motion`: la entrada de la portada y el pulso del filtro se
   apagan, y el resto de transiciones no pasan de 180 ms.
 
@@ -554,5 +581,7 @@ texto. Los controles que solo muestran un icono tienen nombre accesible y foco v
   más de 1 px salvo la barra de 3 px de la fila seleccionada.
 - **Don't** introducir una familia tipográfica nueva ni redistribuir Inter o JetBrains Mono:
   el paquete de marca no las incluye.
+- **Don't** mezclar iconos de otro conjunto, escalar un icono fuera de su caja de 24 ni
+  recolorear un archivo del conjunto.
 - **Don't** redibujar, recolorear ni vectorizar el zorro: el paquete trae el arte bitmap en los
   tamaños que enumera.

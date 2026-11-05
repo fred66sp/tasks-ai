@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
@@ -11,7 +11,7 @@ test('la guía visual se puede abrir desde la portada y la guía de uso', () => 
 
   assert.match(landing, /href="design-system\.html"/, 'falta el enlace desde la portada');
   assert.match(guide, /href="design-system\.html"/, 'falta el enlace desde la guía de uso');
-  for (const id of ['fundamentos', 'marca', 'color', 'tipografia', 'espacio', 'acciones', 'insignias', 'etiquetas', 'espacio-trabajo', 'modales', 'estados', 'accesibilidad', 'evolucion']) {
+  for (const id of ['fundamentos', 'marca', 'color', 'tipografia', 'espacio', 'iconografia', 'acciones', 'insignias', 'etiquetas', 'espacio-trabajo', 'modales', 'estados', 'accesibilidad', 'evolucion']) {
     assert.match(page, new RegExp(`id="${id}"`), `falta la sección ${id}`);
     assert.match(page, new RegExp(`href="#${id}"`), `falta el enlace a ${id}`);
   }
@@ -33,6 +33,28 @@ test('la guía consume el CSS del tablero y no mantiene una copia de los compone
   assert.match(page, /id="demo-toast"/);
   assert.match(page, /id="demo-confirm"/);
   assert.doesNotMatch(page, /<iframe/i, 'un iframe no es un componente del sistema de diseño');
+});
+
+test('la guía cataloga el conjunto de iconos y cada archivo existe', () => {
+  const page = read('../../../docs/web/design-system.html');
+  const dir = new URL('../../../web/public/icons/heroicons/24/outline/', import.meta.url);
+
+  const refs = [...page.matchAll(/--icon:\s*url\('\.\.\/\.\.\/web\/public\/icons\/heroicons\/24\/outline\/([a-z0-9-]+)\.svg'\)/g)]
+    .map((match) => match[1]);
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith('.svg'))
+    .map((name) => name.slice(0, -4))
+    .sort();
+
+  assert.ok(refs.length > 0, 'la guía no muestra el conjunto de iconos');
+  assert.deepEqual([...refs].sort(), files, 'el catálogo no cubre exactamente los iconos del conjunto');
+  assert.equal(new Set(refs).size, refs.length, 'hay iconos repetidos en el catálogo');
+  for (const name of refs) {
+    assert.ok(existsSync(new URL(`${name}.svg`, dir)), `falta ${name}.svg en el conjunto`);
+  }
+  assert.ok(existsSync(new URL('../../../web/public/icons/heroicons/LICENSE', import.meta.url)),
+    'falta la licencia del conjunto');
+  assert.match(page, /web\/public\/icons\/heroicons\/LICENSE/, 'la guía no declara la licencia');
 });
 
 test('la guía está bien anidada y no rompe la columna de contenido', () => {
@@ -93,7 +115,12 @@ test('la guía tiene vuelta arriba como la guía de uso', () => {
   const page = read('../../../docs/web/design-system.html');
 
   assert.match(page, /<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">/);
-  assert.match(page, /<header class="topbar" id="top">/);
+  assert.match(page, /<div id="top" class="page-top" aria-hidden="true"><\/div>/,
+    'falta el ancla real del principio del documento');
+  assert.ok(page.indexOf('<div id="top"') < page.indexOf('<header class="topbar">'),
+    'el ancla superior debe ir antes de la cabecera sticky');
+  assert.doesNotMatch(page, /<header class="topbar" id="top">/,
+    'una cabecera sticky no sirve como destino de #top');
   assert.match(page, /toTop\.classList\.toggle\('is-visible', window\.scrollY > 480\)/);
 });
 

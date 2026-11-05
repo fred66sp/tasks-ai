@@ -8,10 +8,18 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- El sistema de diseño incorpora la iconografía: los 72 iconos de Heroicons 24/outline viven
+  en `web/public/icons/heroicons/` con su licencia, y la guía navegable los cataloga por
+  grupos con su origen y sus reglas de uso.
 - Los ADR del proyecto viven en el tablero, con las mismas superficies que las tareas: el
   CLI (`adr`), la API HTTP (`/api/adrs`) y la vista de Decisiones de la interfaz.
   `docs/decisions/` pasa a ser su exportación generada, y `adr export --check` detecta la
   deriva entre la base y el directorio versionado.
+
+### Corregido
+
+- La vuelta arriba de la documentación apunta a un ancla real al principio del documento y
+  no a la cabecera sticky, que siempre estaba en pantalla y dejaba la página donde estaba.
 
 ### Cambiado
 

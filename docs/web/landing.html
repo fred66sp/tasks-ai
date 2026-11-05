@@ -124,6 +124,8 @@
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }
+  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
+  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
 
   /* Cabecera: la misma de la guía, con los enlaces de sección de la portada. */
   .topbar {
@@ -666,6 +668,7 @@
 </style>
 </head>
 <body>
+<div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
 
 <header class="topbar">
@@ -691,7 +694,7 @@
 </header>
 
 <main id="main">
-  <section class="hero" id="top">
+  <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <h1>Tu tablero vive en tu <span class="mark">proyecto.</span></h1>

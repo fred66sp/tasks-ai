@@ -582,6 +582,8 @@
     background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
   }
   .skip:focus { top: 12px; }
+  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
+  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
   /* Entrada en cascada del contenido, mismo convenio que el catálogo de
      SKILLS-AGP: los bloques múltiples y los listados se escalonan con --d —
      la posición en el lote que entra, la fija el script— y el resto de
@@ -614,6 +616,7 @@
 </head>
 <body>
 
+<div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main" data-i18n="header.0">Saltar al contenido</a>
 
 <header class="topbar">
@@ -633,7 +636,7 @@
   </button>
 </header>
 
-<section class="hero" id="top">
+<section class="hero">
   <div class="hero-inner">
     <span class="pill" data-i18n="hero.14"><span class="dot" aria-hidden="true"></span>un binario · línea de órdenes y API · una base por proyecto</span>
     <h1 data-i18n="hero.15">Aprende a manejar tasks-ai <span class="grad">de principio a fin</span></h1>

@@ -896,7 +896,8 @@
     "entry": "design-system.html",
     "sources": [
       "web/public/task-manager/app-vue.css",
-      "web/src/task-manager/notifications/toast-anchor.js"
+      "web/src/task-manager/notifications/toast-anchor.js",
+      "web/public/icons/heroicons/24/outline"
     ]
   },
   "implementation": {
@@ -954,6 +955,11 @@
       "path": "web/src/task-manager/notifications/toast-anchor.js",
       "kind": "observed",
       "note": "Paleta de avisos y confirmaciones"
+    },
+    {
+      "path": "web/public/icons/heroicons/24/outline",
+      "kind": "observed",
+      "note": "Conjunto de iconos Heroicons 24/outline y su licencia MIT"
     },
     {
       "path": "docs/PRD.md",

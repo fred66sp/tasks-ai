@@ -67,6 +67,9 @@
       padding: 10px 14px; border-radius: 6px; background: var(--surface); color: var(--ink);
     }
     .skip:focus { top: 12px; }
+    /* La cabecera es sticky y siempre está en el viewport, así que no sirve
+       como destino de #top: el ancla real vive al principio del documento. */
+    .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
 
     /* ---------- Estructura ---------- */
     .shell {
@@ -300,6 +303,34 @@
     }
     .sources code { overflow-wrap: anywhere; }
 
+    /* ---------- Muestras: iconos ---------- */
+    .icon-group + .icon-group { margin-top: 24px; }
+    .icon-group__title {
+      margin: 0 0 10px;
+      color: var(--muted); font-family: var(--mono);
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .icon-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      gap: 8px; margin: 0; padding: 0; list-style: none;
+    }
+    .icon-item {
+      display: flex; align-items: flex-start; gap: 9px; min-width: 0;
+      padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--surface);
+    }
+    .icon-item__glyph {
+      flex: none; width: 18px; height: 18px; margin-top: 1px;
+      background-color: var(--secondary);
+      -webkit-mask: var(--icon) center / contain no-repeat;
+      mask: var(--icon) center / contain no-repeat;
+    }
+    .icon-item__name {
+      min-width: 0; color: var(--muted);
+      font-family: var(--mono); font-size: 11px; line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
     .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
     /* ---------- Muestras: tokens ---------- */
@@ -430,8 +461,9 @@
   </style>
 </head>
 <body>
+<div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
-<header class="topbar" id="top">
+<header class="topbar">
   <a class="brand" href="landing.html">
     <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="../tasks-ai-brand/app-icons/tasks-ai-light-64.png" alt="" width="34" height="34"><img class="brand-icon-dark" src="../tasks-ai-brand/app-icons/tasks-ai-dark-64.png" alt="" width="34" height="34"></span>
     <span class="brand-name">tasks-ai<small>gestor de tareas local-first</small></span>
@@ -459,14 +491,15 @@
         <a href="#color"><span>03</span>Color</a>
         <a href="#tipografia"><span>04</span>Tipografía</a>
         <a href="#espacio"><span>05</span>Espacio y forma</a>
-        <a href="#acciones"><span>06</span>Acciones y campos</a>
-        <a href="#insignias"><span>07</span>Insignias</a>
-        <a href="#etiquetas"><span>08</span>Etiquetas</a>
-        <a href="#espacio-trabajo"><span>09</span>Espacio de trabajo</a>
-        <a href="#modales"><span>10</span>Modales y avisos</a>
-        <a href="#estados"><span>11</span>Estados</a>
-        <a href="#accesibilidad"><span>12</span>Accesibilidad</a>
-        <a href="#evolucion"><span>13</span>Evolución</a>
+        <a href="#iconografia"><span>06</span>Iconografía</a>
+        <a href="#acciones"><span>07</span>Acciones y campos</a>
+        <a href="#insignias"><span>08</span>Insignias</a>
+        <a href="#etiquetas"><span>09</span>Etiquetas</a>
+        <a href="#espacio-trabajo"><span>10</span>Espacio de trabajo</a>
+        <a href="#modales"><span>11</span>Modales y avisos</a>
+        <a href="#estados"><span>12</span>Estados</a>
+        <a href="#accesibilidad"><span>13</span>Accesibilidad</a>
+        <a href="#evolucion"><span>14</span>Evolución</a>
       </nav>
     </div>
   </aside>
@@ -633,9 +666,353 @@
       </div>
     </section>
 
-    <section id="acciones" aria-labelledby="acciones-t">
+    <section id="iconografia" aria-labelledby="iconografia-t">
       <div class="chapter-head">
         <div class="chapter-num">06</div>
+        <div>
+          <h2 id="iconografia-t">El trazo también es herramienta</h2>
+          <p class="chapter-lead">El conjunto de trabajo sale de una sola familia: Heroicons 24/outline, caja de 24 y trazo de 1,5 px. Se dibujan a 16, 18 o 20 px, heredan el color del texto y acompañan a la palabra; no la sustituyen cuando la acción no es convencional.</p>
+        </div>
+        <div class="chapter-body">
+          <div class="specimen">
+            <div class="specimen__head"><span class="specimen__label">Conjunto de trabajo</span><span class="specimen__note">72 archivos · <code>web/public/icons/heroicons/24/outline/</code></span></div>
+            <div class="specimen__body">
+              <div class="icon-group">
+                <h3 class="icon-group__title">Navegación y estructura</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-down.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-down</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-left.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-left</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-right.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-right</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chevron-up.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chevron-up</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-left.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-left</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-right.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-right</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-up.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-up</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-down.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-down</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-path.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-path</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-top-right-on-square.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-top-right-on-square</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/squares-2x2.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">squares-2x2</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/list-bullet.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">list-bullet</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/numbered-list.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">numbered-list</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/queue-list.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">queue-list</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/table-cells.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">table-cells</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/folder-open.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">folder-open</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/ellipsis-horizontal.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">ellipsis-horizontal</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cursor-arrow-rays.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">cursor-arrow-rays</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Acciones</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/plus.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">plus</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/minus.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">minus</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/x-mark.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">x-mark</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/pencil-square.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">pencil-square</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/trash.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">trash</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/check-circle.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">check-circle</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/x-circle.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">x-circle</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-up-tray.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-up-tray</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/arrow-down-tray.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">arrow-down-tray</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/share.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">share</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/link.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">link</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/printer.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">printer</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/magnifying-glass.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">magnifying-glass</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/funnel.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">funnel</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/clipboard-document-check.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">clipboard-document-check</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/wrench-screwdriver.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">wrench-screwdriver</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/rocket-launch.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">rocket-launch</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/calculator.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">calculator</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Estado y aviso</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/exclamation-triangle.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">exclamation-triangle</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/information-circle.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">information-circle</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/question-mark-circle.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">question-mark-circle</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/shield-check.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">shield-check</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/shield-exclamation.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">shield-exclamation</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/no-symbol.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">no-symbol</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/bug-ant.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">bug-ant</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/eye.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">eye</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/eye-slash.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">eye-slash</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/clock.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">clock</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Objeto y dominio</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/tag.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">tag</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/bookmark.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">bookmark</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/calendar-days.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">calendar-days</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/user-group.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">user-group</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-text.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">document-text</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-check.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">document-check</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/document-chart-bar.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">document-chart-bar</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chart-bar.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chart-bar</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/chart-pie.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">chart-pie</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/presentation-chart-line.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">presentation-chart-line</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/circle-stack.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">circle-stack</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cube.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">cube</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cube-transparent.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">cube-transparent</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/cpu-chip.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">cpu-chip</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/server.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">server</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/server-stack.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">server-stack</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/computer-desktop.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">computer-desktop</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/device-tablet.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">device-tablet</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/device-phone-mobile.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">device-phone-mobile</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/command-line.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">command-line</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/code-bracket.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">code-bracket</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/globe-alt.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">globe-alt</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/language.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">language</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/swatch.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">swatch</span>
+                  </li>
+                </ul>
+              </div>
+              <div class="icon-group">
+                <h3 class="icon-group__title">Tema</h3>
+                <ul class="icon-grid">
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/sun.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">sun</span>
+                  </li>
+                  <li class="icon-item">
+                    <span class="icon-item__glyph" style="--icon: url('../../web/public/icons/heroicons/24/outline/moon.svg')" aria-hidden="true"></span>
+                    <span class="icon-item__name">moon</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <table class="spec">
+            <caption>Reglas del conjunto</caption>
+            <thead><tr><th>Regla</th><th>Cómo se cumple</th></tr></thead>
+            <tbody>
+              <tr><td>Origen único</td><td>Heroicons 24/outline; no se mezcla con otro conjunto ni se redibuja un icono.</td></tr>
+              <tr><td>Caja y trazo</td><td><code>viewBox="0 0 24 24"</code>, <code>stroke-width="1.5"</code> y extremos redondeados.</td></tr>
+              <tr><td>Tamaño</td><td>16, 18 o 20 px según el control; el icono no se escala fuera de su caja.</td></tr>
+              <tr><td>Color</td><td>Hereda el color del texto (<code>currentColor</code>); el tono lo decide el control, no el archivo.</td></tr>
+              <tr><td>Nombre</td><td>Un control de solo icono lleva <code>aria-label</code> y <code>title</code>; el icono decorativo va con <code>aria-hidden="true"</code>.</td></tr>
+              <tr><td>Palabra</td><td>Crear, cerrar, guardar, eliminar y ejecutar llevan texto; el icono los acompaña.</td></tr>
+            </tbody>
+          </table>
+          <div class="rule"><h3>Un icono nuevo entra aquí antes de usarse</h3><p>La interfaz sirve este conjunto en <code>/icons/</code> y la guía lo enlaza desde la ruta pública del repositorio. Sustituir un trazo propio por un archivo del conjunto es una unidad de trabajo: cambian el componente y su muestra, y el nombre accesible se conserva.</p></div>
+          <div class="sources">Origen: <a href="https://heroicons.com/">Heroicons</a>, de Tailwind Labs, licencia MIT. El texto de la licencia viaja con los archivos en <code>web/public/icons/heroicons/LICENSE</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="acciones" aria-labelledby="acciones-t">
+      <div class="chapter-head">
+        <div class="chapter-num">07</div>
         <div>
           <h2 id="acciones-t">Herramienta con etiqueta</h2>
           <p class="chapter-lead">Los controles del tablero se muestran aquí con su CSS y sus clases: misma altura, mismo radio, mismo peso y mismos estados que en la interfaz. Los ejemplos no llaman a la API.</p>
@@ -714,7 +1091,7 @@
 
     <section id="insignias" aria-labelledby="insignias-t">
       <div class="chapter-head">
-        <div class="chapter-num">07</div>
+        <div class="chapter-num">08</div>
         <div>
           <h2 id="insignias-t">Estado no es color</h2>
           <p class="chapter-lead">El tablero guarda pendiente, en curso y hecha. «Bloqueada» se deriva de las dependencias y se explica; la prioridad y las etiquetas tienen su propia escala.</p>
@@ -749,7 +1126,7 @@
 
     <section id="etiquetas" aria-labelledby="etiquetas-t">
       <div class="chapter-head">
-        <div class="chapter-num">08</div>
+        <div class="chapter-num">09</div>
         <div>
           <h2 id="etiquetas-t">Un color con nombre</h2>
           <p class="chapter-lead">La etiqueta es catálogo, no estado: su color identifica un tema y se elige de una paleta cerrada. Se asigna en la tarea y se administra en un cajón lateral.</p>
@@ -860,7 +1237,7 @@
 
     <section id="espacio-trabajo" aria-labelledby="espacio-trabajo-t">
       <div class="chapter-head">
-          <div class="chapter-num">09</div>
+          <div class="chapter-num">10</div>
           <div>
             <h2 id="espacio-trabajo-t">Explorador e inspector</h2>
             <p class="chapter-lead">La pieza que define el producto: una fila por tarea a la izquierda, el expediente completo a la derecha. Selecciona una fila y recorre las pestañas; nada se guarda.</p>
@@ -971,7 +1348,7 @@
 
     <section id="modales" aria-labelledby="modales-t">
       <div class="chapter-head">
-        <div class="chapter-num">10</div>
+        <div class="chapter-num">11</div>
         <div>
           <h2 id="modales-t">Interrumpir solo cuando toca</h2>
           <p class="chapter-lead">El modal crea o confirma; no edita. El aviso emergente dice que algo se guardó. La confirmación destructiva nombra la tarea y lo que se pierde.</p>
@@ -1024,7 +1401,7 @@
 
     <section id="estados" aria-labelledby="estados-t">
       <div class="chapter-head">
-        <div class="chapter-num">11</div>
+        <div class="chapter-num">12</div>
         <div>
           <h2 id="estados-t">También cuando falta algo</h2>
           <p class="chapter-lead">Carga, vacío y error conservan el mismo marco y una salida comprensible. Ninguno deja la pantalla muda ni inventa un estado nuevo de tarea.</p>
@@ -1068,7 +1445,7 @@
 
     <section id="accesibilidad" aria-labelledby="accesibilidad-t">
       <div class="chapter-head">
-        <div class="chapter-num">12</div>
+        <div class="chapter-num">13</div>
         <div>
           <h2 id="accesibilidad-t">Se entiende sin distinguir el tono</h2>
           <p class="chapter-lead">Contraste AA, foco visible, recorrido completo por teclado y etiquetas en los campos. En zoom y en móvil se mantiene la lectura y el orden.</p>
@@ -1094,7 +1471,7 @@
 
     <section id="evolucion" aria-labelledby="evolucion-t">
       <div class="chapter-head">
-        <div class="chapter-num">13</div>
+        <div class="chapter-num">14</div>
         <div>
           <h2 id="evolucion-t">Cambiar sin abrir otra fuente</h2>
           <p class="chapter-lead">Cada dato tiene un dueño. Se modifica allí y después se comprueba en las superficies; esta página muestra la decisión, no la sustituye.</p>
@@ -1105,6 +1482,7 @@
             <thead><tr><th>Qué cambia</th><th>Dónde se decide</th><th>Dónde se comprueba</th></tr></thead>
             <tbody>
               <tr><td>Zorro y paleta de marca</td><td><code>docs/tasks-ai-brand/</code></td><td>Iconos y temas</td></tr>
+              <tr><td>Iconos</td><td><code>web/public/icons/heroicons/</code> y su <a href="../../web/public/icons/heroicons/LICENSE">licencia</a></td><td>Este capítulo y los componentes que los adoptan</td></tr>
               <tr><td>Tokens del tablero</td><td><code>web/src/task-manager/styles/tokens.css</code></td><td>Componentes de la interfaz</td></tr>
               <tr><td>Componentes y estados</td><td><code>web/src/task-manager/styles/</code> y <code>web/public/task-manager/app-vue.css</code></td><td>La guía carga ese CSS y dibuja las muestras con sus clases</td></tr>
               <tr><td>Uso visual y límites</td><td><code>DESIGN.md</code></td><td>Tablero, portada y guía</td></tr>

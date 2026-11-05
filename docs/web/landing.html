@@ -10,35 +10,20 @@
 <meta property="og:title" content="tasks-ai — el tablero vive en tu proyecto">
 <meta property="og:description" content="Tareas en una carpeta, en JSON y en el navegador. Un binario en Go, sin nada que desplegar ni cuenta que mantener.">
 <meta property="og:type" content="website">
-<link rel="icon" type="image/png" sizes="32x32" href="../tasks-ai-brand/favicons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32.png">
 <title>tasks-ai — el tablero vive en tu proyecto</title>
-<script>
-(function () {
-  try {
-    var p = JSON.parse(localStorage.getItem("tasks-ai:prefs") || "{}");
-    var t = p.theme || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
+<!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
+<link rel="stylesheet" href="assets/vendor/icons/icons.css">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/chrome.css">
+<script src="assets/vendor/vue.global.prod.js"></script>
+<script src="assets/js/docs.js"></script>
 <style>
-  /* Identidad: docs/tasks-ai-brand v3. Violeta #8B5CF6, azul #3882F6 y cian
-     #06B6D4; Inter para la voz y JetBrains Mono para datos y órdenes. Las
-     fuentes no se redistribuyen: si no están instaladas, cae en la pila del
-     sistema, sin descargar nada. */
+
+  /* Portada (ADR-018): la paleta vive en assets/css/tokens.css y la portada
+     no tiene excepciones de color. Aquí solo la franja oscura y la terminal,
+     piezas propias de su contenido. */
   :root {
-    --bg: #f8fafc;
-    --bg-elev: #ffffff;
-    --bg-soft: #f1f5f9;
-    --text: #0f172a;
-    --muted: #5f6b80;
-    --line: #e2e8f0;
-    --line-strong: #cbd5e1;
-    --accent: #6d28d9;
-    --accent-2: #3882f6;
-    --accent-3: #06b6d4;
-    --accent-soft: rgba(109, 40, 217, .09);
-    --focus: #6d28d9;
     --band: #0a0f1c;
     --band-text: #e5e7eb;
     --band-muted: #94a3b8;
@@ -53,55 +38,22 @@
     --term-num: #fbbf24;
     --term-bool: #34d399;
     --term-comment: #94a3b8;
-    --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 8px 24px -12px rgba(15, 23, 42, .18);
     --shadow-artifact: 0 1px 1px rgba(2, 6, 23, .18), 0 28px 70px -32px rgba(2, 6, 23, .6);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
   }
   :root[data-theme="dark"] {
-    --bg: #0a0f1c;
-    --bg-elev: #111827;
-    --bg-soft: #111827;
-    --text: #e5e7eb;
-    --muted: #94a3b8;
-    --line: #1e293b;
-    --line-strong: #334155;
-    --accent: #c4b5fd;
-    --accent-2: #60a5fa;
-    --accent-3: #06b6d4;
-    --accent-soft: rgba(167, 139, 250, .14);
-    --focus: #c4b5fd;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -18px rgba(0, 0, 0, .8);
     --band: #111827;
     --band-text: #e5e7eb;
     --band-muted: #94a3b8;
     --band-line: #334155;
     --shadow-artifact: 0 1px 1px rgba(0, 0, 0, .5), 0 28px 70px -30px rgba(0, 0, 0, .9);
   }
+  body { line-height: 1.62; }
+  html { scroll-padding-top: 72px; }
+  .lang-switch button:focus-visible { border-radius: 0; }
 
-  *, *::before, *::after { box-sizing: border-box; }
-  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 16px;
-    line-height: 1.62;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
-  ::selection { background: color-mix(in srgb, var(--accent) 26%, transparent); }
-  :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
-  /* El conmutador recorta sus esquinas: el anillo va por dentro o no se ve. */
-  .lang-switch button:focus-visible { outline-offset: -3px; border-radius: 0; }
-  .artifact :focus-visible, .code :focus-visible { outline-color: #c4b5fd; }
   a { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   a:hover { text-decoration-color: currentColor; }
   strong { font-weight: 650; }
-  code, kbd, pre { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   img { max-width: 100%; }
   h1, h2, h3, p { margin: 0; }
   /* Una palabra sola en la última línea deja un hueco bajo el párrafo. Donde el
@@ -114,73 +66,8 @@
     margin-inline: auto;
     padding-inline: clamp(20px, 5vw, 48px);
   }
-  .sr-only {
-    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-  }
-  .skip {
-    position: absolute; left: 16px; top: -60px; z-index: 100;
-    padding: 10px 14px; border-radius: 6px;
-    background: var(--text); color: var(--bg); font-weight: 600; text-decoration: none;
-  }
-  .skip:focus { top: 12px; }
-  /* Ancla real del documento: la cabecera sticky siempre está en el viewport. */
-  .page-top { position: absolute; top: 0; left: 0; width: 1px; height: 1px; pointer-events: none; }
-
-  /* Cabecera: la misma de la guía, con los enlaces de sección de la portada. */
-  .topbar {
-    position: sticky; top: 0; z-index: 40;
-    display: flex; align-items: center; gap: 16px;
-    padding: 12px clamp(16px, 4vw, 40px);
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    -webkit-backdrop-filter: saturate(180%) blur(14px);
-    backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 1px solid var(--line);
-  }
-  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; }
-  .brand:hover { text-decoration: none; }
-  /* El paquete de marca trae un icono por fondo y se cambian con el tema. */
-  .brand-mark {
-    display: block; flex: none; width: 34px; height: 34px;
-    border-radius: 10px; box-shadow: var(--shadow); overflow: hidden;
-  }
-  .brand-mark img { width: 100%; height: 100%; display: block; }
-  .brand-mark .brand-icon-dark { display: none; }
-  :root[data-theme="dark"] .brand-mark .brand-icon-light { display: none; }
-  :root[data-theme="dark"] .brand-mark .brand-icon-dark { display: block; }
-  .brand-name { font-weight: 700; letter-spacing: -.02em; font-size: 15px; line-height: 1.65; }
-  .brand-name small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
-  .topbar-spacer { flex: 1; }
-  .site-nav { display: flex; flex: none; align-items: center; gap: 4px; }
-  .site-nav a {
-    padding: 8px 10px; border-radius: 6px;
-    color: var(--muted); font-size: 15px; font-weight: 550; line-height: 1.2;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .site-nav a:hover { color: var(--text); background: var(--bg-soft); }
   .site-nav a.guide { color: var(--text); }
   .site-nav a.active { color: var(--accent); background: var(--accent-soft); }
-  .lang-switch { display: inline-flex; flex: none; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg-elev); }
-  .lang-switch button {
-    border: 0; background: transparent; color: var(--muted);
-    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .05em;
-    padding: 0 12px; height: 36px; cursor: pointer;
-  }
-  .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
-  .icon-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    flex: none; height: 36px; padding: 0 12px;
-    border: 1px solid var(--line); border-radius: 10px;
-    background: var(--bg-elev); color: var(--text);
-    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: border-color .15s, background .15s, transform .1s;
-  }
-  .icon-btn:hover { border-color: var(--line-strong); }
-  .icon-btn:active { transform: translateY(1px); }
-  .icon-btn .tk-icon { width: 16px; height: 16px; flex-basis: 16px; }
-  :root[data-theme="light"] .icon-sun { display: none; }
-  :root[data-theme="dark"] .icon-moon { display: none; }
 
   /* Botones */
   .btn {
@@ -248,7 +135,6 @@
     color: var(--muted);
   }
   .hero .lead strong { color: var(--text); font-weight: 600; }
-  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
   .spec-line {
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
     margin-top: 26px;
@@ -507,7 +393,6 @@
     transition: opacity .15s, border-color .15s, color .15s;
   }
   .code .copy:hover { border-color: #475569; color: #f8fafc; }
-  .code .copy .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
   .code .copy.copied { color: #34d399; border-color: rgba(52, 211, 153, .45); }
   @media (hover: hover) {
     .code .copy { opacity: 0; }
@@ -587,24 +472,6 @@
   .foot-links a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
   .foot-links .tk-icon { width: 13px; height: 13px; flex-basis: 13px; }
 
-  /* Vuelta arriba: el mismo botón flotante de SKILLS-AGP, que aparece cuando
-     la cabecera ya no se ve. */
-  .to-top {
-    position: fixed; right: clamp(16px, 3vw, 28px); bottom: clamp(16px, 3vw, 28px); z-index: 60;
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px; padding: 0;
-    border: 1px solid var(--line-strong); border-radius: 50%;
-    background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-    color: var(--muted); box-shadow: var(--shadow);
-    opacity: 0; visibility: hidden; transform: translateY(10px);
-    transition: opacity .2s, transform .2s, visibility .2s, border-color .15s, color .15s;
-  }
-  .to-top.is-visible { opacity: 1; visibility: visible; transform: none; }
-  .to-top:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
-  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .to-top .tk-icon { width: 18px; height: 18px; flex-basis: 18px; }
-
   @media (prefers-reduced-motion: no-preference) {
     .hero-copy > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) backwards; }
     .hero-copy > *:nth-child(2) { animation-delay: .05s; }
@@ -621,10 +488,6 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: none; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after { transition: none !important; animation: none !important; }
-  }
 
   @media (min-width: 761px) {
     .refusal strong { min-height: 2.3em; }
@@ -636,11 +499,6 @@
     .split > aside { padding-top: 0; }
     .close-grid { grid-template-columns: 1fr; }
     .close-fox { width: 88px; justify-self: end; margin-top: -8px; }
-  }
-  @media (max-width: 520px) {
-    .topbar { gap: 8px; }
-    .brand-name small { display: none; }
-    .icon-btn span:not(.tk-icon) { display: none; }
   }
   @media (max-width: 1240px) {
     .site-nav { display: none; }
@@ -666,34 +524,12 @@
     .foot-links { margin-left: 0; }
   }
 </style>
-  <!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
-  <link rel="stylesheet" href="../../web/public/icons/icons.css">
 </head>
 <body>
 <div id="top" class="page-top" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
 
-<header class="topbar">
-  <a class="brand" href="#top">
-    <span class="brand-mark" aria-hidden="true"><img class="brand-icon-light" src="../tasks-ai-brand/app-icons/tasks-ai-light-128.png" alt="" width="34" height="34"><img class="brand-icon-dark" src="../tasks-ai-brand/app-icons/tasks-ai-dark-128.png" alt="" width="34" height="34"></span>
-    <span class="brand-name">tasks-ai<small>gestor de tareas local-first</small></span>
-  </a>
-  <span class="topbar-spacer"></span>
-  <nav class="site-nav" aria-label="Secciones">
-    <a href="#producto">El producto</a>
-    <a href="#agentes">Agentes</a>
-    <a href="#empezar">Empezar</a>
-    <a href="design-system.html">Sistema de diseño</a>
-    <a class="guide" href="index.html">Guía de uso</a>
-  </nav>
-  <!-- Selector visual: la portada no tiene versión inglesa, así que EN no lleva manejador. -->
-  <div class="lang-switch" role="group" aria-label="Idioma / Language"><button type="button" id="lang-es" data-lang="es" aria-pressed="true" lang="es">ES</button><button type="button" id="lang-en" data-lang="en" aria-pressed="false" aria-disabled="true" lang="en">EN</button></div>
-  <button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar a tema oscuro">
-        <span class="tk-icon tk-icon--mask tk-icon--moon icon-moon" aria-hidden="true"></span>
-        <span class="tk-icon tk-icon--mask tk-icon--sun icon-sun" aria-hidden="true"></span>
-    <span>Tema</span>
-  </button>
-</header>
+<header class="topbar" id="docs-topbar"></header>
 
 <main id="main">
   <section class="hero">
@@ -962,59 +798,55 @@
           <a class="btn btn-ghost" href="index.html">Leer la guía</a>
         </div>
       </div>
-      <img class="close-fox" src="../tasks-ai-brand/logos/fox-transparent-384.png" width="384" height="384" alt="" loading="lazy">
+      <img class="close-fox" src="assets/img/logos/fox-transparent-384.png" width="384" height="384" alt="" loading="lazy">
     </div>
   </section>
 </main>
 
-<footer class="site-foot">
+<div id="docs-footer"><page-footer class="site-foot">
   <div class="wrap foot-row">
     <span class="foot-brand">
-      <img src="../tasks-ai-brand/logos/fox-transparent-128.png" width="22" height="22" alt="">
+      <img src="assets/img/logos/fox-transparent-128.png" width="22" height="22" alt="">
       tasks-ai <small>· local-first · Go · SQLite</small>
     </span>
     <p class="foot-note">Este repositorio se gobierna con su propio tablero.</p>
     <nav class="foot-links" aria-label="Enlaces">
-      <a href="index.html">Guía de uso</a>
-      <a href="design-system.html">Sistema de diseño</a>
-      <a href="../../CHANGELOG.md">Changelog</a>
+      <a class="icon-btn" href="index.html"><span class="tk-icon tk-icon--mask tk-icon--document-text" aria-hidden="true"></span>Guía de uso</a>
+      <a class="icon-btn" href="design-system.html"><span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>Sistema de diseño</a>
       <a href="#top">Arriba
         <span class="tk-icon tk-icon--mask tk-icon--arrow-up" aria-hidden="true"></span>
       </a>
     </nav>
   </div>
-</footer>
+</page-footer></div>
 
 <a class="to-top" id="to-top" href="#top" aria-label="Volver arriba" title="Volver arriba">
   <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
 </a>
 
+<script type="application/json" id="docs-config">
+{
+  "topbar": {
+    "brand": { "href": "#top", "tagline": { "es": "gestor de tareas local-first" } },
+    "navStyle": "site",
+    "navAria": "Secciones",
+    "nav": [
+      { "href": "#producto", "es": "El producto" },
+      { "href": "#agentes", "es": "Agentes" },
+      { "href": "#empezar", "es": "Empezar" },
+      { "href": "design-system.html", "es": "Sistema de diseño", "icon": "square-2-stack" },
+      { "href": "index.html", "es": "Guía de uso", "cls": "guide", "icon": "document-text" }
+    ],
+    "spyNav": true,
+    "lang": "locked",
+    "langAria": "Idioma / Language"
+  },
+  "copy": true
+}
+</script>
 <script>
 (function () {
   "use strict";
-
-  var STORAGE_KEY = "tasks-ai:prefs";
-  var root = document.documentElement;
-  var prefs = {};
-  try { prefs = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { prefs = {}; }
-
-  function savePrefs() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) {}
-  }
-
-  // El tema se comparte con la guía: las dos leen la misma preferencia.
-  var themeBtn = document.getElementById("theme-toggle");
-  function themeLabel() {
-    var dark = root.getAttribute("data-theme") === "dark";
-    themeBtn.setAttribute("aria-label", dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro");
-  }
-  themeLabel();
-  themeBtn.addEventListener("click", function () {
-    prefs.theme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", prefs.theme);
-    themeLabel();
-    savePrefs();
-  });
 
   // Una tarea seleccionada en el tablero enseña su propia respuesta JSON.
   var rows = Array.prototype.slice.call(document.querySelectorAll(".task[data-ref]"));
@@ -1036,84 +868,12 @@
   rows.forEach(function (row) {
     row.addEventListener("click", function () { select(row.getAttribute("data-ref")); });
   });
-
-  // Botón de copiar en cada bloque de código, como en la guía.
-  var COPY = '<span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span>';
-  var CHECK = '<span class="tk-icon tk-icon--mask tk-icon--check" aria-hidden="true"></span>';
-
-  document.querySelectorAll(".code").forEach(function (block) {
-    var pre = block.querySelector("pre");
-    if (!pre) { return; }
-    block.classList.add("has-copy");
-
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "copy";
-    btn.innerHTML = COPY + "<span>Copiar</span>";
-    btn.setAttribute("aria-label", "Copiar el código");
-    block.appendChild(btn);
-
-    var timer = null;
-    btn.addEventListener("click", function () {
-      var text = pre.textContent;
-      var done = function () {
-        btn.classList.add("copied");
-        btn.innerHTML = CHECK + "<span>Copiado</span>";
-        btn.setAttribute("aria-label", "Código copiado");
-        if (timer) { clearTimeout(timer); }
-        timer = setTimeout(function () {
-          btn.classList.remove("copied");
-          btn.innerHTML = COPY + "<span>Copiar</span>";
-          btn.setAttribute("aria-label", "Copiar el código");
-        }, 1600);
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, done);
-      } else {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.select();
-        try { document.execCommand("copy"); } catch (e) {}
-        document.body.removeChild(ta);
-        done();
-      }
-    });
-  });
 })();
 </script>
 <script>
 (function () {
   "use strict";
 
-  var toTop = document.getElementById("to-top");
-  if (toTop) {
-    var update = function () { toTop.classList.toggle("is-visible", window.scrollY > 480); };
-    window.addEventListener("scroll", update, { passive: true });
-    update();
-  }
-
-  // La sección que ocupa la franja superior de la ventana marca su enlace.
-  if ("IntersectionObserver" in window) {
-    var links = {};
-    document.querySelectorAll(".site-nav a").forEach(function (a) {
-      var href = a.getAttribute("href");
-      if (href && href.charAt(0) === "#" && href.length > 1) { links[href.slice(1)] = a; }
-    });
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) { return; }
-        Object.keys(links).forEach(function (id) { links[id].classList.remove("active"); });
-        if (links[entry.target.id]) { links[entry.target.id].classList.add("active"); }
-      });
-    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
-    Object.keys(links).forEach(function (id) {
-      var section = document.getElementById(id);
-      if (section) { observer.observe(section); }
-    });
-  }
   // Las secciones entran una sola vez al asomar por la ventana.
   var sections = document.querySelectorAll("main > section:not(.hero)");
   if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {

@@ -17,21 +17,26 @@ import (
 // raíz incrusta los recursos y no puede importar el CLI sin un ciclo.
 const guidePath = "../../docs/web/index.html"
 
-// Lo que la guía declara: las claves de sus textos, las del diccionario inglés y
-// los comandos que invoca.
+// guideScriptPath is the shared script that also carries i18n keys.
+const guideScriptPath = "../../docs/web/assets/js/docs.js"
+
+// What the guide declares: its text keys —on the page, in docs.js and in the
+// topbar config—, the English dictionary and the commands it invokes.
 var (
 	guideDictionary = regexp.MustCompile(`(?s)<script type="application/json" id="tasks-ai-en">(.*?)</script>`)
-	guideKey        = regexp.MustCompile(`data-i18n="([^"]+)"`)
+	guideKey        = regexp.MustCompile(`(?:^|[\s<])data-i18n="([^"]+)"`)
+	guideConfigKey  = regexp.MustCompile(`"i18n"\s*:\s*"([^"]+)"`)
 	guideEntry      = regexp.MustCompile(`(?m)^\s*"([^"]+)":`)
 	guideCommand    = regexp.MustCompile(`\./tasks-ai ([a-z][a-z-]*)`)
 )
 
-func readGuide(t *testing.T) string {
+func readGuide(t *testing.T, path string) string {
 	t.Helper()
 
-	raw, err := os.ReadFile(guidePath)
+	//nolint:gosec // la ruta es del propio repositorio, no de fuera
+	raw, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("%s: %v", guidePath, err)
+		t.Fatalf("%s: %v", path, err)
 	}
 
 	return string(raw)
@@ -43,7 +48,8 @@ func readGuide(t *testing.T) string {
 func TestGuideTranslations(t *testing.T) {
 	t.Parallel()
 
-	page := readGuide(t)
+	page := readGuide(t, guidePath)
+	script := readGuide(t, guideScriptPath)
 
 	block := guideDictionary.FindStringSubmatch(page)
 	if block == nil {
@@ -68,11 +74,20 @@ func TestGuideTranslations(t *testing.T) {
 
 	used := map[string]bool{}
 
-	for _, match := range guideKey.FindAllStringSubmatch(page, -1) {
-		used[match[1]] = true
+	for _, source := range []struct {
+		path, content string
+		pattern       *regexp.Regexp
+	}{
+		{guidePath, page, guideKey},
+		{guideScriptPath, script, guideKey},
+		{guidePath, page, guideConfigKey},
+	} {
+		for _, match := range source.pattern.FindAllStringSubmatch(source.content, -1) {
+			used[match[1]] = true
 
-		if _, ok := dictionary[match[1]]; !ok {
-			t.Errorf("%s: %q has no English translation", guidePath, match[1])
+			if _, ok := dictionary[match[1]]; !ok {
+				t.Errorf("%s: %q has no English translation", source.path, match[1])
+			}
 		}
 	}
 
@@ -89,7 +104,7 @@ func TestGuideTranslations(t *testing.T) {
 func TestGuideDocumentsEveryCommand(t *testing.T) {
 	t.Parallel()
 
-	page := readGuide(t)
+	page := readGuide(t, guidePath)
 	root := cli.New(io.Discard, io.Discard)
 
 	root.InitDefaultHelpCmd()

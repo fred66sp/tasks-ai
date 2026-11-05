@@ -36,13 +36,13 @@ test('la guía visual se puede abrir desde la portada y la guía de uso', () => 
 test('la guía consume el CSS del tablero y no mantiene una copia de los componentes', () => {
   const page = read('../../../docs/web/design-system.html');
 
-  assert.match(page, /href="\.\.\/\.\.\/web\/public\/task-manager\/app-vue\.css"/,
-    'la guía no carga el CSS real del tablero');
+  assert.match(page, /href="assets\/vendor\/app-vue\.css"/,
+    'la guía no carga la copia vendor del CSS real del tablero');
   assert.doesNotMatch(page, /\bds-[a-z]/, 'la guía conserva una capa de componentes propia');
   for (const specimen of ['tk-button', 'tk-input', 'tk-select', 'tk-badge', 'tk-tab', 'task-row', 'task-tree', 'tk-panel', 'tk-modal', 'tk-dropdown', 'tag-manager-drawer', 'tag-manager-color']) {
     assert.match(page, new RegExp(`class="[^"]*\\b${specimen}\\b`), `falta la muestra ${specimen}`);
   }
-  assert.match(page, /notifications\/toast-anchor\.js/, 'el aviso y la confirmación no usan el módulo del producto');
+  assert.match(page, /assets\/vendor\/toast-anchor\/toast-anchor-wrapper\.js/, 'el aviso y la confirmación no usan el módulo del producto');
   assert.match(page, /id="demo-toast"/);
   assert.match(page, /id="demo-confirm"/);
   assert.doesNotMatch(page, /<iframe/i, 'un iframe no es un componente del sistema de diseño');
@@ -121,8 +121,8 @@ test('la hoja de iconos asigna una clase a cada archivo', () => {
 
 test('el producto y la documentación cargan la hoja de iconos', () => {
   for (const name of docPages) {
-    assert.match(read(`../../../docs/web/${name}`), /href="\.\.\/\.\.\/web\/public\/icons\/icons\.css"/,
-      `${name} no carga la hoja compartida de iconos`);
+    assert.match(read(`../../../docs/web/${name}`), /href="assets\/vendor\/icons\/icons\.css"/,
+      `${name} no carga la hoja de iconos vendorizada`);
   }
   assert.match(read('../../../web/public/task-manager/app-vue.html'), /href="\.\.\/icons\/icons\.css"/,
     'el tablero no carga la hoja compartida de iconos');
@@ -190,30 +190,30 @@ test('la guía asigna a cada etiqueta el color de su catálogo', () => {
 });
 
 test('la cabecera comparte geometría con la portada y la guía de uso', () => {
-  const landing = read('../../../docs/web/landing.html');
-  const guide = read('../../../docs/web/index.html');
-  const page = read('../../../docs/web/design-system.html');
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
 
-  for (const doc of [page, landing, guide]) {
-    assert.match(doc, /padding: 12px clamp\(16px, 4vw, 40px\)/, 'la cabecera no comparte el margen');
-    assert.match(doc, /background: color-mix\(in srgb, var\(--(?:page|bg)\) 82%, transparent\)/, 'la cabecera no comparte el velo');
-  }
-  for (const doc of [page, landing]) {
-    assert.match(doc, /\.site-nav a \{[\s\S]*?line-height: 1\.2/, 'los enlaces de sección cambian el alto de la barra');
+  assert.match(chrome, /padding: 12px clamp\(16px, 4vw, 40px\)/, 'la cabecera no comparte el margen');
+  assert.match(chrome, /background: color-mix\(in srgb, var\(--bg\) 82%, transparent\)/, 'la cabecera no comparte el velo');
+  assert.match(chrome, /\.site-nav a \{[\s\S]*?line-height: 1\.2/, 'los enlaces de sección cambian el alto de la barra');
+  for (const name of docPages) {
+    assert.match(read(`../../../docs/web/${name}`), /href="assets\/css\/chrome\.css"/,
+      `${name} no carga la mobilia común (ADR-018)`);
   }
 });
 
 test('la guía tiene vuelta arriba como la guía de uso', () => {
   const page = read('../../../docs/web/design-system.html');
+  const docs = read('../../../docs/web/assets/js/docs.js');
 
   assert.match(page, /<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">/);
   assert.match(page, /<div id="top" class="page-top" aria-hidden="true"><\/div>/,
     'falta el ancla real del principio del documento');
-  assert.ok(page.indexOf('<div id="top"') < page.indexOf('<header class="topbar">'),
+  assert.ok(page.indexOf('<div id="top"') < page.indexOf('<header class="topbar" id="docs-topbar">'),
     'el ancla superior debe ir antes de la cabecera sticky');
   assert.doesNotMatch(page, /<header class="topbar" id="top">/,
     'una cabecera sticky no sirve como destino de #top');
-  assert.match(page, /toTop\.classList\.toggle\('is-visible', window\.scrollY > 480\)/);
+  assert.match(docs, /toTop\.classList\.toggle\("is-visible", window\.scrollY > 480\)/,
+    'el volver arriba ya no vive en el guion común (ADR-018)');
 });
 
 test('cada sección lleva el resplandor del 09', () => {
@@ -225,12 +225,13 @@ test('cada sección lleva el resplandor del 09', () => {
 });
 
 test('el logo cambia con el tema', () => {
-  const page = read('../../../docs/web/design-system.html');
+  const docs = read('../../../docs/web/assets/js/docs.js');
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
 
-  assert.match(page, /class="brand-icon-light"[^>]*tasks-ai-light-64\.png/);
-  assert.match(page, /class="brand-icon-dark"[^>]*tasks-ai-dark-64\.png/);
-  assert.match(page, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-light \{ display: none; \}/);
-  assert.match(page, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-dark \{ display: block; \}/);
+  assert.match(docs, /class="brand-icon-light"[^>]*assets\/img\/app-icons\/tasks-ai-light-64\.png/);
+  assert.match(docs, /class="brand-icon-dark"[^>]*assets\/img\/app-icons\/tasks-ai-dark-64\.png/);
+  assert.match(chrome, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-light \{ display: none; \}/);
+  assert.match(chrome, /:root\[data-theme="dark"\] \.brand-mark \.brand-icon-dark \{ display: block; \}/);
 });
 
 test('la guía declara la paleta de etiquetas y avisos de DESIGN.md', () => {

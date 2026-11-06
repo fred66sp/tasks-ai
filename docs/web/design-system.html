@@ -34,12 +34,18 @@
 
     /* ---------- Estructura ---------- */
     .shell {
+      position: relative;
       display: grid;
       grid-template-columns: 272px minmax(0, 1fr);
       min-height: 100vh;
-      background: radial-gradient(ellipse at 85% 0, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%) top right / 70% 460px no-repeat;
+      overflow: clip;
     }
-    .shell > * { min-width: 0; }
+    .shell::before {
+      grid-column: 1 / -1; grid-row: 1;
+      /* shortcut: el desplazamiento aproxima la portada en escritorio, revisar si cambia su altura. */
+      inset: -250px -10% auto;
+    }
+    .shell > * { position: relative; min-width: 0; }
     .rail {
       border-right: 1px solid var(--line);
       background: var(--surface);
@@ -74,7 +80,6 @@
 
     .content {
       width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px;
-      background: radial-gradient(ellipse at 20% 0, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%) top left / 65% 460px no-repeat;
     }
 
     /* El hero comparte la ambiencia de color de la portada y la guía: los
@@ -83,6 +88,8 @@
       position: relative; overflow: hidden;
       padding-bottom: 26px;
     }
+    .hero::before { content: none; }
+    .hero > .hero-mesh { left: calc(-272px - var(--gutter)); width: 100vw; }
     .hero::after {
       content: ""; position: absolute; inset: auto 0 0; height: 2px;
       background: linear-gradient(90deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
@@ -323,6 +330,8 @@
     /* ---------- Adaptación ---------- */
     @media (max-width: 1020px) {
       .shell { grid-template-columns: minmax(0, 1fr); }
+      .shell::before { grid-row: 2; }
+      .hero > .hero-mesh { left: calc(-1 * var(--gutter)); }
       .rail { border-right: 0; border-bottom: 1px solid var(--line); }
       .rail-inner { position: static; max-height: none; padding: 16px var(--gutter) 14px; }
       .rail-title { display: none; }
@@ -402,6 +411,7 @@
 
   <main class="content" id="main">
     <div class="hero">
+      <div class="hero-mesh" aria-hidden="true"></div>
       <h1>Un tablero que <span class="grad">ordena el trabajo</span>.</h1>
       <p class="lead">El proyecto vive en una carpeta y el tablero es su expediente. Este documento reúne las piezas que lo componen: los valores que ya usa la interfaz, sus estados y las reglas para cambiarlas sin abrir una segunda fuente.</p>
       <ul class="meta">

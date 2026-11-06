@@ -29,6 +29,8 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Corregido
 
+- Los heroes de la portada, la guía y el sistema de diseño comparten los colores de los
+  halos y la cuadrícula, con una única definición de cada fondo en el CSS común.
 - La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia
   de estado del tablero muestra solo su palabra: se retiró el trazo propio que quedaba
   negro en los dos temas.

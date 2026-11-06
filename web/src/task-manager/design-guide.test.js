@@ -9,6 +9,16 @@ const iconFiles = () => readdirSync(iconDir)
   .map((name) => name.slice(0, -4))
   .sort();
 const docPages = ['landing.html', 'index.html', 'design-system.html'];
+test('los tres heroes comparten la cuadrícula central y los colores laterales', () => {
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+  assert.match(chrome, /\.hero > \.hero-mesh\s*\{[^}]*linear-gradient\(to right[\s\S]*linear-gradient\(to bottom[\s\S]*56px 56px[\s\S]*mask-image: radial-gradient/);
+  for (const page of docPages) {
+    assert.match(read(`../../../docs/web/${page}`), /<div class="hero-mesh" aria-hidden="true"><\/div>/, page);
+  }
+  assert.match(chrome, /--hero-glow:\s*radial-gradient\(55% 55% at 20% 30%[^;]*var\(--accent-3\)/);
+  assert.match(chrome, /\.hero::before,\s*\.shell::before\s*\{[^}]*height:\s*620px;[^}]*background:\s*var\(--hero-glow\)/);
+  assert.doesNotMatch(read('../../../docs/web/index.html'), /animation:\s*hero-drift/);
+});
 const docSource = () => docPages
   .map((name) => read(`../../../docs/web/${name}`))
   .join('\n');
@@ -334,8 +344,10 @@ test('el hero del catálogo comparte el acento y el gesto de las otras superfici
   const chrome = read('../../../docs/web/assets/css/chrome.css');
 
   assert.match(page, /<h1>[\s\S]*?<span class="grad">/, 'el título del hero no lleva el acento de la guía');
-  assert.match(page, /\.content \{[^}]*radial-gradient\([^}]*var\(--accent\)/, 'el degradado izquierdo debe estar en main');
-  assert.match(page, /\.shell \{[^}]*radial-gradient\([^}]*var\(--accent-2\)/, 'el degradado derecho debe estar en shell');
+  assert.match(page, /\.shell::before \{[^}]*grid-column:\s*1 \/ -1[^}]*grid-row:\s*1[^}]*inset:\s*-250px -10% auto/, 'los degradados deben alinearse con todo el ancho de la portada');
+  assert.match(page, /\.hero > \.hero-mesh \{[^}]*left:\s*calc\(-272px - var\(--gutter\)\)[^}]*width:\s*100vw/, 'la cuadrícula debe alinearse con el ancho de la ventana');
+  assert.match(page, /@media \(max-width: 1020px\) \{[^}]*\}[^}]*\.shell::before \{[^}]*grid-row:\s*2/, 'en móvil deben comenzar bajo el rail');
+  assert.doesNotMatch(page, /\.content \{[^}]*radial-gradient/, 'main no debe tener degradados');
   assert.match(page, /\.hero::after \{[^}]*linear-gradient/, 'el hero no cierra con la regla de marca');
   assert.match(page, /\.chapter-num \{[^}]*background: var\(--accent-soft\)/,
     'los números de capítulo no usan el contenedor de color de la guía');

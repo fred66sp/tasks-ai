@@ -664,7 +664,7 @@
             <tr><td><code>-d</code>, <code>--description</code></td><td data-i18n="comandos.13">Descripción.</td></tr>
             <tr><td><code>--notes</code></td><td data-i18n="comandos.14">Notas: el plan del trabajo.</td></tr>
             <tr><td><code>--priority</code></td><td data-i18n="comandos.15">Entero de <code>0</code> a <code>3</code>. Por omisión <code>2</code>.</td></tr>
-            <tr><td><code>--assignee</code></td><td data-i18n="comandos.16">Persona responsable.</td></tr>
+            <tr><td><code>--assignee</code></td><td data-i18n="comandos.16">Persona responsable. Si falta, la tarea nace con la persona del proyecto (<code>person</code>).</td></tr>
             <tr><td><code>--parent</code></td><td data-i18n="comandos.17">Referencia del padre: la tarea nace como subtarea.</td></tr>
             <tr><td><code>--tags</code></td><td data-i18n="comandos.77">Etiquetas con las que nace, separadas por comas. Una que no esté en el catálogo se rechaza y no deja la tarea escrita.</td></tr>
           </tbody>
@@ -1194,10 +1194,11 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
 
     <section id="configuracion">
       <div class="section-head"><span class="section-num">10</span><h2 class="title" data-i18n="configuracion.2">La configuración</h2></div>
-      <p class="sub" data-i18n="configuracion.3">Un archivo, cuatro claves, y la posibilidad de editarlo a mano. El producto lo escribe al instalar y no vuelve a tocarlo.</p>
+      <p class="sub" data-i18n="configuracion.3">Un archivo, cinco claves, y la posibilidad de editarlo a mano. El producto lo escribe al instalar y no vuelve a tocarlo.</p>
       <div class="code">
         <pre data-language="json"><code>{
   "prefix": "tk",
+  "person": "ana",
   "db": "tasks.db",
   "http": { "host": "127.0.0.1", "port": 8890 },
   "log": { "level": "info" }
@@ -1208,6 +1209,7 @@ pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the c
           <thead><tr><th data-i18n="configuracion.4">Clave</th><th data-i18n="configuracion.5">Tipo</th><th data-i18n="configuracion.6">Por omisión</th><th data-i18n="configuracion.7">Qué hace</th></tr></thead>
           <tbody>
             <tr><td><code>prefix</code></td><td data-i18n="configuracion.8">texto</td><td><code>tk</code></td><td data-i18n="configuracion.9">El prefijo de las referencias. Empieza por letra o número y sigue con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres.</td></tr>
+            <tr><td><code>person</code></td><td data-i18n="configuracion.21">texto</td><td data-i18n="configuracion.22">vacío</td><td data-i18n="configuracion.23">La persona del proyecto: <code>init</code> la escribe con el nombre de <code>git config user.name</code> cuando el proyecto es un repositorio Git, y la deja vacía si no lo hay o no devuelve nombre; <code>create</code> la da como responsable a la tarea que no trae <code>--assignee</code>. Cambiarla no toca las tareas ya creadas.</td></tr>
             <tr><td><code>db</code></td><td data-i18n="configuracion.10">ruta</td><td><code>tasks.db</code></td><td data-i18n="configuracion.11">La base, relativa a la carpeta del producto.</td></tr>
             <tr><td><code>http.host</code></td><td data-i18n="configuracion.12">texto</td><td><code>127.0.0.1</code></td><td data-i18n="configuracion.13">La dirección en la que escucha <code>serve</code>.</td></tr>
             <tr><td><code>http.port</code></td><td data-i18n="configuracion.14">entero</td><td><code>8890</code></td><td data-i18n="configuracion.15">El puerto de <code>serve</code>.</td></tr>
@@ -1439,7 +1441,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.13": "Description.",
  "comandos.14": "Notes: the plan for the work.",
  "comandos.15": "Integer from <code>0</code> to <code>3</code>. Defaults to <code>2</code>.",
- "comandos.16": "The person responsible.",
+ "comandos.16": "The person responsible. When it is missing, the task is born with the project's person (<code>person</code>).",
  "comandos.17": "The parent reference: the task is born as a subtask.",
  "comandos.77": "The tags it is born with, separated by commas. One that is not in the catalogue is refused and leaves no task written.",
  "comandos.18": "<code>list</code><span class=\"sig\">— every task in the project</span>",
@@ -1636,7 +1638,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "agente.26": "The project loads it from its <code>opencode.jsonc</code>:",
  "agente.27": "It registers the same eleven tools and adds the board summary to the system of every request; it has no <code>/board</code> or TUI block, because the OpenCode server plugin does not offer them. The harness TODO does not replace the board: the mission names its <code>tk-N</code> and the board remains the only source of tasks.",
  "configuracion.2": "Configuration",
- "configuracion.3": "One file, four keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
+ "configuracion.3": "One file, five keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
  "configuracion.4": "Key",
  "configuracion.5": "Type",
  "configuracion.6": "Default",
@@ -1654,6 +1656,9 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "configuracion.18": "Changing the prefix",
  "configuracion.19": "The prefix changes what you type, not what is stored: the database is not rewritten and references with the previous prefix stop resolving. The product warns on start and continues with the new one, so you change it once and leave it. Fixing it at install time with <code>init --prefix</code> avoids the change.",
  "configuracion.20": "<strong>An invalid value stops the start</strong> with a clear message, instead of starting with a half-configured product. That is what you want: a mistyped prefix would change every reference.",
+ "configuracion.21": "text",
+ "configuracion.22": "empty",
+ "configuracion.23": "The project's person: <code>init</code> writes it from the name in <code>git config user.name</code> when the project is a Git repository, and leaves it empty when there is no repository or no name; <code>create</code> gives it as the assignee of a task that brings no <code>--assignee</code>. Changing it leaves the tasks already created untouched.",
  "limites.2": "What it does not do",
  "limites.3": "As important as everything above: what the product does not promise, so you do not expect it.",
  "limites.4": "It does not",

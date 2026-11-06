@@ -27,6 +27,14 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
   `docs/decisions/` pasa a ser su exportación generada, y `adr export --check` detecta la
   deriva entre la base y el directorio versionado.
 
+### Cambiado
+
+- Las herramientas del tablero dicen cuándo se usan, no solo qué hacen: poner la tarea en
+  curso al empezar el trabajo, comentar el avance cuando surge y cerrar con `done` solo
+  tras la revisión o el pedido expreso de la persona. El ciclo viaja además en el resumen
+  que se inyecta al agente en cada turno, y las instrucciones que copia `init` explican
+  qué operación corresponde a cada momento del trabajo.
+
 ### Corregido
 
 - Los heroes de la portada, la guía y el sistema de diseño comparten los colores de los

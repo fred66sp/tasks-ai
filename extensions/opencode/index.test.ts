@@ -81,6 +81,14 @@ test("registra las once herramientas del contrato", async (t) => {
 	assert.equal(hooks.length, 1);
 });
 
+test("las descripciones dicen el momento de uso", async (t) => {
+	const { tools } = await harness(project(t), () => ({ ok: true, data: [] }));
+
+	assert.match(tools.get("tasks_update")!.description, /in_progress.*status open/s);
+	assert.match(tools.get("tasks_comment")!.description, /en el momento en que surgen/);
+	assert.match(tools.get("tasks_close")!.description, /revisión o su pedido expreso/);
+});
+
 test("tasks_board deriva el tablero de list", async (t) => {
 	const tasks = [task(), task({ id: 2, ref: "tk-2", title: "Revisar", status: "done", updated_at: "2026-01-02T00:00:00Z" })];
 	const { tools, calls } = await harness(project(t), () => ({ ok: true, data: tasks }));
@@ -138,6 +146,8 @@ test("el resumen del tablero entra en el contexto de cada petición", async (t) 
 	assert.equal(event.system[0].type, "text");
 	assert.match(event.system[0].text, /Tablero del proyecto:/);
 	assert.match(event.system[0].text, /tareas: 1/);
+	assert.match(event.system[0].text, /Empezar el trabajo: tasks_update con status in_progress/);
+	assert.match(event.system[0].text, /revisión o su pedido expreso/);
 });
 
 test("sin tablero, el contexto lo dice en vez de fallar", async (t) => {

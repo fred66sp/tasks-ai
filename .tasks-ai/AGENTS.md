@@ -46,6 +46,23 @@ El motivo de cierre es obligatorio y debe ser uno de: `done`, `duplicate`, `abso
 nada, cerrar una subtarea no cierra su padre, y una tarea ya cerrada no se cierra otra
 vez ni una abierta se reabre.
 
+## Cuándo se usa qué
+
+El tablero es el único registro del trabajo. Cada momento del ciclo tiene su operación, y
+se hace cuando toca, no al final:
+
+| Momento | Operación |
+|---|---|
+| Abrir el trabajo | `tasks-ai create --title "..."`; la tarea nace `open` |
+| Abrir el trabajo de una épica | `tasks-ai update <ref> --status in_progress` en la épica cuando empieza su primera hija; su cierre espera a que cierren todas |
+| Empezar el trabajo | `tasks-ai update <ref> --status in_progress` |
+| Surgir un avance, una decisión o un bloqueo | `tasks-ai comment <ref> --body "..."` en ese momento |
+| Dejar el trabajo a medias | `tasks-ai update <ref> --status open` |
+| Terminar | informe a la persona y `tasks-ai close <ref> --reason done`, con su revisión o su pedido expreso |
+| Dejar de necesitarla sin hacerla | `tasks-ai close <ref> --reason duplicate`, `absorbed`, `stale` o `superseded` |
+
+El tablero no habla de Git: el estado de Git solo vive en Git.
+
 El estado bloqueado se calcula y no se guarda: una tarea aparece bloqueada mientras
 tenga algún bloqueante que no esté `done`, y deja de estarlo al cerrar al bloqueante o
 al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no puede

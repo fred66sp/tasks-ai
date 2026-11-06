@@ -427,6 +427,15 @@ ninguna toca la base ni recompone un mensaje del producto.
   catálogo no son operaciones del ciclo de trabajo del agente. Las etiquetas de una tarea
   se leen dentro de la tarea, por su nombre.
 
+### El momento de uso
+
+El momento va en la descripción de cada herramienta y forma parte del contrato, porque es
+lo único que el modelo lee cuando elige la llamada: `tasks_update` dice que `status` se
+usa al empezar el trabajo (`in_progress`) y al dejarlo (`open`); `tasks_comment`, que el
+avance, la decisión o el bloqueo se escriben en el momento en que surgen; `tasks_close`,
+que `done` se cierra tras presentar el resultado a la persona, con su revisión o su
+pedido expreso. El tablero no habla de Git: su estado solo vive en Git.
+
 ### Parámetros y validación
 
 - Las referencias se escriben tal cual las escribe el producto (`tk-18`): la extensión no
@@ -455,6 +464,11 @@ decida, no para que lo lea entero.
 
 Los límites viven en la extensión, no en el producto: el CLI sigue devolviendo todo, y
 quien lea su JSON recibe la tarea completa.
+
+Con el resumen viaja el ciclo del tablero, porque el modelo decide con él delante:
+empezar el trabajo pone la tarea en curso y dejarla la devuelve a pendiente; el avance,
+la decisión o el bloqueo se comentan cuando surgen; cerrar con `done` es lo último y
+espera la revisión o el pedido expreso de la persona.
 
 ### Errores
 

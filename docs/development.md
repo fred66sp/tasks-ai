@@ -162,9 +162,12 @@ la tarea que cambia una decisión.
 
 1. La tarea en el tablero antes de tocar archivos, y ninguna tarea se crea sin que la
    persona la haya confirmado.
-2. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
+2. Empezar el trabajo pone la tarea en curso (`update --status in_progress`), y dejarla
+   la devuelve a `open`. Los avances, las decisiones y los bloqueos se comentan en el
+   momento en que surgen, no al final.
+3. Un cambio pequeño se hace y se verifica; un cambio grande va por fases, con la
    documentación al día en cada una.
-3. Antes del commit: se lee la tarea entera —descripción, notas y comentarios— y se repasa
+4. Antes del commit: se lee la tarea entera —descripción, notas y comentarios— y se repasa
    su criterio punto por punto sobre lo entregado; se revisan el diff y la documentación
    viva —`README.md`, `docs/PRD.md`, `docs/architecture.md`, `docs/contracts.md`,
    `docs/known-risks.md` y `docs/web/`—, cada una en lo que el cambio le toque;
@@ -176,10 +179,10 @@ la tarea que cambia una decisión.
    - `make check-web`, si cambió la interfaz;
    - `adr export --dir docs/decisions --check` y la puerta de `adr-software`, si el
      cambio toca una decisión o su exportación.
-4. Se presenta el informe, se espera la confirmación y se crea el commit con
+5. Se presenta el informe, se espera la confirmación y se crea el commit con
    `Refs: tk-<n>`. Se comprueba que el commit fue bien y se cierra la tarea con su motivo:
    el cierre es lo último.
-5. Un cambio de diseño se documenta antes de implementarlo, y su ADR explica qué se
+6. Un cambio de diseño se documenta antes de implementarlo, y su ADR explica qué se
    descartó.
 
 Los comandos del día a día son objetivos de `make`, con su equivalente de `go`:

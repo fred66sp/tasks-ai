@@ -13,6 +13,7 @@ import { binary, ensureBinary } from "./test-binary.ts";
 
 interface Registered {
 	name: string;
+	description: string;
 	parameters: { properties: Record<string, Record<string, unknown>>; required?: string[] };
 	execute: (
 		id: string,
@@ -114,6 +115,12 @@ describe("la extensión", () => {
 		assert.deepEqual(result.details, (cli("list") as Detail[]).find((entry) => entry.ref === task.ref));
 		return task;
 	}
+
+	it("las descripciones dicen el momento de uso", () => {
+		assert.match(tools.tasks_update.description, /in_progress.*status open/s);
+		assert.match(tools.tasks_comment.description, /en el momento en que surgen/);
+		assert.match(tools.tasks_close.description, /revisión o su pedido expreso/);
+	});
 
 	it("/board enseña la épica, las subtareas y los bloqueos sin mensajes al modelo", async () => {
 		cli("create", "--title", "épica del TUI");
@@ -296,10 +303,10 @@ describe("la extensión", () => {
 		assert.match(summary, /tk-3 · lista 1/);
 		assert.doesNotMatch(summary, /tk-2 ·|tk-8 ·|detalle privado/);
 		assert.ok(summary.split("\n").length <= 12);
-		assert.match(summary, /crear o seleccionar.*antes de tocar archivos/i);
-		assert.match(summary, /marcar.*en curso/i);
-		assert.match(summary, /decisiones y bloqueos.*comentarios/i);
-		assert.match(summary, /cerrar solo tras verificar/i);
+		assert.match(summary, /crea o selecciona.*antes de tocar archivos/i);
+		assert.match(summary, /Empezar el trabajo: tasks_update con status in_progress/);
+		assert.match(summary, /en el momento en que surge/);
+		assert.match(summary, /revisión o su pedido expreso/);
 	});
 
 	it("sin instalación informa en una línea y no ejecuta el CLI", async () => {

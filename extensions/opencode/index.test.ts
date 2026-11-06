@@ -81,6 +81,14 @@ test("registra las once herramientas del contrato", async (t) => {
 	assert.equal(hooks.length, 1);
 });
 
+test("las descripciones dicen el momento de uso", async (t) => {
+	const { tools } = await harness(project(t), () => ({ ok: true, data: [] }));
+
+	assert.match(tools.get("tasks_update")!.description, /in_progress.*status open/s);
+	assert.match(tools.get("tasks_comment")!.description, /en el momento en que surgen/);
+	assert.match(tools.get("tasks_close")!.description, /revisión o su pedido expreso/);
+});
+
 test("tasks_board deriva el tablero de list", async (t) => {
 	const tasks = [task(), task({ id: 2, ref: "tk-2", title: "Revisar", status: "done", updated_at: "2026-01-02T00:00:00Z" })];
 	const { tools, calls } = await harness(project(t), () => ({ ok: true, data: tasks }));

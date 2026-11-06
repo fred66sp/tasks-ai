@@ -197,7 +197,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_update",
 		label: "Actualizar tarea",
-		description: "Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas; parent la asigna, la mueve o, con el texto vacío, la deja sin padre.",
+		description: "Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas; parent la asigna, la mueve o, con el texto vacío, la deja sin padre. Al empezar el trabajo en una tarea, ponla en curso con status in_progress; al dejarla, devuélvela con status open.",
 		parameters: Type.Object({
 			ref: reference,
 			...taskFields,
@@ -218,7 +218,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_close",
 		label: "Cerrar tarea",
-		description: "Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas.",
+		description: "Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso.",
 		parameters: Type.Object({
 			ref: reference,
 			reason: Type.Union([
@@ -264,7 +264,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_comment",
 		label: "Comentar tarea",
-		description: "Añade un comentario para dejar avances o contexto en una tarea; para leerlos tasks_comment_list y para cambiar el cuerpo de uno tasks_comment_edit.",
+		description: "Añade un comentario para dejar avances o contexto en una tarea; para leerlos tasks_comment_list y para cambiar el cuerpo de uno tasks_comment_edit. Escribe el avance, la decisión o el bloqueo en el momento en que surgen, no al final.",
 		parameters: Type.Object({
 			ref: reference,
 			body: Type.String({ minLength: 1, pattern: "\\S", description: "el texto no vacío del comentario" }),

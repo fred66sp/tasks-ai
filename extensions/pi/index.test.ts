@@ -13,6 +13,7 @@ import { binary, ensureBinary } from "./test-binary.ts";
 
 interface Registered {
 	name: string;
+	description: string;
 	parameters: { properties: Record<string, Record<string, unknown>>; required?: string[] };
 	execute: (
 		id: string,
@@ -114,6 +115,12 @@ describe("la extensión", () => {
 		assert.deepEqual(result.details, (cli("list") as Detail[]).find((entry) => entry.ref === task.ref));
 		return task;
 	}
+
+	it("las descripciones dicen el momento de uso", () => {
+		assert.match(tools.tasks_update.description, /in_progress.*status open/s);
+		assert.match(tools.tasks_comment.description, /en el momento en que surgen/);
+		assert.match(tools.tasks_close.description, /revisión o su pedido expreso/);
+	});
 
 	it("/board enseña la épica, las subtareas y los bloqueos sin mensajes al modelo", async () => {
 		cli("create", "--title", "épica del TUI");

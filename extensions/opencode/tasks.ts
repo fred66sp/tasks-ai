@@ -161,7 +161,7 @@ export async function register(ctx: PluginContext, executeCli = runCli): Promise
 		{
 			name: "tasks_update",
 			description:
-				"Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas; parent la asigna, la mueve o, con el texto vacío, la deja sin padre.",
+				"Cambia solo los campos indicados de una tarea. Usa status solo; tags sustituye todas sus etiquetas; parent la asigna, la mueve o, con el texto vacío, la deja sin padre. Al empezar el trabajo en una tarea, ponla en curso con status in_progress; al dejarla, devuélvela con status open.",
 			input: schema(
 				{
 					ref: REFERENCE,
@@ -186,7 +186,7 @@ export async function register(ctx: PluginContext, executeCli = runCli): Promise
 		{
 			name: "tasks_close",
 			description:
-				"Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas.",
+				"Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso.",
 			input: schema({ ref: REFERENCE, reason: REASON }, ["ref", "reason"]),
 			async execute(input, context) {
 				return { content: await write(["close", String(input.ref), "--reason", String(input.reason)], "cerrada", context?.signal) };
@@ -219,7 +219,7 @@ export async function register(ctx: PluginContext, executeCli = runCli): Promise
 		{
 			name: "tasks_comment",
 			description:
-				"Añade un comentario para dejar avances o contexto en una tarea; para leerlos tasks_comment_list y para cambiar el cuerpo de uno tasks_comment_edit.",
+				"Añade un comentario para dejar avances o contexto en una tarea; para leerlos tasks_comment_list y para cambiar el cuerpo de uno tasks_comment_edit. Escribe el avance, la decisión o el bloqueo en el momento en que surgen, no al final.",
 			input: schema({ ref: REFERENCE, body: BODY }, ["ref", "body"]),
 			async execute(input, context) {
 				return { content: await write(["comment", String(input.ref), "--body", String(input.body)], "comentario añadido", context?.signal) };

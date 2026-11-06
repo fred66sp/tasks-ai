@@ -123,7 +123,6 @@
   function initCopyButtons() {
     document.querySelectorAll(".code").forEach(function (block) {
       if (block.querySelector(".copy") || !block.querySelector("pre")) { return; }
-      block.classList.add("has-copy");
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "copy";
@@ -354,6 +353,13 @@
       state.lang = "es";
       updateThemeButton();
     }
+
+    // La cabecera del bloque de código declara el lenguaje que pinta
+    // MicroLighter; el dato viaja en el propio <pre>.
+    document.querySelectorAll(".code").forEach(function (block) {
+      var pre = block.querySelector("pre[data-language]");
+      if (pre) { block.dataset.language = pre.getAttribute("data-language"); }
+    });
 
     if (config.copy) { initCopyButtons(); }
     initSpy();

@@ -22,10 +22,9 @@
        entra el CSS del tablero— y los neutros y medidas que usa su rail. */
     :root {
       --gutter: clamp(20px, 4.6vw, 64px);
-      --secondary: #334155;
+      --secondary: var(--muted);
       --topbar-height: 61px;
     }
-    :root[data-theme="dark"] { --secondary: #c3cad5; }
     html { scroll-padding-top: calc(var(--topbar-height) + 8px); }
 
     a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
@@ -38,6 +37,7 @@
       display: grid;
       grid-template-columns: 272px minmax(0, 1fr);
       min-height: 100vh;
+      background: radial-gradient(ellipse at 85% 0, color-mix(in srgb, var(--accent-2) 20%, transparent), transparent 70%) top right / 70% 460px no-repeat;
     }
     .shell > * { min-width: 0; }
     .rail {
@@ -72,7 +72,22 @@
     }
     .rail-chapters a[aria-current="true"] span { color: var(--accent); }
 
-    .content { width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px; }
+    .content {
+      width: 100%; max-width: 1180px; padding: 0 var(--gutter) 120px;
+      background: radial-gradient(ellipse at 20% 0, color-mix(in srgb, var(--accent) 24%, transparent), transparent 70%) top left / 65% 460px no-repeat;
+    }
+
+    /* El hero comparte la ambiencia de color de la portada y la guía: los
+       radiales de marca detrás del título y una regla que cierra el bloque. */
+    .hero {
+      position: relative; overflow: hidden;
+      padding-bottom: 26px;
+    }
+    .hero::after {
+      content: ""; position: absolute; inset: auto 0 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
+    }
+    .hero > * { position: relative; z-index: 1; }
 
     h1 {
       max-width: 18ch;
@@ -94,7 +109,7 @@
     .meta li { padding: 14px 16px; background: var(--surface); }
     .meta b {
       display: block; margin-bottom: 3px;
-      color: var(--muted); font-family: var(--mono);
+      color: var(--accent); font-family: var(--mono);
       font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
     }
     .meta span { color: var(--ink); font-size: 14px; font-weight: 600; }
@@ -105,15 +120,21 @@
       background-image: radial-gradient(circle at 88% 0, rgb(98 167 255 / .08), transparent 34%);
     }
     .chapter-head {
-      display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 0 18px;
+      display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 0 12px;
       align-items: start;
       padding-top: 20px;
       border-top: 1px solid var(--line);
     }
+    /* El número de capítulo usa el mismo contenedor de acento que la guía. */
     .chapter-num {
-      padding-top: 7px;
-      color: var(--muted); font-family: var(--mono);
-      font-size: 12px; font-weight: 600; letter-spacing: .04em;
+      display: grid; place-items: center;
+      width: 30px; height: 30px; margin-top: 3px;
+      border-radius: 6px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px; font-weight: 800;
+      font-variant-numeric: tabular-nums;
     }
     h2 {
       margin: 0 0 12px;
@@ -150,11 +171,11 @@
     .specimen__note { color: var(--muted); font-size: 12.5px; text-align: right; }
     .specimen__body { padding: 24px 18px; }
 
-    .specimen--board { border-color: #243044; background: #0a0f1c; }
-    .specimen--board .specimen__head { border-bottom-color: #1e293b; background: #0e1523; }
-    .specimen--board .specimen__label { color: #94a3b8; }
-    .specimen--board .specimen__note { color: #94a3b8; }
-    .specimen--board .specimen__body { color: #e5e7eb; }
+    .specimen--board { border-color: var(--tk-color-border-default); background: var(--tk-color-canvas); }
+    .specimen--board .specimen__head { border-bottom-color: var(--tk-color-border-subtle); background: var(--tk-color-sidebar); }
+    .specimen--board .specimen__label { color: var(--tk-color-text-muted); }
+    .specimen--board .specimen__note { color: var(--tk-color-text-muted); }
+    .specimen--board .specimen__body { color: var(--tk-color-text-primary); }
     .specimen__scroll { overflow-x: auto; }
 
     table.spec { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 14px; }
@@ -185,7 +206,8 @@
 
     .sources {
       margin: 22px 0; padding: 16px 18px;
-      border: 1px solid var(--line); border-radius: 6px;
+      border: 1px solid var(--line); border-left: 1px solid var(--accent);
+      border-radius: 6px;
       background: var(--raised); color: var(--secondary); font-size: 14px;
     }
     .sources code { overflow-wrap: anywhere; }
@@ -265,7 +287,7 @@
        solo aporta el marco, los estados forzados y las piezas que el producto
        construye con estilos en línea (aviso y confirmación). */
     .stack { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-    .board-help { color: #94a3b8; font-size: 12.5px; }
+    .board-help { color: var(--tk-color-text-muted); font-size: 12.5px; }
 
     .is-hover.tk-button--primary { background: var(--tk-color-accent-hover); }
     .is-hover.tk-button--secondary { border-color: var(--tk-color-border-strong); background: var(--tk-color-surface-hover); }
@@ -316,7 +338,7 @@
       section { margin-top: 72px; }
       .site-nav { display: none; }
       .chapter-head { grid-template-columns: minmax(0, 1fr); }
-      .chapter-num { padding-top: 0; margin-bottom: 6px; }
+      .chapter-num { margin-top: 0; margin-bottom: 8px; }
       .pair { grid-template-columns: minmax(0, 1fr); }
       .specimen__head { display: block; padding: 10px 14px; }
       .specimen__note { display: block; margin-top: 3px; text-align: left; }
@@ -332,6 +354,22 @@
       table.spec tr:last-child { border-bottom: 0; }
       table.spec td { padding: 2px 0; border: 0; }
       table.spec td:first-child { font-weight: 700; }
+    }
+
+    /* Entrada en cascada, el mismo gesto de la portada y la guía. Solo se
+       oculta lo que el guion marca como listo: sin JavaScript, el contenido
+       queda visible y el estado final es el estático. */
+    @media screen and (prefers-reduced-motion: no-preference) {
+      .hero > h1, .hero > .lead, .hero > .meta {
+        animation: rise .55s cubic-bezier(.16, 1, .3, 1) backwards;
+      }
+      .hero > .lead { animation-delay: .06s; }
+      .hero > .meta { animation-delay: .12s; }
+      .chapter-head.is-ready:not(.is-in), .chapter-body.is-ready:not(.is-in) { opacity: 0; }
+      .chapter-head.is-in, .chapter-body.is-in {
+        animation: rise .55s cubic-bezier(.16, 1, .3, 1) backwards;
+        animation-delay: calc(var(--d, 0) * 60ms);
+      }
     }
   </style>
 </head>
@@ -363,14 +401,16 @@
   </aside>
 
   <main class="content" id="main">
-    <h1>Un tablero que ordena el trabajo.</h1>
-    <p class="lead">El proyecto vive en una carpeta y el tablero es su expediente. Este documento reúne las piezas que lo componen: los valores que ya usa la interfaz, sus estados y las reglas para cambiarlas sin abrir una segunda fuente.</p>
-    <ul class="meta">
-      <li><b>Superficies</b><span>Tablero · documentación</span></li>
-      <li><b>Temas</b><span>Nocturno · claro y oscuro</span></li>
-      <li><b>Densidad</b><span>Fila 68 px · control 42 px</span></li>
-      <li><b>Contrato</b><span><code>DESIGN.md</code></span></li>
-    </ul>
+    <div class="hero">
+      <h1>Un tablero que <span class="grad">ordena el trabajo</span>.</h1>
+      <p class="lead">El proyecto vive en una carpeta y el tablero es su expediente. Este documento reúne las piezas que lo componen: los valores que ya usa la interfaz, sus estados y las reglas para cambiarlas sin abrir una segunda fuente.</p>
+      <ul class="meta">
+        <li><b>Superficies</b><span>Tablero · documentación</span></li>
+        <li><b>Temas</b><span>Nocturno · claro y oscuro</span></li>
+        <li><b>Densidad</b><span>Fila 68 px · control 42 px</span></li>
+        <li><b>Contrato</b><span><code>DESIGN.md</code></span></li>
+      </ul>
+    </div>
 
     <section id="fundamentos" aria-labelledby="fundamentos-t">
       <div class="chapter-head">
@@ -410,7 +450,7 @@
               </div>
             </div>
           </div>
-          <div class="sources">Activos y condiciones de uso: <code>docs/tasks-ai-brand/</code>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 38 px con 10 px de esquina en la cabecera del tablero.</div>
+          <div class="sources">Activos y condiciones de uso: <code>docs/tasks-ai-brand/</code>. Las fuentes no se redistribuyen con él. El símbolo ocupa un cuadro de 42 px en la cabecera del tablero y 34 px en la documentación, con 10 px de esquina.</div>
         </div>
       </div>
     </section>
@@ -1269,6 +1309,41 @@
       .catch(() => {
         // file:// no carga módulos: los botones quedan deshabilitados.
       });
+  })();
+</script>
+<script>
+  (() => {
+    // Los capítulos entran al asomarse, como en la guía y la portada. Sin
+    // observer o con movimiento reducido, el contenido se queda visible.
+    if (!("IntersectionObserver" in window)) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
+        entry.target.classList.add("is-in");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0, rootMargin: "0px 0px -8% 0px" });
+    const blocks = [...document.querySelectorAll(".chapter-head, .chapter-body")];
+    blocks.forEach((block) => {
+      block.style.setProperty("--d", block.classList.contains("chapter-body") ? "1" : "0");
+      block.classList.add("is-ready");
+      observer.observe(block);
+    });
+    // Recargar o volver a la página con la posición restaurada deja capítulos
+    // por encima del viewport: el observer solo ve lo que entra y quedarían
+    // ocultos hasta que se volviera a pasar por ellos.
+    const showUpTo = () => {
+      blocks.forEach((block) => {
+        if (block.classList.contains("is-in")) return;
+        if (block.getBoundingClientRect().top < window.innerHeight) {
+          block.classList.add("is-in");
+          observer.unobserve(block);
+        }
+      });
+    };
+    showUpTo();
+    window.addEventListener("pageshow", showUpTo);
+    window.addEventListener("load", showUpTo);
   })();
 </script>
 </body>

@@ -267,8 +267,8 @@ temas, porque un bloque de comandos no cambia de significado según la hora.
 - Neutros por capas: el fondo, la barra lateral, la superficie, el realce y la fila
   seleccionada son pasos del mismo azul nocturno.
 - El violeta pertenece a la marca y al foco; cuando escribe, usa su variante legible.
-- Un degradado de marca solo en la portada, y el primario de violeta a azul en la guía y en
-  la portada; ninguna otra decoración de color.
+- Los heroes de la portada, la guía y el sistema de diseño comparten halos de marca y
+  cuadrícula; el tablero conserva una presentación sin esa decoración.
 
 ## Colors
 
@@ -321,10 +321,10 @@ estados que siempre se acompaña de texto.
 **El violeta que escribe.** El violeta de marca (`#8b5cf6`) no lleva texto nunca. Si el
 violeta nombra algo, es `#a78bfa` sobre oscuro o `#6d28d9` sobre claro.
 
-**El degradado tiene una sola casa.** El degradado de marca —violeta `#8b5cf6`, azul
-`#3882f6`, cian `#06b6d4`— vive en la portada: la palabra marcada del titular, la malla y la
-regla de dos píxeles que la cierra. En la guía solo el botón primario lleva un degradado, y es
-de violeta a azul. En el tablero no aparece ninguno.
+**Los halos pertenecen a la documentación.** La portada, la guía y el sistema de diseño
+comparten los halos violeta, azul y cian y la cuadrícula del hero. El recorte y la posición
+dependen de la estructura de cada página. El acento de texto usa violeta y azul; el cian se
+reserva para decoración. En el tablero no aparecen los halos.
 
 **El estado no va solo en color.** Éxito, aviso y peligro llevan siempre palabra, icono o
 forma además del tono; cada uno tiene su relleno suave al 14–16 % para el fondo de insignias.
@@ -582,7 +582,7 @@ documentación los toma de `web/public/icons/`.
   ni anidar tarjetas.
 - **Don't** poner una ceja o etiqueta pequeña encima de un titular.
 - **Don't** usar cristal, desenfoque o halos de color como adorno; el único desenfoque
-  decorativo es la malla de la portada.
+  decorativo es la malla de los heroes de la documentación.
 - **Don't** añadir una sombra a un panel que no se superpone, ni un borde lateral de color de
   más de 1 px salvo la barra de 3 px de la fila seleccionada.
 - **Don't** introducir una familia tipográfica nueva ni redistribuir Inter o JetBrains Mono:

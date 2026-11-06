@@ -50,33 +50,7 @@
     padding: clamp(48px, 9vw, 104px) clamp(16px, 4vw, 40px) clamp(40px, 6vw, 72px);
     border-bottom: 1px solid var(--border);
   }
-  .hero::before {
-    content: "";
-    position: absolute;
-    inset: -40% -10% auto -10%;
-    height: 420px;
-    background:
-      radial-gradient(60% 60% at 22% 30%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 70%),
-      radial-gradient(50% 50% at 70% 6%, color-mix(in srgb, var(--accent-2) 22%, transparent), transparent 70%),
-      radial-gradient(42% 42% at 92% 26%, color-mix(in srgb, var(--accent-3) 20%, transparent), transparent 70%);
-    filter: blur(6px);
-    pointer-events: none;
-  }
-  .hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(to right, color-mix(in srgb, var(--border-strong) 45%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in srgb, var(--border-strong) 45%, transparent) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(70% 65% at 50% 20%, #000 0%, transparent 78%);
-    mask-image: radial-gradient(70% 65% at 50% 20%, #000 0%, transparent 78%);
-    opacity: .5;
-    pointer-events: none;
-  }
-  /* La retícula se pinta por encima del contenido posicionado: sin este
-     z-index el texto del hero quedaría debajo de ella. */
+  /* El contenido queda por encima de la retícula compartida. */
   .hero-inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; }
   .pill {
     display: inline-flex;
@@ -99,14 +73,7 @@
     letter-spacing: -.035em;
     font-weight: 800;
   }
-  /* Entrada y ambiente del hero, en la línea del catálogo de SKILLS-AGP:
-     el contenido sube escalonado y los halos derivan muy despacio. La regla
-     global de prefers-reduced-motion lo apaga entero. */
-  @keyframes hero-drift {
-    from { translate: 0 0; scale: 1; filter: blur(6px) hue-rotate(0deg); }
-    to { translate: 64px -36px; scale: 1.12; filter: blur(6px) hue-rotate(40deg); }
-  }
-  .hero::before { animation: hero-drift 20s ease-in-out -5s infinite alternate; }
+  /* El contenido entra escalonado; los halos comparten la portada. */
   .hero-inner > * { animation: rise .6s ease-out both; }
   .hero-inner > *:nth-child(2) { animation-delay: .08s; }
   .hero-inner > *:nth-child(3) { animation-delay: .16s; }
@@ -445,6 +412,7 @@
 <header class="topbar" id="docs-topbar"></header>
 
 <section class="hero">
+  <div class="hero-mesh" aria-hidden="true"></div>
   <div class="hero-inner">
     <span class="pill" data-i18n="hero.14"><span class="dot" aria-hidden="true"></span>un binario · línea de órdenes y API · una base por proyecto</span>
     <h1 data-i18n="hero.15">Aprende a manejar tasks-ai <span class="grad">de principio a fin</span></h1>

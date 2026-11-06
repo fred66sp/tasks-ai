@@ -638,6 +638,23 @@ func (c *Core) CloseTask(ctx context.Context, ref, reason string) (Task, error) 
 		return Task{}, err
 	}
 
+	// Cerrar como hecha es lo último: exige que el trabajo se haya empezado.
+	// Un cierre ya cerrado sigue siendo «ya está cerrada»: lo dice el store.
+	if reason == CloseReasonDone {
+		current, err := c.store.Task(ctx, id)
+		if err != nil {
+			if errors.Is(err, store.ErrNotFound) {
+				return Task{}, c.missing(ref)
+			}
+
+			return Task{}, fmt.Errorf("looking up task %q: %w", ref, err)
+		}
+
+		if current.Status != statusDone && current.Status != statusInProgress {
+			return Task{}, forbidden("cannot close task %q as done: it is not in progress; start it with --status in_progress", ref)
+		}
+	}
+
 	stored, err := c.store.CloseTask(ctx, id, reason)
 	if err != nil {
 		switch {

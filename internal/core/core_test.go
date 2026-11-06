@@ -10,6 +10,11 @@ import (
 	"testing"
 )
 
+const (
+	startedStatus = "in_progress"
+	renamedTitle  = "Renombrada"
+)
+
 // TestAllComments_namesEachCommentWithItsTaskReference comprueba que el índice
 // de comentarios del proyecto nombra cada comentario con la referencia visible
 // de la tarea que lo lleva, compuesta con el prefijo del proyecto.
@@ -77,9 +82,9 @@ func TestCreateTask_givesTheTaskItsIdentityAndItsReference(t *testing.T) {
 		t.Errorf("el título guardado es %q, se esperaba sin los espacios de sobra", task.Title)
 	}
 
-	if task.Status != "open" || task.Priority != core.DefaultPriority {
+	if task.Status != openStatus || task.Priority != core.DefaultPriority {
 		t.Errorf("la tarea nace como %q y con prioridad %d, se esperaba %q y %d",
-			task.Status, task.Priority, "open", core.DefaultPriority)
+			task.Status, task.Priority, openStatus, core.DefaultPriority)
 	}
 
 	if task.Description == nil || *task.Description != "con detalle" {
@@ -220,6 +225,8 @@ func TestCloseTask_saysWithItsSentinelWhenARuleRefusesIt(t *testing.T) {
 		t.Fatalf("creando la tarea hija: %v", err)
 	}
 
+	start(t, apply, parent.Ref)
+
 	_, err = apply.CloseTask(ctx, parent.Ref, core.CloseReasonDone)
 	if !errors.Is(err, core.ErrConflict) {
 		t.Errorf("cerrar con subtareas abiertas devolvió %v, se esperaba el centinela de regla que lo impide", err)
@@ -241,6 +248,8 @@ func TestCloseTask_saysWithItsSentinelWhenTheTaskIsAlreadyClosed(t *testing.T) {
 		t.Fatalf("creando la tarea: %v", err)
 	}
 
+	start(t, apply, task.Ref)
+
 	if _, err := apply.CloseTask(ctx, task.Ref, core.CloseReasonDone); err != nil {
 		t.Fatalf("cerrando la tarea: %v", err)
 	}
@@ -252,6 +261,62 @@ func TestCloseTask_saysWithItsSentinelWhenTheTaskIsAlreadyClosed(t *testing.T) {
 
 	if err == nil || err.Error() != "cannot close task \"tk-1\": it is already closed" {
 		t.Errorf("el mensaje del segundo cierre es %q", err)
+	}
+}
+
+// TestCloseTask_refusesDoneWhenTheWorkWasNotStarted deja escrito que cerrar como
+// hecha es lo último: una tarea que sigue pendiente no se cierra con done, y el
+// rechazo no deja nada escrito.
+func TestCloseTask_refusesDoneWhenTheWorkWasNotStarted(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Sin empezar"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	_, err = apply.CloseTask(ctx, task.Ref, core.CloseReasonDone)
+	if !errors.Is(err, core.ErrConflict) {
+		t.Errorf("cerrar como hecha una tarea pendiente devolvió %v, se esperaba el centinela de regla que lo impide", err)
+	}
+
+	if err == nil || err.Error() != "cannot close task \"tk-1\" as done: it is not in progress; start it with --status in_progress" {
+		t.Errorf("el mensaje del cierre rechazado es %q", err)
+	}
+
+	kept, err := apply.Task(ctx, task.Ref)
+	if err != nil {
+		t.Fatalf("leyendo la tarea rechazada: %v", err)
+	}
+
+	if kept.Status != openStatus || kept.CloseReason != nil {
+		t.Errorf("el rechazo dejó la tarea en %q con motivo %v, se esperaba pendiente y sin motivo", kept.Status, kept.CloseReason)
+	}
+}
+
+// TestCloseTask_closesAPendingTaskWithAReasonOtherThanDone deja escrito que una
+// tarea puede morir sin haberse empezado: duplicate no exige pasar por curso.
+func TestCloseTask_closesAPendingTaskWithAReasonOtherThanDone(t *testing.T) {
+	t.Parallel()
+
+	apply := core.New(openStore(t), "tk")
+	ctx := t.Context()
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Duplicada"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	closed, err := apply.CloseTask(ctx, task.Ref, core.CloseReasonDuplicate)
+	if err != nil {
+		t.Fatalf("cerrando como duplicada: %v", err)
+	}
+
+	if closed.Status != "done" || closed.CloseReason == nil || *closed.CloseReason != core.CloseReasonDuplicate {
+		t.Errorf("la tarea cerrada es %+v, se esperaba done con motivo duplicate", closed)
 	}
 }
 
@@ -268,25 +333,25 @@ func TestUpdateTask_movesTheStatusUnderTheRule(t *testing.T) {
 		t.Fatalf("creando la tarea: %v", err)
 	}
 
-	inProgress := "in_progress"
+	inProgress := startedStatus
 
 	progressed, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Status: &inProgress})
 	if err != nil {
 		t.Fatalf("poniendo la tarea en curso: %v", err)
 	}
 
-	if progressed.Status != "in_progress" {
+	if progressed.Status != startedStatus {
 		t.Errorf("la tarea quedó en %q, se esperaba in_progress", progressed.Status)
 	}
 
-	open := "open"
+	open := openStatus
 
 	returned, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Status: &open})
 	if err != nil {
 		t.Fatalf("devolviendo la tarea a pendiente: %v", err)
 	}
 
-	if returned.Status != "open" {
+	if returned.Status != openStatus {
 		t.Errorf("la tarea quedó en %q, se esperaba open", returned.Status)
 	}
 
@@ -311,6 +376,8 @@ func TestUpdateTask_refusesTheStatusChangesTheRulesRefuse(t *testing.T) {
 		if err != nil {
 			t.Fatalf("creando la tarea: %v", err)
 		}
+
+		start(t, apply, task.Ref)
 
 		if _, err := apply.CloseTask(ctx, task.Ref, core.CloseReasonDone); err != nil {
 			t.Fatalf("cerrando la tarea: %v", err)
@@ -340,7 +407,7 @@ func TestUpdateTask_refusesTheStatusChangesTheRulesRefuse(t *testing.T) {
 		{
 			name:     "ponerse en curso solo cabe desde pendiente",
 			prepare:  closedRef,
-			status:   "in_progress",
+			status:   startedStatus,
 			sentinel: core.ErrConflict,
 			message:  "only an open task can be put in progress",
 		},
@@ -522,9 +589,11 @@ func TestEvents_sayTheTitleTheTaskHasNow(t *testing.T) {
 		t.Fatalf("creando la tarea: %v", err)
 	}
 
-	if _, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Title: new("Renombrada")}); err != nil {
+	if _, err := apply.UpdateTask(ctx, task.Ref, core.Changes{Title: new(renamedTitle)}); err != nil {
 		t.Fatalf("cambiando la tarea: %v", err)
 	}
+
+	start(t, apply, task.Ref)
 
 	if _, err := apply.CloseTask(ctx, task.Ref, "done"); err != nil {
 		t.Fatalf("cerrando la tarea: %v", err)
@@ -535,17 +604,18 @@ func TestEvents_sayTheTitleTheTaskHasNow(t *testing.T) {
 		t.Fatalf("Events devolvió %v", err)
 	}
 
-	if len(events) != 3 {
-		t.Fatalf("tres cambios dejaron %d avisos, se esperaban 3", len(events))
+	if len(events) != 4 {
+		t.Fatalf("cuatro cambios dejaron %d avisos, se esperaban 4", len(events))
 	}
 
 	expected := []struct {
 		action string
 		title  string
 	}{
-		{store.ActionCreate, "Renombrada"},
-		{store.ActionUpdate, "Renombrada"},
-		{store.ActionClose, "Renombrada"},
+		{store.ActionCreate, renamedTitle},
+		{store.ActionUpdate, renamedTitle},
+		{store.ActionUpdate, renamedTitle},
+		{store.ActionClose, renamedTitle},
 	}
 
 	for i, want := range expected {
@@ -854,6 +924,8 @@ func TestTasks_recomputesTheBlockedStateInsteadOfStoringIt(t *testing.T) {
 		t.Fatal("la tarea bloqueada no sale bloqueada teniendo su bloqueante abierto")
 	}
 
+	start(t, apply, blocker.Ref)
+
 	if _, err := apply.CloseTask(t.Context(), blocker.Ref, core.CloseReasonDone); err != nil {
 		t.Fatalf("cerrando la bloqueante: %v", err)
 	}
@@ -1074,6 +1146,17 @@ func newTask(t *testing.T, apply *core.Core, title string) core.Task {
 	return task
 }
 
+// start pone la tarea en curso: el paso que pide el cierre como hecha.
+func start(t *testing.T, apply *core.Core, ref string) {
+	t.Helper()
+
+	inProgress := startedStatus
+
+	if _, err := apply.UpdateTask(t.Context(), ref, core.Changes{Status: &inProgress}); err != nil {
+		t.Fatalf("poniendo en curso %s: %v", ref, err)
+	}
+}
+
 // listedComments devuelve el histórico de la tarea, del primero al último.
 func listedComments(t *testing.T, apply *core.Core, ref string) []core.Comment {
 	t.Helper()
@@ -1267,6 +1350,8 @@ func TestUpdateTask_allowsAClosedParent(t *testing.T) {
 	ctx := t.Context()
 
 	closed := newTask(t, apply, "Épica cerrada")
+
+	start(t, apply, closed.Ref)
 
 	if _, err := apply.CloseTask(ctx, closed.Ref, core.CloseReasonDone); err != nil {
 		t.Fatalf("cerrando la épica: %v", err)

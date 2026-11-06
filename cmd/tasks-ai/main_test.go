@@ -628,6 +628,10 @@ func TestCloseRefusesATaskWithOpenSubtasksAndLeavesItAsItWas(t *testing.T) {
 	parent := createTask(t, project)
 	createTask(t, project, "--parent", parent.Ref)
 
+	if code, _, errOut := run(t, project, "update", parent.Ref, "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
+
 	before := readTask(t, project, parent.Ref)
 
 	code, out, errOut := run(t, project, "close", parent.Ref, "--reason", "done")
@@ -661,6 +665,10 @@ func TestClosingASubtaskLeavesItsParentOpen(t *testing.T) {
 
 	parent := createTask(t, project)
 	child := createTask(t, project, "--parent", parent.Ref)
+
+	if code, _, errOut := run(t, project, "update", child.Ref, "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
 
 	code, out, errOut := run(t, project, "close", child.Ref, "--reason", "done")
 	if code != 0 {
@@ -807,6 +815,10 @@ func TestCloseTwiceAndReopenAnOpenTaskAreRefused(t *testing.T) {
 	installProject(t, project)
 
 	task := createTask(t, project)
+
+	if code, _, errOut := run(t, project, "update", task.Ref, "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
 
 	code, _, errOut := run(t, project, "close", task.Ref, "--reason", "done")
 	if code != 0 {
@@ -987,6 +999,10 @@ func TestTheBlockedStateFollowsTheBlocker(t *testing.T) {
 	code, _, errOut := run(t, project, "block", blocked.Ref, blocker.Ref)
 	if code != 0 {
 		t.Fatalf("block salió con %d: %s", code, errOut)
+	}
+
+	if code, _, errOut := run(t, project, "update", blocker.Ref, "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
 	}
 
 	code, _, errOut = run(t, project, "close", blocker.Ref, "--reason", "done")

@@ -218,7 +218,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_close",
 		label: "Cerrar tarea",
-		description: "Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso.",
+		description: "Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso; una tarea pendiente no se cierra como done.",
 		parameters: Type.Object({
 			ref: reference,
 			reason: Type.Union([

@@ -41,6 +41,11 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Cambiado
 
+- La portada presenta tasks-ai como producto para desarrollo agéntico: el agente gestiona
+  tareas y procesos por la CLI y la persona revisa, hace seguimiento y conserva el control
+  desde la interfaz web. Tres paneles ilustrados en SVG explican el reparto —el agente
+  prepara, el proyecto responde, la persona decide— y mencionan los sistemas de
+  documentación con los que convive el tablero, como SDD y ODD.
 - La vista de Decisiones es un acordeón: cada ADR se pliega a tres líneas de su contexto y
   se lee y se edita entero en su propia tarjeta, sin panel lateral ni formulario aparte.
   El buscador pregunta al servidor y encuentra el texto en todos los campos del ADR, sin

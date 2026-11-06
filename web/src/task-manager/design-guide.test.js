@@ -9,6 +9,13 @@ const iconFiles = () => readdirSync(iconDir)
   .map((name) => name.slice(0, -4))
   .sort();
 const docPages = ['landing.html', 'index.html', 'design-system.html'];
+test('la portada explica el trabajo agéntico y los sistemas de documentación', () => {
+  const page = read('../../../docs/web/landing.html');
+  assert.match(page, /desarrollo agéntico/i);
+  assert.match(page, /agente[\s\S]*CLI[\s\S]*interfaz web/i);
+  assert.match(page, /SDD[\s\S]*ODD/);
+  assert.match(page, /<svg[^>]*aria-hidden="true"/);
+});
 test('los tres heroes comparten la cuadrícula central y los colores laterales', () => {
   const chrome = read('../../../docs/web/assets/css/chrome.css');
   assert.match(chrome, /\.hero > \.hero-mesh\s*\{[^}]*linear-gradient\(to right[\s\S]*linear-gradient\(to bottom[\s\S]*56px 56px[\s\S]*mask-image: radial-gradient/);
@@ -101,7 +108,7 @@ test('la documentación dibuja solo iconos del conjunto', () => {
   for (const name of new Set(used)) {
     assert.ok(files.includes(name), `la documentación usa ${name}, que no está en el conjunto`);
   }
-  assert.doesNotMatch(source, /<svg/i, 'la documentación vuelve a dibujar un trazo propio');
+  assert.doesNotMatch(source.replace(/<div class="flow">[\s\S]*?<!-- flow:end -->/g, ''), /<svg/i, 'la documentación vuelve a dibujar un icono propio');
 });
 
 test('el producto o la documentación usan cada archivo del conjunto', () => {

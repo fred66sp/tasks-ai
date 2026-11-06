@@ -123,12 +123,22 @@ var errStillOpen = errors.New("the task is not closed")
 type Core struct {
 	store  *store.Store
 	prefix string
+	person string
 }
 
 // New wires the core over a project's data and the prefix its references are
 // written with.
 func New(project *store.Store, prefix string) *Core {
 	return &Core{store: project, prefix: prefix}
+}
+
+// WithPerson names the person of the project: the assignee a task is born with
+// when the creation does not name one. Without it, a task is born with no
+// assignee.
+func (c *Core) WithPerson(person string) *Core {
+	c.person = strings.TrimSpace(person)
+
+	return c
 }
 
 // Status is the state of the product at a glance: its version, the version of
@@ -245,12 +255,17 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		storedParent = &parentID
 	}
 
+	assignee := task.Assignee
+	if strings.TrimSpace(assignee) == "" {
+		assignee = c.person
+	}
+
 	stored, err := c.store.CreateTask(ctx, store.Task{
 		Title:       title,
 		Description: optional(task.Description),
 		Status:      statusOpen,
 		Priority:    priority,
-		Assignee:    optional(task.Assignee),
+		Assignee:    optional(assignee),
 		Notes:       optional(task.Notes),
 		ParentID:    storedParent,
 	}, task.Tags)

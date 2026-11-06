@@ -42,7 +42,7 @@ func openProject(ctx context.Context, dir string, warn io.Writer, origin string)
 		return nil, err
 	}
 
-	apply := core.New(base, cfg.Prefix)
+	apply := core.New(base, cfg.Prefix).WithPerson(cfg.Person)
 
 	note, err := apply.CheckPrefix(ctx)
 	if err != nil {

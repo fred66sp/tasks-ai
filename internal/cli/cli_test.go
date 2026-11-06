@@ -11,6 +11,7 @@ import (
 	"tasks-ai/internal/cli"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/install"
+	"tasks-ai/internal/settings"
 	"testing"
 )
 
@@ -407,6 +408,52 @@ func TestRun_closeRejectsDoneWhenTheTaskIsPending(t *testing.T) {
 
 	if code, _, errOut := run(t, "close", created.Ref, "--reason", "done"); code != 0 {
 		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+}
+
+// TestRun_createUsesTheProjectsPerson deja escrito que la tarea creada sin
+// responsable lleva el de los ajustes, y que el explícito manda.
+func TestRun_createUsesTheProjectsPerson(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	if code, _, errOut := run(t, "init"); code != 0 {
+		t.Fatalf("init salió con %d: %s", code, errOut)
+	}
+
+	cfg, err := settings.Load(filepath.Join(dir, install.DirName))
+	if err != nil {
+		t.Fatalf("leyendo los ajustes: %v", err)
+	}
+
+	cfg.Person = "Alfredo González P."
+
+	if err := settings.Save(filepath.Join(dir, install.DirName), cfg); err != nil {
+		t.Fatalf("guardando los ajustes: %v", err)
+	}
+
+	code, out, errOut := run(t, "create", "--title", "Con persona")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	if created.Assignee == nil || *created.Assignee != "Alfredo González P." {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el del proyecto", created.Assignee)
+	}
+
+	code, out, errOut = run(t, "create", "--title", "Con la suya", "--assignee", "Otra Persona")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var explicit core.Task
+	decode(t, out, &explicit)
+
+	if explicit.Assignee == nil || *explicit.Assignee != "Otra Persona" {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el explícito", explicit.Assignee)
 	}
 }
 

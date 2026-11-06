@@ -88,6 +88,7 @@ test("las descripciones dicen el momento de uso", async (t) => {
 	assert.match(tools.get("tasks_comment")!.description, /en el momento en que surgen/);
 	assert.match(tools.get("tasks_close")!.description, /revisión o su pedido expreso/);
 	assert.match(tools.get("tasks_close")!.description, /una tarea pendiente no se cierra como done/);
+	assert.match(tools.get("tasks_create")!.description, /sin assignee, la tarea nace con la persona del proyecto/i);
 });
 
 test("tasks_board deriva el tablero de list", async (t) => {

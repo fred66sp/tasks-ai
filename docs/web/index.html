@@ -463,7 +463,7 @@
           <thead><tr><th data-i18n="que-es.5">Ruta</th><th data-i18n="que-es.6">Qué es</th></tr></thead>
           <tbody>
             <tr><td><code>.tasks-ai/tasks.db</code></td><td data-i18n="que-es.7">La base con las tareas, los bloqueos, los comentarios, las etiquetas y los ADR.</td></tr>
-            <tr><td><code>.tasks-ai/settings.json</code></td><td data-i18n="que-es.8">El prefijo de las referencias, la base, la dirección y el puerto de la interfaz, y el nivel de registro.</td></tr>
+            <tr><td><code>.tasks-ai/settings.json</code></td><td data-i18n="que-es.8">El prefijo de las referencias, la persona responsable del proyecto, la base, la dirección y el puerto de la interfaz, y el nivel de registro.</td></tr>
             <tr><td><code>.tasks-ai/AGENTS.md</code></td><td data-i18n="que-es.9">Las instrucciones para quien trabaja el proyecto, persona o agente.</td></tr>
             <tr><td><code>tasks-ai</code></td><td data-i18n="que-es.10">El binario. No necesita nada más para funcionar: la interfaz web viaja dentro.</td></tr>
           </tbody>
@@ -596,7 +596,7 @@
             <tr><td><code>status</code></td><td data-i18n="modelo.16">enumerado</td><td data-i18n="modelo.17"><code>open</code>, <code>in_progress</code> o <code>done</code>.</td></tr>
             <tr><td><code>blocked</code></td><td data-i18n="modelo.18">booleano</td><td data-i18n="modelo.19">Calculado: cierto mientras alguna bloqueante no esté cerrada. No se guarda.</td></tr>
             <tr><td><code>priority</code></td><td data-i18n="modelo.20">entero</td><td data-i18n="modelo.21">De <code>0</code> a <code>3</code>, con <code>2</code> por omisión. Fuera de rango se rechaza.</td></tr>
-            <tr><td><code>assignee</code></td><td data-i18n="modelo.22">texto</td><td data-i18n="modelo.23">Opcional. Es texto libre, no un usuario del sistema.</td></tr>
+            <tr><td><code>assignee</code></td><td data-i18n="modelo.22">texto</td><td data-i18n="modelo.23">Opcional. Si falta, la tarea nace con la persona del proyecto (<code>person</code> en los ajustes). Es texto libre, no un usuario del sistema.</td></tr>
             <tr><td><code>parent_id</code></td><td data-i18n="modelo.24">entero</td><td data-i18n="modelo.25">El número interno del padre. La referencia del padre se compone con el prefijo.</td></tr>
             <tr><td data-i18n="modelo.26"><code>created_at</code>, <code>updated_at</code></td><td data-i18n="modelo.27">fecha</td><td data-i18n="modelo.28">En UTC. Cambian solos.</td></tr>
             <tr><td><code>close_reason</code></td><td data-i18n="modelo.29">enumerado</td><td data-i18n="modelo.30">El motivo del cierre, o nulo si la tarea no está cerrada.</td></tr>
@@ -1354,7 +1354,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.5": "Path",
  "que-es.6": "What it is",
  "que-es.7": "The database with tasks, blockers, comments, tags and the ADRs.",
- "que-es.8": "The reference prefix, the database, the interface address and port, and the log level.",
+ "que-es.8": "The reference prefix, the project's responsible person, the database, the interface address and port, and the log level.",
  "que-es.9": "The instructions for whoever works on the project, person or agent.",
  "que-es.10": "The binary. It needs nothing else to run: the web interface travels inside it.",
  "que-es.11": "The whole loop, in four steps",
@@ -1404,7 +1404,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "modelo.20": "integer",
  "modelo.21": "From <code>0</code> to <code>3</code>, defaulting to <code>2</code>. Out of range is rejected.",
  "modelo.22": "text",
- "modelo.23": "Optional. It is free text, not a system user.",
+ "modelo.23": "Optional. When missing, the task is born with the project's person (<code>person</code> in the settings). It is free text, not a system user.",
  "modelo.24": "integer",
  "modelo.25": "The parent's internal number. The parent's reference is composed with the prefix.",
  "modelo.26": "<code>created_at</code>, <code>updated_at</code>",

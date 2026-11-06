@@ -653,3 +653,46 @@ func tagsOf(t *testing.T, dbPath string) []store.TagUse {
 
 	return catalogue
 }
+
+// TestInstall_suggestsThePersonFromGitOnce deja escrito que la instalación
+// propone la persona una sola vez, desde Git, y que no la inventa si Git no
+// devuelve nombre.
+func TestInstall_suggestsThePersonFromGitOnce(t *testing.T) {
+	tests := []struct {
+		name   string
+		script string
+		want   string
+	}{
+		{name: "con nombre", script: "#!/bin/sh\nprintf 'Alfredo González P.'\n", want: "Alfredo González P."},
+		{name: "sin nombre", script: "#!/bin/sh\nexit 1\n", want: ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			stub := t.TempDir()
+
+			script := filepath.Join(stub, "git")
+			if err := os.WriteFile(script, []byte(test.script), 0o700); err != nil { //nolint:gosec // la prueba prepara su propio ejecutable
+				t.Fatalf("preparando el git de la prueba: %v", err)
+			}
+
+			t.Setenv("PATH", stub)
+
+			project := t.TempDir()
+			mkdir(t, filepath.Join(project, ".git"))
+
+			if _, err := install.Run(t.Context(), project, ""); err != nil {
+				t.Fatalf("instalando el producto: %v", err)
+			}
+
+			cfg, err := settings.Load(filepath.Join(project, install.DirName))
+			if err != nil {
+				t.Fatalf("leyendo los ajustes: %v", err)
+			}
+
+			if cfg.Person != test.want {
+				t.Errorf("la persona quedó %q, se esperaba %q", cfg.Person, test.want)
+			}
+		})
+	}
+}

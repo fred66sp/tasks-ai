@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -121,7 +122,7 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 
 	dir := filepath.Join(root, DirName)
 
-	cfg, err := prepare(dir, prefix)
+	cfg, err := prepare(ctx, dir, prefix)
 	if err != nil {
 		return Result{}, err
 	}
@@ -365,7 +366,7 @@ func copyFile(from, to string, mode os.FileMode) error {
 // prepare creates the product folder and leaves a settings file in it with the
 // prefix asked for, without touching the one the project may have written
 // itself.
-func prepare(dir, prefix string) (settings.Settings, error) {
+func prepare(ctx context.Context, dir, prefix string) (settings.Settings, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
 		return settings.Settings{}, fmt.Errorf("creating the folder %s: %w", dir, err)
 	}
@@ -375,6 +376,8 @@ func prepare(dir, prefix string) (settings.Settings, error) {
 		if prefix != "" {
 			cfg.Prefix = prefix
 		}
+
+		cfg.Person = personFromGit(ctx, dir)
 
 		if err := settings.Save(dir, cfg); err != nil {
 			return settings.Settings{}, err
@@ -395,6 +398,27 @@ func prepare(dir, prefix string) (settings.Settings, error) {
 	}
 
 	return cfg, nil
+}
+
+// personFromGit returns the name Git has configured for the project, or the
+// empty string when the project is not a Git repository, Git is missing or has
+// not been given a name. It is read once, when the product installs itself: the
+// product does not ask Git anything afterwards.
+func personFromGit(ctx context.Context, dir string) string {
+	root := Root(dir)
+	if _, err := os.Stat(filepath.Join(root, ".git")); err != nil {
+		return ""
+	}
+
+	command := exec.CommandContext(ctx, "git", "config", "user.name")
+	command.Dir = dir
+
+	out, err := command.Output()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(string(out))
 }
 
 // writeInstructions leaves the instructions in the product folder, with the

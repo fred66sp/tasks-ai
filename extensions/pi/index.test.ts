@@ -121,6 +121,7 @@ describe("la extensión", () => {
 		assert.match(tools.tasks_comment.description, /en el momento en que surgen/);
 		assert.match(tools.tasks_close.description, /revisión o su pedido expreso/);
 		assert.match(tools.tasks_close.description, /una tarea pendiente no se cierra como done/);
+		assert.match(tools.tasks_create.description, /sin assignee, la tarea nace con la persona del proyecto/i);
 	});
 
 	it("/board enseña la épica, las subtareas y los bloqueos sin mensajes al modelo", async () => {

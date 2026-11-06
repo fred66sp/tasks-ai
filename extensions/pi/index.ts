@@ -177,7 +177,7 @@ export default function tasksExtension(pi: ExtensionAPI, executeCli = runCli) {
 	pi.registerTool({
 		name: "tasks_create",
 		label: "Crear tarea",
-		description: "Crea una tarea; usa parent para crear una subtarea de una tarea existente y tags para darle las etiquetas desde el primer momento.",
+		description: "Crea una tarea; usa parent para crear una subtarea de una tarea existente y tags para darle las etiquetas desde el primer momento. Sin assignee, la tarea nace con la persona del proyecto.",
 		parameters: Type.Object({
 			...taskFields,
 			title: Type.String({ pattern: "\\S", description: "el título de la tarea" }),

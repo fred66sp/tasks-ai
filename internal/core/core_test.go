@@ -116,6 +116,45 @@ func TestCreateTask_needsATitle(t *testing.T) {
 	}
 }
 
+// TestCreateTask_bornWithTheProjectPerson deja escrito que la tarea creada sin
+// responsable nace con la persona del proyecto, que un assignee explícito manda
+// y que cambiar la persona no toca las tareas ya creadas.
+func TestCreateTask_bornWithTheProjectPerson(t *testing.T) {
+	t.Parallel()
+
+	base := openStore(t)
+	ctx := t.Context()
+
+	apply := core.New(base, "tk").WithPerson("Alfredo González P.")
+
+	task, err := apply.CreateTask(ctx, core.NewTask{Title: "Con persona"})
+	if err != nil {
+		t.Fatalf("creando la tarea: %v", err)
+	}
+
+	if task.Assignee == nil || *task.Assignee != "Alfredo González P." {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el del proyecto", task.Assignee)
+	}
+
+	explicit, err := apply.CreateTask(ctx, core.NewTask{Title: "Con la suya", Assignee: "Otra Persona"})
+	if err != nil {
+		t.Fatalf("creando la tarea con responsable: %v", err)
+	}
+
+	if explicit.Assignee == nil || *explicit.Assignee != "Otra Persona" {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el explícito", explicit.Assignee)
+	}
+
+	kept, err := core.New(base, "tk").WithPerson("Otra Persona").Task(ctx, task.Ref)
+	if err != nil {
+		t.Fatalf("leyendo la tarea con otra persona: %v", err)
+	}
+
+	if kept.Assignee == nil || *kept.Assignee != "Alfredo González P." {
+		t.Errorf("cambiar la persona tocó la tarea: su responsable es %v", kept.Assignee)
+	}
+}
+
 func TestTask_returnsTheTaskTheReferencePointsAt(t *testing.T) {
 	t.Parallel()
 

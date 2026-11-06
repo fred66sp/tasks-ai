@@ -146,6 +146,8 @@ test("el resumen del tablero entra en el contexto de cada petición", async (t) 
 	assert.equal(event.system[0].type, "text");
 	assert.match(event.system[0].text, /Tablero del proyecto:/);
 	assert.match(event.system[0].text, /tareas: 1/);
+	assert.match(event.system[0].text, /Empezar el trabajo: tasks_update con status in_progress/);
+	assert.match(event.system[0].text, /revisión o su pedido expreso/);
 });
 
 test("sin tablero, el contexto lo dice en vez de fallar", async (t) => {

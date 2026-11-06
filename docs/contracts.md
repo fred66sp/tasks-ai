@@ -465,6 +465,11 @@ decida, no para que lo lea entero.
 Los límites viven en la extensión, no en el producto: el CLI sigue devolviendo todo, y
 quien lea su JSON recibe la tarea completa.
 
+Con el resumen viaja el ciclo del tablero, porque el modelo decide con él delante:
+empezar el trabajo pone la tarea en curso y dejarla la devuelve a pendiente; el avance,
+la decisión o el bloqueo se comentan cuando surgen; cerrar con `done` es lo último y
+espera la revisión o el pedido expreso de la persona.
+
 ### Errores
 
 - La salida `2` es el mal uso. Una bandera que no encaja o una entrada que el núcleo

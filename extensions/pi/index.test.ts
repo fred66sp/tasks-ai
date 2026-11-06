@@ -303,10 +303,10 @@ describe("la extensión", () => {
 		assert.match(summary, /tk-3 · lista 1/);
 		assert.doesNotMatch(summary, /tk-2 ·|tk-8 ·|detalle privado/);
 		assert.ok(summary.split("\n").length <= 12);
-		assert.match(summary, /crear o seleccionar.*antes de tocar archivos/i);
-		assert.match(summary, /marcar.*en curso/i);
-		assert.match(summary, /decisiones y bloqueos.*comentarios/i);
-		assert.match(summary, /cerrar solo tras verificar/i);
+		assert.match(summary, /crea o selecciona.*antes de tocar archivos/i);
+		assert.match(summary, /Empezar el trabajo: tasks_update con status in_progress/);
+		assert.match(summary, /en el momento en que surge/);
+		assert.match(summary, /revisión o su pedido expreso/);
 	});
 
 	it("sin instalación informa en una línea y no ejecuta el CLI", async () => {

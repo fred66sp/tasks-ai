@@ -149,8 +149,11 @@ export function renderSummary(board: Board): string {
 		`tareas: ${board.counts.total} (abiertas ${board.counts.open}, en curso ${board.counts.in_progress}, cerradas ${board.counts.done})`,
 		`en curso: ${listed(board.inProgress, MAX_LISTED)}`,
 		`listas para empezar: ${listed(board.ready, 5)}`,
-		"Usa el tablero como único sistema de tareas: crear o seleccionar una tarea antes de tocar archivos y marcarla en curso.",
-		"Anota decisiones y bloqueos como comentarios; cerrar solo tras verificar.",
+		"Ciclo del tablero:",
+		"- El tablero es el único sistema de tareas: crea o selecciona la tarea antes de tocar archivos.",
+		"- Empezar el trabajo: tasks_update con status in_progress. Al dejarla, status open.",
+		"- Avance, decisión o bloqueo: tasks_comment en el momento en que surge, no al final.",
+		"- Terminar: informe a la persona y tasks_close con done solo con su revisión o su pedido expreso.",
 	].join("\n");
 }
 

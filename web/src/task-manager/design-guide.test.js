@@ -251,3 +251,153 @@ test('la guía declara la paleta de etiquetas y avisos de DESIGN.md', () => {
     assert.doesNotMatch(page, new RegExp(hex), `la guía duplica el aviso con ${hex}`);
   }
 });
+
+test('la guía declara el tamaño real del símbolo de marca', () => {
+  const page = read('../../../docs/web/design-system.html');
+
+  assert.match(page, /El símbolo ocupa un cuadro de 42 px en la cabecera del tablero y 34 px en la documentación/,
+    'la frase conserva el tamaño base en vez del de la cabecera del tablero');
+});
+
+test('la guía presenta el visor de escritorio como una ficha descargable', () => {
+  const page = read('../../../docs/web/index.html');
+  const keys = [
+    'interfaz.23', 'interfaz.24', 'interfaz.25', 'interfaz.26',
+    'interfaz.27', 'interfaz.28', 'interfaz.29', 'interfaz.30'
+  ];
+
+  assert.match(page, /class="note viewer"/, 'el visor no tiene una ficha propia');
+  for (const key of keys) {
+    assert.match(page, new RegExp(`data-i18n="${key}"`), `falta el nodo ${key}`);
+  }
+  assert.match(page, /<a class="btn btn-primary" href="downloads\/tasks-viewer-windows-amd64\.zip"/,
+    'la descarga no tiene una acción primaria');
+
+  const dictionary = JSON.parse(
+    page.match(/<script type="application\/json" id="tasks-ai-en">([\s\S]*?)<\/script>/)[1]
+  );
+  for (const key of keys) {
+    assert.ok(dictionary[key], `falta la traducción ${key}`);
+  }
+});
+
+test('los botones de salida del índice no heredan el estilo de los capítulos', () => {
+  const page = read('../../../docs/web/index.html');
+
+  assert.match(page, /\.toc > a \{/, 'el índice no limita el estilo de capítulo a sus enlaces');
+  assert.doesNotMatch(page, /\.toc a \{/, 'los botones de salida siguen heredando el enlace de capítulo');
+  assert.match(page, /\.toc \.toc-extra \{[^}]*display: grid/,
+    'los dos botones de salida no comparten rejilla y separación');
+});
+
+test('las visualizaciones de código usan MicroLighter', () => {
+  for (const name of docPages) {
+    const page = read(`../../../docs/web/${name}`);
+    for (const [pre] of page.matchAll(/<pre\b[^>]*>/g)) {
+      assert.match(pre, /data-language="[a-z]+"/, `${name}: ${pre} no declara lenguaje`);
+    }
+  }
+
+  const landing = read('../../../docs/web/landing.html');
+  assert.match(landing, /assets\/vendor\/microlighter\/microlighter\.min\.js/,
+    'la portada no carga MicroLighter');
+  assert.doesNotMatch(landing, /<span class="[ksnbcp]">/,
+    'la portada conserva el resaltado manual en vez de MicroLighter');
+});
+
+test('el sistema de diseño entra con el mismo gesto y los tokens del tablero', () => {
+  const page = read('../../../docs/web/design-system.html');
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+
+  assert.match(chrome, /@keyframes rise/, 'falta la animación de entrada compartida');
+  assert.match(page, /animation: rise/, 'los capítulos no usan la animación compartida');
+  assert.match(page, /prefers-reduced-motion: no-preference/, 'la entrada no respeta el movimiento reducido');
+  assert.match(page, /prefers-reduced-motion: reduce/, 'el guion no respeta el movimiento reducido');
+  assert.match(page, /\.chapter-head\.is-ready/, 'los capítulos no se revelan al asomarse');
+  assert.match(page, /background: var\(--tk-color-canvas\)/, 'la muestra no usa el token del lienzo');
+  assert.match(page, /color: var\(--tk-color-text-muted\)/, 'la muestra no usa el token del texto atenuado');
+});
+
+test('el reveal muestra lo que el navegador dejó sobre el pliegue al recargar o volver', () => {
+  for (const page of ['index.html', 'design-system.html']) {
+    const source = read(`../../../docs/web/${page}`);
+
+    assert.match(source, /getBoundingClientRect\(\)\.top < window\.innerHeight/,
+      `${page}: el arranque no revela los bloques restaurados por encima del pliegue`);
+    assert.match(source, /addEventListener\("pageshow"/,
+      `${page}: la vuelta desde otra página no vuelve a revelar lo restaurado`);
+  }
+});
+
+test('el hero del catálogo comparte el acento y el gesto de las otras superficies', () => {
+  const page = read('../../../docs/web/design-system.html');
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+
+  assert.match(page, /<h1>[\s\S]*?<span class="grad">/, 'el título del hero no lleva el acento de la guía');
+  assert.match(page, /\.content \{[^}]*radial-gradient\([^}]*var\(--accent\)/, 'el degradado izquierdo debe estar en main');
+  assert.match(page, /\.shell \{[^}]*radial-gradient\([^}]*var\(--accent-2\)/, 'el degradado derecho debe estar en shell');
+  assert.match(page, /\.hero::after \{[^}]*linear-gradient/, 'el hero no cierra con la regla de marca');
+  assert.match(page, /\.chapter-num \{[^}]*background: var\(--accent-soft\)/,
+    'los números de capítulo no usan el contenedor de color de la guía');
+  assert.match(chrome, /\.grad \{[^}]*var\(--accent-2\)/, 'el degradado de acento no vive en la mobilia común');
+});
+
+test('los bloques de código comparten marco y cabecera en la guía y la portada', () => {
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+  const docs = read('../../../docs/web/assets/js/docs.js');
+
+  assert.match(chrome, /\.code::before \{[^}]*attr\(data-language\)/,
+    'la cabecera del bloque no declara el lenguaje');
+  assert.match(chrome, /\.code \{[^}]*border-radius: var\(--radius\)/, 'el marco del código no es común');
+  assert.match(docs, /block\.dataset\.language = .*data-language/,
+    'la cabecera no toma el lenguaje del bloque');
+  for (const page of ['index.html', 'landing.html']) {
+    assert.doesNotMatch(read(`../../../docs/web/${page}`), /\.code pre \{/,
+      `${page}: el bloque de código conserva su propio marco`);
+  }
+});
+
+test('el degradado de texto mantiene contraste y sobrevive a la impresión sin fondos', () => {
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+  const grad = chrome.match(/\.grad \{([^}]*)\}/);
+
+  assert.ok(grad, 'falta la regla .grad');
+  assert.doesNotMatch(grad[1], /--accent-3/,
+    'el cian de cierre no alcanza 3:1 como texto sobre el papel claro');
+  assert.match(chrome, /@media print[\s\S]*?\.grad \{[^}]*(?:color|text-fill-color): #0f172a/,
+    'el título queda transparente al imprimir sin fondos');
+});
+
+test('el antetítulo del visor conserva su margen frente a la nota', () => {
+  const page = read('../../../docs/web/index.html');
+
+  assert.match(page, /\.viewer \.viewer-eyebrow \{[^}]*margin: 0 0 6px/,
+    '.note p anula el margen del antetítulo');
+});
+
+test('el código de la ficha del visor recibe el chip de la guía', () => {
+  const page = read('../../../docs/web/index.html');
+  const rule = page.match(/([^{}]*\.viewer-meta code[^{}]*)\{([^}]*)\}/);
+
+  assert.ok(rule, 'falta el estilo del código dentro de viewer-meta');
+  assert.match(rule[2], /background: var\(--bg-soft\)/, 'el código no lleva el fondo del chip');
+  assert.match(rule[2], /border: 1px solid var\(--border\)/, 'el código no lleva el borde del chip');
+});
+
+test('los botones del índice no se subrayan al pasar el ratón', () => {
+  const chrome = read('../../../docs/web/assets/css/chrome.css');
+  const hover = chrome.match(/([^{}]*\.toc \.icon-btn:hover[^{}]*)\{([^}]*)\}/);
+
+  assert.ok(hover, 'los botones del índice no tienen regla de hover');
+  assert.match(hover[2], /text-decoration: none/, 'el subrayado global de enlace alcanza a los botones');
+});
+
+test('la portada documenta la limitación de file:// sin depender del resaltado', () => {
+  const notice = read('../../../docs/web/assets/vendor/microlighter/NOTICE.txt');
+  const landing = read('../../../docs/web/landing.html');
+
+  assert.match(notice, /file:\/\//,
+    'la limitación de MicroLighter bajo file:// no está documentada');
+  assert.match(landing, /<pre data-language="json"[^>]*><code>\{/,
+    'el bloque conserva texto plano legible sin resaltado');
+});

@@ -2,3 +2,11 @@ microlighter@2.0.0 (MIT, Dave Rupert), vendorizado desde el registry de npm.
 Hasta ahora se cargaba desde https://cdn.jsdelivr.net/npm/microlighter@2.0.0.
 Ahora vive local para que docs/web funcione publicada y sin red.
 Incluye dist/grammars porque el resaltador importa sus dependencias en tiempo de ejecución.
+
+Limitación conocida: el paquete es un módulo ESM y carga cada gramática con
+import() dinámico. Al abrir las páginas copiadas con file://, el navegador
+bloquea módulos e importaciones por CORS (origen nulo): el resaltado no se
+aplica, pero el bloque conserva su texto plano y el resto de la página
+funciona. Servido por HTTP/HTTPS el resaltado está activo. Un empaquetado
+clásico con las gramáticas incrustadas lo resolvería, pero duplicaría el
+vendor y su mantenimiento; no se hace.

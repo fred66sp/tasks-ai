@@ -52,6 +52,22 @@ func TestLoad_reportsAnUnknownSettingKey(t *testing.T) {
 	}
 }
 
+func TestLoad_readsTheProjectsPerson(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	write(t, dir, `{"person": "Alfredo González P."}`)
+
+	cfg, err := settings.Load(dir)
+	if err != nil {
+		t.Fatalf("Load devolvió %v", err)
+	}
+
+	if cfg.Person != "Alfredo González P." {
+		t.Errorf("la persona es %q, se esperaba la del archivo", cfg.Person)
+	}
+}
+
 func TestLoad_refusesSettingsThatWouldBreakTheProduct(t *testing.T) {
 	t.Parallel()
 
@@ -67,6 +83,7 @@ func TestLoad_refusesSettingsThatWouldBreakTheProduct(t *testing.T) {
 		{name: "una base sin nombre", file: `{"db": ""}`},
 		{name: "un puerto fuera del rango", file: `{"http": {"host": "127.0.0.1", "port": 70000}}`},
 		{name: "un nivel de registro inventado", file: `{"log": {"level": "verboso"}}`},
+		{name: "una persona que no es texto", file: `{"person": 5}`},
 	}
 
 	for _, test := range tests {

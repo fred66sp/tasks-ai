@@ -8,6 +8,9 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- El responsable del proyecto se guarda en `person` de los ajustes: `init` lo sugiere una
+  sola vez desde `git config user.name` y las tareas creadas sin `assignee` nacen con él.
+
 - `docs/web/` se publica por sí sola (`ADR-018`): nace `docs/web/assets/` con el CSS común
   (`css/tokens.css` y `css/chrome.css`), el guion de mobilia (`js/docs.js`, islas Vue sin
   router ni construcción) y las copias locales de todo lo que las tres páginas consumían

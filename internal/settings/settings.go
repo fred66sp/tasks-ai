@@ -37,6 +37,7 @@ var logLevels = []string{"debug", "info", "warn", "error"}
 // Settings is the content of the settings file.
 type Settings struct {
 	Prefix string `json:"prefix"`
+	Person string `json:"person"`
 	DB     string `json:"db"`
 	HTTP   HTTP   `json:"http"`
 	Log    Log    `json:"log"`
@@ -53,10 +54,13 @@ type Log struct {
 	Level string `json:"level"`
 }
 
-// Default returns the settings a fresh project starts with.
+// Default returns the settings a fresh project starts with. The person has no
+// default: a project that does not name one leaves the tasks without an
+// assignee.
 func Default() Settings {
 	return Settings{
 		Prefix: DefaultPrefix,
+		Person: "",
 		DB:     DefaultDB,
 		HTTP:   HTTP{Host: DefaultHTTPHost, Port: DefaultHTTPPort},
 		Log:    Log{Level: DefaultLogLevel},

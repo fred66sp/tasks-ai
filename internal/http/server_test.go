@@ -20,6 +20,47 @@ import (
 )
 
 // newTestServer levanta la API sobre el núcleo dado y devuelve su dirección.
+// TestServer_createsTasksWithTheProjectsPerson deja escrito que la API usa la
+// persona del proyecto como responsable por omisión y que el explícito manda.
+func TestServer_createsTasksWithTheProjectsPerson(t *testing.T) {
+	t.Parallel()
+
+	base, err := store.OpenAs(t.Context(), filepath.Join(t.TempDir(), "tasks.db"), store.OriginServer)
+	if err != nil {
+		t.Fatalf("abriendo la base de prueba: %v", err)
+	}
+
+	t.Cleanup(func() { _ = base.Close() })
+
+	server := newTestServer(t, core.New(base, "tk").WithPerson("Alfredo González P."), slog.New(slog.DiscardHandler))
+
+	status, body := do(t, server, http.MethodPost, "/api/tasks", `{"title": "Con persona"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("crear por la API respondió %d: %s", status, body)
+	}
+
+	var created core.Task
+
+	decode(t, body, &created)
+
+	if created.Assignee == nil || *created.Assignee != "Alfredo González P." {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el del proyecto", created.Assignee)
+	}
+
+	status, body = do(t, server, http.MethodPost, "/api/tasks", `{"title": "Con la suya", "assignee": "Otra Persona"}`)
+	if status != http.StatusCreated {
+		t.Fatalf("crear con responsable por la API respondió %d: %s", status, body)
+	}
+
+	var explicit core.Task
+
+	decode(t, body, &explicit)
+
+	if explicit.Assignee == nil || *explicit.Assignee != "Otra Persona" {
+		t.Errorf("la tarea nació con responsable %v, se esperaba el explícito", explicit.Assignee)
+	}
+}
+
 func newTestServer(t *testing.T, apply *core.Core, log *slog.Logger) string {
 	t.Helper()
 

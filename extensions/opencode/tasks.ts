@@ -140,7 +140,7 @@ export async function register(ctx: PluginContext, executeCli = runCli): Promise
 		{
 			name: "tasks_create",
 			description:
-				"Crea una tarea; usa parent para crear una subtarea de una tarea existente y tags para darle las etiquetas desde el primer momento.",
+				"Crea una tarea; usa parent para crear una subtarea de una tarea existente y tags para darle las etiquetas desde el primer momento. Sin assignee, la tarea nace con la persona del proyecto.",
 			input: schema(
 				{
 					title: { type: "string", pattern: "\\S", description: "el título de la tarea" },

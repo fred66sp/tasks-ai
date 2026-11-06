@@ -19,7 +19,7 @@ código, en inglés.
 | `status` | enumerado | `open`, `in_progress`, `done`. Bloqueada no se guarda: se deriva |
 | `blocked` | booleano | Se calcula desde las dependencias y no se almacena: cierto cuando la tarea tiene algún bloqueante que no está en `done` |
 | `priority` | entero | Rango de `0` a `3`, por omisión `2` |
-| `assignee` | texto | Opcional |
+| `assignee` | texto | Opcional; sin él, la tarea nace con `person` de los ajustes, si lo hay |
 | `parent_id` | entero | Número interno de la tarea padre, opcional: es la identidad que cruza la frontera, y de él el cliente deriva la referencia visible del padre |
 | `created_at` | fecha y hora | En UTC |
 | `updated_at` | fecha y hora | En UTC |
@@ -375,10 +375,16 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 | Clave | Tipo | Por omisión |
 |---|---|---|
 | `prefix` | texto | `tk` |
+| `person` | texto | vacío |
 | `db` | ruta | `tasks.db`, dentro de la carpeta del producto |
 | `http.host` | texto | `127.0.0.1` |
 | `http.port` | entero | `8890` |
 | `log.level` | enumerado: `debug`, `info`, `warn`, `error` | `info` |
+
+- `person` nombra al responsable del proyecto: `init` lo escribe sugerido desde
+  `git config user.name` al instalar —vacío si no hay Git o no devuelve nombre— y `create`
+  lo usa como `assignee` cuando la creación no trae uno. Cambiarlo no toca las tareas ya
+  creadas.
 
 - El prefijo empieza por letra o número y sigue con letras, números, guiones o guiones bajos, hasta treinta y dos caracteres.
 
@@ -423,6 +429,8 @@ ninguna toca la base ni recompone un mensaje del producto.
   que falte en el catálogo se rechaza como cualquier nombre desconocido y no deja la tarea
   escrita. Una tarea creada sin etiquetas se queda sin tipo hasta que se le ponga con
   `tasks_update`.
+- `tasks_create` sin `assignee` nace con el responsable del proyecto (`person` en los
+  ajustes); un `assignee` explícito manda.
 - `tasks_unblock` acompaña a `tasks_block` porque el CLI tiene las dos y una herramienta
   sin su contraria deja el vocabulario a medias.
 - `init`, `serve`, `tags` y `tag` no son herramientas: instalar, servir y mantener el

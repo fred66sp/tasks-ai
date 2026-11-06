@@ -749,7 +749,7 @@
       </div>
 
       <h3 class="cmd" data-i18n="comandos.35"><code>close</code><span class="sig">— cierra con motivo</span></h3>
-      <p data-i18n="comandos.36">El motivo es obligatorio y es uno de los cinco conocidos; cerrar deja el estado en <code>done</code> y guarda el motivo.</p>
+      <p data-i18n="comandos.36">El motivo es obligatorio y es uno de los cinco conocidos; cerrar deja el estado en <code>done</code> y guarda el motivo. Con <code>done</code>, la tarea tiene que estar en curso: una pendiente se rechaza.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th data-i18n="comandos.37">Motivo</th><th data-i18n="comandos.38">Cuándo</th></tr></thead>
@@ -1459,7 +1459,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.34": "<code>in_progress</code> starts the task and only fits from <code>open</code>; <code>open</code> sends it back to pending.",
  "comandos.34a": "The visible reference of the new parent: assigns or moves it; empty leaves the task without one. A cycle is refused and nothing is written.",
  "comandos.35": "<code>close</code><span class=\"sig\">— closes with a reason</span>",
- "comandos.36": "The reason is mandatory and is one of the five known ones; closing sets the status to <code>done</code> and stores the reason.",
+ "comandos.36": "The reason is mandatory and is one of the five known ones; closing sets the status to <code>done</code> and stores the reason. With <code>done</code>, the task must be in progress: a pending task is refused.",
  "comandos.37": "Reason",
  "comandos.38": "When",
  "comandos.39": "What the task asked for was done.",

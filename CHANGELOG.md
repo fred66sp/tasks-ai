@@ -34,6 +34,9 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
   tras la revisión o el pedido expreso de la persona. El ciclo viaja además en el resumen
   que se inyecta al agente en cada turno, y las instrucciones que copia `init` explican
   qué operación corresponde a cada momento del trabajo.
+- Cerrar como hecha exige que la tarea esté en curso: una tarea pendiente se rechaza con
+  un error que dice el atajo, y los demás motivos de cierre siguen valiendo desde
+  pendiente (`ADR-019`).
 
 ### Corregido
 

@@ -87,6 +87,7 @@ test("las descripciones dicen el momento de uso", async (t) => {
 	assert.match(tools.get("tasks_update")!.description, /in_progress.*status open/s);
 	assert.match(tools.get("tasks_comment")!.description, /en el momento en que surgen/);
 	assert.match(tools.get("tasks_close")!.description, /revisión o su pedido expreso/);
+	assert.match(tools.get("tasks_close")!.description, /una tarea pendiente no se cierra como done/);
 });
 
 test("tasks_board deriva el tablero de list", async (t) => {

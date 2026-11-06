@@ -164,10 +164,12 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   comentarios, cada uno con su identidad, su cuerpo y su fecha:
   `"comments": [{ "id": 4, "body": "...", "created_at": "2026-10-16T15:02:00Z" }]`.
 - Cerrar una tarea exige un motivo, deja su estado en `done`, guarda el motivo y
-  refresca `updated_at`; reabrir la devuelve a `open` y le quita el motivo. Cerrar una
-  tarea ya cerrada y reabrir una no cerrada se rechazan. Cerrar una tarea con subtareas
-  abiertas (estado distinto de `done`) se rechaza sin escribir nada, y cerrar una
-  subtarea no cierra a su padre.
+  refresca `updated_at`; reabrir la devuelve a `open` y le quita el motivo. Cerrar con
+  `done` exige que la tarea esté en curso: una tarea pendiente se rechaza con el código
+  `1` y el mensaje dice el atajo. `duplicate`, `absorbed`, `stale` y `superseded` cierran
+  una tarea pendiente. Cerrar una tarea ya cerrada y reabrir una no cerrada se rechazan.
+  Cerrar una tarea con subtareas abiertas (estado distinto de `done`) se rechaza sin
+  escribir nada, y cerrar una subtarea no cierra a su padre.
 - `block` deja la primera tarea bloqueada por la segunda y `unblock` retira ese
   bloqueo; las dos responden con la primera tarea tal como queda. Una referencia que
   no resuelve se rechaza con el código `1`, igual que `show`, y bloquearse una tarea
@@ -280,7 +282,7 @@ Códigos de estado:
 | `400` | Entrada inválida: prioridad fuera de rango, motivo de cierre desconocido, campos que faltan, cuerpo mayor que el tope |
 | `403` | La petición no se dirige a este servidor, o una escritura declara un origen que no es el suyo |
 | `404` | La referencia o el número no corresponde a ninguna tarea, etiqueta o ADR |
-| `409` | La regla lo impide: cerrar una tarea con subtareas abiertas |
+| `409` | La regla lo impide: cerrar una tarea con subtareas abiertas, o cerrarla como `done` sin estar en curso |
 | `500` | Fallo interno |
 
 El servidor contesta solo a las peticiones dirigidas a su propio nombre —la dirección de
@@ -434,7 +436,8 @@ lo único que el modelo lee cuando elige la llamada: `tasks_update` dice que `st
 usa al empezar el trabajo (`in_progress`) y al dejarlo (`open`); `tasks_comment`, que el
 avance, la decisión o el bloqueo se escriben en el momento en que surgen; `tasks_close`,
 que `done` se cierra tras presentar el resultado a la persona, con su revisión o su
-pedido expreso. El tablero no habla de Git: su estado solo vive en Git.
+pedido expreso, y solo con la tarea en curso. El tablero no habla de Git: su estado solo
+vive en Git.
 
 ### Parámetros y validación
 

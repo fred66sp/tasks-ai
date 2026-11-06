@@ -144,6 +144,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-11 | El cambio de padre no toca las etiquetas de la tarea: las deja como estaban y solo cambian cuando el mismo cambio las nombra |
 | RN-12 | El texto de una tarea no guarda el estado del trabajo: el título, la descripción, las notas y el cuerpo de un comentario que lo escriben se rechazan sin escribir nada, y lo rechazan las tres superficies que escriben —CLI, API HTTP y extensión del agente— |
 | RN-13 | La instalación deja el catálogo con el vocabulario del contrato de etiquetas —los ocho tipos y `ODD`, `epic` y `task`— y su documento, para que una tarea pueda llevar su tipo desde la primera escritura, y no pisa lo que el proyecto ya tenga |
+| RN-14 | Cerrar como hecha exige que la tarea esté en curso: cerrar con `done` una tarea pendiente se rechaza sin escribir nada, y los demás motivos siguen cerrando una tarea pendiente |
 
 ### No funcionales
 
@@ -182,3 +183,4 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-17 | Un proyecto recién instalado trae el vocabulario de etiquetas del contrato con sus descripciones y su contrato escrito, de modo que una tarea se crea con su tipo sin preparar nada antes |
 | CA-18 | El agente completa el ciclo de trabajo de una tarea desde las herramientas del plugin de OpenCode, y el tablero queda como lo dejaría el CLI |
 | CA-19 | Un ADR creado o editado por el CLI, por la API o por la interfaz queda igual en las tres superficies; el cuerpo de uno que deja de estar `proposed` no se puede reescribir; un ADR sustituido enlaza a su sustituto, y `adr export --check` no encuentra deriva entre la base y `docs/decisions/` |
+| CA-20 | Cerrar con `done` una tarea pendiente se rechaza con el mismo mensaje por el CLI y por la API HTTP, con su salida y su código de estado, y la tarea queda pendiente y sin motivo |

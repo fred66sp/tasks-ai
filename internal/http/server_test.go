@@ -533,6 +533,11 @@ func TestServer_closesAndReopensThroughTheStatusOfThePatch(t *testing.T) {
 		t.Errorf("poner done por el cambio respondió %d: %s, se esperaba 400", status, body)
 	}
 
+	status, body = do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "in_progress"}`)
+	if status != http.StatusOK {
+		t.Fatalf("poner en curso respondió %d: %s", status, body)
+	}
+
 	status, body = do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
 	if status != http.StatusOK {
 		t.Fatalf("cerrar respondió %d: %s", status, body)
@@ -913,8 +918,19 @@ func errorTranslations() []errorTranslation {
 
 				do(t, server, "POST", "/api/tasks", `{"title": "Padre"}`)
 				do(t, server, "POST", "/api/tasks", `{"title": "Hija", "parent": "tk-1"}`)
+				do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "in_progress"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
 				expect(t, status, body, http.StatusConflict, "cannot close task \"tk-1\": it has open subtasks")
+			},
+		},
+		{
+			name: "cerrar como hecha una tarea pendiente lo impide la regla",
+			steps: func(t *testing.T, server string) {
+				t.Helper()
+
+				do(t, server, "POST", "/api/tasks", `{"title": "Sin empezar"}`)
+				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
+				expect(t, status, body, http.StatusConflict, "cannot close task \"tk-1\" as done: it is not in progress; start it with --status in_progress")
 			},
 		},
 		{
@@ -923,6 +939,7 @@ func errorTranslations() []errorTranslation {
 				t.Helper()
 
 				do(t, server, "POST", "/api/tasks", `{"title": "Dos cierres"}`)
+				do(t, server, "PATCH", "/api/tasks/tk-1", `{"status": "in_progress"}`)
 				do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
 				status, body := do(t, server, "POST", "/api/tasks/tk-1/close", `{"reason": "done"}`)
 				expect(t, status, body, http.StatusConflict, "cannot close task \"tk-1\": it is already closed")
@@ -1166,28 +1183,26 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 		t.Fatalf("creando la tarea por el núcleo: %v", err)
 	}
 
-	created := readNotice(t, readRawEvent(t, events))
-	if len(created.Changes) != 1 || created.Changes[0] != (taskChange{ID: firstRef, Action: createdAction, Title: "Avisada"}) {
-		t.Errorf("el aviso de la alta dice %+v, se esperaba tk-1 creada como “Avisada”", created.Changes)
-	}
+	expectNotice(t, readRawEvent(t, events), taskChange{ID: firstRef, Action: createdAction, Title: "Avisada"})
 
 	if _, err := apply.UpdateTask(t.Context(), firstRef, core.Changes{Title: new(renamedTitle)}); err != nil {
 		t.Fatalf("cambiando la tarea por el núcleo: %v", err)
 	}
 
-	updated := readNotice(t, readRawEvent(t, events))
-	if len(updated.Changes) != 1 || updated.Changes[0] != (taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}) {
-		t.Errorf("el aviso del cambio dice %+v, se esperaba tk-1 actualizada como “Renombrada”", updated.Changes)
+	expectNotice(t, readRawEvent(t, events), taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle})
+
+	inProgress := "in_progress"
+	if _, err := apply.UpdateTask(t.Context(), firstRef, core.Changes{Status: &inProgress}); err != nil {
+		t.Fatalf("poniendo la tarea en curso por el núcleo: %v", err)
 	}
+
+	expectNotice(t, readRawEvent(t, events), taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle})
 
 	if _, err := apply.CloseTask(t.Context(), firstRef, "done"); err != nil {
 		t.Fatalf("cerrando la tarea por el núcleo: %v", err)
 	}
 
-	closed := readNotice(t, readRawEvent(t, events))
-	if len(closed.Changes) != 1 || closed.Changes[0] != (taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}) {
-		t.Errorf("el aviso del cierre dice %+v, se esperaba tk-1 cerrada como “Renombrada”", closed.Changes)
-	}
+	expectNotice(t, readRawEvent(t, events), taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle})
 
 	// Un comentario también es un cambio de la tarea: su aviso la nombra con su
 	// referencia, lo que le pasó y su título, como cualquier otro.
@@ -1201,11 +1216,22 @@ func TestServer_theNoticeOfATaskChangeSaysWhichTaskChangedAndHow(t *testing.T) {
 	}
 }
 
+// expectNotice checks that the raw notice names exactly one change, the wanted
+// one.
+func expectNotice(t *testing.T, raw string, want taskChange) {
+	t.Helper()
+
+	notice := readNotice(t, raw)
+	if len(notice.Changes) != 1 || notice.Changes[0] != want {
+		t.Errorf("el aviso dice %+v, se esperaba %+v", notice.Changes, want)
+	}
+}
+
 // TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing recorre las
-// escrituras que caben en un solo sondeo: cuatro cambios de la misma tarea que
+// escrituras que caben en un solo sondeo: cinco cambios de la misma tarea que
 // llegan juntos. Cada aviso lleva su identidad y dice lo que pasó en su propio
-// cambio —alta, cambio, cierre, comentario—, no el mismo para los cuatro ni
-// ninguno. La tarea se crea con un título y se renombra: los cuatro avisos
+// cambio —alta, cambio, cierre, comentario—, no el mismo para los cinco ni
+// ninguno. La tarea se crea con un título y se renombra: los cinco avisos
 // siguen llevando el título de ahora.
 func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testing.T) {
 	t.Parallel()
@@ -1222,6 +1248,11 @@ func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testin
 		t.Fatalf("cambiando la tarea: %v", err)
 	}
 
+	inProgress := "in_progress"
+	if _, err := apply.UpdateTask(ctx, firstRef, core.Changes{Status: &inProgress}); err != nil {
+		t.Fatalf("poniendo la tarea en curso: %v", err)
+	}
+
 	if _, err := apply.CloseTask(ctx, firstRef, "done"); err != nil {
 		t.Fatalf("cerrando la tarea: %v", err)
 	}
@@ -1230,7 +1261,7 @@ func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testin
 		t.Fatalf("comentando la tarea: %v", err)
 	}
 
-	// Los cuatro avisos ya están escritos cuando se abre el canal: los cuatro
+	// Los cinco avisos ya están escritos cuando se abre el canal: los cinco
 	// caben en el primer lote que el canal manda.
 	next := eventReader(t, openEvents(t, server+"/api/events?after=0"))
 
@@ -1242,8 +1273,9 @@ func TestServer_severalChangesBetweenTwoLooksEachNoticeSaysItsOwnThing(t *testin
 		// cuando ocurrió: el producto compone el aviso al leerlo.
 		{"id: 1\n", taskChange{ID: firstRef, Action: createdAction, Title: renamedTitle}},
 		{"id: 2\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
-		{"id: 3\n", taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}},
-		{"id: 4\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
+		{"id: 3\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
+		{"id: 4\n", taskChange{ID: firstRef, Action: "cerrada", Title: renamedTitle}},
+		{"id: 5\n", taskChange{ID: firstRef, Action: updatedAction, Title: renamedTitle}},
 	}
 
 	for i, want := range expected {

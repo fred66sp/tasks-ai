@@ -368,6 +368,48 @@ func TestRun_updateRejectsClosingThroughTheStatus(t *testing.T) {
 	}
 }
 
+// TestRun_closeRejectsDoneWhenTheTaskIsPending comprueba que cerrar como hecha
+// exige la tarea en curso: el rechazo es de regla, sale con 1 y el mensaje dice
+// el atajo; puesto en curso, el mismo cierre pasa.
+func TestRun_closeRejectsDoneWhenTheTaskIsPending(t *testing.T) {
+	dir := t.TempDir()
+	t.Chdir(dir)
+
+	if code, _, errOut := run(t, "init"); code != 0 {
+		t.Fatalf("init salió con %d: %s", code, errOut)
+	}
+
+	code, out, errOut := run(t, "create", "--title", "Sin empezar")
+	if code != 0 {
+		t.Fatalf("create salió con %d: %s", code, errOut)
+	}
+
+	var created core.Task
+	decode(t, out, &created)
+
+	code, out, errOut = run(t, "close", created.Ref, "--reason", "done")
+	if code != 1 {
+		t.Errorf("close done de una tarea pendiente salió con %d, se esperaba 1: %s", code, errOut)
+	}
+
+	if out != "" {
+		t.Errorf("un error no debe escribir en la salida: %q", out)
+	}
+
+	message := errorText(t, errOut)
+	if !strings.Contains(message, "not in progress") || !strings.Contains(message, "--status in_progress") {
+		t.Errorf("el mensaje del rechazo (%q) debe mandar a poner la tarea en curso", message)
+	}
+
+	if code, _, errOut := run(t, "update", created.Ref, "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
+
+	if code, _, errOut := run(t, "close", created.Ref, "--reason", "done"); code != 0 {
+		t.Fatalf("close salió con %d: %s", code, errOut)
+	}
+}
+
 func run(t *testing.T, args ...string) (code int, out, errOut string) {
 	t.Helper()
 

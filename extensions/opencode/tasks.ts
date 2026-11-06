@@ -186,7 +186,7 @@ export async function register(ctx: PluginContext, executeCli = runCli): Promise
 		{
 			name: "tasks_close",
 			description:
-				"Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso.",
+				"Cierra una tarea con un motivo cuando termina o deja de ser necesaria; sus subtareas deben estar cerradas. Con done, cierra solo después de presentar el resultado a la persona: con su revisión o su pedido expreso; una tarea pendiente no se cierra como done.",
 			input: schema({ ref: REFERENCE, reason: REASON }, ["ref", "reason"]),
 			async execute(input, context) {
 				return { content: await write(["close", String(input.ref), "--reason", String(input.reason)], "cerrada", context?.signal) };

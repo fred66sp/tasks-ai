@@ -120,6 +120,7 @@ describe("la extensión", () => {
 		assert.match(tools.tasks_update.description, /in_progress.*status open/s);
 		assert.match(tools.tasks_comment.description, /en el momento en que surgen/);
 		assert.match(tools.tasks_close.description, /revisión o su pedido expreso/);
+		assert.match(tools.tasks_close.description, /una tarea pendiente no se cierra como done/);
 	});
 
 	it("/board enseña la épica, las subtareas y los bloqueos sin mensajes al modelo", async () => {
@@ -150,6 +151,8 @@ describe("la extensión", () => {
 	it("el estado muestra la última tarea cerrada al iniciar y se limpia al descargar", async () => {
 		cli("create", "--title", "09 cerrada primero");
 		cli("create", "--title", "10 cerrada después");
+		cli("update", "tk-1", "--status", "in_progress");
+		cli("update", "tk-2", "--status", "in_progress");
 		cli("close", "tk-1", "--reason", "done");
 		cli("close", "tk-2", "--reason", "done");
 		const extension = harness();

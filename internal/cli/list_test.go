@@ -48,6 +48,10 @@ func sow(t *testing.T) {
 		}
 	}
 
+	if code, _, errOut := run(t, "update", "tk-2", "--status", "in_progress"); code != 0 {
+		t.Fatalf("update salió con %d: %s", code, errOut)
+	}
+
 	if code, _, errOut := run(t, "close", "tk-2", "--reason", "done"); code != 0 {
 		t.Fatalf("close salió con %d: %s", code, errOut)
 	}

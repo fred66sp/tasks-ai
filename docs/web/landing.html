@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="tasks-ai — el tablero de tu proyecto vive en el proyecto: una base SQLite, un binario en Go y dos superficies, línea de órdenes en JSON e interfaz web. Sin nada que desplegar ni cuenta que mantener.">
+<meta name="description" content="tasks-ai — desarrollo agéntico local: el agente gestiona tareas mediante la CLI y tú supervisas y gestionas el trabajo desde la interfaz web.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
-<meta property="og:title" content="tasks-ai — el tablero vive en tu proyecto">
-<meta property="og:description" content="Tareas en una carpeta, en JSON y en el navegador. Un binario en Go, sin nada que desplegar ni cuenta que mantener.">
+<meta property="og:title" content="tasks-ai — desarrollo agéntico bajo tu control">
+<meta property="og:description" content="El agente gestiona tareas por CLI y tú supervisas y gestionas el trabajo desde la web. Todo vive en tu proyecto.">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32.png">
-<title>tasks-ai — el tablero vive en tu proyecto</title>
+<title>tasks-ai — desarrollo agéntico bajo tu control</title>
 <!-- Iconos compartidos con el producto: una sola hoja para las tres páginas. -->
 <link rel="stylesheet" href="assets/vendor/icons/icons.css">
 <link rel="stylesheet" href="assets/css/tokens.css">
@@ -348,6 +348,37 @@
   }
 
   /* Agentes */
+  .flow {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 40px 0 0;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-elev); overflow: hidden;
+  }
+  .flow-step { padding: clamp(18px, 2.4vw, 28px); border-left: 1px solid var(--line); }
+  .flow-step:first-child { border-left: 0; }
+  .flow-kicker { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .flow-step h3 { margin-top: 6px; font-size: 16px; letter-spacing: -.015em; }
+  .flow-art { margin: 18px 0 16px; color: var(--accent); }
+  .flow-step:nth-child(2) .flow-art { color: var(--accent-2); }
+  .flow-step:nth-child(3) .flow-art { color: var(--accent-3); }
+  .flow-art svg { display: block; width: 100%; height: auto; }
+  .flow-art .a-surface { fill: var(--bg-soft); stroke: var(--line-strong); stroke-width: 1.5; }
+  .flow-art .a-soft { fill: var(--bg-soft); stroke: var(--line); stroke-width: 1.5; }
+  .flow-art .a-line { fill: none; stroke: var(--line-strong); stroke-width: 1.5; }
+  .flow-art .a-dot { fill: var(--line-strong); }
+  .flow-art .a-text { fill: var(--line-strong); }
+  .flow-art .a-accent { fill: none; stroke: currentColor; stroke-width: 2; }
+  .flow-art .a-fill { fill: currentColor; }
+  .flow-art .a-onfill { fill: var(--bg-elev); }
+  .flow-art .a-onfill-line { fill: none; stroke: var(--bg-elev); stroke-width: 1.6; }
+  .flow-art .a-onfill-code { fill: var(--bg-elev); font-family: var(--mono); font-size: 22px; }
+  .flow-art .a-code { fill: currentColor; font-family: var(--mono); font-size: 14px; }
+  .flow-art .a-label { fill: var(--muted); font-family: var(--mono); font-size: 10px; }
+  .flow-step .says { font-size: 14.5px; font-weight: 600; line-height: 1.45; color: var(--text); }
+  .flow-step .how { margin-top: 6px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+  .methods { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 20px; font-size: 13.5px; color: var(--muted); }
+  .methods b { font-size: 13px; font-weight: 600; color: var(--text); }
+  .methods i { font-family: var(--mono); font-size: 11.5px; font-style: normal; padding: 2px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); }
   .tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
   .tools li {
     font-family: var(--mono); font-size: 11.5px;
@@ -476,6 +507,9 @@
     .step h3 { margin: 0; }
     .piece { grid-template-columns: 1fr; gap: 4px; padding: 16px 0; }
     .hero .lead { max-width: 60ch; }
+    .flow { grid-template-columns: 1fr; }
+    .flow-step { border-left: 0; border-top: 1px solid var(--line); }
+    .flow-step:first-child { border-top: 0; }
   }
   @media (max-width: 520px) {
     .hero { padding-top: 40px; }
@@ -500,8 +534,8 @@
     <div class="hero-mesh" aria-hidden="true"></div>
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <h1>Tu tablero vive en tu <span class="mark">proyecto.</span></h1>
-        <p class="lead">Una carpeta, una base SQLite y un binario en Go. Las tareas se quedan en el proyecto, se leen en JSON y se miran en el navegador, <strong>sin nada que desplegar ni cuenta que mantener</strong>.</p>
+        <h1>Desarrollo agéntico, bajo tu <span class="mark">control.</span></h1>
+        <p class="lead">El agente gestiona tareas y procesos de desarrollo mediante la CLI; tú revisas, haces seguimiento y mantienes el control desde la interfaz web. Todo vive en tu proyecto, <strong>sin cuenta ni despliegue</strong>.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#empezar">Empezar en dos minutos</a>
           <a class="btn btn-ghost" href="index.html">Leer la guía
@@ -654,36 +688,129 @@
   </section>
 
   <section class="section" id="agentes">
-    <div class="wrap split">
-      <div>
-        <h2>Los agentes leen JSON, no párrafos.</h2>
-        <p class="sub">El CLI del tablero habla JSON: las tareas entran y salen como datos, los errores también, y el código de salida dice qué pasó. Las extensiones de Pi y de OpenCode convierten esas órdenes en herramientas con esquema, y el tablero entra en cada turno del agente: lo que está en curso, lo que se puede empezar y su árbol.</p>
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <h2>El agente trabaja. Tú decides.</h2>
+          <p class="sub">El agente organiza tareas, dependencias y avances con la CLI, que responde en JSON. Desde la interfaz web revisas el trabajo, sigues su evolución y gestionas el mismo tablero. Las extensiones de Pi y OpenCode acercan esas órdenes al agente.</p>
+        </div>
+        <aside>
+          <p class="tools-label">Las mismas herramientas en Pi y en OpenCode:</p>
+          <ul class="tools">
+            <li>tasks_board</li>
+            <li>tasks_show</li>
+            <li>tasks_create</li>
+            <li>tasks_update</li>
+            <li>tasks_close</li>
+            <li>tasks_reopen</li>
+            <li>tasks_block</li>
+            <li>tasks_unblock</li>
+            <li>tasks_comment</li>
+            <li>tasks_comment_list</li>
+            <li>tasks_comment_edit</li>
+          </ul>
+          <p class="aside-quote">Con la extensión cargada y un tablero en el proyecto, la herramienta <code>todo</code> del arnés deja de estar disponible: el tablero es la única lista.<span>En un proyecto sin tablero, las herramientas devuelven el rechazo del producto y la sesión sigue.</span></p>
+        </aside>
+      </div>
 
-        <div class="code">
-          <pre data-language="bash"><code># el detalle: hijas, bloqueantes y comentarios
+      <!-- flow:start -->
+      <div class="flow">
+        <div class="flow-step">
+          <span class="flow-kicker">CLI</span>
+          <h3>El agente prepara</h3>
+          <div class="flow-art">
+            <svg viewBox="0 0 300 190" aria-hidden="true" focusable="false">
+              <rect class="a-surface" x="6" y="22" width="148" height="116" rx="10"/>
+              <path class="a-line" d="M6 48h148"/>
+              <circle class="a-dot" cx="20" cy="35" r="2.5"/>
+              <circle class="a-dot" cx="29" cy="35" r="2.5"/>
+              <circle class="a-dot" cx="38" cy="35" r="2.5"/>
+              <path class="a-accent" d="M20 60l5 4.5-5 4.5"/>
+              <rect class="a-text" x="34" y="59" width="60" height="6" rx="3"/>
+              <rect class="a-text" x="20" y="78" width="110" height="6" rx="3"/>
+              <rect class="a-text" x="28" y="94" width="92" height="6" rx="3"/>
+              <rect class="a-text" x="28" y="110" width="64" height="6" rx="3"/>
+              <rect class="a-text" x="28" y="126" width="80" height="6" rx="3"/>
+              <path class="a-accent" d="M158 80h18m-6-5 6 5-6 5"/>
+              <rect class="a-fill" x="186" y="48" width="102" height="64" rx="10"/>
+              <rect class="a-onfill" x="198" y="61" width="13" height="13" rx="3"/>
+              <path class="a-onfill-line" d="M201 67.5l2.5 3 4.5-6"/>
+              <rect class="a-onfill" x="219" y="64" width="54" height="6" rx="3"/>
+              <circle class="a-onfill" cx="204" cy="94" r="3"/>
+              <rect class="a-onfill" x="212" y="91" width="40" height="5" rx="2.5"/>
+              <text class="a-label" x="237" y="132" text-anchor="middle">tk-1 · en curso</text>
+            </svg>
+          </div>
+          <p class="says">Crea, mueve y cierra tareas.</p>
+          <p class="how">Cada orden devuelve JSON, así que el agente lee el estado real del tablero y no una descripción de él.</p>
+        </div>
+
+        <div class="flow-step">
+          <span class="flow-kicker">Proyecto</span>
+          <h3>El proyecto responde</h3>
+          <div class="flow-art">
+            <svg viewBox="0 0 300 190" aria-hidden="true" focusable="false">
+              <rect class="a-fill" x="6" y="44" width="66" height="66" rx="10"/>
+              <text class="a-onfill-code" x="39" y="85" text-anchor="middle">{ }</text>
+              <rect class="a-text" x="86" y="56" width="58" height="6" rx="3"/>
+              <rect class="a-text" x="86" y="72" width="46" height="6" rx="3"/>
+              <rect class="a-text" x="86" y="88" width="54" height="6" rx="3"/>
+              <rect class="a-text" x="86" y="104" width="38" height="6" rx="3"/>
+              <path class="a-accent" d="M152 92h24m-6-5 6 5-6 5"/>
+              <rect class="a-fill" x="192" y="60" width="100" height="17" rx="8.5"/>
+              <rect class="a-fill" x="192" y="83" width="100" height="17" rx="8.5" opacity=".5"/>
+              <rect class="a-fill" x="192" y="106" width="100" height="17" rx="8.5" opacity=".28"/>
+              <text class="a-label" x="242" y="140" text-anchor="middle">.tasks-ai/tasks.db</text>
+            </svg>
+          </div>
+          <p class="says">Una sola copia, en el proyecto.</p>
+          <p class="how">Tareas, dependencias y decisiones viven en <code>.tasks-ai/</code>. La CLI y la interfaz web escriben el mismo archivo.</p>
+        </div>
+
+        <div class="flow-step">
+          <span class="flow-kicker">Web</span>
+          <h3>Tú revisas y decides</h3>
+          <div class="flow-art">
+            <svg viewBox="0 0 300 190" aria-hidden="true" focusable="false">
+              <rect class="a-surface" x="6" y="18" width="288" height="142" rx="12"/>
+              <path class="a-line" d="M6 46h288"/>
+              <circle class="a-dot" cx="22" cy="32" r="3"/>
+              <circle class="a-dot" cx="33" cy="32" r="3"/>
+              <circle class="a-dot" cx="44" cy="32" r="3"/>
+              <rect class="a-soft" x="18" y="56" width="58" height="90" rx="8"/>
+              <rect class="a-text" x="28" y="70" width="34" height="5" rx="2.5"/>
+              <rect class="a-text" x="28" y="86" width="28" height="5" rx="2.5"/>
+              <rect class="a-text" x="28" y="102" width="32" height="5" rx="2.5"/>
+              <rect class="a-fill" x="88" y="56" width="194" height="26" rx="7"/>
+              <circle class="a-onfill" cx="100" cy="69" r="3.5"/>
+              <rect class="a-onfill" x="111" y="66" width="112" height="6" rx="3"/>
+              <rect class="a-soft" x="88" y="88" width="194" height="26" rx="7"/>
+              <circle class="a-accent" cx="100" cy="101" r="3.5"/>
+              <rect class="a-text" x="111" y="98" width="96" height="6" rx="3"/>
+              <rect class="a-soft" x="88" y="120" width="194" height="26" rx="7"/>
+              <circle class="a-dot" cx="100" cy="133" r="3.5"/>
+              <rect class="a-text" x="111" y="130" width="78" height="6" rx="3"/>
+            </svg>
+          </div>
+          <p class="says">Qué está en curso y qué espera.</p>
+          <p class="how">La web muestra el mismo árbol, con estados, bloqueos y el histórico. Ninguna decisión se toma sin ti.</p>
+        </div>
+      </div>
+      <!-- flow:end -->
+
+      <p class="methods">
+        <b>Sistemas de documentación</b>
+        <i>SDD</i><i>ODD</i>
+        <span>y los que ya use el equipo: el tablero acompaña el proceso, no impone uno.</span>
+      </p>
+
+      <div class="code start-code">
+        <pre data-language="bash"><code># el detalle: hijas, bloqueantes y comentarios
 ./tasks-ai show tk-1
 { "ref": "tk-1", "status": "in_progress",
   "children": [ ... ], "blockers": [ ... ],
   "dependents": [], "comments": [ ... ] }</code></pre>
-        </div>
       </div>
-      <aside>
-        <p class="tools-label">Las mismas herramientas en Pi y en OpenCode:</p>
-        <ul class="tools">
-          <li>tasks_board</li>
-          <li>tasks_show</li>
-          <li>tasks_create</li>
-          <li>tasks_update</li>
-          <li>tasks_close</li>
-          <li>tasks_reopen</li>
-          <li>tasks_block</li>
-          <li>tasks_unblock</li>
-          <li>tasks_comment</li>
-          <li>tasks_comment_list</li>
-          <li>tasks_comment_edit</li>
-        </ul>
-        <p class="aside-quote">Con la extensión cargada y un tablero en el proyecto, la herramienta <code>todo</code> del arnés deja de estar disponible: el tablero es la única lista.<span>En un proyecto sin tablero, las herramientas devuelven el rechazo del producto y la sesión sigue.</span></p>
-      </aside>
     </div>
   </section>
 

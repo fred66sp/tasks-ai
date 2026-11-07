@@ -28,10 +28,10 @@ const DirName = ".tasks-ai"
 // instructionsName is the file with the instructions for people and agents.
 const instructionsName = "AGENTS.md"
 
-// pointer is the text a project adds outside to point at the instructions and at
-// the OpenCode adapter.
+// pointer is the text a project adds outside to point at the instructions, at
+// the label contract and at the OpenCode adapter.
 const pointer = "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, " +
-	"añade esta línea al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName + ". " +
+	"añade estas líneas al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName + " para el tablero y @" + DirName + "/" + contractName + " para las etiquetas. " +
 	"Para que OpenCode use el tablero, añade " + DirName + "/extensions/opencode a \"plugins\" de su opencode.jsonc"
 
 // contractName is the file with the contract of the labels.

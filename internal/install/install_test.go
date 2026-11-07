@@ -97,8 +97,14 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 		t.Errorf("la instalación quedó en %q, se esperaba %q", result.Dir, product)
 	}
 
-	if result.Prefix != settings.DefaultPrefix || result.Pointer == "" {
-		t.Errorf("la instalación devolvió %+v, se esperaba el prefijo por omisión y el texto de fuera", result)
+	if result.Prefix != settings.DefaultPrefix {
+		t.Errorf("la instalación devolvió %+v, se esperaba el prefijo por omisión", result)
+	}
+
+	for _, fragment := range []string{"AGENTS.md", "CONTRATO_ETIQUETAS.md", "extensions/opencode"} {
+		if !strings.Contains(result.Pointer, fragment) {
+			t.Errorf("el texto de fuera no menciona %q: %q", fragment, result.Pointer)
+		}
 	}
 
 	for _, name := range []string{"tasks.db", "settings.json", "AGENTS.md"} {

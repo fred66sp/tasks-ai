@@ -69,8 +69,9 @@ al retirar el bloqueo. Una referencia que no resuelve se rechaza y una tarea no 
 bloquearse por sí misma. Los comentarios se pueden añadir y editar por su identidad
 dentro de la tarea; su cuerpo es obligatorio y no hay operación de borrado.
 
-Las etiquetas se gestionan por su nombre en el catálogo de `tags`; el vocabulario con el
-que nace el proyecto y las reglas para asignarlo están en
+Las etiquetas se gestionan por su nombre en el catálogo de `tags`; toda tarea lleva desde
+que nace un tipo y un estructural (`task` o `epic`), y el vocabulario con el que nace el
+proyecto y las reglas para asignarlo están en
 [`CONTRATO_ETIQUETAS.md`](CONTRATO_ETIQUETAS.md). El color, si se da,
 debe ser uno de la paleta que la propia ayuda del comando enumera (`tasks-ai tag create
 --help`); un color que falte es `blue` y un color desconocido se rechaza. Renombrar una

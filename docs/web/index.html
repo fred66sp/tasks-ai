@@ -489,14 +489,14 @@
 ./tasks-ai init              # installs the product in the project you are in</code></pre>
       </div>
       <p data-i18n="empezar.14">En Windows el binario se llama <code>tasks-ai.exe</code>: <code>go build</code> lo deja con ese nombre, <code>init</code> lo copia a <code>.tasks-ai\bin\tasks-ai.exe</code> y las dos extensiones buscan ese mismo archivo. Las órdenes de esta página se escriben con <code>./tasks-ai</code>; en PowerShell, <code>.\tasks-ai.exe</code> —y <code>.\tasks-ai.exe init</code> para instalar—.</p>
-      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones, el binario instalado, la extensión de Pi, el plugin de OpenCode y el contrato de etiquetas. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
+      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones y las etiquetas, el binario instalado, la extensión de Pi, el plugin de OpenCode y el contrato de etiquetas. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
       <div class="code">
         <pre data-language="json" data-lang="es"><code>{
   "dir": "/home/ana/informes/.tasks-ai",
   "db": "/home/ana/informes/.tasks-ai/tasks.db",
   "instructions": "/home/ana/informes/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
   "binary": "/home/ana/informes/.tasks-ai/bin/tasks-ai",
   "extension": "/home/ana/informes/.tasks-ai/extensions/pi",
   "opencode": "/home/ana/informes/.tasks-ai/extensions/opencode",
@@ -507,14 +507,14 @@
   "db": "/home/ana/reports/.tasks-ai/tasks.db",
   "instructions": "/home/ana/reports/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade esta línea al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
   "binary": "/home/ana/reports/.tasks-ai/bin/tasks-ai",
   "extension": "/home/ana/reports/.tasks-ai/extensions/pi",
   "opencode": "/home/ana/reports/.tasks-ai/extensions/opencode",
   "contract": "/home/ana/reports/.tasks-ai/CONTRATO_ETIQUETAS.md"
 }</code></pre>
       </div>
-      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin la línea de <code>AGENTS.md</code> en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.tasks-ai/AGENTS.md</code>; sin la del <code>opencode.jsonc</code>, OpenCode no carga el plugin. Añade cada una donde tu proyecto ya recibe instrucciones o configuración.</p></div>
+      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin las líneas de <code>AGENTS.md</code> y <code>CONTRATO_ETIQUETAS.md</code> en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.tasks-ai/AGENTS.md</code> ni que toda tarea lleva tipo y estructural; sin la del <code>opencode.jsonc</code>, OpenCode no carga el plugin. Añade cada una donde tu proyecto ya recibe instrucciones o configuración.</p></div>
       <h3 data-i18n="empezar.6">Qué deja escrito</h3>
       <div class="table-wrap">
         <table>
@@ -1299,7 +1299,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
       <div class="qa"><h3 data-i18n="preguntas.10">¿Por qué todo responde en JSON?</h3><p data-i18n="preguntas.11">Porque la línea de órdenes y los agentes son consumidores de primera clase: un JSON se lee, se filtra y se encadena sin analizar texto pensado para ojos humanos. La interfaz web usa la API, que devuelve las mismas formas.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.12">¿Puedo tener dos proyectos con el gestor?</h3><p data-i18n="preguntas.13">Sí: cada proyecto tiene su propia carpeta <code>.tasks-ai/</code> y su propia base. No se ven entre ellos y no hay un listado común.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.14">¿Dos personas pueden trabajar a la vez?</h3><p data-i18n="preguntas.15">No está pensado para eso. La base es un archivo local y no se sincroniza; dos procesos escribiendo sobre la misma base no es una forma de trabajo soportada.</p></div>
-      <div class="qa"><h3 data-i18n="preguntas.16">¿Cómo sabe un agente que las tareas están aquí?</h3><p data-i18n="preguntas.17">Porque el archivo de instrucciones del proyecto enlaza <code>.tasks-ai/AGENTS.md</code>. <code>init</code> devuelve la línea exacta en <code>pointer</code>; sin ella, el agente no tiene por qué enterarse.</p></div>
+      <div class="qa"><h3 data-i18n="preguntas.16">¿Cómo sabe un agente que las tareas están aquí?</h3><p data-i18n="preguntas.17">Porque el archivo de instrucciones del proyecto enlaza <code>.tasks-ai/AGENTS.md</code> y <code>.tasks-ai/CONTRATO_ETIQUETAS.md</code>. <code>init</code> devuelve las líneas exactas en <code>pointer</code>; sin ellas, el agente no tiene por qué enterarse.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.18">¿Qué pasa si cambio el prefijo?</h3><p data-i18n="preguntas.19">Que las referencias nuevas lo usan y las viejas dejan de resolver. La base no se reescribe: los números internos son los mismos, y el aviso al arrancar lo dice.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.20">¿La prioridad 0 es la más alta?</h3><p data-i18n="preguntas.21">El producto no lo decide: solo valida el rango de <code>0</code> a <code>3</code>. La convención que uses es tuya, y conviene escribirla en las reglas del proyecto.</p></div>
       <div class="qa"><h3 data-i18n="preguntas.22">¿Puedo usar solo la API, sin la interfaz?</h3><p data-i18n="preguntas.23">Sí. La API es la misma superficie que usa la interfaz. Lo que no hay es un modo sin <code>serve</code>: la API vive en ese proceso.</p></div>
@@ -1371,8 +1371,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.20": "<strong>The mental model.</strong> A task is a row with a stable identity; its visible reference —<code>tk-1</code>— is what you type and what you see. The database is a file, which is why there is nothing to start before you work.",
  "empezar.2": "Starting in a project",
  "empezar.3": "Compiling is the only step that needs Go. From there on, the binary does everything.",
- "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.tasks-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, the text to add outside so that people and agents find the instructions, the installed binary, the Pi extension, the OpenCode plugin and the tag contract. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
- "empezar.5": "<strong>The pointer is half the job.</strong> Without the <code>AGENTS.md</code> line in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.tasks-ai/AGENTS.md</code>; without the <code>opencode.jsonc</code> one, OpenCode does not load the plugin. Add each one wherever your project already receives instructions or configuration.",
+ "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.tasks-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, the text to add outside so that people and agents find the instructions and the tags, the installed binary, the Pi extension, the OpenCode plugin and the tag contract. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
+ "empezar.5": "<strong>The pointer is half the job.</strong> Without the <code>AGENTS.md</code> and <code>CONTRATO_ETIQUETAS.md</code> lines in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.tasks-ai/AGENTS.md</code> or that every task carries a type and a structural tag; without the <code>opencode.jsonc</code> one, OpenCode does not load the plugin. Add each one wherever your project already receives instructions or configuration.",
  "empezar.6": "What it writes",
  "empezar.7": "File",
  "empezar.8": "What it holds",
@@ -1719,7 +1719,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "preguntas.14": "Can two people work at the same time?",
  "preguntas.15": "It is not designed for that. The database is a local file and does not sync; two processes writing to the same database is not a supported way of working.",
  "preguntas.16": "How does an agent know the tasks are here?",
- "preguntas.17": "Because the project's instruction file links <code>.tasks-ai/AGENTS.md</code>. <code>init</code> returns the exact line in <code>pointer</code>; without it, the agent has no reason to find out.",
+ "preguntas.17": "Because the project's instruction file links <code>.tasks-ai/AGENTS.md</code> and <code>.tasks-ai/CONTRATO_ETIQUETAS.md</code>. <code>init</code> returns the exact lines in <code>pointer</code>; without them, the agent has no reason to find out.",
  "preguntas.18": "What happens if I change the prefix?",
  "preguntas.19": "New references use it and old ones stop resolving. The database is not rewritten: the internal numbers stay the same, and the warning on start says so.",
  "preguntas.20": "Is priority 0 the highest?",

@@ -43,6 +43,9 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Corregido
 
+- El `pointer` que devuelve `init` pide también enlazar `CONTRATO_ETIQUETAS.md`:
+  el archivo de instrucciones del proyecto enlaza así el contrato que dice qué tipo y
+  qué etiqueta estructural lleva toda tarea, y no solo `AGENTS.md`.
 - Los heroes de la portada, la guía y el sistema de diseño comparten los colores de los
   halos y la cuadrícula, con una única definición de cada fondo en el CSS común.
 - La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia

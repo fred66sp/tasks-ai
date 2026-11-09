@@ -8,6 +8,11 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- Las instrucciones que `init` distribuye incorporan la convención para encargos: un
+  encargo sustancial nace con objetivo, alcance y criterios de aceptación en la
+  descripción de su tarea; un cambio pequeño, con un título claro; al dejar el trabajo a
+  medias queda un comentario que señala el siguiente paso.
+
 - El responsable del proyecto se guarda en `person` de los ajustes: `init` lo sugiere una
   sola vez desde `git config user.name` y las tareas creadas sin `assignee` nacen con él.
 

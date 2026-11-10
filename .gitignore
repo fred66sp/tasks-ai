@@ -58,3 +58,6 @@ coverage/
 dist/
 #   .run/  los pid y los registros de los servidores que levantan serve.sh y serve-web.sh
 .run/
+#   .explanations/  artefactos desechables de revisión que genera la skill
+#   explain-html: se regeneran al pedirlos y no son documentación del repositorio
+.explanations/

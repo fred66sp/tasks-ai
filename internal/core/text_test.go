@@ -92,6 +92,51 @@ var theRejectedStates = []aState{
 		fragment: "pendientes de commit",
 		remedy:   noGitRemedy,
 	},
+	{
+		name:     "a branch of the documentation",
+		fragment: "docs/unify-design-system",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by a Git verb",
+		fragment: "mergeado a main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by subir in the present",
+		fragment: "subimos los cambios a main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by subir in the third person",
+		fragment: "sube los cambios a main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by subir in the past",
+		fragment: "subió a main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by integrar in the imperative",
+		fragment: "integra la contribución en main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by integrar in the third person",
+		fragment: "integran en main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git reference named by integrar in the past",
+		fragment: "integré a main",
+		remedy:   noGitRemedy,
+	},
+	{
+		name:     "a Git noun with its identifier",
+		fragment: "rama main",
+		remedy:   noGitRemedy,
+	},
 }
 
 // contractExamples reads the rejected examples and their messages from the
@@ -130,8 +175,8 @@ func contractExamples(t *testing.T) (map[string]string, map[string]string) {
 		messages[match[1]] = match[2]
 	}
 
-	if len(examples) != 5 || len(messages) != 5 {
-		t.Fatalf("el contrato documenta %d ejemplos y %d mensajes, se esperaban 5 y 5", len(examples), len(messages))
+	if len(examples) != 7 || len(messages) != 7 {
+		t.Fatalf("el contrato documenta %d ejemplos y %d mensajes, se esperaban 7 y 7", len(examples), len(messages))
 	}
 
 	return examples, messages
@@ -182,6 +227,18 @@ func TestText_rejectsTheExamplesOfTheContractWithTheirMessage(t *testing.T) {
 			field: fieldNotes,
 			rule:  "R5",
 		},
+		{
+			name:  "a Git reference named by a verb in the notes",
+			write: theWrites[0],
+			field: fieldNotes,
+			rule:  "R6",
+		},
+		{
+			name:  "a Git noun with its identifier in the notes",
+			write: theWrites[0],
+			field: fieldNotes,
+			rule:  "R7",
+		},
 	}
 
 	for _, tt := range tests {
@@ -203,10 +260,10 @@ func TestText_rejectsTheExamplesOfTheContractWithTheirMessage(t *testing.T) {
 	}
 }
 
-// TestText_namesTheFirstListThatCatchesTheText recorre la precedencia del
-// contrato: un texto que cae en más de una lista se nombra por la primera, en el
-// orden en que el contrato las escribe.
-func TestText_namesTheFirstListThatCatchesTheText(t *testing.T) {
+// TestText_namesEveryFragmentThatCaughtTheText recorre la agregación del
+// contrato: un texto que cae en más de una lista se nombra por todas, una
+// cláusula por lista y con el remedio de cada una escrito una sola vez.
+func TestText_namesEveryFragmentThatCaughtTheText(t *testing.T) {
 	t.Parallel()
 
 	apply, task := prepared(t)
@@ -224,28 +281,65 @@ func TestText_namesTheFirstListThatCatchesTheText(t *testing.T) {
 			field: fieldDescription,
 			text:  "a1b2c3d feat/rich-task-text",
 			want: `the description names a commit: "a1b2c3d"; ` +
-				`a commit reaches its task through the commit message, with Refs: tk-N`,
+				`the description names a branch: "feat/rich-task-text"; ` +
+				`a commit reaches its task through the commit message, with Refs: tk-N; ` +
+				noGitRemedy,
 		},
 		{
 			name:  "una rama y una entrega",
 			write: theWrites[0],
 			field: fieldNotes,
 			text:  "feat/rich-task-text sin commitear",
-			want:  `the notes name a branch: "feat/rich-task-text"; the board does not store Git`,
+			want: `the notes name a branch: "feat/rich-task-text"; ` +
+				`the notes declare the state of the delivery: "sin commitear"; ` +
+				noGitRemedy,
 		},
 		{
 			name:  "un marcador y una entrega",
 			write: theWrites[0],
 			field: fieldNotes,
 			text:  "Estado: pendiente de commit",
-			want:  `the notes declare the state of the task: "Estado:"; state what was done, found or decided instead`,
+			want: `the notes declare the state of the task: "Estado:"; ` +
+				`the notes declare the state of the delivery: "pendiente de commit"; ` +
+				`state what was done, found or decided instead; ` +
+				noGitRemedy,
 		},
 		{
 			name:  "un remoto y una entrega",
 			write: theWrites[2],
 			field: fieldComment,
 			text:  "origin/HEAD sin subir",
-			want:  `the comment names a remote reference: "origin/HEAD"; the board does not store Git`,
+			want: `the comment names a remote reference: "origin/HEAD"; ` +
+				`the comment declares the state of the delivery: "sin subir"; ` +
+				`the comment declares the state of Git: "HEAD sin subir"; ` +
+				noGitRemedy,
+		},
+		{
+			name:  "una referencia nombrada y una rama",
+			write: theWrites[0],
+			field: fieldNotes,
+			text:  "mergeado a main y feat/rich-task-text",
+			want: `the notes name a branch: "feat/rich-task-text"; ` +
+				`the notes declare the state of Git: "mergeado a main"; ` +
+				noGitRemedy,
+		},
+		{
+			name:  "un sustantivo con su referente y un hash",
+			write: theWrites[0],
+			field: fieldDescription,
+			text:  "la rama main y a1b2c3d",
+			want: `the description names a commit: "a1b2c3d"; ` +
+				`the description names a Git reference: "rama main"; ` +
+				`a commit reaches its task through the commit message, with Refs: tk-N; ` +
+				noGitRemedy,
+		},
+		{
+			// El contrato no exime lo entrecomillado: citar la rama la nombra.
+			name:  "una rama entrecomillada",
+			write: theWrites[0],
+			field: fieldNotes,
+			text:  "El texto «feat/rich-task-text» se rechaza",
+			want:  `the notes name a branch: "feat/rich-task-text"; ` + noGitRemedy,
 		},
 	}
 
@@ -266,7 +360,7 @@ func TestText_namesTheFirstListThatCatchesTheText(t *testing.T) {
 	}
 }
 
-// TestText_rejectsEveryListInEveryFieldOfEveryWrite cruza las cuatro listas con
+// TestText_rejectsEveryListInEveryFieldOfEveryWrite cruza las siete listas con
 // los cuatro campos y las cuatro escrituras: cualquier texto que caiga en una
 // lista se rechaza en cualquier campo, por el camino que se escriba, y el
 // mensaje nombra el campo, el fragmento y lo que hay que escribir en su lugar.
@@ -314,6 +408,8 @@ func TestText_readsTheListsWithoutDistinguishingCase(t *testing.T) {
 		{name: "the delivery in capitals", text: "Sin Commitear"},
 		{name: "a commit in capitals", text: "ABCDEF1"},
 		{name: "a remote reference in capitals", text: "Origin/HEAD"},
+		{name: "a Git reference named by a verb in capitals", text: "MERGEADO A MAIN"},
+		{name: "a Git noun with its identifier in capitals", text: "LA RAMA MAIN"},
 	}
 
 	for _, tt := range tests {
@@ -347,6 +443,28 @@ func TestText_leavesTheAcceptedTextsAsTheyWereWritten(t *testing.T) {
 		// Las mismas palabras nombran lo que el producto hace, y no se rechazan.
 		"El modelo tiene tres estados (abierta, en curso y cerrada)",
 		"Cerrar con subtareas abiertas se rechaza y la tarea sigue abierta",
+		// Las palabras de Git sueltas, sin verbo que las afirme ni identificador
+		// que las designe, no caen en la lista.
+		"revisar la vista de ramas",
+		"el botón de merge",
+		"main",
+		"rama",
+		"los hashes de commit y nombres de rama se rechazan",
+		"guardar en la rama de trabajo",
+		// Las rutas de la documentación no son ramas.
+		"Actualizar docs/contracts.md y docs/decisions/ antes de cerrar",
+		// Una referencia pegada a una extensión de fichero es el nombre de un
+		// fichero: en este repositorio la prosa habla de `main.go` a diario.
+		"subir la versión de main.go a 0.3",
+		"Arreglar el fallo de merge en el archivo main.go",
+		"revisar head.h antes de subir",
+		// La misma guarda rige cuando el sustantivo de Git designa la
+		// referencia: «el merge de main.go» nombra un fichero, no un merge.
+		"el merge de main.go lo revisé ayer",
+		// Las raíces de los verbos no se abren: «subasta» no es subir ni
+		// «integridad» es integrar, y la referencia sola no casa.
+		"La subasta de main se aplazó",
+		"Revisar la integridad de main",
 		// Formas del estado de la entrega que el contrato deja fuera: nombran la
 		// sección del CHANGELOG, el registro de la base o una limpieza.
 		"El CHANGELOG ya lo cuenta en [Sin publicar]",

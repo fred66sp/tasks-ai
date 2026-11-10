@@ -37,6 +37,12 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Cambiado
 
+- El contrato de los textos del tablero cierra dos formas más de escribir el estado de
+  Git: una referencia con nombre (`main`, `master` o `HEAD`) junto a un verbo de Git, y
+  un sustantivo de Git (`rama`, `commit`, `merge`, `push`, `hash`…) con su identificador
+  designado a continuación. `docs/<slug>` cuenta como rama, sin confundir las rutas de
+  la documentación. Cuando un texto cae en varias listas, el rechazo nombra todos los
+  fragmentos y no solo el primero.
 - Las herramientas del tablero dicen cuándo se usan, no solo qué hacen: poner la tarea en
   curso al empezar el trabajo, comentar el avance cuando surge y cerrar con `done` solo
   tras la revisión o el pedido expreso de la persona. El ciclo viaja además en el resumen

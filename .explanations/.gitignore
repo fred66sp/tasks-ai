@@ -1,0 +1,5 @@
+# Artefactos desechables de revisión que genera la skill explain-html: se
+# regeneran al pedirlos y no son documentación del repositorio. Se ignora todo
+# salvo este .gitignore, para que ningún artefacto asome por accidente.
+*
+!.gitignore

@@ -1584,6 +1584,12 @@ fieldset.tag-manager-field {
 .workspace-notice--unavailable strong {
   color: var(--tk-color-warning);
 }
+.workspace-notice--warning {
+  border-color: color-mix(in srgb, var(--tk-color-warning) 36%, transparent);
+}
+.workspace-notice--warning strong {
+  color: var(--tk-color-warning);
+}
 .workspace-notice--loading strong {
   color: var(--tk-color-info);
 }

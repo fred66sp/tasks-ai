@@ -719,6 +719,26 @@
       comments: comments.map(mapComment)
     };
   }
+  var COLD_TASK_DAYS = 7;
+  var DAY_MS = 24 * 60 * 60 * 1e3;
+  function coldTasks(tasks = [], comments = [], now = Date.now(), thresholdDays = COLD_TASK_DAYS) {
+    const lastCommentAt = /* @__PURE__ */ new Map();
+    for (const comment of comments) {
+      const timestamp = Date.parse(comment?.created_at);
+      if (!comment?.ref || !Number.isFinite(timestamp)) continue;
+      if (timestamp > (lastCommentAt.get(comment.ref) ?? -Infinity)) lastCommentAt.set(comment.ref, timestamp);
+    }
+    const threshold = thresholdDays * DAY_MS;
+    return tasks.filter((task) => task.status === "open" || task.status === "in_progress").map((task) => {
+      const updatedAt = Date.parse(task.updated_at);
+      const activity = Math.max(
+        Number.isFinite(updatedAt) ? updatedAt : -Infinity,
+        lastCommentAt.get(task.id) ?? -Infinity
+      );
+      if (!Number.isFinite(activity) || now - activity < threshold) return null;
+      return { id: task.id, title: task.title, days: Math.floor((now - activity) / DAY_MS) };
+    }).filter(Boolean).sort((left, right) => right.days - left.days);
+  }
   function mapRelation(relation) {
     if (typeof relation === "string") return { id: relation, title: "" };
     return { id: relation?.ref || relation?.id || "", title: relation?.title || "" };
@@ -762,6 +782,7 @@
           }, /* @__PURE__ */ new Map());
           const selectedId = preferredId && tasks.some((task) => task.id === preferredId) ? preferredId : tasks[0]?.id || "";
           this.tasks = tasks;
+          this.coldTaskList = coldTasks(tasks, comments);
           this.tags = tags;
           this.reconcileUiPreferences(tags);
           this.selectedTaskId = selectedId;
@@ -1132,6 +1153,7 @@
           unavailable: this.unavailable,
           errorMessage: this.errorMessage,
           refreshing: this.refreshing,
+          coldTasks: this.coldTaskList,
           taskSearchQuery: this.taskSearchQuery,
           advancedFiltersOpen: this.isAdvancedFiltersOpen,
           hasAdvancedFilters: this.hasAdvancedFilters,
@@ -1244,6 +1266,9 @@
         // búsqueda en comentarios. No es preferencia de interfaz: se recarga con
         // el workspace.
         commentIndex: /* @__PURE__ */ new Map(),
+        // Tareas abiertas o en curso sin actividad de tablero reciente. Se
+        // recalcula con cada carga del workspace (tk-272).
+        coldTaskList: [],
         tags: [],
         detail: null,
         selectedTaskId: "",
@@ -1846,6 +1871,7 @@
       unavailable: { type: Boolean, required: true },
       errorMessage: { type: String, required: true },
       refreshing: { type: Boolean, required: true },
+      coldTasks: { type: Array, required: true },
       taskSearchQuery: { type: String, required: true },
       advancedFiltersOpen: { type: Boolean, required: true },
       hasAdvancedFilters: { type: Boolean, required: true },
@@ -1867,6 +1893,15 @@
         if (value) this.$nextTick(() => this.$refs.listMenu?.focus());
       }
     },
+    computed: {
+      // El aviso no puede acaparar la pantalla: las primeras tareas y el resto
+      // contado. El orden ya viene de la más fría a la menos.
+      coldNotice() {
+        const shown = this.coldTasks.slice(0, 3).map((task) => `${task.title} (sin movimiento desde hace ${task.days} ${task.days === 1 ? "d\xEDa" : "d\xEDas"})`);
+        const rest = this.coldTasks.length - shown.length;
+        return `${shown.join("; ")}${rest > 0 ? `; +${rest} m\xE1s` : ""}.`;
+      }
+    },
     methods: {
       toggleValue(values, value, checked, eventName) {
         this.$emit(eventName, checked ? [...values, value] : values.filter((item) => item !== value));
@@ -1884,6 +1919,8 @@
       @click="$emit('dismiss-error')"><tk-icon name="x-mark" /></button></div>
   <div v-show="refreshing" class="workspace-notice workspace-notice--loading" role="status"><strong>Actualizando
       datos</strong><span>Se mantiene visible el \xFAltimo estado confirmado.</span></div>
+  <div v-if="coldTasks.length" class="workspace-notice workspace-notice--warning" role="status"><strong>Tablero
+      fr\xEDo</strong><span>{{ coldNotice }}</span></div>
   <div class="task-search-row">
     <label><span class="sr-only">Buscar tareas</span><input :value="taskSearchQuery" class="tk-input" type="search"
         placeholder="Buscar por t\xEDtulo, ID, etiqueta, descripci\xF3n, notas o comentarios" @input="$emit('update-search', $event.target.value)" /></label>

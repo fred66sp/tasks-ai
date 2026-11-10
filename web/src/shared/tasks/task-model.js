@@ -65,6 +65,47 @@ export function mapTask(task = {}, subtasks = hasSubtasks(task)) {
   };
 }
 
+// Una tarea abierta o en curso que lleva días sin actividad de tablero está
+// fría. El umbral es fijo: es una señal para el equipo, no una preferencia.
+export const COLD_TASK_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Tareas abiertas o en curso sin actividad de tablero reciente.
+ *
+ * La actividad es la fecha más nueva entre el cambio de la tarea y su último
+ * comentario: comentar no toca `updated_at`, así que sin el máximo un
+ * comentario de hoy no despertaría a una tarea de hace un mes.
+ *
+ * @param {Array<object>} tasks Tareas ya mapeadas, con `status` y `updated_at`.
+ * @param {Array<{ref?: string, created_at?: string}>} comments Comentarios del proyecto.
+ * @param {number} [now] Reloj inyectable, en milisegundos.
+ * @param {number} [thresholdDays] Umbral en días.
+ * @returns {Array<{id: string, title: string, days: number}>} De más fría a menos.
+ */
+export function coldTasks(tasks = [], comments = [], now = Date.now(), thresholdDays = COLD_TASK_DAYS) {
+  const lastCommentAt = new Map();
+  for (const comment of comments) {
+    const timestamp = Date.parse(comment?.created_at);
+    if (!comment?.ref || !Number.isFinite(timestamp)) continue;
+    if (timestamp > (lastCommentAt.get(comment.ref) ?? -Infinity)) lastCommentAt.set(comment.ref, timestamp);
+  }
+  const threshold = thresholdDays * DAY_MS;
+  return tasks
+    .filter((task) => task.status === 'open' || task.status === 'in_progress')
+    .map((task) => {
+      const updatedAt = Date.parse(task.updated_at);
+      const activity = Math.max(
+        Number.isFinite(updatedAt) ? updatedAt : -Infinity,
+        lastCommentAt.get(task.id) ?? -Infinity
+      );
+      if (!Number.isFinite(activity) || now - activity < threshold) return null;
+      return { id: task.id, title: task.title, days: Math.floor((now - activity) / DAY_MS) };
+    })
+    .filter(Boolean)
+    .sort((left, right) => right.days - left.days);
+}
+
 // Las relaciones del detalle llegan como tareas completas: vale su referencia.
 function mapRelation(relation) {
   if (typeof relation === 'string') return { id: relation, title: '' };

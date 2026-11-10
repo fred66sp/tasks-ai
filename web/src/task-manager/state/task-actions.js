@@ -12,7 +12,7 @@ import {
   showTask,
   updateTask
 } from '../api/tk-client.js';
-import { mapTask } from '../../shared/tasks/task-model.js';
+import { coldTasks, mapTask } from '../../shared/tasks/task-model.js';
 
 export const taskActions = {
   methods: {
@@ -45,6 +45,7 @@ export const taskActions = {
         }, new Map());
         const selectedId = preferredId && tasks.some((task) => task.id === preferredId) ? preferredId : (tasks[0]?.id || '');
         this.tasks = tasks;
+        this.coldTaskList = coldTasks(tasks, comments);
         this.tags = tags;
         this.reconcileUiPreferences(tags);
         this.selectedTaskId = selectedId;

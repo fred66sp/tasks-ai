@@ -525,7 +525,7 @@ tanto al crear y cambiar la tarea como al añadir y editar un comentario: lo que
 ellas es entrada inválida, la escritura no ocurre y la base queda igual.
 
 Lo entrecomillado no exime. La regla se cita nombrando lo que se rechaza —un hash de
-commit, el nombre de una rama, la frase que declara el cierre—, y los ejemplos concretos,
+commit, el nombre de una rama, una referencia de Git—, y los ejemplos concretos,
 los que enseñan qué se rechaza, viven en este documento, que el validador no mira.
 
 ### Lo que se rechaza
@@ -546,14 +546,24 @@ una letra.
 - Se acepta: `hashes de commit, nombres de rama, referencias a commits pendientes`.
 
 **`R2`: el nombre de una rama.** Uno de los prefijos de rama del flujo de Git seguido
-de su nombre.
+de su nombre. Incluye `docs`, la convención de ramas de este repositorio.
 
 ```text
-\b(?:feat|feature|fix|hotfix|release|refactor|chore)/[a-z0-9][a-z0-9._-]*
+\b(?:feat|feature|fix|hotfix|release|refactor|chore|docs)/[a-z0-9][a-z0-9._-]*
 ```
 
 - Se rechaza: `feat/rich-task-text`.
 - Se acepta: `Decidir la proteccion de rama del repositorio`.
+
+La forma `docs/<slug>` se limita al slug suelto —sin punto y sin continuar como
+ruta—, porque en este repositorio `docs/<algo>` es también la ruta de un documento:
+`docs/unify-design-system` es una rama; `docs/contracts.md` y `docs/decisions/` son
+documentos y no casan.
+
+La forma no distingue el directorio del nombre de una rama: `docs/decisions` o
+`docs/tasks-ai-brand` escritos sin barra final y sin fichero casan como rama, porque el
+flujo del repositorio escribe sus ramas exactamente así. Para citar el directorio se
+escribe la ruta con barra final —`docs/decisions/`— o con su fichero.
 
 **`R3`: una referencia a un remoto.**
 
@@ -590,8 +600,67 @@ en mayúscula en el documento que la lleva), la que describe el registro de la b
 (`sin integrar`, hablando del WAL) y la que aparece citada al contar una limpieza
 (`sin push`). El tablero usa las tres así, y añadirlas rechazaría esos textos.
 
-Si un texto cae en más de una lista, manda la primera que lo alcanza en el orden de este
-apartado.
+**`R6`: una referencia de Git nombrada por un verbo de Git.** `main`, `master` o `HEAD`
+como palabra suelta, junto a un verbo de Git —merge, push, commit, checkout, rebase,
+subir, integrar o fusionar, en español o en inglés, con sus conjugaciones— en la misma
+cláusula y en cualquier orden. La referencia sola no casa. La cláusula la cortan el punto,
+los dos puntos, el punto y coma, el cierre y el salto de línea; la coma no la corta. La
+lista busca las dos piezas por separado y exige que caigan en la misma cláusula.
+
+```text
+\b(?:main|master|HEAD)\b
+```
+
+```text
+\b(?:merge[a-z]*|push[a-z]*|commit[a-z]*|checkout|rebas[a-z]*|fusion[a-z]*|integr(?:ar|o|as|a|amos|áis|an|é|aste|ó|asteis|aron|e|es|emos|éis|en|ara|aras|áramos|arais|aran|ase|ases|ásemos|aseis|asen|are|ares|áremos|areis|aren|ad|á|ando|ado|ada|ados|adas|ación)|sub(?:ir|o|es|e|imos|ís|en|ía|ías|íamos|íais|ían|í|iste|ió|isteis|ieron|a|as|amos|áis|an|iera|ieras|iéramos|ierais|ieran|iese|ieses|iésemos|ieseis|iesen|iere|ieres|iéremos|iereis|ieren|id|iendo|ido|ida|idos|idas))(?:$|[^0-9A-Za-z])
+```
+
+Las terminaciones de `subir` e `integrar` van escritas una a una: abrir la raíz casaría
+`subasta`, `subterráneo` o `integridad`, que son prosa legítima. La palabra se cierra con
+`(?:$|[^0-9A-Za-z])` y no con `\b`, que en Go no reconoce las letras acentuadas y dejaría
+pasar `subió` e `integré`.
+
+Una referencia pegada a una extensión de fichero es el nombre de un fichero, no una rama:
+`main.go` y `HEAD.h` —y `head.h`, porque la lista no distingue mayúsculas— no casan. La
+expresión no mira hacia delante, así que el descarte se hace después de encontrar la
+coincidencia.
+
+- Se rechaza: `mergeado a main`.
+- Se rechaza: `subimos los cambios a main`.
+- Se rechaza: `subió a main`.
+- Se rechaza: `integra la contribución en main`.
+- Se rechaza: `integré a main`.
+- Se acepta: `main`.
+- Se acepta: `subir la versión de main.go a 0.3`.
+- Se acepta: `La subasta de main se aplazó`.
+
+**`R7`: un sustantivo de Git con su identificador.** Un sustantivo de Git —`commit`,
+`commits`, `merge`, `push`, `checkout`, `hash`, `rama` o `branch`— seguido, a lo sumo
+tras tres palabras de enlace (`de`, `del`, `en`, `con`, `a`, `al`, `la`, `el`, `los`,
+`las`, `the`), de un identificador designado: `main`, `master` o `HEAD`, la forma de una
+rama o una referencia a `origin/…`. Esta lista no enumera el hash: su expresión no tiene
+una rama que lo case, y el hash lo alcanza `R1`, que corre en primer lugar.
+
+```text
+\b(?:commit|commits|merge|push|checkout|hash|rama|branch)\b[\s:]*(?:(?:de|del|en|con|a|al|la|el|los|las|the)\s+){0,3}(?:main|master|HEAD|origin/[a-z0-9][a-z0-9._-]*|(?:feat|feature|fix|hotfix|release|refactor|chore|docs)/[a-z0-9][a-z0-9._-]*)\b
+```
+
+- Se rechaza: `la rama main`.
+- Se acepta: `revisar la vista de ramas`.
+
+La referencia propia que el sustantivo designa comparte la guarda de ficheros de
+`R6`: `el merge de main.go` nombra un fichero, no un merge, y la lista no casa.
+
+La lista pide el identificador a continuación, y por eso deja fuera las palabras
+sueltas que la prosa usa sin designar nada: `revisar la vista de ramas`, `el botón de
+merge`, `los hashes de commit y nombres de rama se rechazan` y `guardar en la rama de
+trabajo`. El plural genérico no trae identificador y la rama sin nombre no afirma nada
+de Git.
+
+Un texto que cae en varias listas se nombra por todas: el rechazo lista los fragmentos
+que casaron, una cláusula por lista y en el orden de este apartado, y escribe una sola
+vez el remedio de cada una. Entrecomillar no exime: un texto que cita `feat/x` se
+rechaza igual.
 
 Una palabra suelta dentro de una frase no cae en `R4`, y es a propósito: la misma prosa
 describe lo que el producto hace —«cerrar una tarea con subtareas abiertas se rechaza»— y
@@ -600,9 +669,9 @@ está en `docs/known-risks.md`.
 
 ### El mensaje del rechazo
 
-Nombra el campo, el fragmento y lo que hay que escribir en su lugar, para que quien lo
-escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra el producto:
-`title`, `description`, `notes` o `comment`.
+Nombra el campo, los fragmentos que casaron y lo que hay que escribir en su lugar, para
+que quien lo escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo
+nombra el producto: `title`, `description`, `notes` o `comment`.
 
 | Regla | Mensaje |
 |---|---|
@@ -611,6 +680,8 @@ escribió lo corrija y lo vuelva a intentar. El campo se nombra como lo nombra e
 | `R3` | `the comment names a remote reference: "origin/HEAD"; the board does not store Git` |
 | `R4` | `the title declares the state of the task: "Hecho:"; state what was done, found or decided instead` |
 | `R5` | `the notes declare the state of the delivery: "sin commitear"; the board does not store Git` |
+| `R6` | `the notes declare the state of Git: "mergeado a main"; the board does not store Git` |
+| `R7` | `the notes name a Git reference: "rama main"; the board does not store Git` |
 
 El rechazo llega como entrada inválida, no como un fallo: el CLI sale con `2` y la API
 responde `400`, con este mismo objeto `{"error": "..."}` y este mismo texto. La extensión

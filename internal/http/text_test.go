@@ -57,6 +57,20 @@ var textRefusals = []struct {
 		body:    `{"body": "Hecho: el criterio"}`,
 		message: `the comment declares the state of the task: "Hecho:"; state what was done, found or decided instead`,
 	},
+	{
+		name:    "las notas de una tarea nueva nombran un Git con su verbo",
+		method:  http.MethodPost,
+		path:    "/api/tasks",
+		body:    `{"title": "Otra", "notes": "mergeado a main"}`,
+		message: `the notes declare the state of Git: "mergeado a main"; the board does not store Git`,
+	},
+	{
+		name:    "la descripción de un cambio nombra una rama con su nombre",
+		method:  http.MethodPatch,
+		path:    "/api/tasks/tk-1",
+		body:    `{"description": "la rama main"}`,
+		message: `the description names a Git reference: "rama main"; the board does not store Git`,
+	},
 }
 
 // theLegitimateText is a text the lists of the contract leave pass: se guarda.

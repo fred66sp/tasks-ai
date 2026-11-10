@@ -57,6 +57,16 @@ var textRefusals = []struct {
 		args:    []string{commentCmd, editCmd, theTask, "1", editFlag, "Hecho: el criterio"},
 		message: `the comment declares the state of the task: "Hecho:"; state what was done, found or decided instead`,
 	},
+	{
+		name:    "las notas de una tarea nueva nombran un Git con su verbo",
+		args:    []string{createCmd, "--title", "Otra", "--notes", "mergeado a main"},
+		message: `the notes declare the state of Git: "mergeado a main"; the board does not store Git`,
+	},
+	{
+		name:    "la descripción de un cambio nombra una rama con su nombre",
+		args:    []string{updateCmd, theTask, "--description", "la rama main"},
+		message: `the description names a Git reference: "rama main"; the board does not store Git`,
+	},
 }
 
 // TestRun_refusesTheTextThatWritesTheState recorre el criterio de tk-150 desde el

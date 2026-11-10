@@ -4,6 +4,7 @@ export const TaskFilters = {
     unavailable: { type: Boolean, required: true },
     errorMessage: { type: String, required: true },
     refreshing: { type: Boolean, required: true },
+    coldTasks: { type: Array, required: true },
     taskSearchQuery: { type: String, required: true },
     advancedFiltersOpen: { type: Boolean, required: true },
     hasAdvancedFilters: { type: Boolean, required: true },
@@ -25,6 +26,16 @@ export const TaskFilters = {
       if (value) this.$nextTick(() => this.$refs.listMenu?.focus());
     }
   },
+  computed: {
+    // El aviso no puede acaparar la pantalla: las primeras tareas y el resto
+    // contado. El orden ya viene de la más fría a la menos.
+    coldNotice() {
+      const shown = this.coldTasks.slice(0, 3).map((task) =>
+        `${task.title} (sin movimiento desde hace ${task.days} ${task.days === 1 ? 'día' : 'días'})`);
+      const rest = this.coldTasks.length - shown.length;
+      return `${shown.join('; ')}${rest > 0 ? `; +${rest} más` : ''}.`;
+    }
+  },
   methods: {
     toggleValue(values, value, checked, eventName) {
       this.$emit(eventName, checked ? [...values, value] : values.filter((item) => item !== value));
@@ -42,6 +53,8 @@ export const TaskFilters = {
       @click="$emit('dismiss-error')"><tk-icon name="x-mark" /></button></div>
   <div v-show="refreshing" class="workspace-notice workspace-notice--loading" role="status"><strong>Actualizando
       datos</strong><span>Se mantiene visible el último estado confirmado.</span></div>
+  <div v-if="coldTasks.length" class="workspace-notice workspace-notice--warning" role="status"><strong>Tablero
+      frío</strong><span>{{ coldNotice }}</span></div>
   <div class="task-search-row">
     <label><span class="sr-only">Buscar tareas</span><input :value="taskSearchQuery" class="tk-input" type="search"
         placeholder="Buscar por título, ID, etiqueta, descripción, notas o comentarios" @input="$emit('update-search', $event.target.value)" /></label>

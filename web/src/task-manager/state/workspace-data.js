@@ -74,6 +74,9 @@ export const workspaceData = {
       // búsqueda en comentarios. No es preferencia de interfaz: se recarga con
       // el workspace.
       commentIndex: new Map(),
+      // Tareas abiertas o en curso sin actividad de tablero reciente. Se
+      // recalcula con cada carga del workspace (tk-272).
+      coldTaskList: [],
       tags: [],
       detail: null,
       selectedTaskId: '',

@@ -162,6 +162,7 @@ export const taskTree = {
         unavailable: this.unavailable,
         errorMessage: this.errorMessage,
         refreshing: this.refreshing,
+        coldTasks: this.coldTaskList,
         taskSearchQuery: this.taskSearchQuery,
         advancedFiltersOpen: this.isAdvancedFiltersOpen,
         hasAdvancedFilters: this.hasAdvancedFilters,

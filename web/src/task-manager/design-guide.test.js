@@ -8,7 +8,7 @@ const iconFiles = () => readdirSync(iconDir)
   .filter((name) => name.endsWith('.svg'))
   .map((name) => name.slice(0, -4))
   .sort();
-const docPages = ['landing.html', 'index.html', 'design-system.html'];
+const docPages = ['landing.html', 'index.html', 'design-system.html', 'demo.html'];
 test('la portada explica el trabajo agéntico y los sistemas de documentación', () => {
   const page = read('../../../docs/web/landing.html');
   assert.match(page, /desarrollo agéntico/i);

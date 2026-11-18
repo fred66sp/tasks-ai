@@ -112,6 +112,7 @@ start() {
 	echo "  Guía de uso:    $address/docs/web/index.html"
 	echo "  Presentación:   $address/docs/web/landing.html"
 	echo "  Sistema visual: $address/docs/web/design-system.html"
+	echo "  Demostración:   $address/docs/web/demo.html"
 	echo "Registro: $logfile"
 }
 

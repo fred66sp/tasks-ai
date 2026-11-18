@@ -27,10 +27,10 @@ var paletteTokens = []string{
 	"--accent", "--accent-2", "--accent-3", "--accent-soft", "--accent-on-dark",
 }
 
-// docsWebPages are the three published pages; docsWebScript is the shared
+// docsWebPages are the four published pages; docsWebScript is the shared
 // script the pages load.
 var (
-	docsWebPages  = []string{"index.html", "design-system.html", "landing.html"}
+	docsWebPages  = []string{"index.html", "design-system.html", "landing.html", "demo.html"}
 	docsWebScript = "assets/js/docs.js"
 )
 

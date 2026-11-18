@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="tasks-ai — demostración en bucle del tablero: un agente crea una subtarea, la recorre por sus estados y cierra la épica en quince segundos.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicons/favicon-32.png">
+<title>tasks-ai — demostración del tablero</title>
+<!-- Las muestras del tablero usan su CSS real, no una copia (ADR-018): el
+     tablero se dibuja con las clases del producto y esta página solo aporta su
+     marco, los controles del ciclo y lo que cambia en cada fase. -->
+<link rel="stylesheet" href="assets/vendor/app-vue.css">
+<link rel="stylesheet" href="assets/vendor/icons/icons.css">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/chrome.css">
+<script src="assets/vendor/vue.global.prod.js"></script>
+<script src="assets/js/docs.js"></script>
+<style>
+
+  /* La paleta y la mobilia viven en assets/css/tokens.css y chrome.css. Lo
+     propio de esta página son el marco del escenario, la barra del ciclo y el
+     tablero: un recorte de la interfaz real, oscuro como ella, con los
+     controles de la simulación fuera y la narración al lado. */
+  .demo-hero-stage {
+    position: relative; overflow: hidden;
+    padding: clamp(40px, 7vw, 84px) clamp(16px, 4vw, 40px) clamp(26px, 4vw, 42px);
+  }
+  .demo-hero { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; }
+  .demo-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 999px;
+    background: var(--bg-elev); color: var(--muted);
+    font-size: 12px; font-weight: 600;
+  }
+  .demo-eyebrow .demo-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .demo-hero h1 {
+    margin: 20px 0 0;
+    font-size: clamp(32px, 5.4vw, 54px);
+    line-height: 1.06; letter-spacing: -.032em; font-weight: 800;
+  }
+  .demo-lead { margin: 18px 0 0; max-width: 68ch; color: var(--muted); font-size: clamp(15px, 2vw, 17px); }
+
+  .demo-stage { max-width: 1440px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 72px; }
+  .demo-bar { display: grid; gap: 12px; margin-bottom: 18px; }
+  .demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .demo-status {
+    margin-left: auto; color: var(--muted); font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .demo-progress {
+    height: 6px; border: 1px solid var(--border); border-radius: 999px;
+    background: var(--bg-soft); overflow: hidden;
+  }
+  .demo-progress span {
+    display: block; width: 0; height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+  .demo-narration { margin: 0; min-height: 3.3em; font-size: 15px; }
+
+  .demo-figure { margin: 0; }
+  .demo-board {
+    display: grid; grid-template-rows: 68px minmax(0, 1fr);
+    height: 748px; overflow: hidden;
+    border: 1px solid var(--tk-color-border-default);
+    border-radius: calc(var(--radius) + 2px);
+    background: var(--tk-color-canvas);
+    box-shadow: var(--shadow-lg);
+    color: var(--tk-color-text-primary);
+    font-size: 15px; line-height: 1.55;
+  }
+  .demo-columns {
+    display: grid;
+    grid-template-columns: 600px minmax(0, 1fr);
+    min-height: 0;
+  }
+  /* El tablero es una ilustración: sus controles son forma, no función, y el
+     foco se queda en los botones de la simulación y en la página. */
+  .demo-board .demo-static { cursor: default; }
+  .demo-board .demo-field {
+    display: flex; align-items: center; gap: 8px;
+    overflow: hidden; color: var(--tk-color-text-disabled); white-space: nowrap;
+  }
+  .demo-board .demo-select { display: inline-flex; align-items: center; line-height: 1.2; }
+  .demo-board .tk-tab { cursor: default; }
+  .demo-board .tk-tab.is-current { color: var(--tk-color-text-primary); }
+  .demo-board .tk-tab.is-current::after {
+    position: absolute; right: 0; bottom: -1px; left: 0; height: 2px;
+    background: var(--tk-color-accent); content: "";
+  }
+  .demo-board .task-parent-link { cursor: default; }
+  .demo-board .demo-empty { margin: 0; color: var(--tk-color-text-muted); }
+
+  @keyframes demo-badge-pulse {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.14); }
+    100% { transform: scale(1); }
+  }
+  .demo-badge--pulse { animation: demo-badge-pulse .55s ease-out; }
+
+  @keyframes demo-row-in {
+    from { background: color-mix(in srgb, var(--tk-color-accent) 30%, transparent); }
+    to { background: transparent; }
+  }
+  .demo-row--new { animation: demo-row-in 1.4s ease-out; }
+
+  @keyframes demo-status-flash {
+    from { border-color: var(--tk-color-accent); box-shadow: 0 0 0 3px var(--tk-color-accent-soft); }
+    to { border-color: var(--tk-color-border-default); box-shadow: none; }
+  }
+  .demo-state--changed { animation: demo-status-flash .8s ease-out; }
+
+  .demo-notes { max-width: 72ch; margin-top: 30px; }
+  .demo-notes h2 { margin: 0 0 10px; font-size: 20px; letter-spacing: -.01em; }
+  .demo-notes ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
+  .demo-notes li + li { margin-top: 8px; }
+  .demo-notes strong { color: var(--text); }
+  .demo-notes p { margin: 16px 0 0; color: var(--muted); font-size: 15px; }
+
+  .demo-footer {
+    display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
+    justify-content: space-between;
+    max-width: 1180px; margin: 0 auto;
+    padding: 28px clamp(16px, 4vw, 40px);
+    border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px;
+  }
+
+  @media (max-width: 1180px) {
+    .demo-board { grid-template-rows: auto auto; height: auto; }
+    .demo-columns { grid-template-columns: minmax(0, 1fr); }
+    .demo-board .task-explorer {
+      height: 420px;
+      border-right: 0; border-bottom: 1px solid var(--tk-color-border-subtle);
+    }
+    .demo-board .task-inspector { position: static; display: grid !important; height: auto; }
+  }
+
+  @media (max-width: 520px) {
+    .demo-board .workspace-header__brand span { display: none; }
+    .demo-board .workspace-header__brand strong { white-space: nowrap; }
+    .demo-board .workspace-header__actions .tk-button--secondary { display: none; }
+  }
+  </style>
+</head>
+<body>
+
+<div id="top" class="page-top" aria-hidden="true"></div>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<header class="topbar" id="docs-topbar"></header>
+
+<main id="main">
+  <section class="hero demo-hero-stage">
+    <div class="hero-mesh" aria-hidden="true"></div>
+    <div class="demo-hero">
+      <span class="demo-eyebrow"><span class="demo-dot" aria-hidden="true"></span>simulación · quince segundos en bucle</span>
+      <h1>Así se ve un agente <span class="grad">gestionando una épica</span></h1>
+      <p class="demo-lead">Una réplica de la interfaz del tablero con datos de ejemplo. El agente crea una subtarea de <strong>tk-276</strong>, la pasa por sus estados, escribe su bitácora y cierra primero la subtarea y después la épica. Al terminar, el escenario vuelve a empezar.</p>
+    </div>
+  </section>
+
+  <section class="demo-stage" aria-label="Demostración en bucle del tablero">
+    <div class="demo-bar">
+      <div class="demo-controls">
+        <button class="icon-btn" id="demo-pause" type="button">Pausar</button>
+        <button class="icon-btn" id="demo-restart" type="button"><span class="tk-icon tk-icon--mask tk-icon--arrow-path" aria-hidden="true"></span>Reiniciar</button>
+        <span class="demo-status" id="demo-status" aria-hidden="true">Escenario · 0 s / 15 s</span>
+      </div>
+      <div class="demo-progress" aria-hidden="true"><span id="demo-progress-fill"></span></div>
+      <p class="demo-narration" id="demo-live" role="status" aria-live="polite">La épica tk-276 está en curso y le quedan dos subtareas abiertas.</p>
+    </div>
+
+    <figure class="demo-figure">
+      <div class="demo-board" id="demo-board" aria-hidden="true">
+        <header class="workspace-header">
+          <div class="workspace-header__brand">
+            <div class="brand-mark"><img src="assets/img/app-icons/tasks-ai-dark-64.png" alt="" width="38" height="38"></div>
+            <div><strong>Gestor de tareas</strong><span>Local · .tasks-ai/tasks.db</span></div>
+          </div>
+          <div class="workspace-header__actions">
+            <span class="tk-button tk-button--ghost tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--arrow-path"></span></span>
+            <span class="tk-button tk-button--secondary tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--document-text"></span><span class="tk-button__label">Decisiones</span></span>
+            <span class="tk-button tk-button--secondary tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--tag"></span><span class="tk-button__label">Etiquetas</span></span>
+            <span class="tk-button tk-button--primary tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--plus"></span><span class="tk-button__label">Nueva tarea</span></span>
+          </div>
+        </header>
+
+        <div class="demo-columns">
+          <aside class="task-explorer">
+            <div class="task-explorer__toolbar">
+              <div class="task-search-row">
+                <span class="tk-input demo-field"><span class="tk-icon tk-icon--mask tk-icon--magnifying-glass"></span>Buscar por título, ID o etiqueta</span>
+                <span class="tk-icon-button demo-static"><span class="tk-icon tk-icon--mask tk-icon--funnel"></span></span>
+                <span class="tk-icon-button demo-static"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical"></span></span>
+              </div>
+              <nav class="tk-tabs task-filter-tabs">
+                <span class="tk-tab is-current">Todas</span><span class="tk-tab">Actuales</span><span class="tk-tab">Pendientes</span><span class="tk-tab">En curso</span><span class="tk-tab">Bloqueadas</span><span class="tk-tab">Hechas</span>
+              </nav>
+            </div>
+            <div class="task-tree-scroll" id="demo-tree-scroll">
+              <div class="task-tree" id="demo-tree"></div>
+            </div>
+            <footer class="task-explorer__footer"><span id="demo-count">9 elementos visibles</span><span id="demo-active">3 activas</span></footer>
+          </aside>
+
+          <section class="task-inspector">
+            <header class="task-inspector__header">
+              <div class="task-inspector__heading-row">
+                <div class="task-inspector__heading">
+                  <div class="task-inspector__kicker" id="demo-kicker">tk-276 · Épica</div>
+                  <p class="task-inspector__title" id="demo-title">Sistema global de delegación de subagentes para OpenCode</p>
+                  <div class="task-inspector__description" id="demo-description"></div>
+                </div>
+                <div class="task-inspector__actions">
+                  <span class="tk-button tk-button--secondary tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--pencil"></span>Editar</span>
+                  <span class="tk-button tk-button--danger tk-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--check"></span>Cerrar tarea</span>
+                  <span class="tk-badge tk-badge--info" id="demo-badge">En curso</span>
+                  <span class="tk-icon-button demo-static"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical"></span></span>
+                </div>
+              </div>
+              <div class="task-property-bar">
+                <div class="task-property-control"><span class="task-property-control__label">Prioridad</span><span class="tk-select demo-select" id="demo-priority">Alta</span></div>
+                <div class="task-property-control"><span class="task-property-control__label">Estado</span><span class="tk-select demo-select" id="demo-state">En curso</span></div>
+                <div class="task-property-control"><span class="task-property-control__label">Responsable</span><span class="task-property-control__value">Alfredo González P.</span></div>
+              </div>
+            </header>
+            <nav class="tk-tabs task-inspector__tabs">
+              <span class="tk-tab">Detalle</span><span class="tk-tab">Subtareas</span><span class="tk-tab is-current">Comentarios</span>
+            </nav>
+            <div class="task-inspector__scroll">
+              <section class="tk-panel">
+                <header class="tk-panel__header"><h3>Comentarios</h3></header>
+                <div class="tk-panel__content"><div class="comment-list" id="demo-comments"></div></div>
+              </section>
+            </div>
+          </section>
+        </div>
+      </div>
+      <figcaption class="demo-status">Réplica de la interfaz del producto con datos de ejemplo: nada de lo que se ve aquí escribe en el tablero de este repositorio.</figcaption>
+    </figure>
+
+    <section class="demo-notes" aria-labelledby="demo-notes-title">
+      <h2 id="demo-notes-title">Qué es real y qué es simulado</h2>
+      <ul>
+        <li><strong>El escenario existe.</strong> La épica <strong>tk-276</strong> y sus ocho subtareas son tareas reales de este proyecto, con sus títulos, estados y etiquetas.</li>
+        <li><strong>La subtarea animada es ficticia.</strong> <strong>tk-285</strong> no está en el tablero: se inventa para poder contar la secuencia sin tocar el trabajo vivo.</li>
+        <li><strong>Nada se escribe.</strong> Los datos y la bitácora viven en esta página; el ciclo es una animación que se repite y se puede pausar o reiniciar.</li>
+      </ul>
+      <p>La interfaz completa, con sus pestañas y sus dependencias, se explica en <a href="index.html#interfaz">la guía de uso</a>; las piezas y sus medidas, en <a href="design-system.html">el sistema de diseño</a>.</p>
+    </section>
+  </section>
+</main>
+
+<div id="docs-footer"><page-footer class="demo-footer">
+  <span>tasks-ai · gestor de tareas local-first escrito en Go</span>
+  <span>Demostración estática · datos de ejemplo · sin escrituras</span>
+</page-footer></div>
+
+<a class="to-top" id="to-top" href="#top" aria-label="Volver arriba">
+  <span class="tk-icon tk-icon--mask tk-icon--chevron-up" aria-hidden="true"></span>
+</a>
+
+<script type="application/json" id="docs-config">
+{
+  "topbar": {
+    "brand": { "href": "#top", "tagline": { "es": "gestor de tareas local-first" } },
+    "navStyle": "site",
+    "navAria": "Secciones",
+    "nav": [
+      { "href": "landing.html", "es": "Portada", "icon": "book-open" },
+      { "href": "index.html", "es": "Guía de uso", "icon": "document-text" }
+    ],
+    "lang": "locked",
+    "langAria": "Idioma / Language"
+  }
+}
+</script>
+
+<script id="demo-cycle">
+/* Ciclo del tablero (ADR-018): guion clásico, sin módulos y sin red. El
+   escenario es un conjunto de instantáneas —una por fase— y debajo hay una
+   función pura que dice qué instantánea toca en un instante del ciclo; el
+   bucle solo pinta esa instantánea. Quince segundos, después vuelve a empezar. */
+(function () {
+  "use strict";
+
+  var CYCLE = 15000;
+
+  var TAG_HEX = { chore: "#f2bf59", epic: "#ff7373", task: "#62a7ff", test: "#ff9a55", fix: "#ff7373" };
+  var PRIORITIES = { "0": "Crítica", "1": "Alta", "2": "Media", "3": "Baja" };
+  var PRIORITY_COLOR = { "0": "critical", "1": "high", "2": "medium", "3": "low" };
+  var STATUSES = {
+    open: { label: "Pendiente", badge: "warning" },
+    in_progress: { label: "En curso", badge: "info" },
+    blocked: { label: "Bloqueada", badge: "danger" },
+    done: { label: "Hecha", badge: "success" }
+  };
+
+  var EPIC = {
+    ref: "tk-276",
+    title: "Sistema global de delegación de subagentes para OpenCode",
+    priority: "1",
+    tags: ["chore", "epic"],
+    status: "in_progress",
+    description: "El agente primario decide con el tool subagent y el catálogo de subagentes sale de la configuración global: falta catálogo y política de enrutado. Vive en la configuración de OpenCode, no en el producto."
+  };
+
+  // Subtareas reales de tk-276, en el orden del tablero (por id).
+  var CHILDREN = [
+    { ref: "tk-277", title: "Los cinco agentes de delegación existen en la configuración global", priority: "1", status: "done", tags: ["chore"] },
+    { ref: "tk-278", title: "explore y general usan modelos NaN en la configuración global", priority: "2", status: "done", tags: ["chore"] },
+    { ref: "tk-279", title: "ui carga playwright-cli con permiso y pide aprobación al usarlo", priority: "2", status: "done", tags: ["chore"] },
+    { ref: "tk-280", title: "Smoke test de los cinco agentes en un repo de usar y tirar", priority: "1", status: "done", tags: ["task", "test"] },
+    { ref: "tk-281", title: "Medir los modelos NaN por rol con tareas reales", priority: "2", status: "done", tags: ["task", "test"] },
+    { ref: "tk-282", title: "Empaquetar la delegación nan/OpenCode como proyecto instalable", priority: "2", status: "in_progress", tags: ["chore"] },
+    { ref: "tk-283", title: "Instalar tasks-ai en nan-opencode-delgation para seguir su desarrollo allí", priority: "2", status: "in_progress", tags: [] },
+    { ref: "tk-284", title: "El pointer de init incluye el contrato de etiquetas", priority: "2", status: "done", tags: ["fix", "task"] }
+  ];
+
+  // La subtarea que anima el ciclo: ficticia, para no tocar el trabajo vivo.
+  var NEW_TASK = {
+    ref: "tk-285",
+    title: "Smoke test del instalador en un repo limpio",
+    priority: "2",
+    tags: ["task", "test"],
+    status: "open",
+    description: "Instalar tasks-ai en una copia limpia del repositorio, crear una tarea, cerrarla y comprobar la salida en JSON, sin tocar el tablero de este proyecto."
+  };
+
+  var COMMENTS = {
+    "tk-285": [
+      { at: 4000, body: "Empiezo por una copia limpia: clono el repositorio, ejecuto init y creo una tarea de prueba." },
+      { at: 7000, body: "La instalación deja las instrucciones y el contrato de etiquetas en el repo nuevo. Falta probar el ciclo completo de cierre." },
+      { at: 9000, body: "Freno: el instalador de tk-282 todavía no está publicado y sin él no puedo probar el arranque." },
+      { at: 10500, body: "Retiro el bloqueo: el instalador de tk-282 ya está disponible en la rama y el arranque responde." },
+      { at: 12000, body: "Smoke test cerrado: instalación, arranque, creación, cierre y verificación en JSON, todo en un repo limpio." }
+    ],
+    "tk-276": [
+      { at: 13500, body: "La épica queda cerrada: tk-285 verifica el instalador de punta a punta y el resto de subtareas ya estaban hechas." }
+    ]
+  };
+
+  var FRAMES = [
+    { at: 0, phase: "Escenario", say: "La épica tk-276 está en curso y le quedan dos subtareas abiertas.", selected: "tk-276", epic: "in_progress", task: null },
+    { at: 2000, phase: "Creación", say: "El agente crea la subtarea tk-285 y la enlaza a la épica.", selected: "tk-285", epic: "in_progress", task: "open" },
+    { at: 4000, phase: "En curso", say: "La subtarea pasa a En curso y el agente empieza el smoke test.", selected: "tk-285", epic: "in_progress", task: "in_progress" },
+    { at: 7000, phase: "Avance", say: "Primer avance en la bitácora: la instalación ya funciona.", selected: "tk-285", epic: "in_progress", task: "in_progress" },
+    { at: 9000, phase: "Bloqueo", say: "La subtarea queda Bloqueada por tk-282, que aún no publica el instalador.", selected: "tk-285", epic: "in_progress", task: "blocked" },
+    { at: 10500, phase: "Desbloqueo", say: "El agente retira el bloqueo y deja la evidencia en un comentario.", selected: "tk-285", epic: "in_progress", task: "in_progress" },
+    { at: 12000, phase: "Cierre", say: "La subtarea se cierra como Hecha.", selected: "tk-285", epic: "in_progress", task: "done" },
+    { at: 13500, phase: "Épica cerrada", say: "Cae la última subtarea: el agente cierra la épica tk-276.", selected: "tk-276", epic: "done", task: "done" }
+  ];
+
+  function phaseAt(ms) {
+    var t = ((ms % CYCLE) + CYCLE) % CYCLE;
+    var index = 0;
+    for (var i = 0; i < FRAMES.length; i++) {
+      if (FRAMES[i].at <= t) { index = i; }
+    }
+    return index;
+  }
+
+  function commentsAt(ref, ms) {
+    var all = COMMENTS[ref] || [];
+    var visible = [];
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].at <= ms) { visible.push(all[i]); }
+    }
+    return visible;
+  }
+
+  // Lo que el ciclo sabe sin tocar el DOM: la comprobación sin navegador lee
+  // este objeto para medir la duración y el reinicio.
+  window.demoCycle = { duration: CYCLE, frames: FRAMES.map(function (f) { return f.at; }), phaseAt: phaseAt, commentsAt: commentsAt };
+
+  var board = document.getElementById("demo-board");
+  if (!board) { return; }
+
+  var tree = document.getElementById("demo-tree");
+  var treeScroll = document.getElementById("demo-tree-scroll");
+  var commentsEl = document.getElementById("demo-comments");
+  var liveEl = document.getElementById("demo-live");
+  var statusEl = document.getElementById("demo-status");
+  var progressEl = document.getElementById("demo-progress-fill");
+  var countEl = document.getElementById("demo-count");
+  var activeEl = document.getElementById("demo-active");
+  var kickerEl = document.getElementById("demo-kicker");
+  var titleEl = document.getElementById("demo-title");
+  var descriptionEl = document.getElementById("demo-description");
+  var badgeEl = document.getElementById("demo-badge");
+  var priorityEl = document.getElementById("demo-priority");
+  var stateEl = document.getElementById("demo-state");
+  var pauseBtn = document.getElementById("demo-pause");
+  var restartBtn = document.getElementById("demo-restart");
+
+  var ROWS = [EPIC].concat(CHILDREN).concat([NEW_TASK]);
+  var byRef = {};
+
+  function chipsMarkup(tags) {
+    if (!tags.length) { return ""; }
+    var chips = tags.map(function (tag) {
+      return '<span class="tag-manager-chip"><span class="tag-manager-chip-dot" style="--tag-color: ' + TAG_HEX[tag] + '"></span>' + tag + "</span>";
+    });
+    return '<div class="tag-manager-task-chips">' + chips.join("") + "</div>";
+  }
+
+  function rowMarkup(row, level) {
+    var expander = level === 1
+      ? '<span class="tree-expander" aria-expanded="true"><span class="tk-icon tk-icon--mask tk-icon--chevron-right"></span></span>'
+      : '<span class="tree-expander tree-expander--placeholder"></span>';
+    return '<article class="task-row task-row--level-' + level + '" data-ref="' + row.ref + '">' +
+      expander +
+      '<div class="task-type-icon task-type-icon--' + (level === 1 ? "epic" : "subtask") + '">' + (level === 1 ? "E" : "S") + "</div>" +
+      '<div class="task-row__copy"><div class="task-row__title">' + row.title + "</div>" +
+      '<div class="task-row__meta"><span>' + row.ref + "</span><span>" + (level === 1 ? "Épica" : "Subtarea") + "</span></div>" +
+      chipsMarkup(row.tags) + "</div>" +
+      '<span class="task-row__priority tk-select tk-select--compact tk-priority-select demo-select" style="--priority-color: var(--tk-priority-' + PRIORITY_COLOR[row.priority] + ')">' + PRIORITIES[row.priority] + "</span>" +
+      '<div class="task-row__meta-column"><span class="tk-select tk-select--compact demo-select demo-state">' + STATUSES[row.status].label + "</span></div>" +
+      '<span class="tk-icon-button tk-icon-button--compact demo-static"><span class="tk-icon tk-icon--mask tk-icon--ellipsis-vertical"></span></span>' +
+      "</article>";
+  }
+
+  tree.innerHTML = ROWS.map(function (row, index) { return rowMarkup(row, index === 0 ? 1 : 2); }).join("");
+
+  Array.prototype.forEach.call(tree.querySelectorAll(".task-row"), function (el) {
+    byRef[el.getAttribute("data-ref")] = el;
+  });
+
+  function animate(el, className) {
+    el.classList.remove(className);
+    void el.offsetWidth;
+    el.classList.add(className);
+  }
+
+  var present = false;
+  var lastPhase = -1;
+  var lastComments = "";
+  var lastSecond = -1;
+  var lastSelected = "";
+  var lastTask = "";
+
+  function revealRow(el) {
+    var row = el.getBoundingClientRect();
+    var box = treeScroll.getBoundingClientRect();
+    var offset = row.top - box.top;
+    if (offset < 0) {
+      treeScroll.scrollTop += offset;
+    } else if (offset + row.height > box.height) {
+      treeScroll.scrollTop += offset + row.height - box.height;
+    }
+  }
+
+  function statusOf(ref, frame) {
+    if (ref === EPIC.ref) { return frame.epic; }
+    if (ref === NEW_TASK.ref) { return frame.task || "open"; }
+    for (var i = 0; i < CHILDREN.length; i++) {
+      if (CHILDREN[i].ref === ref) { return CHILDREN[i].status; }
+    }
+    return "open";
+  }
+
+  function renderRows(frame) {
+    ROWS.forEach(function (row) {
+      var el = byRef[row.ref];
+      var status = STATUSES[statusOf(row.ref, frame)];
+      var state = el.querySelector(".demo-state");
+      if (state.textContent !== status.label) {
+        state.textContent = status.label;
+        animate(state, "demo-state--changed");
+      }
+      var selected = frame.selected === row.ref;
+      el.classList.toggle("is-selected", selected);
+    });
+
+    var newRow = byRef[NEW_TASK.ref];
+    if (frame.task && !present) {
+      present = true;
+      newRow.hidden = false;
+      animate(newRow, "demo-row--new");
+    } else if (!frame.task && present) {
+      present = false;
+      newRow.hidden = true;
+      treeScroll.scrollTop = 0;
+    }
+
+    // La fila que el inspector está leyendo se mantiene a la vista: al crear
+    // la subtarea baja hasta ella y al cerrar la épica vuelve arriba.
+    if (frame.selected !== lastSelected) {
+      lastSelected = frame.selected;
+      revealRow(byRef[frame.selected]);
+    }
+
+    var visible = ROWS.length - (present ? 0 : 1);
+    var active = ROWS.filter(function (row) { return statusOf(row.ref, frame) !== "done"; }).length - (present ? 0 : 1);
+    countEl.textContent = visible + " elementos visibles";
+    activeEl.textContent = active + " activas";
+  }
+
+  function renderInspector(frame, elapsed) {
+    var task = frame.selected === EPIC.ref ? EPIC : NEW_TASK;
+    var status = STATUSES[statusOf(task.ref, frame)];
+
+    if (task.ref !== lastTask) {
+      lastTask = task.ref;
+      kickerEl.innerHTML = task.ref + " · " + (task.ref === EPIC.ref ? "Épica" : 'Subtarea de <span class="task-parent-link">tk-276</span>');
+      titleEl.textContent = task.title;
+      descriptionEl.textContent = task.description;
+      priorityEl.textContent = PRIORITIES[task.priority];
+    }
+
+    if (stateEl.textContent !== status.label) { stateEl.textContent = status.label; }
+
+    if (badgeEl.textContent !== status.label) {
+      badgeEl.textContent = status.label;
+      badgeEl.className = "tk-badge tk-badge--" + status.badge;
+      animate(badgeEl, "demo-badge--pulse");
+    }
+
+    var visible = commentsAt(task.ref, elapsed);
+    var signature = task.ref + ":" + visible.length;
+    if (signature !== lastComments) {
+      lastComments = signature;
+      commentsEl.innerHTML = visible.length
+        ? visible.map(function (comment, index) {
+            return '<article class="comment-card"><div class="tk-rich-text tk-rich-text--plain">' + comment.body + "</div>" +
+              '<div class="comment-card__meta"><span data-comment="' + index + '"></span></div></article>';
+          }).join("")
+        : '<p class="demo-empty">Sin comentarios.</p>';
+    }
+
+    Array.prototype.forEach.call(commentsEl.querySelectorAll("[data-comment]"), function (meta) {
+      var index = Number(meta.getAttribute("data-comment"));
+      var age = Math.floor((elapsed - visible[index].at) / 1000);
+      meta.textContent = "#" + (index + 1) + " · " + (age < 1 ? "ahora" : "hace " + age + " s");
+    });
+  }
+
+  function render(elapsed) {
+    var index = phaseAt(elapsed);
+    var frame = FRAMES[index];
+
+    renderRows(frame);
+    renderInspector(frame, elapsed);
+
+    if (index !== lastPhase) {
+      lastPhase = index;
+      liveEl.textContent = frame.say;
+    }
+
+    var second = Math.floor(elapsed / 1000);
+    if (second !== lastSecond) {
+      lastSecond = second;
+      statusEl.textContent = FRAMES[index].phase + " · " + second + " s / 15 s";
+    }
+
+    progressEl.style.width = (elapsed / CYCLE * 100).toFixed(2) + "%";
+  }
+
+  var origin = performance.now();
+  var frozen = 0;
+  var paused = false;
+
+  function elapsedNow() {
+    return paused ? frozen : (performance.now() - origin) % CYCLE;
+  }
+
+  pauseBtn.addEventListener("click", function () {
+    if (paused) {
+      origin = performance.now() - frozen;
+      paused = false;
+      pauseBtn.textContent = "Pausar";
+    } else {
+      frozen = elapsedNow();
+      paused = true;
+      pauseBtn.textContent = "Reanudar";
+    }
+  });
+
+  restartBtn.addEventListener("click", function () {
+    origin = performance.now();
+    frozen = 0;
+    paused = false;
+    pauseBtn.textContent = "Pausar";
+    lastPhase = -1;
+    lastComments = "";
+    lastSecond = -1;
+    lastTask = "";
+    render(0);
+  });
+
+  function tick() {
+    render(elapsedNow());
+    requestAnimationFrame(tick);
+  }
+
+  render(0);
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

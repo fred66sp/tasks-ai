@@ -421,6 +421,7 @@
       <a class="btn btn-primary" href="#empezar" data-i18n="hero.17">Empezar</a>
       <a class="btn btn-ghost" href="#comandos" data-i18n="hero.18">Ver las órdenes</a>
       <a class="btn btn-ghost" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--arrow-left" aria-hidden="true"></span><span data-i18n="hero.23">Volver a la portada</span></a>
+      <a class="btn btn-ghost" href="demo.html"><span class="tk-icon tk-icon--mask tk-icon--eye" aria-hidden="true"></span><span data-i18n="hero.26">Ver la demostración</span></a>
       <a class="btn btn-ghost" href="design-system.html"><span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span><span data-i18n="hero.25">Sistema de diseño</span></a>
     </div>
     <div class="status-strip" role="status">
@@ -449,6 +450,7 @@
     <a href="#preguntas" data-i18n="hero.13">13. Preguntas cortas</a>
     <div class="toc-extra">
       <a class="icon-btn" href="landing.html"><span class="tk-icon tk-icon--mask tk-icon--book-open" aria-hidden="true"></span><span data-i18n="hero.24">Volver a la portada</span></a>
+      <a class="icon-btn" href="demo.html"><span class="tk-icon tk-icon--mask tk-icon--eye" aria-hidden="true"></span><span data-i18n="hero.26">Ver la demostración</span></a>
       <a class="icon-btn" href="design-system.html"><span class="tk-icon tk-icon--mask tk-icon--square-2-stack" aria-hidden="true"></span><span data-i18n="hero.25">Sistema de diseño</span></a>
     </div>
   </nav>
@@ -1326,6 +1328,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "header.1": "tasks-ai<small>local-first task manager</small>",
  "header.2": "Theme",
  "header.3": "Landing",
+ "header.4": "Demo",
  "hero.1": "On this page",
  "hero.2": "1. What tasks-ai is",
  "hero.3": "2. Starting in a project",
@@ -1350,6 +1353,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "hero.23": "Back to the landing page",
  "hero.24": "Back to the landing page",
  "hero.25": "Design system",
+ "hero.26": "See the demo",
  "que-es.2": "What tasks-ai is",
  "que-es.3": "A task manager for the project you are in, not a service you connect to. There is no server to maintain and no account to create: there is a binary and a folder.",
  "que-es.4": "Tasks live in <code>.tasks-ai/tasks.db</code>, inside the project itself, and are used in two ways with the same binary: on the command line, always as JSON, and through a web interface the binary serves when asked with <code>serve</code>. Both surfaces perform exactly the same operations on the same data, so moving the project to another folder or another machine breaks nothing as long as you take the <code>.tasks-ai/</code> folder with it.",
@@ -1734,10 +1738,12 @@ chmod +x tasks-ai                              # then try again</code></pre>
 {
   "topbar": {
     "brand": { "href": "#top", "tagline": { "es": "gestor de tareas local-first", "i18n": "header.1" } },
-    "navStyle": "catalog",
+    "navStyle": "site",
+    "navAria": "Secciones",
     "nav": [
       { "href": "landing.html", "es": "Portada", "i18n": "header.3",
-        "ariaEs": "Volver a la portada", "ariaEn": "Back to the landing page", "icon": "book-open" }
+        "ariaEs": "Volver a la portada", "ariaEn": "Back to the landing page", "icon": "book-open" },
+      { "href": "demo.html", "es": "Demostración", "i18n": "header.4", "icon": "eye" }
     ],
     "lang": "live",
     "langAria": "Idioma / Language"

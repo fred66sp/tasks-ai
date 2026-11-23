@@ -15,11 +15,6 @@ node_modules/
 # El modelo elegido para el subagente con /gentle:models no viaja: es de esta máquina.
 .pi/subagents.json
 
-# Memoria local de Engram: sus datos son de esta máquina. Solo viaja el ajuste que
-# ata el proyecto a su nombre; la memoria se reconstruye trabajando, no se copia.
-.engram/*
-!.engram/config.json
-
 # Sistema operativo y editores
 .DS_Store
 Thumbs.db
@@ -46,6 +41,10 @@ npm-debug.log*
 .tasks-ai/tasks.db
 .tasks-ai/tasks.db-wal
 .tasks-ai/tasks.db-shm
+
+# Memoria ACM del agente: vive en esta máquina y todo acceso legítimo pasa por
+# el montaje db-ai (alias tasks-ai, rw); un binario de SQLite no viaja.
+.agent-memory/
 
 # Las piezas que el producto instala en un proyecto: el binario y la extensión
 # salen de este mismo repositorio, así que `make install` las regenera y no

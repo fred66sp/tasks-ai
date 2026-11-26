@@ -39,7 +39,8 @@ const Version = "0.1.0"
 // reads well, and answers to ErrInvalid so whoever calls it knows what kind of
 // error it is without reading the text.
 type invalidError struct {
-	err error
+	err   error
+	field string
 }
 
 func (e *invalidError) Error() string { return e.err.Error() }
@@ -48,15 +49,56 @@ func (e *invalidError) Unwrap() error { return e.err }
 
 func (e *invalidError) Is(target error) bool { return target == ErrInvalid }
 
+// Field names the input field the entry breaks, when one field is the only one
+// at fault. It is empty when the rule does not name one, so whoever classifies
+// the error reads its field without interpreting its message.
+func (e *invalidError) Field() string { return e.field }
+
+// InvalidField is the interface of an invalid entry that names its own field.
+// A surface that can repair the entry reads the name from here; a rule that
+// does not name a field is not expected to answer for one.
+type InvalidField interface {
+	error
+	Field() string
+}
+
 // invalid builds the error of an entry that breaks a rule.
 func invalid(format string, args ...any) error {
 	return &invalidError{err: fmt.Errorf(format, args...)}
 }
 
+// invalidField builds the error of an entry that breaks the rule of one field.
+// The message reads as before: the field goes on top of it, not inside it.
+func invalidField(field, format string, args ...any) error {
+	return &invalidError{err: fmt.Errorf(format, args...), field: field}
+}
+
+// namedField attaches field to the error of an entry that its rule rejects as
+// an entry — a reference that resolves to nothing or a value that breaks a
+// rule — leaving the message exactly as it is. It returns the error untouched
+// when the error speaks of something else: a failure of the machinery is
+// neither invalid nor a field the caller can repair.
+func namedField(field string, err error) error {
+	var ie InvalidField
+	if !errors.As(err, &ie) {
+		return err
+	}
+
+	switch {
+	case errors.Is(err, ErrNotFound):
+		return &notFoundError{err: fmt.Errorf("%v", err), field: field}
+	case errors.Is(err, ErrInvalid):
+		return &invalidError{err: fmt.Errorf("%v", err), field: field}
+	default:
+		return err
+	}
+}
+
 // notFoundError is a reference that resolves to nothing. It carries its own
 // message and answers to ErrNotFound, igual que invalidError responde al suyo.
 type notFoundError struct {
-	err error
+	err   error
+	field string
 }
 
 func (e *notFoundError) Error() string { return e.err.Error() }
@@ -65,9 +107,20 @@ func (e *notFoundError) Unwrap() error { return e.err }
 
 func (e *notFoundError) Is(target error) bool { return target == ErrNotFound }
 
+// Field names the input field whose reference resolves to nothing, the same
+// contract invalidError.Field gives to an entry that breaks a rule.
+func (e *notFoundError) Field() string { return e.field }
+
 // notFound builds the error of a reference that resolves to nothing.
 func notFound(format string, args ...any) error {
 	return &notFoundError{err: fmt.Errorf(format, args...)}
+}
+
+// notFoundField builds the error of a named field whose reference resolves to
+// nothing: whoever offered the reference reads the field from the error, not
+// from the text of the message.
+func notFoundField(field, format string, args ...any) error {
+	return &notFoundError{err: fmt.Errorf(format, args...), field: field}
 }
 
 // forbiddenError is an operation a rule of the product refuses. It carries its
@@ -115,6 +168,15 @@ var closeReasons = []string{
 	CloseReasonStale,
 	CloseReasonSuperseded,
 }
+
+// CloseReasons is the list of values a close reason may take, as the product's
+// rule owns it: a second surface that describes the reason cites it here
+// instead of writing its own list.
+var CloseReasons = closeReasons
+
+// StatusValues lists the values of the status a change of task may set: close
+// is not a change of status, it goes through close, with its reason.
+var StatusValues = []string{statusOpen, statusInProgress}
 
 // errStillOpen marks a reopen the rules refuse because the task is not closed.
 var errStillOpen = errors.New("the task is not closed")
@@ -245,7 +307,7 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 		return Task{}, err
 	}
 
-	parentID, err := c.parentID(ctx, task.Parent)
+	parentID, err := c.parentID(ctx, fieldParent, task.Parent)
 	if err != nil {
 		return Task{}, err
 	}
@@ -271,7 +333,7 @@ func (c *Core) CreateTask(ctx context.Context, task NewTask) (Task, error) {
 	}, task.Tags)
 	if err != nil {
 		if errors.Is(err, store.ErrUnknownTag) {
-			return Task{}, invalid("%v", err)
+			return Task{}, invalidField(fieldTags, "%v", err)
 		}
 
 		return Task{}, fmt.Errorf("saving the task: %w", err)
@@ -514,7 +576,7 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 	var parent *int64
 
 	if changes.Parent != nil {
-		parentID, err := c.parentID(ctx, *changes.Parent)
+		parentID, err := c.parentID(ctx, fieldParent, *changes.Parent)
 		if err != nil {
 			return Task{}, err
 		}
@@ -532,9 +594,9 @@ func (c *Core) UpdateTask(ctx context.Context, ref string, changes Changes) (Tas
 		case errors.Is(err, store.ErrNotFound):
 			return Task{}, c.missing(ref)
 		case errors.Is(err, store.ErrUnknownTag):
-			return Task{}, invalid("%v", err)
+			return Task{}, invalidField(fieldTags, "%v", err)
 		case errors.Is(err, store.ErrCycle):
-			return Task{}, invalid("the task cannot take itself or one of its own descendants as its parent")
+			return Task{}, invalidField(fieldParent, "the task cannot take itself or one of its own descendants as its parent")
 		case errors.Is(err, ErrInvalid), errors.Is(err, ErrConflict):
 			// La regla que el cambio ha pisado ya trae su mensaje: sale tal
 			// cual, sin la envoltura de la operación.
@@ -618,9 +680,9 @@ func applyStatus(task *store.Task, status string) error {
 
 		task.Status = statusInProgress
 	case statusDone:
-		return invalid("status %q is not set here: closing goes through close, with its reason", statusDone)
+		return invalidField(fieldStatus, "status %q is not set here: closing goes through close, with its reason", statusDone)
 	default:
-		return invalid("status %q is not understood: use %s or %s", status, statusOpen, statusInProgress)
+		return invalidField(fieldStatus, "status %q is not understood: use %s or %s", status, statusOpen, statusInProgress)
 	}
 
 	return nil
@@ -725,13 +787,19 @@ func reopened(task store.Task) (store.Task, error) {
 
 // parentID resolves the reference of the parent task, 0 when there is none. A
 // parent that does not exist is refused the same way as a reference that
-// resolves to no task.
-func (c *Core) parentID(ctx context.Context, ref string) (int64, error) {
+// resolves to no task. field is the name the caller's entry gives the parent:
+// the error carries it so whoever offered the reference repairs its field.
+func (c *Core) parentID(ctx context.Context, field, ref string) (int64, error) {
 	if strings.TrimSpace(ref) == "" {
 		return 0, nil
 	}
 
-	return c.taskID(ctx, ref)
+	id, err := c.taskID(ctx, ref)
+	if err != nil {
+		return 0, namedField(field, err)
+	}
+
+	return id, nil
 }
 
 // CheckPrefix makes the settings prefix and the base agree. The first time it
@@ -1021,7 +1089,7 @@ func (c *Core) EditComment(ctx context.Context, ref string, commentID int64, bod
 
 	if _, err := c.store.EditComment(ctx, taskID, commentID, text); err != nil {
 		if errors.Is(err, store.ErrNotFound) {
-			return Task{}, notFound("there is no comment %d in task %q", commentID, strings.TrimSpace(ref))
+			return Task{}, notFoundField(fieldID, "there is no comment %d in task %q", commentID, strings.TrimSpace(ref))
 		}
 
 		return Task{}, fmt.Errorf("editing comment %d of task %q: %w", commentID, ref, err)
@@ -1035,11 +1103,11 @@ func (c *Core) EditComment(ctx context.Context, ref string, commentID int64, bod
 func commentBody(body string) (string, error) {
 	text := strings.TrimSpace(body)
 	if text == "" {
-		return "", invalid("the comment body is missing: use --body")
+		return "", invalidField(fieldBody, "the comment body is missing: use --body")
 	}
 
 	if err := checkText(fieldComment, text); err != nil {
-		return "", err
+		return "", namedField(fieldBody, err)
 	}
 
 	return text, nil
@@ -1055,7 +1123,7 @@ func (c *Core) pair(ctx context.Context, ref, blockerRef string) (int64, int64, 
 
 	blockerID, err := c.taskID(ctx, blockerRef)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, namedField(fieldBlocker, err)
 	}
 
 	if taskID == blockerID {
@@ -1084,9 +1152,10 @@ func (c *Core) taskID(ctx context.Context, ref string) (int64, error) {
 	return id, nil
 }
 
-// missing is the error of a reference that points at no task.
+// missing is the error of a reference that points at no task: the entry field
+// is the reference itself when nobody renames it, so the error carries ref.
 func (c *Core) missing(ref string) error {
-	return notFound("there is no task with reference %q", strings.TrimSpace(ref))
+	return notFoundField(fieldRef, "there is no task with reference %q", strings.TrimSpace(ref))
 }
 
 // checkTitle refuses a title without text and a title that writes the state of
@@ -1094,7 +1163,7 @@ func (c *Core) missing(ref string) error {
 func checkTitle(text string) (string, error) {
 	title := strings.TrimSpace(text)
 	if title == "" {
-		return "", invalid("the task needs a title")
+		return "", invalidField(fieldTitle, "the task needs a title")
 	}
 
 	if err := checkText(fieldTitle, title); err != nil {
@@ -1107,7 +1176,7 @@ func checkTitle(text string) (string, error) {
 // checkPriority refuses a priority outside its range.
 func checkPriority(priority int) error {
 	if priority < MinPriority || priority > MaxPriority {
-		return invalid("priority %d is outside the range %d-%d", priority, MinPriority, MaxPriority)
+		return invalidField(fieldPriority, "priority %d is outside the range %d-%d", priority, MinPriority, MaxPriority)
 	}
 
 	return nil
@@ -1126,12 +1195,12 @@ func optional(text string) *string {
 // checkCloseReason refuses an absent or unknown close reason.
 func checkCloseReason(reason string) error {
 	if strings.TrimSpace(reason) == "" {
-		return invalid("the close reason is missing: use --reason with one of %s", strings.Join(closeReasons, ", "))
+		return invalidField(fieldReason, "the close reason is missing: use --reason with one of %s", strings.Join(closeReasons, ", "))
 	}
 
 	if slices.Contains(closeReasons, reason) {
 		return nil
 	}
 
-	return invalid("close reason %q is not valid: use one of %s", reason, strings.Join(closeReasons, ", "))
+	return invalidField(fieldReason, "close reason %q is not valid: use one of %s", reason, strings.Join(closeReasons, ", "))
 }

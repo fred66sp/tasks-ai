@@ -14,6 +14,20 @@ const (
 	fieldDescription = "description"
 	fieldNotes       = "notes"
 	fieldComment     = "comment"
+
+	// These name the rest of the entry fields the rules speak of. The message
+	// of a rule keeps the label it reads with; the field name travels with the
+	// error so a surface that can repair the entry cites the field, not the
+	// text.
+	fieldPriority = "priority"
+	fieldReason   = "reason"
+	fieldStatus   = "status"
+	fieldTags     = "tags"
+	fieldParent   = "parent"
+	fieldBlocker  = "blocker"
+	fieldID       = "id"
+	fieldBody     = "body"
+	fieldRef      = "ref"
 )
 
 // Las listas cerradas del contrato, leídas sobre el texto tal como se escribe y
@@ -159,7 +173,7 @@ func checkText(field, text string) error {
 		return nil
 	}
 
-	return invalid("%s; %s", strings.Join(fragments, "; "), strings.Join(remedies, "; "))
+	return invalidField(field, "%s; %s", strings.Join(fragments, "; "), strings.Join(remedies, "; "))
 }
 
 // agrees returns the verb with the subject the field makes: el producto nombra

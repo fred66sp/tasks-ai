@@ -1,6 +1,7 @@
 ---
 name: adr-software
 description: "Crea y mantiene Architecture Decision Records (ADR) con contrato de agente: decide si una decisión merece un ADR, captura la intención sin interrogar, redacta contexto, decisión, alcance, alternativas, consecuencias y verificación en formato simple o MADR, y valida el resultado con una puerta determinista. Úsala cuando haya que proponer, redactar, revisar, aceptar, rechazar, deprecar o sustituir un ADR, inicializar el directorio y el índice, o comprobar sus convenciones. No la uses para diseñar la arquitectura, para PRD o requisitos de producto, ni para documentación general del proyecto."
+license: MIT
 metadata:
   version: "0.1.0"
 ---

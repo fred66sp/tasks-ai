@@ -11,25 +11,34 @@ Cada skill es un directorio con su `SKILL.md`, y algunas traen `references/`, `a
 
 ## SKILLS-2 Cuáles hay y de dónde vienen
 
-| Skill | Origen | Licencia |
-|---|---|---|
-| `golang-how-to` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-project-layout` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-cli` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-database` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-testing` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-error-handling` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-code-style` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-lint` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `golang-naming` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | MIT |
-| `adr-software` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
-| `prd-cartographer` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
-| `typescript-idiomatic-style` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
-| `typescript-testing-and-verification` | Repositorio propio `SKILLS-AGP` | No declarada todavía |
+| Skill | Origen | Licencia | Modificada |
+|---|---|---|---|
+| `golang-how-to` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | Sí — `references/by-category.md` recorta el catálogo a las skills de Go |
+| `golang-project-layout` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `golang-cli` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | Sí — sus doce ejemplos de `assets/examples/` llevan `//go:build ignore` |
+| `golang-database` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `golang-testing` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | Sí — `SKILL.md` añade `routing_terms` |
+| `golang-error-handling` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `golang-code-style` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `golang-lint` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `golang-naming` | [`samber/cc-skills-golang`](https://github.com/samber/cc-skills-golang) | [MIT](LICENSES/mit-samber-cc-skills-golang.txt) | No — verbatim de `bac46b0` |
+| `adr-software` | Repositorio propio `SKILLS-AGP` | [MIT](LICENSES/mit-skills-agp.txt) | No — verbatim de `da9693e` |
+| `prd-cartographer` | Repositorio propio `SKILLS-AGP` | [MIT](LICENSES/mit-skills-agp.txt) | No — verbatim de `3932812` |
+| `typescript-idiomatic-style` | Repositorio propio `SKILLS-AGP` | [MIT](LICENSES/mit-skills-agp.txt) | No — verbatim de `3932812` |
+| `typescript-testing-and-verification` | Repositorio propio `SKILLS-AGP` | [MIT](LICENSES/mit-skills-agp.txt) | No — verbatim de `e6e2729` |
 
-Las skills de terceros conservan en su frontmatter el autor, la página de metadatos y la
-licencia con los que vinieron; las de desarrollo propio declaran su versión. Las skills no
-se traducen: se usan tal y como están en su origen.
+La revisión citada es la de cada origen que coincide byte a byte con la copia, y las tres
+modificadas vienen así del taller `workshop-golang`, que es de donde se copiaron: el origen
+de samber ha seguido avanzando desde entonces. Las cuatro de `SKILLS-AGP` salen de
+`src/<skill>/` —en `.skills/` solo hay enrutadores de un solo fichero— y su única
+divergencia respecto a esa revisión es la línea `license:` de su frontmatter, que la
+declaración MIT de este proyecto añade. El texto completo de las dos licencias MIT, con su
+línea de copyright, vive en `skills/LICENSES/`; el repositorio no lleva `LICENSE` propio y
+licenciar el producto queda como decisión aparte del PO.
+
+Las trece declaran su licencia en el frontmatter: las de terceros conservan además el autor
+y la página de metadatos con los que vinieron, y las de desarrollo propio declaran su
+versión. Las skills no se traducen: se usan tal y como están en su origen.
 
 ## SKILLS-3 Cómo se usan
 
@@ -61,6 +70,10 @@ for s in adr-software prd-cartographer typescript-idiomatic-style \
   cp -r "src/$s" <proyecto>/skills/
 done
 ```
+
+Al recopiar, la constancia se recalcula comparando cada skill con su origen (`diff -r`
+contra un clon de samber o la revisión de `SKILLS-AGP`, y `git hash-object` del `SKILL.md`),
+y se actualiza en la tabla la revisión de la que sale la copia y si dejó de coincidir.
 
 Si una tarea pide una skill que no está aquí ni la instala el arnés, se añade a esta
 lista, a la tabla del `AGENTS.md` y se copia: el proyecto no lee el taller por la ruta de

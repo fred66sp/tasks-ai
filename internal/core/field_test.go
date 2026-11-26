@@ -9,6 +9,8 @@ import (
 // entrada lo lee del error, sin interpretar el mensaje. Una línea por familia
 // de regla: la referencia, cada campo con regla propia y el texto rechazado.
 func TestInputErrorNamesItsField(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name  string
 		err   error
@@ -50,6 +52,8 @@ func TestInputErrorNamesItsField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if tt.err == nil {
 				t.Fatal("the entry was not refused")
 

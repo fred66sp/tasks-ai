@@ -8,6 +8,13 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ### Añadido
 
+- La línea de comandos sirve el perfil CLI de AIF 0.2 con `tasks-ai aif`: una
+  petición JSON por `stdin`, una respuesta y el código de salida que fija su
+  resultado, sin estado entre invocaciones. Cubre las once herramientas del
+  contrato §7 —incluidas las lecturas del tablero— con los errores clasificados
+  por significado (referencia reparable, regla denegada y fallo real), y el
+  tablero que recibe el agente es su proyección recortada.
+
 - Las instrucciones que `init` distribuye incorporan la convención para encargos: un
   encargo sustancial nace con objetivo, alcance y criterios de aceptación en la
   descripción de su tarea; un cambio pequeño, con un título claro; al dejar el trabajo a

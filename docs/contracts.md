@@ -516,6 +516,44 @@ propio.
 - Ninguno de los dos usa el TODO del arnés como registro de trabajo. En OpenCode,
 `.opencode/todo.md` es cuaderno de sesión: el tablero es la única fuente.
 
+### El subcomando aif
+
+`tasks-ai aif` sirve el mismo vocabulario por el perfil CLI de AIF 0.2
+(`CL-01`–`CL-06`): una petición y una respuesta, sin diálogo ni estado.
+
+- Entrada: un único objeto JSON por `stdin`, con `aif` (`0.2`), `operation` e
+  `input`. Sin `operation`, la respuesta es el descubrimiento: cada operación con
+  su identificador y su descripción de una línea.
+- Salida: exactamente un objeto JSON en `stdout`, con su salto de línea; los
+  diagnósticos van en prosa por `stderr`. La continuación reenvía la petición
+  completa corregida: el ejecutor no guarda estado entre invocaciones.
+- Códigos de salida, que solo dependen del `result`: `0` para `executed` y el
+  descubrimiento, `2` para `input_needed` e `invalid`, `3` para
+  `unknown_operation`, `unsupported_version` y `malformed_request`, `4` para
+  `denied` y `1` para `failed`.
+- Las operaciones son las once de la tabla de herramientas, con los mismos
+  nombres; leer el tablero (`tasks_board`), una tarea (`tasks_show`) y sus
+  comentarios (`tasks_comment_list`) también es una operación.
+- `tasks_board` es la proyección de «Lo que llega al modelo»: contadores por
+  estado, en curso, listas para empezar y árbol. De cada tarea viajan solo la
+  referencia, el título, el estado, el bloqueo, la prioridad, el padre y las
+  etiquetas; nunca descripciones, notas ni comentarios. Las listas se recortan a
+  8 y el árbol a 40, y lo que queda fuera se cuenta para que el agente sepa que
+  está y lo pida con `tasks_show`. Los adaptadores de Go y las extensiones citan
+  esta misma norma.
+- `tasks_show` y `tasks_comment_list` devuelven el detalle y los comentarios tal
+  como los devuelve el producto. La proyección del tablero es la única que
+  deriva, y deriva de los mismos datos, no de una segunda lectura.
+- Los errores se clasifican por significado, nunca interpretando el texto del
+  mensaje: una referencia que aporta el consumidor y no resuelve, o un valor que
+  rompe una regla de entrada, es `invalid` con el campo que hay que reparar y sin
+  efecto alguno; una regla del producto que se niega (`ErrConflict`) es `denied`;
+  y `failed` queda para los fallos reales —la base, el proyecto—. La respuesta
+  reparable no deja nada escrito.
+- Los cambios hechos por esta superficie se guardan con origen `cli`, el mismo
+  que la línea de comandos: el origen dice qué superficie cambió el tablero, y
+  un agente no es otra superficie del producto.
+
 ## 8. El texto de las tareas
 
 El título, la descripción, las notas y el cuerpo de un comentario no escriben el estado:

@@ -22,6 +22,13 @@ const Name = "tasks-ai"
 const textRuleNote = "The text writes no state: the title, the description, the notes " +
 	"and the comment body name neither Git nor the state of the task or of the delivery."
 
+// exitCodeError is the exit code a command decides for itself: the AIF profile
+// fixes it by the result, and the command line returns it without adding an
+// answer of its own.
+type exitCodeError int
+
+func (e exitCodeError) Error() string { return fmt.Sprintf("exit code %d", int(e)) }
+
 // usageError marks an error as the misuse of the command line, which answers
 // with its own exit code.
 type usageError struct {
@@ -63,7 +70,8 @@ func New(out, errOut io.Writer) *cobra.Command {
 
 	root.AddCommand(newInitCommand(), newCreateCommand(), newListCommand(), newShowCommand(), newUpdateCommand(),
 		newCloseCommand(), newReopenCommand(), newBlockCommand(), newUnblockCommand(),
-		newCommentCommand(), newTagsCommand(), newTagCommand(), newADRCommand(), newServeCommand())
+		newCommentCommand(), newTagsCommand(), newTagCommand(), newADRCommand(), newServeCommand(),
+		newAIFCommand())
 
 	return root
 }
@@ -71,10 +79,22 @@ func New(out, errOut io.Writer) *cobra.Command {
 // Run executes the command line with args and returns what the process should
 // exit with: nothing when it went well, and the code that says what failed.
 func Run(args []string, out, errOut io.Writer) int {
+	return run(args, os.Stdin, out, errOut)
+}
+
+// run executes the command line reading its standard input from stdin: the AIF
+// profile takes its request from there.
+func run(args []string, stdin io.Reader, out, errOut io.Writer) int {
 	command := New(out, errOut)
+	command.SetIn(stdin)
 	command.SetArgs(args)
 
 	if err := command.Execute(); err != nil {
+		// A command that fixed its own code already wrote its answer.
+		if status, isFixed := errors.AsType[exitCodeError](err); isFixed {
+			return int(status)
+		}
+
 		_ = writeJSON(errOut, errorBody{Error: err.Error()})
 
 		// An entry that breaks a rule is the same misuse of the command line as a

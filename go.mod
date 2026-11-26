@@ -3,13 +3,13 @@ module tasks-ai
 go 1.27.1
 
 require (
+	github.com/fred66sp/agent-interaction-forms v0.0.0-20261126181707-9889d444d69f
 	github.com/spf13/cobra v1.10.2
 	modernc.org/sqlite v1.60.1
 )
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fred66sp/agent-interaction-forms v0.0.0-20261126181707-9889d444d69f // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

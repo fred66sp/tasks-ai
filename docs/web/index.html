@@ -865,6 +865,15 @@
       </div>
       <p data-i18n="comandos.62">La raíz redirige a la interfaz y la API conserva sus rutas <code>/api/...</code>; el detalle está en la sección 7 y en la 8.</p>
 
+      <h3 class="cmd" data-i18n="comandos.83"><code>aif</code><span class="sig">— el perfil CLI de AIF 0.2</span></h3>
+      <p data-i18n="comandos.84">Sirve las herramientas del contrato para un agente por la entrada estándar: lee una petición, escribe un único objeto JSON en la salida y deja los diagnósticos en la salida de errores. El código de salida lo fija el resultado (0 ejecutada o descubrimiento, 2 falta entrada o inválida, 3 desconocida o no soportada, 4 denegada, 1 fallo), y cada invocación es independiente: la continuación reenvía la petición corregida entera.</p>
+      <div class="code">
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai aif < peticion.json
+# {"aif":"0.2","operations":[{"id":"tasks_board","description":"..."}, ...]}</code></pre>
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai aif < request.json
+# {"aif":"0.2","operations":[{"id":"tasks_board","description":"..."}, ...]}</code></pre>
+      </div>
+
       <h3 class="cmd" data-i18n="comandos.63"><code>completion</code><span class="sig">— el autocompletado de la shell</span></h3>
       <p data-i18n="comandos.64">La orden que añade pflag a cualquier binario: genera el guion de autocompletado para la shell que se le pida. No toca las tareas.</p>
       <div class="code">
@@ -1506,6 +1515,8 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.80": "<code>adr</code><span class=\"sig\">— the durable decisions of the project</span>",
  "comandos.81": "An ADR keeps a decision with its context and its consequences. It lives in the same database as the tasks and is written with the product; <code>docs/decisions/</code> is a generated export, versioned so Git keeps the review of every decision.",
  "comandos.82": "The body —title, context, decision, consequences and alternatives— freezes when it leaves <code>proposed</code>: after that only dated additions to <em>more information</em> are accepted, and a change of decision is published as a new ADR that supersedes the previous one. There is no deletion. <code>adr import --dir</code> reads a directory of files and stores the ADRs that are not in the database yet, without duplicating them.",
+ "comandos.83": "<code>aif</code><span class=\"sig\">— the AIF 0.2 CLI profile</span>",
+ "comandos.84": "Serves the contract's tools to an agent through the standard input: it reads one request, writes a single JSON object on the output and leaves diagnostics on the error output. The exit code is fixed by the result (0 executed or discovery, 2 missing input or invalid, 3 unknown or unsupported, 4 denied, 1 failure), and every invocation is independent: the continuation sends the whole corrected request again.",
  "ciclo.2": "The lifecycle",
  "ciclo.3": "Three statuses and two derived rules. Knowing which transitions are legal avoids half of the errors.",
  "ciclo.4": "Pending",

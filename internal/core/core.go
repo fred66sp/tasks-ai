@@ -79,16 +79,15 @@ func invalidField(field, format string, args ...any) error {
 // when the error speaks of something else: a failure of the machinery is
 // neither invalid nor a field the caller can repair.
 func namedField(field string, err error) error {
-	var ie InvalidField
-	if !errors.As(err, &ie) {
+	if _, ok := errors.AsType[InvalidField](err); !ok {
 		return err
 	}
 
 	switch {
 	case errors.Is(err, ErrNotFound):
-		return &notFoundError{err: fmt.Errorf("%v", err), field: field}
+		return &notFoundError{err: fmt.Errorf("%w", err), field: field}
 	case errors.Is(err, ErrInvalid):
-		return &invalidError{err: fmt.Errorf("%v", err), field: field}
+		return &invalidError{err: fmt.Errorf("%w", err), field: field}
 	default:
 		return err
 	}

@@ -120,3 +120,8 @@ repositorio: otra máquina lo tiene al clonar, sin copiar nada.
 El modelo del agente no se configura en el repositorio: se elige con `/gentle:models`,
 que escribe `.pi/subagents.json`. La sesión de Pi tiene que arrancar después de cambiar
 ese archivo, porque el arnés congela su configuración al inicio.
+
+## Licencia
+
+Distribuido bajo la licencia [MIT](LICENSE). Los textos de las skills de terceros y
+derivadas conservan sus licencias y atribuciones propias en `skills/LICENSES/`.

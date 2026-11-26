@@ -6,6 +6,8 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ## [Sin publicar]
 
+## [0.1.0] - 2026-11-26
+
 ### Añadido
 
 - La línea de comandos sirve el perfil CLI de AIF 0.2 con `tasks-ai aif`: una
@@ -58,24 +60,6 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 - Cerrar como hecha exige que la tarea esté en curso: una tarea pendiente se rechaza con
   un error que dice el atajo, y los demás motivos de cierre siguen valiendo desde
   pendiente (`ADR-019`).
-
-### Corregido
-
-- El `pointer` que devuelve `init` pide también enlazar `CONTRATO_ETIQUETAS.md`:
-  el archivo de instrucciones del proyecto enlaza así el contrato que dice qué tipo y
-  qué etiqueta estructural lleva toda tarea, y no solo `AGENTS.md`.
-- Los heroes de la portada, la guía y el sistema de diseño comparten los colores de los
-  halos y la cuadrícula, con una única definición de cada fondo en el CSS común.
-- La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia
-  de estado del tablero muestra solo su palabra: se retiró el trazo propio que quedaba
-  negro en los dos temas.
-- El desplegable de una tarea gira solo su chevron; antes giraban el botón y el icono, y la
-  flecha quedaba al revés al abrir la tarea.
-- La vuelta arriba de la documentación apunta a un ancla real al principio del documento y
-  no a la cabecera sticky, que siempre estaba en pantalla y dejaba la página donde estaba.
-
-### Cambiado
-
 - La portada presenta tasks-ai como producto para desarrollo agéntico: el agente gestiona
   tareas y procesos por la CLI y la persona revisa, hace seguimiento y conserva el control
   desde la interfaz web. Tres paneles ilustrados en SVG explican el reparto —el agente
@@ -92,3 +76,18 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
   con icono; Cerrar tarea pasa al detalle de la tarea seleccionada, junto a Editar y su
   estado, y en pantalla estrecha la cabecera deja las acciones en icono para no perder la
   entrada a Decisiones.
+
+### Corregido
+
+- El `pointer` que devuelve `init` pide también enlazar `CONTRATO_ETIQUETAS.md`:
+  el archivo de instrucciones del proyecto enlaza así el contrato que dice qué tipo y
+  qué etiqueta estructural lleva toda tarea, y no solo `AGENTS.md`.
+- Los heroes de la portada, la guía y el sistema de diseño comparten los colores de los
+  halos y la cuadrícula, con una única definición de cada fondo en el CSS común.
+- La cabecera de la documentación conserva sus iconos en pantallas estrechas y la insignia
+  de estado del tablero muestra solo su palabra: se retiró el trazo propio que quedaba
+  negro en los dos temas.
+- El desplegable de una tarea gira solo su chevron; antes giraban el botón y el icono, y la
+  flecha quedaba al revés al abrir la tarea.
+- La vuelta arriba de la documentación apunta a un ancla real al principio del documento y
+  no a la cabecera sticky, que siempre estaba en pantalla y dejaba la página donde estaba.

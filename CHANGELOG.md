@@ -6,6 +6,8 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ## [Sin publicar]
 
+## [0.2.0] - 2026-11-27
+
 ### Añadido
 
 - `tasks-ai upgrade` actualiza la instalación desde el propio ejecutable en ejecución,

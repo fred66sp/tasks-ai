@@ -6,6 +6,40 @@ al publicar; la historia de cada cambio, commit a commit, vive en Git.
 
 ## [Sin publicar]
 
+### Añadido
+
+- `tasks-ai upgrade` actualiza la instalación desde el propio ejecutable en ejecución,
+  sin descargas: reemplaza el binario y los recursos gestionados, conserva los datos y las
+  personalizaciones, y retira las referencias exactas de host (`opencode.jsonc` y
+  `.pi/settings.json`) solo cuando la porción no lleva comentarios y nunca una extensión
+  referenciada. De las extensiones retiradas quita solo los ficheros que la v0.1.0
+  distribuyó —lo demás del proyecto permanece, sin impedir que la actualización
+  complete—, y deja el contrato de etiquetas a salvo si el proyecto lo editó. Escribe
+  `.tasks-ai/VERSION` solo al completar; un upgrade incompleto sale con código distinto de
+  cero y se completa reejecutando. Rechaza el downgrade —un ejecutable más viejo que la
+  instalación—.
+- `tasks-ai version` publica la versión del ejecutable en JSON.
+- `.tasks-ai/VERSION` registra la versión de la instalación y es el marcador que lee
+  `upgrade`.
+- `tasks-ai aif` es la única superficie de agente (`ADR-021`): el perfil CLI de AIF 0.2 se
+  sirve desde el propio binario con las once operaciones del tablero, los errores
+  reparables por campo y la proyección recortada del tablero.
+
+### Cambiado
+
+- `init` ya no instala ni devuelve extensiones: su JSON pierde los campos `extension` y
+  `opencode`, y deja de crear `.tasks-ai/extensions/`. **Breaking de la v0.2.0** para quien
+  lea esos campos o las rutas (`docs/contracts.md` §2).
+- `AGENTS.md` instalado es agéntico: instruye el descubrimiento de `aif`, el tablero y las
+  operaciones reparables, sin el manual del CLI convencional, que sigue en `README.md` y en
+  `docs/development.md`.
+
+### Eliminado
+
+- Las extensiones del agente de Pi y OpenCode, con su código TypeScript, sus pruebas, su
+  integración continua, sus objetivos del `Makefile` y las configuraciones de host que las
+  registraban (`ADR-021`; `ADR-012` queda sustituido, `ADR-014` y `ADR-015` deprecated).
+
 ## [0.1.0] - 2026-11-26
 
 ### Añadido

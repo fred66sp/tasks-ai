@@ -9,14 +9,10 @@ help: ## Muestra los objetivos disponibles
 	@echo "Uso: make [objetivo]"
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/ → /'
 
-install: ## Compila y refresca el binario, las extensiones y el contrato del tablero de este repositorio
-	mkdir -p .tasks-ai/bin .tasks-ai/extensions/pi .tasks-ai/extensions/opencode
+install: ## Compila y refresca el binario y el contrato del tablero de este repositorio
+	mkdir -p .tasks-ai/bin
 	$(GO) build -o .tasks-ai/bin/$(BINARY) ./cmd/$(BINARY)
-	cp extensions/pi/index.ts extensions/pi/cli.ts extensions/pi/board.ts extensions/pi/package.json .tasks-ai/extensions/pi/
-	cp extensions/opencode/index.ts extensions/opencode/tasks.ts extensions/opencode/package.json .tasks-ai/extensions/opencode/
 	cp internal/install/contract_tags.md .tasks-ai/CONTRATO_ETIQUETAS.md
-	@test -d extensions/pi/node_modules || { echo "falta extensions/pi/node_modules: ejecuta 'npm install' en extensions/pi"; exit 1; }
-	ln -sfn ../../../extensions/pi/node_modules .tasks-ai/extensions/pi/node_modules
 
 test: ## Ejecuta las pruebas del proyecto
 	$(GO) test ./...

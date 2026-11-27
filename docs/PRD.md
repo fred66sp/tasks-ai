@@ -93,7 +93,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | Preferencias | Recordar en el navegador lo último que miró la persona |
 | Avisos | Avisar cuando los datos cambian desde fuera de la interfaz |
 | Doble superficie | Ofrecer cada capacidad por CLI con JSON y por la interfaz |
-| Integración con el agente | El tablero como herramientas del agente de Pi: ver el estado del proyecto y crear, mover, cerrar, reabrir, bloquear y comentar tareas |
+| Integración con el agente | El tablero como superficie `aif` del agente: descubrir, ver el estado del proyecto y crear, mover, cerrar, reabrir, bloquear y comentar tareas |
 | Decisiones | Los ADR del proyecto en la base: listarlos, leerlos, crearlos, editarlos y sustituirlos desde el CLI, la API y la interfaz, y exportarlos a `docs/decisions/` |
 
 ### No objetivos
@@ -101,7 +101,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | ID | No objetivo |
 |---|---|
 | NO-01 | Conservar la compatibilidad con Tacks: es referencia funcional, no una obligación de compatibilidad ni una traducción de Rust |
-| NO-02 | Sustituir o modificar el gestor con el que se desarrolló el producto: fue la herramienta de partida y son herramientas distintas. El tablero del proyecto es el propio producto, y la integración con el agente se distribuye incrustada en el binario |
+| NO-02 | Sustituir o modificar el gestor con el que se desarrolló el producto: fue la herramienta de partida y son herramientas distintas. El tablero del proyecto es el propio producto, y el agente habla con él por `aif`, servido por el mismo binario |
 | NO-03 | Atender varios proyectos a la vez y mantener una configuración global: el producto tiene un único proyecto y un único ámbito de configuración |
 | NO-04 | Construir una interfaz nueva: se reutiliza la existente y solo se ajusta lo necesario |
 
@@ -113,7 +113,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 |---|---|
 | RF-01 | Toda operación del producto se puede ejecutar desde el CLI y devuelve JSON |
 | RF-02 | El CLI y la API HTTP comparten el mismo núcleo: ninguna regla de negocio vive en una sola de las dos superficies |
-| RF-03 | El producto se instala en el proyecto en una sola carpeta, `.tasks-ai/`, que guarda todo lo suyo: la base, los ajustes, las instrucciones, el binario y la extensión del agente |
+| RF-03 | El producto se instala en el proyecto en una sola carpeta, `.tasks-ai/`, que guarda todo lo suyo: la base, los ajustes, las instrucciones, el binario y la versión instalada; el agente llega a él por `aif`, y `upgrade` mantiene el binario y los recursos al día sin descargas |
 | RF-04 | El producto localiza el proyecto por su carpeta: desde cualquier punto de su interior encuentra `.tasks-ai/` |
 | RF-05 | La base guarda las tareas, sus dependencias, sus comentarios y el catálogo de etiquetas con color y descripción |
 | RF-06 | La carpeta tiene un archivo de settings propio, y el producto lo escribe al instalar con valores por omisión |
@@ -121,10 +121,10 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RF-08 | La carpeta incluye instrucciones para personas y agentes, y el texto que hay que añadir fuera para apuntar a ellas |
 | RF-09 | Los errores de la API se comunican con el código de estado que corresponde, no dentro de una respuesta correcta |
 | RF-10 | El CLI y el servidor son el mismo programa: un solo binario, que levanta el servidor de la interfaz con un comando |
-| RF-11 | El producto se acompaña de una extensión del agente de Pi, versionada en el repositorio e incrustada en el binario para que el install la copie, que ofrece las operaciones del tablero como herramientas del agente sobre el CLI del producto: no toca la base ni reimplementa reglas |
-| RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y la extensión del agente |
+| RF-11 | Retirado en la revisión v0.2.0 (ADR-021): el producto no acompaña ni instala extensiones; la superficie de agente es `tasks-ai aif`, servida por el propio binario |
+| RF-12 | El padre de una tarea se puede cambiar después de crearla —asignar, mover o quitar— desde el CLI, la API HTTP, la interfaz web y `aif` |
 | RF-13 | La búsqueda de la interfaz encuentra una tarea por el texto de su título, su referencia, sus etiquetas, su descripción, sus notas y sus comentarios |
-| RF-14 | El producto se acompaña también de un plugin del agente OpenCode, versionado en el repositorio e incrustado en el binario para que el install la copie, que ofrece las mismas operaciones del tablero sobre el CLI del producto: no toca la base, no reimplementa reglas y no mantiene una lista de tareas paralela |
+| RF-14 | Retirado en la revisión v0.2.0 (ADR-021): sin plugin de OpenCode; `aif` sirve las mismas operaciones desde el binario, sin tocar la base ni reimplementar reglas |
 | RF-15 | La base guarda los ADR del proyecto —número correlativo, referencia `ADR-NNN`, título, estado, fecha, decisores y su cuerpo por secciones— y el CLI, la API HTTP y la interfaz web los listan, leen, crean, editan y sustituyen; `docs/decisions/` es una exportación generada desde la base, versionada, que conserva la revisión en Git y la puerta de `adr-software` |
 
 ### Reglas de negocio
@@ -142,7 +142,7 @@ tarea en pendiente. Bloqueada se calcula desde las dependencias y no se guarda.
 | RN-09 | Cada comentario lleva una identidad estable dentro de su tarea y la fecha en que se añadió: editar su cuerpo no cambia ninguna de las dos |
 | RN-10 | Una tarea no puede ser hija de una de sus descendientes: el cambio de padre que formaría un ciclo se rechaza sin escribir nada |
 | RN-11 | El cambio de padre no toca las etiquetas de la tarea: las deja como estaban y solo cambian cuando el mismo cambio las nombra |
-| RN-12 | El texto de una tarea no guarda el estado del trabajo: el título, la descripción, las notas y el cuerpo de un comentario que lo escriben se rechazan sin escribir nada, y lo rechazan las tres superficies que escriben —CLI, API HTTP y extensión del agente— |
+| RN-12 | El texto de una tarea no guarda el estado del trabajo: el título, la descripción, las notas y el cuerpo de un comentario que lo escriben se rechazan sin escribir nada, y lo rechazan las tres superficies que escriben —CLI, API HTTP y `aif`— |
 | RN-13 | La instalación deja el catálogo con el vocabulario del contrato de etiquetas —los ocho tipos y `ODD`, `epic` y `task`— y su documento, para que una tarea pueda llevar su tipo desde la primera escritura, y no pisa lo que el proyecto ya tenga |
 | RN-14 | Cerrar como hecha exige que la tarea esté en curso: cerrar con `done` una tarea pendiente se rechaza sin escribir nada, y los demás motivos siguen cerrando una tarea pendiente |
 | RN-15 | La tarea creada sin responsable nace con el del proyecto cuando el ajuste `person` lo nombra; si está vacío, nace sin responsable, y cambiarlo no toca las tareas ya creadas |
@@ -176,13 +176,13 @@ Los ajustes que reconoce el producto, sus tipos y sus valores por omisión está
 | CA-09 | La interfaz conserva las preferencias de la persona y avisa cuando los datos cambian desde fuera |
 | CA-10 | La interfaz de partida se reutiliza, con los ajustes que exijan el núcleo nuevo y las capacidades nuevas, sin reescribirla |
 | CA-11 | El servidor de la interfaz se arranca desde el propio CLI, sin instalar nada aparte |
-| CA-12 | El agente completa el ciclo de trabajo de una tarea desde las herramientas de la extensión, y el tablero muestra el mismo estado que dejaría el CLI |
+| CA-12 | El agente completa el ciclo de trabajo de una tarea desde las operaciones de `aif`, y el tablero muestra el mismo estado que dejaría el CLI |
 | CA-13 | Instalar con un prefijo propio antes de crear la base deja las referencias y las instrucciones del proyecto con ese prefijo, y ningún comando avisa después de que la base y los ajustes no coinciden |
 | CA-14 | Una tarea creada sin padre recibe uno, se mueve a otro y vuelve a quedarse sin padre por las cuatro superficies, y el árbol y el recuento de épica reflejan siempre el padre vigente |
 | CA-15 | El texto buscado en la interfaz lista la tarea que lo lleva en el título, la referencia, una etiqueta, la descripción, las notas o un comentario, y no lista nada cuando el texto no aparece en ninguno de esos campos |
-| CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por la extensión del agente con el mismo mensaje, y la tarea queda como estaba |
+| CA-16 | Un texto que escribe el estado del trabajo se rechaza por el CLI, por la API HTTP y por `aif` con el mismo mensaje, y la tarea queda como estaba |
 | CA-17 | Un proyecto recién instalado trae el vocabulario de etiquetas del contrato con sus descripciones y su contrato escrito, de modo que una tarea se crea con su tipo sin preparar nada antes |
-| CA-18 | El agente completa el ciclo de trabajo de una tarea desde las herramientas del plugin de OpenCode, y el tablero queda como lo dejaría el CLI |
+| CA-18 | Retirado en la revisión v0.2.0 (ADR-021): sin plugin de OpenCode; el ciclo desde `aif` lo cubre CA-12 |
 | CA-19 | Un ADR creado o editado por el CLI, por la API o por la interfaz queda igual en las tres superficies; el cuerpo de uno que deja de estar `proposed` no se puede reescribir; un ADR sustituido enlaza a su sustituto, y `adr export --check` no encuentra deriva entre la base y `docs/decisions/` |
 | CA-20 | Cerrar con `done` una tarea pendiente se rechaza con el mismo mensaje por el CLI y por la API HTTP, con su salida y su código de estado, y la tarea queda pendiente y sin motivo |
 | CA-21 | Una tarea creada sin `assignee` por el CLI y por la API lleva el `person` del proyecto, un `assignee` explícito manda, y cambiar `person` no toca las tareas ya creadas |

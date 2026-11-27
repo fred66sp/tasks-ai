@@ -187,7 +187,10 @@ Toda operación del CLI devuelve JSON. Una tarea se presenta así:
   ningún comentario de esa tarea se rechaza con el código `1` sin tocar nada, y un cuerpo
   vacío es entrada inválida (código `2`). La herramienta no ofrece borrar un comentario:
   lo que estaba mal se corrige editando su cuerpo.
-- `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix`, `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones, al contrato de etiquetas y al plugin de OpenCode—, `binary` —el binario copiado en `.tasks-ai/bin/tasks-ai`—, `extension` —la carpeta `.tasks-ai/extensions/pi/` con la extensión del agente—, `opencode` —la carpeta `.tasks-ai/extensions/opencode/` con el plugin del agente OpenCode— y `contract` —el contrato de las etiquetas en `.tasks-ai/CONTRATO_ETIQUETAS.md`—. La instalación deja además el catálogo con el vocabulario del contrato —los ocho tipos y `ODD`, `epic` y `task`—, cada etiqueta con su descripción y su color, y **no pisa lo que el proyecto ya tenga**: una etiqueta que existe conserva nombre, color, descripción y asignaciones. No es repetible sobre una instalación completa: la rechaza. A una instalación anterior, a la que le falta el binario, alguna de las extensiones o el contrato, le añade lo que falta sin tocar lo que tiene, y una intenta anterior dejó a medias se completa sin borrar nada.
+- `init` instala el producto y devuelve en JSON lo que dejó: `dir`, `db`, `instructions`, `prefix`, `pointer` —el texto que hay que añadir fuera para apuntar a las instrucciones y al contrato de etiquetas—, `binary` —el binario copiado en `.tasks-ai/bin/tasks-ai`—, `contract` —el contrato de las etiquetas en `.tasks-ai/CONTRATO_ETIQUETAS.md`— y `version` —la versión que quedó instalada, la misma que se escribe en `.tasks-ai/VERSION`—. La instalación deja además el catálogo con el vocabulario del contrato —los ocho tipos y `ODD`, `epic` y `task`—, cada etiqueta con su descripción y su color, y **no pisa lo que el proyecto ya tenga**: una etiqueta que existe conserva nombre, color, descripción y asignaciones. No es repetible sobre una instalación completa: la rechaza. A una instalación anterior, a la que le falta el binario, el contrato o el marcador de versión, le añade lo que falta sin tocar lo que tiene, y una intenta anterior dejó a medias se completa sin borrar nada.
+  Breaking de la v0.2.0: el JSON pierde los campos `extension` y `opencode`, las carpetas
+  de las extensiones de Pi y OpenCode ya no existen y `.tasks-ai/VERSION` es nuevo. Un
+  consumidor que lea esos campos deja de encontrarlos; el resto de la forma no cambia.
 - Los errores del CLI son un objeto con `error` y salida distinta de cero: `2` cuando
   el uso de la línea de comandos no es el correcto o la entrada no es válida —lo que la
   API responde con `400`—, y `1` en cualquier otro caso. El texto de `error`, como la
@@ -354,8 +357,8 @@ data: {"resource":"tasks","changes":[{"id":"tk-3","action":"creada","title":"Pre
   estado local.
 - El listado de tareas de la sección 3 entrega `parent_id` como el número interno del
   padre, igual que el modelo de la sección 1. La interfaz transforma ese número en la
-  referencia visible al construir su árbol; la API, el CLI y la extensión Pi conservan
-  la identidad numérica y no dependen del prefijo para enlazar tareas.
+  referencia visible al construir su árbol; la API y el CLI conservan la identidad
+  numérica y no dependen del prefijo para enlazar tareas.
 - Un canal pedido por alguien que no admite un canal abierto se rechaza con el código
   de entrada inválida de la sección 3, con el cuerpo de error de la API.
 
@@ -401,9 +404,12 @@ Archivo `settings.json` dentro de la carpeta del producto, con valores anidados:
 
 ## 7. Integración con el agente
 
-Las extensiones de los agentes (`ADR-012`, `ADR-015`) no son una superficie del
-producto: envuelven el CLI. Cada herramienta ejecuta un comando y devuelve su JSON;
-ninguna toca la base ni recompone un mensaje del producto.
+La superficie del agente es `tasks-ai aif`, el perfil CLI de AIF 0.2 servido por el propio
+binario (`ADR-021`): una petición y una respuesta, sin diálogo ni estado. No hay
+extensiones del agente: el binario no lleva, no copia ni sirve ninguna, y el producto no
+depende de ningún host. Es una superficie del mismo núcleo, como el CLI y la API: cada
+operación ejecuta la regla del producto y devuelve su JSON; ninguna toca la base por su
+cuenta ni recompone un mensaje del producto.
 
 ### Herramientas
 
@@ -449,17 +455,17 @@ vive en Git.
 
 ### Parámetros y validación
 
-- Las referencias se escriben tal cual las escribe el producto (`tk-18`): la extensión no
+- Las referencias se escriben tal cual las escribe el producto (`tk-18`): el adaptador no
   compone ninguna ni acepta el número interno suelto.
-- Lo que la extensión declara en su esquema es la misma regla que impone el CLI: una
-  prioridad de `0` a `3`, un motivo de cierre de los cinco conocidos, un cuerpo de
-  comentario no vacío. El producto lo vuelve a comprobar, y su rechazo es el que vale.
+- La validación es la del núcleo, la misma que impone el CLI: una prioridad de `0` a `3`,
+  un motivo de cierre de los cinco conocidos, un cuerpo de comentario no vacío. El rechazo
+  del producto es el que vale.
 - Un campo que no se nombra no cambia; `tasks_update` no manda lo que no se le ha dado.
 
 ### Lo que llega al modelo
 
-El contexto es el recurso escaso: la extensión proyecta el tablero para que el agente
-decida, no para que lo lea entero.
+El contexto es el recurso escaso: el adaptador de `aif` (`internal/aif`) proyecta el
+tablero para que el agente decida, no para que lo lea entero.
 
 - De cada tarea viajan la referencia, el título, el estado, si está bloqueada, la
   prioridad, el padre y las etiquetas. **Nunca** descripciones, notas ni comentarios: eso
@@ -473,8 +479,8 @@ decida, no para que lo lea entero.
   entero, con sus líneas: lo que se lee se puede volver a escribir en
   `tasks_comment_edit` sin perder nada.
 
-Los límites viven en la extensión, no en el producto: el CLI sigue devolviendo todo, y
-quien lea su JSON recibe la tarea completa.
+Los límites viven en el adaptador de `aif`, no en el núcleo: la CLI convencional sigue
+devolviendo todo, y quien lea su JSON recibe la tarea completa.
 
 Con el resumen viaja el ciclo del tablero, porque el modelo decide con él delante:
 empezar el trabajo pone la tarea en curso y dejarla la devuelve a pendiente; el avance,
@@ -486,9 +492,9 @@ espera la revisión o el pedido expreso de la persona.
 - La salida `2` es el mal uso. Una bandera que no encaja o una entrada que el núcleo
   rechaza como inválida. La salida `1` es el fallo: el proyecto no está instalado, la
   referencia no resuelve, una regla lo impide.
-- Las dos llegan como error de la herramienta con el mensaje del producto tal cual, y con
-  su `{"error": "..."}` delante cuando lo trae. La extensión no traduce ni reinterpreta:
-  si el texto cambia en el producto, cambia en la herramienta.
+- Las dos llegan en la respuesta de `aif` con el mensaje del producto tal cual, y con su
+  `{"error": "..."}` delante cuando lo trae. El adaptador no traduce ni reinterpreta: si el
+  texto cambia en el producto, cambia en la herramienta.
 - Un rechazo no deja nada escrito, y la herramienta no vuelve a leer el estado para
   arreglarlo por su cuenta.
 
@@ -498,23 +504,8 @@ espera la revisión o el pedido expreso de la persona.
   `tasks_board`.
 - Un importador: traer el tablero anterior fue una pasada de retirada, no una capacidad
   del producto.
-- Un servidor MCP: la forma elegida es la extensión (`ADR-012`, `ADR-015`), y su
-  condición de revisión está en esas decisiones.
-
-### Los dos hosts
-
-La tabla de herramientas es una sola: Pi y OpenCode ofrecen las mismas, con los mismos
-parámetros y los mismos textos, porque las dos envuelven el mismo CLI y comparten la
-proyección del tablero. Cambian el host, no el contrato.
-
-- Pi declara los parámetros con typebox, que le aporta el host, y el resumen del
-tablero entra antes de arrancar el agente. Añade el comando `/board` y la línea y el
-bloque del TUI.
-- OpenCode declara los parámetros con esquema JSON y el resumen entra en el sistema
-de cada petición. El host le aporta su paquete de plugins; no tiene TUI ni comando
-propio.
-- Ninguno de los dos usa el TODO del arnés como registro de trabajo. En OpenCode,
-`.opencode/todo.md` es cuaderno de sesión: el tablero es la única fuente.
+- Un servidor MCP: la forma elegida es el perfil CLI de AIF servido por `aif`
+  (`ADR-021`), y su condición de revisión está en esa decisión.
 
 ### El subcomando aif
 
@@ -539,7 +530,7 @@ propio.
   referencia, el título, el estado, el bloqueo, la prioridad, el padre y las
   etiquetas; nunca descripciones, notas ni comentarios. Las listas se recortan a
   8 y el árbol a 40, y lo que queda fuera se cuenta para que el agente sepa que
-  está y lo pida con `tasks_show`. Los adaptadores de Go y las extensiones citan
+  está y lo pida con `tasks_show`. El adaptador de Go (`internal/aif`) implementa
   esta misma norma.
 - `tasks_show` y `tasks_comment_list` devuelven el detalle y los comentarios tal
   como los devuelve el producto. La proyección del tablero es la única que
@@ -722,7 +713,7 @@ nombra el producto: `title`, `description`, `notes` o `comment`.
 | `R7` | `the notes name a Git reference: "rama main"; the board does not store Git` |
 
 El rechazo llega como entrada inválida, no como un fallo: el CLI sale con `2` y la API
-responde `400`, con este mismo objeto `{"error": "..."}` y este mismo texto. La extensión
-del agente entrega ese mensaje como error de su herramienta, sin reescribirlo. El rechazo
+responde `400`, con este mismo objeto `{"error": "..."}` y este mismo texto. El agente
+recibe ese mensaje como error de la operación, sin reescribirlo. El rechazo
 no escribe nada: la tarea queda con los campos que tenía, y una creación
 rechazada no crea la tarea.

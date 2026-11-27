@@ -68,47 +68,17 @@ está en [`docs/development.md`](docs/development.md).
 
 ## Integración con los agentes
 
-### Pi
+El agente habla con el producto por el subcomando `tasks-ai aif`: una petición JSON por
+la entrada estándar y exactamente una respuesta JSON por la salida estándar. El contrato
+que el `init` copia al proyecto —[`internal/install/agent.md`](internal/install/agent.md)—
+explica el vocabulario, el descubrimiento y los códigos de salida; el agente lo lee del
+propio proyecto, sin paquetes ni plugins del host: las extensiones por host de la v0.1.0
+quedaron retiradas (`ADR-021`).
 
-`extensions/pi/` convierte el CLI en herramientas con esquema para el agente de Pi:
-`tasks_board`, `tasks_show`, `tasks_create`, `tasks_update`, `tasks_close`,
-`tasks_reopen`, `tasks_block`, `tasks_unblock`, `tasks_comment`, `tasks_comment_list` y
-`tasks_comment_edit` (`ADR-012`, `ADR-014`). El agente
-deja de escribir comandos del tablero y recibe el tablero resumido en cada turno —lo que
-está en curso, lo que se puede empezar y su árbol, sin descripciones ni comentarios—,
-además del comando `/board`, un bloque junto al editor con lo que está en curso y una
-línea de estado con la última tarea cerrada.
-
-El `init` la deja instalada en el proyecto: incrustada en el binario (`ADR-014`), se
-extrae a `.tasks-ai/extensions/pi/` junto con el binario en `.tasks-ai/bin/tasks-ai`. El
-proyecto la carga desde su propia carpeta, sin depender del repositorio de origen:
-
-```bash
-pi install -l .tasks-ai/extensions/pi              # instala el paquete en el proyecto
-pi remove -l --approve .tasks-ai/extensions/pi     # lo retira y deja la configuración como estaba
-```
-
-Con el paquete instalado se arranca Pi desde la raíz del proyecto: la extensión encuentra
-el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que el CLI, y
-ejecuta el binario instalado (`.tasks-ai/bin/tasks-ai`) o, si falta, el del `PATH`. En
-un proyecto sin tablero las herramientas devuelven el rechazo del producto y la sesión
-sigue.
-
-### OpenCode
-
-`extensions/opencode/` registra las mismas herramientas en OpenCode y añade el resumen del
-tablero al sistema de cada petición (`ADR-015`). El `init` la deja, como la de Pi, en
-`.tasks-ai/extensions/opencode/`, y el proyecto la carga desde su `opencode.jsonc`:
-
-```jsonc
-{
-  "plugins": ["./.tasks-ai/extensions/opencode"]
-}
-```
-
-No hay `/board` ni bloque del TUI: el plugin de servidor de OpenCode no los ofrece. El
-TODO del arnés no sustituye al tablero: la misión nombra su `tk-N` y el tablero sigue
-siendo la única fuente de tareas.
+Para actualizar una instalación, `tasks-ai upgrade` renueva el binario y los recursos
+gestionados desde el ejecutable que lo invoca, conserva los datos y las personalizaciones
+y escribe `.tasks-ai/VERSION` al completo; `tasks-ai version` devuelve la versión del
+producto.
 
 ### El agente de delegación
 

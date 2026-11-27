@@ -45,8 +45,7 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
-      # La 24 ejecuta TypeScript sin banderas, que es lo que necesita la extensión para
-      # probarse; la interfaz web se construye con la misma.
+      # La interfaz web se construye con Node 24.
       - name: Preparar Node
         uses: actions/setup-node@v7
         with:
@@ -56,11 +55,6 @@ jobs:
         run: |
           (cd web && npm ci && npm run build)
           git diff --exit-code -- web/public
-
-      - name: Pasar las pruebas de las extensiones
-        run: |
-          (cd extensions/pi && npm ci && npm test)
-          (cd extensions/opencode && npm test)
 
       - name: Compilar
         run: go build ./...

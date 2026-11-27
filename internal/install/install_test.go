@@ -101,13 +101,13 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 		t.Errorf("la instalación devolvió %+v, se esperaba el prefijo por omisión", result)
 	}
 
-	for _, fragment := range []string{"AGENTS.md", "CONTRATO_ETIQUETAS.md", "extensions/opencode"} {
+	for _, fragment := range []string{"AGENTS.md", "CONTRATO_ETIQUETAS.md"} {
 		if !strings.Contains(result.Pointer, fragment) {
 			t.Errorf("el texto de fuera no menciona %q: %q", fragment, result.Pointer)
 		}
 	}
 
-	for _, name := range []string{"tasks.db", "settings.json", "AGENTS.md"} {
+	for _, name := range []string{"tasks.db", "settings.json", "AGENTS.md", install.VersionName} {
 		if _, err := os.Stat(filepath.Join(product, name)); err != nil {
 			t.Errorf("la instalación no dejó %s: %v", name, err)
 		}
@@ -118,7 +118,11 @@ func TestRun_leavesItsFolderWithTheBaseTheSettingsAndTheInstructions(t *testing.
 	}
 }
 
-func TestRun_leavesTheBinaryAndTheExtensions(t *testing.T) {
+// TestInstructionsInTheRepositoryAreTheShippedOnes guarda la deriva de las
+// instrucciones instaladas de este propio repositorio respecto de las que
+// viajan en el binario: el proyecto anfitrión se actualiza con el mismo
+// upgrade que entrega y sus instrucciones no se personalizan a mano.
+func TestRun_leavesTheBinaryTheVersionAndNoExtensions(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
@@ -145,26 +149,21 @@ func TestRun_leavesTheBinaryAndTheExtensions(t *testing.T) {
 		t.Errorf("la instalación devolvió el binario %q, se esperaba %q", result.Binary, bin)
 	}
 
-	extension := filepath.Join(product, "extensions", "pi")
-	if result.Extension != extension {
-		t.Errorf("la instalación devolvió la extensión %q, se esperaba %q", result.Extension, extension)
+	version, err := os.ReadFile(filepath.Join(product, install.VersionName)) //nolint:gosec // la ruta la prepara la prueba
+	if err != nil {
+		t.Fatalf("la instalación no dejó la versión: %v", err)
 	}
 
-	for _, name := range []string{"index.ts", "board.ts", "cli.ts", "package.json"} {
-		if _, err := os.Stat(filepath.Join(extension, name)); err != nil {
-			t.Errorf("la instalación no dejó la extensión %s: %v", name, err)
-		}
+	if string(version) != core.Version+"\n" {
+		t.Errorf("la instalación dejó la versión %q, se esperaba %q", version, core.Version)
 	}
 
-	opencode := filepath.Join(product, "extensions", "opencode")
-	if result.OpenCode != opencode {
-		t.Errorf("la instalación devolvió el plugin de OpenCode %q, se esperaba %q", result.OpenCode, opencode)
+	if result.Version != core.Version {
+		t.Errorf("la instalación devolvió la versión %q, se esperaba %q", result.Version, core.Version)
 	}
 
-	for _, name := range []string{"index.ts", "tasks.ts", "package.json"} {
-		if _, err := os.Stat(filepath.Join(opencode, name)); err != nil {
-			t.Errorf("la instalación no dejó el plugin de OpenCode %s: %v", name, err)
-		}
+	if _, err := os.Stat(filepath.Join(product, "extensions")); err == nil {
+		t.Error("la instalación dejó la carpeta de extensiones retirada")
 	}
 }
 
@@ -183,10 +182,10 @@ func TestRun_refusesToWriteThroughASymbolicLink(t *testing.T) {
 		t.Fatalf("preparando el fichero de fuera: %v", err)
 	}
 
-	productsExtension := filepath.Join(dir, install.DirName, "extensions", "pi")
-	mkdir(t, productsExtension)
+	productBinary := filepath.Join(dir, install.DirName, "bin")
+	mkdir(t, productBinary)
 
-	if err := os.Symlink(target, filepath.Join(productsExtension, "index.ts")); err != nil {
+	if err := os.Symlink(target, filepath.Join(productBinary, "tasks-ai")); err != nil {
 		t.Fatalf("preparando el enlace simbólico: %v", err)
 	}
 
@@ -205,8 +204,8 @@ func TestRun_refusesToWriteThroughASymbolicLink(t *testing.T) {
 }
 
 // TestRun_refusesToWriteThroughALinkedFolder comprueba lo mismo con la carpeta
-// entera: un enlace en lugar de extensions lleva cada fichero del producto a la
-// carpeta a la que apunta.
+// entera: un enlace en lugar de bin lleva el binario del producto a la carpeta a
+// la que apunta.
 func TestRun_refusesToWriteThroughALinkedFolder(t *testing.T) {
 	t.Parallel()
 
@@ -215,7 +214,7 @@ func TestRun_refusesToWriteThroughALinkedFolder(t *testing.T) {
 
 	mkdir(t, filepath.Join(dir, install.DirName))
 
-	if err := os.Symlink(outside, filepath.Join(dir, install.DirName, "extensions")); err != nil {
+	if err := os.Symlink(outside, filepath.Join(dir, install.DirName, "bin")); err != nil {
 		t.Fatalf("preparando el enlace simbólico: %v", err)
 	}
 
@@ -243,7 +242,7 @@ func TestRun_completesAnInstallationFromAnOlderVersion(t *testing.T) {
 	}
 
 	product := filepath.Join(dir, install.DirName)
-	for _, name := range []string{"bin", "extensions"} {
+	for _, name := range []string{"bin", install.VersionName} {
 		if err := os.RemoveAll(filepath.Join(product, name)); err != nil {
 			t.Fatalf("retirando %s: %v", name, err)
 		}
@@ -254,7 +253,7 @@ func TestRun_completesAnInstallationFromAnOlderVersion(t *testing.T) {
 		t.Fatalf("completar una instalación anterior devolvió %v", err)
 	}
 
-	for _, path := range []string{result.Binary, result.Extension} {
+	for _, path := range []string{result.Binary, filepath.Join(product, install.VersionName)} {
 		if _, err := os.Stat(path); err != nil {
 			t.Errorf("completar la instalación no restituyó %s: %v", path, err)
 		}
@@ -623,24 +622,6 @@ func TestRun_writesTheContractTheProductShips(t *testing.T) {
 	}
 }
 
-func TestInstructionsInTheRepositoryAreTheShippedOnes(t *testing.T) {
-	t.Parallel()
-
-	shipped, err := os.ReadFile("agent.md")
-	if err != nil {
-		t.Fatalf("leyendo las instrucciones que viajan en el binario: %v", err)
-	}
-
-	repository, err := os.ReadFile(filepath.Join("..", "..", ".tasks-ai", "AGENTS.md"))
-	if err != nil {
-		t.Fatalf("leyendo las instrucciones del repositorio: %v", err)
-	}
-
-	if !bytes.Equal(shipped, repository) {
-		t.Errorf("las instrucciones del repositorio no son las que viajan en el binario")
-	}
-}
-
 // tagsOf abre la base de una instalación y devuelve su catálogo.
 func tagsOf(t *testing.T, dbPath string) []store.TagUse {
 	t.Helper()
@@ -700,5 +681,27 @@ func TestInstall_suggestsThePersonFromGitOnce(t *testing.T) {
 				t.Errorf("la persona quedó %q, se esperaba %q", cfg.Person, test.want)
 			}
 		})
+	}
+}
+
+// TestInstructionsInTheRepositoryAreTheShippedOnes guarda la deriva de las
+// instrucciones instaladas de este propio repositorio respecto de las que
+// viajan en el binario: el proyecto anfitrión se actualiza con el mismo
+// upgrade que entrega y sus instrucciones no se personalizan a mano.
+func TestInstructionsInTheRepositoryAreTheShippedOnes(t *testing.T) {
+	t.Parallel()
+
+	shipped, err := os.ReadFile("agent.md")
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones que viajan en el binario: %v", err)
+	}
+
+	repository, err := os.ReadFile(filepath.Join("..", "..", ".tasks-ai", "AGENTS.md"))
+	if err != nil {
+		t.Fatalf("leyendo las instrucciones del repositorio: %v", err)
+	}
+
+	if !bytes.Equal(shipped, repository) {
+		t.Errorf("las instrucciones del repositorio no son las que viajan en el binario")
 	}
 }

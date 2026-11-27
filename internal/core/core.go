@@ -33,7 +33,7 @@ var ErrConflict = errors.New("the product rule does not allow it")
 
 // Version is the version of the whole product, the same for both surfaces:
 // they travel together in one binary and the API answers with it.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 // invalidError is an entry that breaks a rule. It carries its own message so it
 // reads well, and answers to ErrInvalid so whoever calls it knows what kind of

@@ -1,6 +1,6 @@
 ---
-status: accepted
-date: 2026-10-26
+status: deprecated
+date: 2026-11-26
 decision-makers: "Alfredo González Portero"
 ---
 

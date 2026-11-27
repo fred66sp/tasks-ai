@@ -22,91 +22,27 @@ Las formas de datos y de API están en `contracts.md`; el diseño, en `architect
 | `.impeccable/` | El sidecar del sistema visual: rampas, sombras, movimiento y los componentes que un panel de diseño dibuja; acompaña a [`DESIGN.md`](../DESIGN.md) |
 | `design-system.json` | El contrato máquina-legible del sistema visual —identidad, tokens del tablero, componentes y gobernanza—; su prosa es [`DESIGN.md`](../DESIGN.md), sus muestras la guía de diseño y lo contrasta `web/src/task-manager/design-tokens.test.js` |
 | `.tasks-ai/` | El tablero del proyecto: la base de tareas, sus ajustes y sus instrucciones |
-| `.pi/` | El estado de Pi del proyecto, versionado: el paquete instalado en `.pi/settings.json` y el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
-| `extensions/pi/` | La integración con el agente de Pi: herramientas en TypeScript sobre el CLI del producto, con sus pruebas propias |
-| `extensions/opencode/` | La integración con el agente OpenCode: las mismas herramientas sobre el CLI, con sus pruebas propias |
+| `.pi/` | El estado de Pi del proyecto, versionado: el agente de delegación en `.pi/agents/`, cuyo modelo se elige con `/gentle:models` ([`README.md`](../README.md)) |
 | `skills/` | Las skills del proyecto, copiadas de su origen: el taller y `SKILLS-AGP` |
 
-Las dos extensiones se comprueban con `npm run typecheck` y `npm test`. Sus dependencias se
-instalan una vez con `npm install` y quedan en `extensions/*/node_modules/`, que no se
-versiona. Hacen falta porque el typecheck necesita TypeScript y los tipos de Node, y porque
-`index.ts` de la extensión de Pi importa `typebox`, que en el paquete es `peerDependency` —lo
-inyecta Pi al cargar la extensión, no Node al probarla— y sin él la suite no arranca.
+Este repositorio es también su propio tablero, y lo lleva con una instalación real:
+el binario en `.tasks-ai/bin/tasks-ai`, con sus instrucciones [AGENTS.md] y su
+[VERSION]. Son copias de lo que hay en el repositorio, así que se refrescan con
+el propio producto —el binario que se compila actualiza la instalación—:
 
 ```bash
-cd extensions/pi
-npm install
-npm run typecheck
-npm test
-```
-
-`npm test` usa el runner de Node y construye el binario si falta. Ninguna prueba escribe en
-el tablero del repositorio: cada una monta su proyecto temporal y lo borra al terminar.
-`npm run typecheck` es `tsc --noEmit` sobre el `tsconfig.json` de la extensión: no emite
-nada, porque Node ejecuta los `.ts` tal cual. No activa `noUncheckedIndexedAccess`: las
-pruebas indexan los mapas del arnés y cada acceso pasaría a ser un aviso que no comprueba
-más código. El paquete que aporta el host a Pi —`@earendil-works/pi-coding-agent`— está como
-devDependency, así que el typecheck ve sus tipos reales.
-
-El plugin de OpenCode no trae dependencias de ejecución —el host le aporta su paquete—, pero
-sí las de la comprobación:
-
-```bash
-cd extensions/opencode
-npm install
-npm run typecheck
-npm test
-```
-
-`@opencode/plugin` no declara la superficie que usa el adaptador, así que sus tipos viven en
-`types/opencode-plugin.d.ts`; el contexto que el host entrega lo tipa `tasks.ts`.
-Reutiliza el tablero y el CLI de la extensión de Pi, y sustituye el CLI por uno falso:
-comprueba el adaptador, no el producto.
-
-Las dos extensiones viajan incrustadas en el binario para que el `init` las copie al
-proyecto (`ADR-014`, `ADR-015`). Este repositorio es también su propio tablero, y lo lleva
-con una instalación real: el binario en `.tasks-ai/bin/tasks-ai`, la extensión de Pi en
-`.tasks-ai/extensions/pi` y el plugin de OpenCode en `.tasks-ai/extensions/opencode`. Son
-copias de lo que hay en el repositorio, así que se refrescan con una orden —recompila el
-binario y vuelve a copiar las extensiones—:
-
-```bash
-make install                               # refresca el binario, las extensiones y el contrato
+make install                               # construye el binario y actualiza la instalación
 ```
 
 `make install` copia también el contrato de etiquetas del repositorio, que tiene su
 original en `internal/install/contract_tags.md` y viaja incrustado en el binario; una
 prueba comprueba que las dos copias y la del proyecto son el mismo texto.
 
-La copia de la extensión resuelve su dependencia `typebox` por un enlace a
-`extensions/pi/node_modules`, que `make install` también deja puesto; sin él la extensión
-no arranca. El paquete se registra en el archivo de ajustes de Pi del proyecto, versionado
-(`.pi/settings.json`), con los comandos del host:
-
-```bash
-pi install -l .tasks-ai/extensions/pi      # registra la extensión instalada
-pi remove -l --approve .tasks-ai/extensions/pi  # lo retira y deja la configuración como estaba
-```
-
-Con el paquete registrado se arranca Pi desde la raíz del proyecto —una sesión nueva, que
-las que ya están abiertas siguen con la extensión que cargaron— y la extensión encuentra
-el tablero subiendo desde el directorio de trabajo hasta `.tasks-ai/`, igual que el CLI,
-ejecutando `.tasks-ai/bin/tasks-ai`. Sus herramientas y lo que llega al modelo están en
-`contracts.md`; qué se gana con ellas, en el `README.md`; la forma, en `ADR-012` y
-`ADR-014`.
-
-OpenCode carga el plugin local que `init` deja en `.tasks-ai/extensions/opencode` con una
-entrada en el `opencode.jsonc` del proyecto. Las listas de `plugins` de los archivos de
-configuración se suman, así que añadir la del proyecto no retira las globales:
-
-```jsonc
-{
-  "plugins": ["./.tasks-ai/extensions/opencode"]
-}
-```
-
-El `.opencode/` del proyecto no guarda nada del adaptador: es el estado de la sesión del
-arnés, y el repositorio lo ignora. La forma del plugin está en `ADR-015`.
+La superficie de agente es `tasks-ai aif` (su contrato, en `docs/contracts.md`) y su
+forma está en `ADR-021`; las extensiones por host de la v0.1.0 quedaron retiradas
+(`ADR-012` superseded, `ADR-014` y `ADR-015` deprecated), y `tasks-ai upgrade` retira
+una instalación heredada junto con sus referencias y deja el marcador
+`.tasks-ai/VERSION`.
 
 ## Los ADR
 
@@ -175,7 +111,6 @@ la tarea que cambia una decisión.
    - `go test ./...`, que incluye la prueba de enlaces y títulos de los documentos y la
      de la guía de uso;
    - `make lint`;
-   - `npm test` en `extensions/pi` y en `extensions/opencode`, si cambió una extensión;
    - `make check-web`, si cambió la interfaz;
    - `adr export --dir docs/decisions --check` y la puerta de `adr-software`, si el
      cambio toca una decisión o su exportación.
@@ -188,7 +123,7 @@ la tarea que cambia una decisión.
 Los comandos del día a día son objetivos de `make`, con su equivalente de `go`:
 
 ```bash
-make install    # compila el binario donde el tablero lo ejecuta y refresca extensión y contrato
+make install    # compila el binario donde el tablero lo ejecuta y actualiza la instalación
 make test       # go test ./...
 make test-race  # go test -race ./...
 make lint       # golangci-lint run ./...
@@ -208,7 +143,9 @@ cd web && npm run watch  # la reconstruye al cambiar
 
 | Comando | Qué hace |
 |---|---|
-| `./tasks-ai init` | Instala el producto en el proyecto: crea `.tasks-ai/` con la base, el settings y las instrucciones, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
+| `./tasks-ai init` | Instala el producto en el proyecto: crea `.tasks-ai/` con la base, el settings, las instrucciones y el marcador `VERSION`, y devuelve el JSON del resultado. Con `--prefix` fija el prefijo de las referencias en la propia instalación, en vez de `tk`, y escribe las instrucciones con él. No es repetible: un proyecto ya instalado lo rechaza |
+| `./tasks-ai upgrade` | Actualiza la instalación del proyecto desde el ejecutable que lo invoca, sin downloads: refresca el binario y los recursos gestionados, conserva los datos y las personalizaciones, retira las referencias heredadas de los hosts y escribe `VERSION` solo cuando la instalación queda completa; incompleta, devuelve exit no cero con lo pendiente y se completa reejecutando. Rechaza un downgrade |
+| `./tasks-ai version` | Devuelve la versión del producto |
 | `./tasks-ai serve` | Arranca la API y la interfaz web en la dirección y el puerto del settings: la interfaz responde en la raíz del servidor y la API en sus rutas `/api/...` |
 | `./tasks-ai <comando>` | Ejecuta cualquier operación del producto con salida JSON |
 | `./serve-web.sh` | Deja en segundo plano un servidor de ficheros para leer `docs/web/` en el navegador, con su pid y su registro en `.run/`; `./serve-web.sh status` dice si está en marcha y dónde escucha, y `./serve-web.sh stop` lo para. La raíz es el repositorio y no `docs/web` porque las páginas enlazan `../PRD.md`, `../contracts.md` y `../../web/public/...`; el puerto es 8765 y `PORT` lo cambia en las tres órdenes. Reconoce el servidor por el puerto que escucha, así que también lo ve y lo para si se arrancó a mano con `python3 -m http.server`; un proceso ajeno en ese puerto no se toca: se nombra con su pid y su línea de órdenes, y el script sale con error |

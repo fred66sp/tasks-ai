@@ -132,20 +132,22 @@ página, como el gestor de etiquetas.
 
 ## 10. Integración con el agente
 
-El agente que trabaja en el proyecto llega al tablero por una extensión —la de Pi, en
-`extensions/pi/`, o el plugin de OpenCode, en `extensions/opencode/`—, y las dos se
-incrustan en el binario para que el install las copie (`ADR-012`, `ADR-014`, `ADR-015`).
-No son una tercera superficie del producto: envuelven el CLI, ejecutan sus comandos y
-devuelven su JSON.
+El agente que trabaja en el proyecto llega al tablero por `tasks-ai aif`, el perfil CLI
+de AIF 0.2 que sirve el propio binario (`ADR-021`). No hay extensiones del agente: el
+binario no lleva, no copia ni sirve ninguna, y el producto no depende de ningún host. `aif`
+es una superficie del mismo núcleo, como el CLI y la API: ejecuta las mismas reglas y
+devuelve el JSON del producto.
 
-- No tocan la base ni reimplementan reglas: lo que el núcleo rechaza llega rechazado.
-- El proyecto lo encuentra el CLI subiendo hasta `.tasks-ai/`, no la extensión.
-- Una herramienta por operación que el CLI ya tenga; ninguna que no exista.
-- Las dos comparten la proyección del tablero y el mapeo al CLI: cambia el host, no el
-  contrato.
+- No toca la base ni reimplementa reglas: lo que el núcleo rechaza llega rechazado.
+- El proyecto lo encuentra el binario subiendo hasta `.tasks-ai/`.
+- Una operación por capacidad que el núcleo ya tenga; ninguna que no exista.
+- Proyecta el tablero para el modelo —referencia, título, estado, bloqueo, prioridad, padre
+  y etiquetas, recortado—; el resto del detalle solo sale en `tasks_show`.
+- El `AGENTS.md` instalado instruye el descubrimiento de `aif` y el tablero al recuperar el
+  trabajo; el agente decide cuándo mirarlo.
 
 ```text
- agente ──> extensión (extensions/pi/ o extensions/opencode/) ──CLI──> núcleo ──> SQLite
+ agente ──> aif (perfil CLI de AIF 0.2) ──> núcleo ──> SQLite
 ```
 
 ## 11. De qué decisión sale cada pieza

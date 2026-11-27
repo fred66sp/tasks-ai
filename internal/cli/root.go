@@ -68,7 +68,8 @@ func New(out, errOut io.Writer) *cobra.Command {
 		return &usageError{err: err}
 	})
 
-	root.AddCommand(newInitCommand(), newCreateCommand(), newListCommand(), newShowCommand(), newUpdateCommand(),
+	root.AddCommand(newInitCommand(), newUpgradeCommand(), newVersionCommand(),
+		newCreateCommand(), newListCommand(), newShowCommand(), newUpdateCommand(),
 		newCloseCommand(), newReopenCommand(), newBlockCommand(), newUnblockCommand(),
 		newCommentCommand(), newTagsCommand(), newTagCommand(), newADRCommand(), newServeCommand(),
 		newAIFCommand())

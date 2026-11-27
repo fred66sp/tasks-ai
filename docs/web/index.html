@@ -473,7 +473,7 @@
       </div>
       <h3 data-i18n="que-es.11">El recorrido completo, en cuatro pasos</h3>
       <div class="flow">
-        <div class="flow-step"><code>init</code><strong data-i18n="que-es.12">Instala</strong><p data-i18n="que-es.13">Deja la carpeta del producto con la base, los ajustes, las instrucciones, el contrato de etiquetas y las dos extensiones de agente, y un proyecto ya no lo acepta dos veces.</p></div>
+        <div class="flow-step"><code>init</code><strong data-i18n="que-es.12">Instala</strong><p data-i18n="que-es.13">Deja la carpeta del producto con la base, los ajustes, las instrucciones y el contrato de etiquetas, y un proyecto ya no lo acepta dos veces.</p></div>
         <div class="flow-step"><code>create</code><strong data-i18n="que-es.14">Registra</strong><p data-i18n="que-es.15">Cada tarea entra con título obligatorio y, si quieres, descripción, prioridad, responsable, notas y padre.</p></div>
         <div class="flow-step"><code>list</code><strong data-i18n="que-es.16">Consulta</strong><p data-i18n="que-es.17">El listado devuelve todas las tareas, también las cerradas, con su estado y si están bloqueadas.</p></div>
         <div class="flow-step"><code>serve</code><strong data-i18n="que-es.18">Mira</strong><p data-i18n="que-es.19">La misma base, en el navegador, con árbol, filtros y avisos de los cambios hechos desde otra ventana.</p></div>
@@ -490,33 +490,31 @@
         <pre data-language="bash" data-lang="en" hidden><code>go build ./cmd/tasks-ai      # leaves the tasks-ai binary in the current folder
 ./tasks-ai init              # installs the product in the project you are in</code></pre>
       </div>
-      <p data-i18n="empezar.14">En Windows el binario se llama <code>tasks-ai.exe</code>: <code>go build</code> lo deja con ese nombre, <code>init</code> lo copia a <code>.tasks-ai\bin\tasks-ai.exe</code> y las dos extensiones buscan ese mismo archivo. Las órdenes de esta página se escriben con <code>./tasks-ai</code>; en PowerShell, <code>.\tasks-ai.exe</code> —y <code>.\tasks-ai.exe init</code> para instalar—.</p>
-      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones y las etiquetas, el binario instalado, la extensión de Pi, el plugin de OpenCode y el contrato de etiquetas. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
+      <p data-i18n="empezar.14">En Windows el binario se llama <code>tasks-ai.exe</code>: <code>go build</code> lo deja con ese nombre e <code>init</code> lo copia a <code>.tasks-ai\bin\tasks-ai.exe</code>. Las órdenes de esta página se escriben con <code>./tasks-ai</code>; en PowerShell, <code>.\tasks-ai.exe</code> —y <code>.\tasks-ai.exe init</code> para instalar—.</p>
+      <p data-i18n="empezar.4"><code>init</code> busca hacia arriba la raíz del proyecto y deja ahí la carpeta <code>.tasks-ai/</code>. Responde en JSON con lo que dejó: la carpeta, la base, las instrucciones, el prefijo, el texto que hay que añadir fuera para que las personas y los agentes encuentren las instrucciones y las etiquetas, el binario instalado, el contrato de etiquetas y la versión instalada. Con <code>--prefix</code> el prefijo de las referencias se fija en la propia instalación, en vez de <code>tk</code>, y las instrucciones que deja lo usan en sus ejemplos.</p>
       <div class="code">
         <pre data-language="json" data-lang="es"><code>{
   "dir": "/home/ana/informes/.tasks-ai",
   "db": "/home/ana/informes/.tasks-ai/tasks.db",
   "instructions": "/home/ana/informes/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas.",
   "binary": "/home/ana/informes/.tasks-ai/bin/tasks-ai",
-  "extension": "/home/ana/informes/.tasks-ai/extensions/pi",
-  "opencode": "/home/ana/informes/.tasks-ai/extensions/opencode",
-  "contract": "/home/ana/informes/.tasks-ai/CONTRATO_ETIQUETAS.md"
+  "contract": "/home/ana/informes/.tasks-ai/CONTRATO_ETIQUETAS.md",
+  "version": "0.2.0"
 }</code></pre>
         <pre data-language="json" data-lang="en" hidden><code>{
   "dir": "/home/ana/reports/.tasks-ai",
   "db": "/home/ana/reports/.tasks-ai/tasks.db",
   "instructions": "/home/ana/reports/.tasks-ai/AGENTS.md",
   "prefix": "tk",
-  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas. Para que OpenCode use el tablero, añade .tasks-ai/extensions/opencode a \"plugins\" de su opencode.jsonc",
+  "pointer": "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, añade estas líneas al archivo de instrucciones de tu proyecto: @.tasks-ai/AGENTS.md para el tablero y @.tasks-ai/CONTRATO_ETIQUETAS.md para las etiquetas.",
   "binary": "/home/ana/reports/.tasks-ai/bin/tasks-ai",
-  "extension": "/home/ana/reports/.tasks-ai/extensions/pi",
-  "opencode": "/home/ana/reports/.tasks-ai/extensions/opencode",
-  "contract": "/home/ana/reports/.tasks-ai/CONTRATO_ETIQUETAS.md"
+  "contract": "/home/ana/reports/.tasks-ai/CONTRATO_ETIQUETAS.md",
+  "version": "0.2.0"
 }</code></pre>
       </div>
-      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin las líneas de <code>AGENTS.md</code> y <code>CONTRATO_ETIQUETAS.md</code> en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.tasks-ai/AGENTS.md</code> ni que toda tarea lleva tipo y estructural; sin la del <code>opencode.jsonc</code>, OpenCode no carga el plugin. Añade cada una donde tu proyecto ya recibe instrucciones o configuración.</p></div>
+      <div class="note"><p data-i18n="empezar.5"><strong>El puntero es la mitad del trabajo.</strong> Sin las líneas de <code>AGENTS.md</code> y <code>CONTRATO_ETIQUETAS.md</code> en el archivo de instrucciones del proyecto, ni las personas ni los agentes que lo lean sabrán que las tareas viven en <code>.tasks-ai/AGENTS.md</code> ni que toda tarea lleva tipo y estructural; Añade cada una donde tu proyecto ya recibe instrucciones o configuración.</p></div>
       <h3 data-i18n="empezar.6">Qué deja escrito</h3>
       <div class="table-wrap">
         <table>
@@ -526,8 +524,8 @@
             <tr><td><code>settings.json</code></td><td data-i18n="empezar.10">Los ajustes del producto, con sus valores por omisión, listos para editarse a mano.</td></tr>
             <tr><td><code>AGENTS.md</code></td><td data-i18n="empezar.11">Qué hay en la carpeta y cómo se usa. Es el documento que lee quien llega nuevo.</td></tr>
             <tr><td><code>CONTRATO_ETIQUETAS.md</code></td><td data-i18n="empezar.15">El contrato de las etiquetas: los tipos, las estructurales y cómo se asigna y se gestiona el catálogo.</td></tr>
-            <tr><td><code>bin/tasks-ai</code></td><td data-i18n="empezar.16">La copia del binario que usan las extensiones y las órdenes del proyecto. En Windows se llama <code>tasks-ai.exe</code>.</td></tr>
-            <tr><td><code>extensions/pi</code> y <code>extensions/opencode</code></td><td data-i18n="empezar.17">Las dos integraciones de agente, listas para que Pi y OpenCode las carguen desde el proyecto.</td></tr>
+            <tr><td><code>bin/tasks-ai</code></td><td data-i18n="empezar.16">La copia del binario que usan las órdenes del proyecto. En Windows se llama <code>tasks-ai.exe</code>.</td></tr>
+            <tr><td><code>VERSION</code></td><td data-i18n="empezar.17">El marcador de versión de la instalación: lo escribe <code>init</code> y lo renueva <code>upgrade</code> cuando la instalación ha quedado completa.</td></tr>
           </tbody>
         </table>
       </div>
@@ -632,7 +630,7 @@
       <div class="code">
         <pre data-language="bash" data-lang="es"><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "...",
-#   "binary": "...", "extension": "...", "opencode": "...", "contract": "..." }
+#   "binary": "...", "contract": "...", "version": "0.2.0" }
 
 ./tasks-ai tags                # el catálogo con el que nace el proyecto
 # [ { "name": "feat", "color": "blue", "description": "Capacidad o integración nueva" }, ... ]
@@ -644,7 +642,7 @@
 # { "error": "the project already has the product installed in /home/ana/informes/.tasks-ai" }   salida 1</code></pre>
         <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai init
 # { "dir": "...", "db": "...", "instructions": "...", "prefix": "tk", "pointer": "...",
-#   "binary": "...", "extension": "...", "opencode": "...", "contract": "..." }
+#   "binary": "...", "contract": "...", "version": "0.2.0" }
 
 ./tasks-ai tags                # the catalogue the project is born with
 # [ { "name": "feat", "color": "blue", "description": "Capacidad o integración nueva" }, ... ]
@@ -872,6 +870,32 @@
 # {"aif":"0.2","operations":[{"id":"tasks_board","description":"..."}, ...]}</code></pre>
         <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai aif < request.json
 # {"aif":"0.2","operations":[{"id":"tasks_board","description":"..."}, ...]}</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.88"><code>upgrade</code><span class="sig">— actualiza la instalación del proyecto</span></h3>
+      <p data-i18n="comandos.89">Actualiza la instalación <code>.tasks-ai/</code> desde el ejecutable que lo invoca, sin descargar nada: refresca el binario y los recursos gestionados del producto, conserva la base y tus personalizaciones, y retira los restos de una instalación heredada junto con sus referencias —quita solo los ficheros que el producto distribuyó, jamás borra una extensión que su host aún carga ni tus propios ficheros—. Deja el contrato de etiquetas a salvo si lo editaste, con su aviso. Escribe <code>VERSION</code> solo cuando la instalación queda completa: con algo pendiente, contesta con la lista, sale con código <code>2</code> y se completa reejecutándolo. Un ejecutable más viejo que la instalación se rechaza.</p>
+      <div class="code">
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai upgrade
+# { "dir": "...", "from": "0.1.0", "to": "0.2.0", "version": "0.2.0", "instructions": "updated",
+#   "steps": [ "binary refreshed", "contract refreshed", "instructions updated", ... ], ... }
+
+./tasks-ai upgrade       # de nuevo: no cambia nada, todo quedó ya hecho
+# { "dir": "...", "from": "0.2.0", "to": "0.2.0", "version": "0.2.0", "instructions": "current", ... }</code></pre>
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai upgrade
+# { "dir": "...", "from": "0.1.0", "to": "0.2.0", "version": "0.2.0", "instructions": "updated",
+#   "steps": [ "binary refreshed", "contract refreshed", "instructions updated", ... ], ... }
+
+./tasks-ai upgrade       # again: nothing changes, everything was already done
+# { "dir": "...", "from": "0.2.0", "to": "0.2.0", "version": "0.2.0", "instructions": "current", ... }</code></pre>
+      </div>
+
+      <h3 class="cmd" data-i18n="comandos.90"><code>version</code><span class="sig">— la versión del producto</span></h3>
+      <p data-i18n="comandos.91">Devuelve la versión del ejecutable en un objeto JSON. Es la que <code>upgrade</code> compara con el marcador <code>.tasks-ai/VERSION</code> de la instalación.</p>
+      <div class="code">
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai version
+# { "version": "0.2.0" }</code></pre>
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai version
+# { "version": "0.2.0" }</code></pre>
       </div>
 
       <h3 class="cmd" data-i18n="comandos.63"><code>completion</code><span class="sig">— el autocompletado de la shell</span></h3>
@@ -1143,10 +1167,16 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
 
     <section id="agente">
       <div class="section-head"><span class="section-num">9</span><h2 class="title" data-i18n="agente.2">Los agentes</h2></div>
-      <p class="sub" data-i18n="agente.3">Las dos integraciones con agentes —Pi y OpenCode— te dan el tablero del proyecto como herramientas. Están escritas en TypeScript y <code>init</code> las deja en <code>.tasks-ai/extensions/pi/</code> y <code>.tasks-ai/extensions/opencode/</code>, para que el proyecto las cargue desde su propia carpeta, sin depender del repositorio de origen.</p>
-      <p data-i18n="agente.4">Las dos ejecutan el CLI del producto y devuelven su JSON. No tocan la base ni reimplementan reglas: lo que el producto rechaza, llega rechazado.</p>
+      <p class="sub" data-i18n="agente.3">El agente habla con el producto por el subcomando <code>tasks-ai aif</code>: una petición JSON por la entrada estándar y una respuesta JSON por la salida estándar. No hay extensión que instalar ni configuración del host: el agente lee las instrucciones de <code>.tasks-ai/AGENTS.md</code>, que el <code>init</code> deja en el proyecto.</p>
+      <p data-i18n="agente.4">El perfil es autodescriptivo: una petición sin una operación conocida devuelve <code>discovery</code> con el vocabulario. Lo que el producto rechaza, llega rechazado; una respuesta reparable nombra el campo y reenvía la petición completa corregida.</p>
+      <div class="code">
+        <pre data-language="bash" data-lang="es"><code>./tasks-ai aif < peticion.json        # ejecuta la operación y contesta una respuesta
+echo '{"aif":"0.2"}' | ./tasks-ai aif # descubrimiento: el vocabulario y su forma</code></pre>
+        <pre data-language="bash" data-lang="en" hidden><code>./tasks-ai aif < request.json        # runs the operation and answers one response
+echo '{"aif":"0.2"}' | ./tasks-ai aif # discovery: the vocabulary and its shape</code></pre>
+      </div>
       <h3 data-i18n="agente.5">Las herramientas</h3>
-      <p data-i18n="agente.6">Las once herramientas de la tabla están hechas y probadas, tanto las de lectura como las de escritura, y las registran las dos extensiones.</p>
+      <p data-i18n="agente.6">Las once operaciones de la tabla las sirve el subcomando <code>aif</code>: son el mismo vocabulario del contrato, servido sobre el núcleo del producto.</p>
       <div class="table-wrap">
         <table>
           <thead><tr>
@@ -1168,39 +1198,12 @@ data: {"resource":"tasks","changes":[{"id":"tk-1","action":"actualizada","title"
           </tbody>
         </table>
       </div>
-      <h3 data-i18n="agente.9">La extensión de Pi</h3>
-      <p data-i18n="agente.10">El paquete que dejó <code>init</code> se registra en el proyecto con la primera orden, y se retira con la segunda:</p>
-      <div class="code">
-        <pre data-language="bash" data-lang="es"><code>pi install -l .tasks-ai/extensions/pi              # registra la extensión instalada
-pi remove -l --approve .tasks-ai/extensions/pi     # la retira y deja la configuración como estaba</code></pre>
-        <pre data-language="bash" data-lang="en" hidden><code>pi install -l .tasks-ai/extensions/pi              # registers the installed extension
-pi remove -l --approve .tasks-ai/extensions/pi     # removes it and leaves the configuration as it was</code></pre>
-      </div>
-      <p data-i18n="agente.11">Con el paquete registrado, arranca Pi desde la raíz del proyecto: la extensión encuentra el tablero subiendo desde el directorio de trabajo, igual que el CLI, y ejecuta el binario instalado o, si falta, el del <code>PATH</code>.</p>
-      <p data-i18n="agente.24">En el TUI, <code>/board</code> muestra el tablero en la conversación: el mismo resumen que el agente recibe al empezar cada turno.</p>
-      <h3 data-i18n="agente.18">El tablero en cada turno</h3>
-      <p data-i18n="agente.19">El agente recibe el tablero al empezar cada turno: contadores, la tarea en curso, unas pocas de las que se pueden empezar y las reglas de uso. Va en las instrucciones del turno, no como mensaje en la conversación.</p>
-      <p data-i18n="agente.20">Mientras la extensión está cargada y el proyecto tiene tablero, la herramienta <code>todo</code> del arnés no está disponible: el tablero es el único sitio donde se anota el trabajo. En un proyecto sin tablero, <code>todo</code> sigue disponible y el resumen lo dice. Al descargar la extensión, <code>todo</code> vuelve. El resumen y <code>tasks_board</code> comparten una sola lectura del tablero: si acabas de leerlo, no se vuelve a ejecutar el CLI; una escritura obliga a leer de nuevo.</p>
-      <h3 data-i18n="agente.21">El tablero mientras trabajas</h3>
-      <p data-i18n="agente.22">Con la extensión cargada, el tablero está a la vista mientras trabajas: una línea de estado que empieza por <code>🦊 última cerrada:</code> y nombra la última tarea cerrada —recortada a 100 caracteres— y, encima del editor, un bloque con el título <code>🦊 Tasks-ai tablero:</code> y una línea por tarea en curso. Sin ninguna cerrada, la línea dice <code>🦊 tablero: sin tarea cerrada</code>; sin nada en curso, el bloque lo dice; en un proyecto sin tablero el bloque se retira y la línea de estado avisa de que no hay tablero.</p>
-      <p data-i18n="agente.23">Los dos se repintan al empezar cada turno y después de cada escritura. La extensión no vigila la base: un cambio hecho desde otra terminal aparece en el turno siguiente o cuando el agente vuelve a leer el tablero, no en el acto.</p>
-      <h3 data-i18n="agente.25">La extensión de OpenCode</h3>
-      <p data-i18n="agente.26">El proyecto la carga desde su <code>opencode.jsonc</code>:</p>
-      <div class="code">
-        <pre data-language="json" data-lang="es"><code>{
-  "plugins": ["./.tasks-ai/extensions/opencode"]
-}</code></pre>
-        <pre data-language="json" data-lang="en" hidden><code>{
-  "plugins": ["./.tasks-ai/extensions/opencode"]
-}</code></pre>
-      </div>
-      <p data-i18n="agente.27">Registra las mismas once herramientas y añade el resumen del tablero al sistema de cada petición; no tiene <code>/board</code> ni bloque del TUI, porque el plugin de servidor de OpenCode no los ofrece. El TODO del arnés no sustituye al tablero: la misión nombra su <code>tk-N</code> y el tablero sigue siendo la única fuente de tareas.</p>
       <h3 data-i18n="agente.12">El contexto que recibe el agente</h3>
       <p data-i18n="agente.13">El tablero es una proyección: referencia, título, estado, bloqueo, prioridad, padre y etiquetas. No incluye descripciones, notas ni comentarios.</p>
       <p data-i18n="agente.14">El árbol se recorta a 40 tareas, con un aviso de cuántas quedan fuera. Las listas de tareas en curso y de lo que puedes empezar se recortan a 8 cada una.</p>
-      <p data-i18n="agente.15">Cuando pides el detalle de una tarea, recibes su descripción entera y los 10 comentarios más recientes. Estos recortes son de las extensiones: el CLI sigue devolviendo todo.</p>
+      <p data-i18n="agente.15">Cuando pides el detalle de una tarea, recibes su descripción entera y los 10 comentarios más recientes. Estos recortes son de la superficie <code>aif</code>: el CLI sigue devolviendo todo.</p>
       <h3 data-i18n="agente.16">Lo que no hace</h3>
-      <p data-i18n="agente.17">Ninguna de las dos habla MCP, añade un comando <code>ready</code> ni un importador. No son una tercera superficie del producto: envuelven el CLI.</p>
+      <p data-i18n="agente.17">El perfil no habla MCP, no añade un comando <code>ready</code> ni importa nada. Las extensiones por host de la v0.1.0 —el resumen del tablero en cada turno y el TUI de Pi— quedaron retiradas (<code>ADR-021</code>): el agente mira el tablero con <code>tasks_board</code> cuando recupera el trabajo.</p>
     </section>
 
     <section id="configuracion">
@@ -1374,7 +1377,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.10": "The binary. It needs nothing else to run: the web interface travels inside it.",
  "que-es.11": "The whole loop, in four steps",
  "que-es.12": "Installs",
- "que-es.13": "Leaves the product folder with the database, the settings, the instructions, the tag contract and both agent extensions, and a project no longer accepts a second install.",
+ "que-es.13": "Leaves the product folder with the database, the settings, the instructions and the tag contract, and a project no longer accepts a second install.",
  "que-es.14": "Records",
  "que-es.15": "Every task comes in with a mandatory title and, if you want, a description, priority, assignee, notes and parent.",
  "que-es.16": "Reads back",
@@ -1384,7 +1387,7 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "que-es.20": "<strong>The mental model.</strong> A task is a row with a stable identity; its visible reference —<code>tk-1</code>— is what you type and what you see. The database is a file, which is why there is nothing to start before you work.",
  "empezar.2": "Starting in a project",
  "empezar.3": "Compiling is the only step that needs Go. From there on, the binary does everything.",
- "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.tasks-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, the text to add outside so that people and agents find the instructions and the tags, the installed binary, the Pi extension, the OpenCode plugin and the tag contract. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
+ "empezar.4": "<code>init</code> looks upward for the project root and leaves the <code>.tasks-ai/</code> folder there. It answers in JSON with what it left: the folder, the database, the instructions, the prefix, the text to add outside so that people and agents find the instructions and the tags, the installed binary, the tag contract and the installed version. With <code>--prefix</code> the prefix of the references is fixed in the installation itself, instead of <code>tk</code>, and the instructions it leaves use it in their examples.",
  "empezar.5": "<strong>The pointer is half the job.</strong> Without the <code>AGENTS.md</code> and <code>CONTRATO_ETIQUETAS.md</code> lines in the project's instruction file, neither the people nor the agents who read it will know the tasks live in <code>.tasks-ai/AGENTS.md</code> or that every task carries a type and a structural tag; without the <code>opencode.jsonc</code> one, OpenCode does not load the plugin. Add each one wherever your project already receives instructions or configuration.",
  "empezar.6": "What it writes",
  "empezar.7": "File",
@@ -1394,10 +1397,10 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "empezar.11": "What the folder holds and how to use it. It is the document a newcomer reads.",
  "empezar.12": "First task",
  "empezar.13": "The response is the whole task, and it is the same shape returned by <code>show</code>, <code>update</code> and <code>close</code>. If the title is missing, nothing is created:",
- "empezar.14": "On Windows the binary is called <code>tasks-ai.exe</code>: <code>go build</code> leaves it with that name, <code>init</code> copies it to <code>.tasks-ai\\bin\\tasks-ai.exe</code> and both extensions look for that same file. The commands on this page are written as <code>./tasks-ai</code>; in PowerShell, <code>.\\tasks-ai.exe</code> —and <code>.\\tasks-ai.exe init</code> to install—.",
+ "empezar.14": "On Windows the binary is called <code>tasks-ai.exe</code>: <code>go build</code> leaves it with that name and <code>init</code> copies it to <code>.tasks-ai\\bin\\tasks-ai.exe</code>. The commands on this page are written as <code>./tasks-ai</code>; in PowerShell, <code>.\\tasks-ai.exe</code> —and <code>.\\tasks-ai.exe init</code> to install—.",
  "empezar.15": "The tag contract: the types, the structural tags and how the catalogue is assigned and managed.",
- "empezar.16": "The copy of the binary used by the extensions and the project's commands. On Windows it is called <code>tasks-ai.exe</code>.",
- "empezar.17": "Both agent integrations, ready for Pi and OpenCode to load them from the project.",
+ "empezar.16": "The copy of the binary used by the project's commands. On Windows it is called <code>tasks-ai.exe</code>.",
+ "empezar.17": "The installation's version marker: <code>init</code> writes it and <code>upgrade</code> renews it once the update is complete.",
  "modelo.2": "The data model",
  "modelo.3": "Seven things: tasks, tags, tag assignments, dependencies, comments, decisions and the database settings. Everything else is presentation.",
  "modelo.4": "The task",
@@ -1516,6 +1519,10 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "comandos.81": "An ADR keeps a decision with its context and its consequences. It lives in the same database as the tasks and is written with the product; <code>docs/decisions/</code> is a generated export, versioned so Git keeps the review of every decision.",
  "comandos.82": "The body —title, context, decision, consequences and alternatives— freezes when it leaves <code>proposed</code>: after that only dated additions to <em>more information</em> are accepted, and a change of decision is published as a new ADR that supersedes the previous one. There is no deletion. <code>adr import --dir</code> reads a directory of files and stores the ADRs that are not in the database yet, without duplicating them.",
  "comandos.83": "<code>aif</code><span class=\"sig\">— the AIF 0.2 CLI profile</span>",
+ "comandos.88": "<code>upgrade</code> — updates the project's installation",
+ "comandos.89": "Updates the <code>.tasks-ai/</code> installation from the executable that invoked it, downloading nothing: it refreshes the binary and the product's managed resources, keeps the database and your customisations, and removes the leftovers of an inherited install together with their references — it removes only the files the product distributed, never an extension its host still loads nor your own files. It keeps the label contract when you edited it, with the warning. It writes <code>VERSION</code> only when the installation finishes complete: with anything pending it answers with the list, exits with code <code>2</code> and is completed by running it again. An executable older than the installation is refused.",
+ "comandos.90": "<code>version</code> — the product's version",
+ "comandos.91": "Returns the executable's version as a JSON object. It is the one <code>upgrade</code> compares against the installation's <code>.tasks-ai/VERSION</code> marker.",
  "comandos.84": "Serves the contract's tools to an agent through the standard input: it reads one request, writes a single JSON object on the output and leaves diagnostics on the error output. The exit code is fixed by the result (0 executed or discovery, 2 missing input or invalid, 3 unknown or unsupported, 4 denied, 1 failure), and every invocation is independent: the continuation sends the whole corrected request again.",
  "ciclo.2": "The lifecycle",
  "ciclo.3": "Three statuses and two derived rules. Knowing which transitions are legal avoids half of the errors.",
@@ -1627,31 +1634,18 @@ chmod +x tasks-ai                              # then try again</code></pre>
  "api.34": "The notice is read from the database, not from the server's memory: that is why a change requested from the terminal reaches the channel.",
  "api.35": "In the API listing, <code>parent_id</code> is the parent's internal number; the visible reference is composed by whoever renders, with the project prefix.",
  "agente.2": "The agents",
- "agente.3": "The two agent integrations —Pi and OpenCode— give you the project board as tools. They are written in TypeScript and <code>init</code> leaves them in <code>.tasks-ai/extensions/pi/</code> and <code>.tasks-ai/extensions/opencode/</code>, so the project loads them from its own folder, without depending on the repository of origin.",
- "agente.4": "Both run the product CLI and return its JSON. They do not touch the database or reimplement rules: what the product rejects stays rejected.",
+ "agente.3": "The agent talks to the product through the <code>tasks-ai aif</code> subcommand: one JSON request on the standard input and one JSON response on the standard output. There is no extension to install and no host configuration: the agent reads the instructions of <code>.tasks-ai/AGENTS.md</code>, which <code>init</code> leaves in the project.",
+ "agente.4": "The profile is self-describing: a request without a known operation returns <code>discovery</code> with the vocabulary. What the product rejects stays rejected; a repairable response names the field and the corrected request is sent again in full.",
  "agente.5": "The tools",
- "agente.6": "All eleven tools in the table are implemented and tested, both read and write tools, and both extensions register them.",
+ "agente.6": "The eleven operations in the table are served by the <code>aif</code> subcommand: the same vocabulary as the contract, served over the product core.",
  "agente.7": "Tool",
  "agente.8": "CLI command",
- "agente.9": "The Pi extension",
- "agente.10": "The package <code>init</code> left is registered in the project with the first command and removed with the second:",
- "agente.11": "With the package registered, start Pi from the project root: the extension finds the board by walking up from the working directory, just like the CLI, and runs the installed binary or, if it is missing, the one on the <code>PATH</code>.",
  "agente.12": "The context the agent receives",
  "agente.13": "The board is a projection: reference, title, status, whether it is blocked, priority, parent and tags. It includes no descriptions, notes or comments.",
  "agente.14": "The tree is trimmed to 40 tasks, with a notice of how many are left out. The lists of tasks in progress and tasks you can start are trimmed to 8 each.",
- "agente.15": "When you request a task's detail, you receive its full description and the 10 most recent comments. These limits belong to the extensions: the CLI still returns everything.",
+ "agente.15": "When you request a task's detail, you receive its full description and the 10 most recent comments. These limits belong to the <code>aif</code> surface: the CLI still returns everything.",
  "agente.16": "What it does not do",
- "agente.17": "Neither of them speaks MCP, adds a <code>ready</code> command or an importer. They are not a third product surface: they wrap the CLI.",
- "agente.18": "The board on every turn",
- "agente.19": "The agent receives the board at the start of every turn: counters, the current task, a few tasks that can be started, and the usage rules. It goes in the turn instructions, not as a message in the conversation.",
- "agente.20": "While the extension is loaded and the project has a board, the harness's <code>todo</code> tool is unavailable: the board is the only place to track work. In a project without a board, <code>todo</code> stays available and the summary says so. Unloading the extension brings <code>todo</code> back. The summary and <code>tasks_board</code> share a single board read: if you have just read it, the CLI does not run again; a write forces a fresh read.",
- "agente.21": "The board while you work",
- "agente.22": "With the extension loaded, the board stays in sight while you work: a status line that starts with <code>🦊 última cerrada:</code> and names the last closed task —clipped to 100 characters— and, above the editor, a block titled <code>🦊 Tasks-ai tablero:</code> with one line per task in progress. With nothing closed yet the line says <code>🦊 tablero: sin tarea cerrada</code>; with nothing in progress the block says so; in a project with no board the block goes away and the status line says there is none.",
- "agente.23": "Both repaint at the start of every turn and after every write. The extension does not watch the database: a change made from another terminal appears on the next turn, or when the agent reads the board again, not straight away.",
- "agente.24": "In the TUI, <code>/board</code> shows the board in the conversation: the same summary the agent receives at the start of every turn.",
- "agente.25": "The OpenCode extension",
- "agente.26": "The project loads it from its <code>opencode.jsonc</code>:",
- "agente.27": "It registers the same eleven tools and adds the board summary to the system of every request; it has no <code>/board</code> or TUI block, because the OpenCode server plugin does not offer them. The harness TODO does not replace the board: the mission names its <code>tk-N</code> and the board remains the only source of tasks.",
+ "agente.17": "The profile speaks no MCP, adds no <code>ready</code> command and no importer. The per-host extensions of v0.1.0 —the board summary on every turn and Pi's TUI— were retired (<code>ADR-021</code>): the agent looks at the board with <code>tasks_board</code> when it picks the work back up.",
  "configuracion.2": "Configuration",
  "configuracion.3": "One file, five keys, and the option of editing it by hand. The product writes it on install and never touches it again.",
  "configuracion.4": "Key",

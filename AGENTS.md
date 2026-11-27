@@ -36,11 +36,11 @@ guarda el contenido: lo enlaza.
 | Skills: cuáles hay, de dónde vienen, cómo se usan y cómo se actualizan | [`skills/README.md`](skills/README.md) → «SKILLS-2 Cuáles hay y de dónde vienen», «SKILLS-3 Cómo se usan», «SKILLS-4 Cómo se actualizan» |
 | Qué skill cargar para Go | [`skills/golang-how-to/SKILL.md`](skills/golang-how-to/SKILL.md); catálogo por categoría en [`by-category.md`](skills/golang-how-to/references/by-category.md) y límites en [`disambiguation.md`](skills/golang-how-to/references/disambiguation.md) |
 | Agente de delegación: encargo, límites y devolución | [`.pi/agents/tasks-ai-worker.md`](.pi/agents/tasks-ai-worker.md) → «Antes de tocar nada», «Qué puedes tocar», «Límites», «Qué devuelves» |
-| Integración con Pi y OpenCode | [`README.md`](README.md) → «Integración con los agentes», «Pi», «OpenCode»; [`extensions/pi/`](extensions/pi/), [`extensions/opencode/`](extensions/opencode/); carga en [`opencode.jsonc`](opencode.jsonc) y [`.pi/settings.json`](.pi/settings.json) |
+| Integración con Pi y OpenCode | [`README.md`](README.md) → «Integración con los agentes»; carga en [`opencode.jsonc`](opencode.jsonc) y [`.pi/settings.json`](.pi/settings.json) |
 | Instrucciones y contrato que el `init` copia | [`internal/install/agent.md`](internal/install/agent.md) → «Cómo se usa»; [`internal/install/contract_tags.md`](internal/install/contract_tags.md) → «1. Las clases y su convivencia» |
 | Integración continua | [`.github/workflows/tests.yml`](.github/workflows/tests.yml) → «Pruebas»; [`.github/workflows/lint.yml`](.github/workflows/lint.yml) → «Linter»; [`.github/workflows/security.yml`](.github/workflows/security.yml) → «Seguridad» |
 | Objetivos de `make` y qué hace cada uno | [`Makefile`](Makefile) |
-| Dependencias del producto y de la interfaz | [`go.mod`](go.mod), [`go.sum`](go.sum), [`extensions/pi/package.json`](extensions/pi/package.json), [`extensions/opencode/package.json`](extensions/opencode/package.json), [`web/package.json`](web/package.json) |
+| Dependencias del producto y de la interfaz | [`go.mod`](go.mod), [`go.sum`](go.sum), [`web/package.json`](web/package.json) |
 
 ## Encargo → qué leer antes → con qué se cierra
 

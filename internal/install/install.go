@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	embedded "tasks-ai"
 	"tasks-ai/internal/core"
 	"tasks-ai/internal/settings"
 	"tasks-ai/internal/store"
@@ -28,11 +27,14 @@ const DirName = ".tasks-ai"
 // instructionsName is the file with the instructions for people and agents.
 const instructionsName = "AGENTS.md"
 
-// pointer is the text a project adds outside to point at the instructions, at
-// the label contract and at the OpenCode adapter.
+// VersionName is the file where an installation records the version that
+// completed it.
+const VersionName = "VERSION"
+
+// pointer is the text a project adds outside to point at the instructions and
+// at the label contract.
 const pointer = "Para que las personas y los agentes encuentren las instrucciones del gestor de tareas, " +
-	"añade estas líneas al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName + " para el tablero y @" + DirName + "/" + contractName + " para las etiquetas. " +
-	"Para que OpenCode use el tablero, añade " + DirName + "/extensions/opencode a \"plugins\" de su opencode.jsonc"
+	"añade estas líneas al archivo de instrucciones de tu proyecto: @" + DirName + "/" + instructionsName + " para el tablero y @" + DirName + "/" + contractName + " para las etiquetas."
 
 // contractName is the file with the contract of the labels.
 const contractName = "CONTRATO_ETIQUETAS.md"
@@ -51,9 +53,8 @@ type Result struct {
 	Prefix       string `json:"prefix"`
 	Pointer      string `json:"pointer"`
 	Binary       string `json:"binary"`
-	Extension    string `json:"extension"`
-	OpenCode     string `json:"opencode"`
 	Contract     string `json:"contract"`
+	Version      string `json:"version"`
 }
 
 // Root is the root of the project the folder dir belongs to: the enclosing
@@ -140,7 +141,7 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		return Result{}, err
 	}
 
-	if err := writeContract(dir); err != nil {
+	if err := writeContract(dir, false); err != nil {
 		return Result{}, err
 	}
 
@@ -171,13 +172,8 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		return Result{}, err
 	}
 
-	extension, err := writeExtension(dir, embedded.Pi, "pi")
-	if err != nil {
-		return Result{}, err
-	}
-
-	opencode, err := writeExtension(dir, embedded.OpenCode, "opencode")
-	if err != nil {
+	// La versión va la última: acredita que la instalación quedó completa.
+	if err := writeVersion(dir, core.Version); err != nil {
 		return Result{}, err
 	}
 
@@ -188,23 +184,29 @@ func RunWithWarning(ctx context.Context, root, prefix string, warning io.Writer)
 		Prefix:       cfg.Prefix,
 		Pointer:      pointer,
 		Binary:       binary,
-		Extension:    extension,
-		OpenCode:     opencode,
 		Contract:     filepath.Join(dir, contractName),
+		Version:      core.Version,
 	}, nil
 }
 
 // writeContract deja el contrato de las etiquetas dentro de la carpeta del
-// producto. Lo que el proyecto ya tenga escrito no se pisa: la instalación
-// completa lo que falta, igual que con las instrucciones.
-func writeContract(dir string) error {
+// producto. Sin force, lo que el proyecto ya tenga escrito no se pisa: la
+// instalación completa lo que falta, igual que con las instrucciones. Con force,
+// una actualización lo sobrescribe con la plantilla del producto.
+func writeContract(dir string, force bool) error {
 	path := filepath.Join(dir, contractName)
 
-	if exists(path) {
+	if !force && exists(path) {
 		return nil
 	}
 
-	if err := os.WriteFile(path, contract, 0o644); err != nil { //nolint:gosec // el contrato se escribe con los permisos de lectura del proyecto
+	if force {
+		if err := noLinks(dir, path); err != nil {
+			return err
+		}
+	}
+
+	if err := writeFileAtomico(path, contract, 0o644); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
 
@@ -223,7 +225,7 @@ func exists(path string) bool {
 var binName = binaryName(runtime.GOOS)
 
 // binaryName names the installed binary for a platform, so the copy the install
-// leaves and the one the extensions look for are the same file.
+// leaves is the one the system can run.
 func binaryName(goos string) string {
 	if goos == "windows" {
 		return "tasks-ai.exe"
@@ -234,12 +236,11 @@ func binaryName(goos string) string {
 
 // complete says whether the installation already has everything the product
 // leaves. An installation made by an older version, without the binary or the
-// extensions, is not complete: init completes it without touching what it has.
+// version, is not complete: init completes it without touching what it has.
 func complete(dir, dbPath, instructions string) bool {
 	return exists(dbPath) && exists(instructions) && exists(filepath.Join(dir, contractName)) &&
 		exists(filepath.Join(dir, "bin", binName)) &&
-		exists(filepath.Join(dir, "extensions", "pi")) &&
-		exists(filepath.Join(dir, "extensions", "opencode"))
+		exists(filepath.Join(dir, VersionName))
 }
 
 // noLinks refuses a destination whose path below the product folder runs through
@@ -301,47 +302,24 @@ func copyBinary(dir string) (string, error) {
 	return target, nil
 }
 
-// writeExtension deja una extensión del agente dentro de la carpeta del producto,
-// extraída de los ficheros que el binario lleva incrustados, para que el proyecto
-// no dependa del repositorio de origen. Devuelve la ruta de la carpeta instalada.
-func writeExtension(dir string, files fs.FS, name string) (string, error) {
-	target := filepath.Join(dir, "extensions", name)
+// writeFileAtómico deja el texto en path sin exponer nunca un fichero a
+// medias: escribe en un temporal junto al destino y lo renombra. Una
+// interrupción deja el fichero anterior intacto, y la reejecución repite el
+// paso sin pérdida.
+func writeFileAtomico(path string, data []byte, mode os.FileMode) error {
+	temporal := path + ".tasks-ai-tmp"
 
-	err := fs.WalkDir(files, ".", func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-
-		if entry.IsDir() {
-			return nil
-		}
-
-		data, err := fs.ReadFile(files, path)
-		if err != nil {
-			return err
-		}
-
-		dest := filepath.Join(dir, filepath.FromSlash(path))
-
-		if err := noLinks(dir, dest); err != nil {
-			return err
-		}
-
-		if err := os.MkdirAll(filepath.Dir(dest), 0o755); err != nil { //nolint:gosec // la carpeta del producto usa los permisos propios del proyecto
-			return fmt.Errorf("creating %s: %w", filepath.Dir(dest), err)
-		}
-
-		if err := os.WriteFile(dest, data, 0o644); err != nil { //nolint:gosec // los ficheros de la extensión se leen sin ejecutar
-			return fmt.Errorf("writing %s: %w", dest, err)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return "", fmt.Errorf("writing the extension: %w", err)
+	if err := os.WriteFile(temporal, data, mode); err != nil { //nolint:gosec // la ruta la compone la instalación, que ya la validó; el temporal es su hermano
+		return err
 	}
 
-	return target, nil
+	if err := os.Rename(temporal, path); err != nil {
+		_ = os.Remove(temporal)
+
+		return err
+	}
+
+	return nil
 }
 
 // copyFile copia un fichero desde from hasta to, con los permisos dados.
@@ -431,10 +409,38 @@ func writeInstructions(dir, prefix string) error {
 		return nil
 	}
 
-	text := bytes.ReplaceAll(instructions, []byte(settings.DefaultPrefix+"-"), []byte(prefix+"-"))
-
-	if err := os.WriteFile(path, text, 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto
+	if err := os.WriteFile(path, instructionsFor(prefix), 0o644); err != nil { //nolint:gosec // las instrucciones se escriben con los permisos de lectura del proyecto
 		return fmt.Errorf("writing %s: %w", path, err)
+	}
+
+	return nil
+}
+
+// instructionsFor composes the shipped instructions with the prefix of the
+// project in their examples.
+func instructionsFor(prefix string) []byte {
+	return bytes.ReplaceAll(instructions, []byte(settings.DefaultPrefix+"-"), []byte(prefix+"-"))
+}
+
+// writeVersion records the version that completed the installation, replacing
+// the previous one only once the new one is complete on disk.
+func writeVersion(dir, version string) error {
+	path := filepath.Join(dir, VersionName)
+
+	if err := noLinks(dir, path); err != nil {
+		return err
+	}
+
+	temporary := path + ".tmp"
+
+	if err := os.WriteFile(temporary, []byte(version+"\n"), 0o644); err != nil { //nolint:gosec // la versión se escribe con los permisos de lectura del proyecto
+		return fmt.Errorf("writing %s: %w", temporary, err)
+	}
+
+	if err := os.Rename(temporary, path); err != nil {
+		_ = os.Remove(temporary)
+
+		return fmt.Errorf("replacing %s: %w", path, err)
 	}
 
 	return nil

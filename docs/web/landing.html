@@ -692,10 +692,10 @@
       <div class="split">
         <div>
           <h2>El agente trabaja. Tú decides.</h2>
-          <p class="sub">El agente organiza tareas, dependencias y avances con la CLI, que responde en JSON. Desde la interfaz web revisas el trabajo, sigues su evolución y gestionas el mismo tablero. Las extensiones de Pi y OpenCode acercan esas órdenes al agente.</p>
+          <p class="sub">El agente organiza tareas, dependencias y avances con la CLI, que responde en JSON. Desde la interfaz web revisas el trabajo, sigues su evolución y gestionas el mismo tablero. Y el agente habla con el producto por `tasks-ai aif`, sin extensión ni paquete del host.</p>
         </div>
         <aside>
-          <p class="tools-label">Las mismas herramientas en Pi y en OpenCode:</p>
+          <p class="tools-label">El vocabulario del perfil aif:</p>
           <ul class="tools">
             <li>tasks_board</li>
             <li>tasks_show</li>
@@ -709,7 +709,7 @@
             <li>tasks_comment_list</li>
             <li>tasks_comment_edit</li>
           </ul>
-          <p class="aside-quote">Con la extensión cargada y un tablero en el proyecto, la herramienta <code>todo</code> del arnés deja de estar disponible: el tablero es la única lista.<span>En un proyecto sin tablero, las herramientas devuelven el rechazo del producto y la sesión sigue.</span></p>
+          <p class="aside-quote">El perfil es autodescriptivo: una petición sin operación conocida devuelve <code>discovery</code> con el vocabulario, y el agente repite la petición corregida cuando la respuesta es reparable.<span>Sin configuración del host: las instrucciones que <code>init</code> deja bastan.</span></p>
         </aside>
       </div>
 
@@ -836,7 +836,7 @@
         <li class="step">
           <span class="n" aria-hidden="true">02</span>
           <h3>Instala.</h3>
-          <p><code>init</code> escribe <code>.tasks-ai/</code> con la base, los ajustes, las instrucciones y las dos extensiones de agente.</p>
+          <p><code>init</code> escribe <code>.tasks-ai/</code> con la base, los ajustes, las instrucciones agénticas y el binario.</p>
         </li>
         <li class="step">
           <span class="n" aria-hidden="true">03</span>

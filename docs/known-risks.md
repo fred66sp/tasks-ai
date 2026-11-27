@@ -43,16 +43,17 @@ parche se pierde el día que se vuelva a copiar el fichero original.
 **Cobertura:** esta entrada. Quien reemplace el fichero, la lee antes y vuelve a aplicar el
 parche, o cambia de idea sobre el diálogo.
 
-### RX-8 Las extensiones del agente dependen del contrato del CLI
+### RX-8 La superficie aif y la CLI dependen del contrato del producto
 
-Las integraciones con los agentes envuelven el CLI (`ADR-012`, `ADR-015`): cada
-herramienta suya ejecuta un comando y espera su JSON. Hasta ahora el CLI no tenía consumidores fuera del repositorio,
+La superficie de agente (`tasks-ai aif`) y la CLI comparten el mismo binario y el mismo
+contrato: cada operación lee el JSON del producto y espera un campo con un significado y
+unos códigos de salida. Hasta ahora el CLI no tenía consumidores fuera del repositorio,
 así que cambiar un campo o el significado de un código de salida era un cambio local.
 
-**Cobertura:** `RF-11` y `CA-12` hacen la integración parte del alcance, y el cambio que
-toque el CLI comprueba también las extensiones y las dos juntas, no solo las pruebas del
-producto. Mientras la extensión no exista, esto es una previsión: si el CLI cambia antes,
-el consumidor nace desalineado y esta entrada es el aviso para revisarlo.
+**Cobertura:** `RF-03` y `CA-12` hacen de `aif` la superficie de agente, y el cambio que
+toque el contrato comprueba también su adaptador (`internal/aif`), no solo las pruebas del
+núcleo y del CLI. Un cambio de campo o de código de salida se anota como breaking en el
+`CHANGELOG` y en `contracts.md` §2 y §7.
 
 ### RX-10 El texto de una tarea se dibuja como HTML
 

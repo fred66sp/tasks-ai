@@ -44,7 +44,7 @@ que no sea el proyecto donde está la carpeta.
 ## Operating Context
 
 La persona trabaja en su máquina, dentro de un solo proyecto, con una terminal y un agente
-(Pi u OpenCode) al lado. Instala el producto una vez —`init`— y desde entonces el tablero es
+al lado. Instala el producto una vez —`init`— y desde entonces el tablero es
 el registro: el agente propone, la persona confirma y cierra, y el commit es lo que guarda
 la historia. La interfaz web se levanta desde el mismo binario con `serve`, y se usa para
 mirar y corregir el tablero, no para administrar un servicio.

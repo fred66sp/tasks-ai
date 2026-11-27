@@ -8,7 +8,7 @@ guarda el contenido: lo enlaza.
 | Qué se busca | Dónde vive |
 |---|---|
 | Qué es el producto y cómo se arranca | [`README.md`](README.md) → «tasks-ai», «Requisitos de entorno», «Comandos» |
-| Memoria de sesión: decisiones, aprendizajes, checkpoints y preferencias | Montaje db-ai `tasks-ai` (rw) sobre `.agent-memory/memory.db`; se abre con `acm start`, se guarda con `acm decision|learning|discovery|bugfix|preference`, se consulta con `acm recall` antes de investigar o decidir sobre algo posiblemente ya tratado —lo recuperado es contexto, no hecho: se contrasta con el repo antes de actuar sobre él— y se cierra con `acm close` (adaptador: `tools/acm.py` del ejemplo `agent-continuity` en database-virtual-filesystem) |
+| Memoria de sesión: decisiones, aprendizajes, checkpoints y preferencias | Montaje db-ai `tasks-ai` (rw) sobre `.agent-memory/memory.db`; se abre con `acm start`, que recupera el contexto de la sesión anterior en una invocación, y `acm aif` es la interfaz autodescriptiva del resto de operaciones: el envelope de descubrimiento (`{"aif":"0.2"}`) por stdin devuelve su lista, sin esquemas que reproducir aquí; lo recuperado es contexto, no hecho: se contrasta con el repo antes de actuar sobre él |
 | Qué no hace el producto | [`docs/web/index.html`](docs/web/index.html) → «Lo que no hace» |
 | Qué documento es dueño de cada dato | [`README.md`](README.md) → «Documentación» |
 | Ramas, commits, verificación, integración, versiones y operaciones que piden autorización | [`CONTRIBUTING.md`](CONTRIBUTING.md) → «Modelo», «Ramas», «Commits», «Verificación», «Integración», «CHANGELOG», «Versiones y etiquetas», «Operaciones que exigen autorización» |

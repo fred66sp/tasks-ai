@@ -33,10 +33,16 @@ const (
 // Las listas cerradas del contrato, leídas sobre el texto tal como se escribe y
 // sin distinguir mayúsculas. La del hash de commit va partida, porque el
 // contrato la escribe con una aserción que el motor de expresiones de Go no
-// tiene —no mira hacia delante—: aquí se busca la tirada hexadecimal y la letra
-// se comprueba después.
+// tiene —no mira hacia delante—: aquí se busca la tirada hexadecimal, se
+// comprueba la letra y se exige la palabra de Git después.
 var (
-	hexRunPattern   = regexp.MustCompile(`(?i)\b[0-9a-f]{7,40}\b`)
+	hexRunPattern = regexp.MustCompile(`(?i)\b[0-9a-f]{7,40}\b`)
+
+	// La huella de otro registro —la de una fricción, por ejemplo— es un hash
+	// suelto que no nombra un commit: sin esta palabra en la misma cláusula y
+	// antes del hash, la tirada hexadecimal no cae en la lista.
+	gitCommitPattern = regexp.MustCompile(`(?i)\bcommits?\b`)
+
 	branchPattern   = regexp.MustCompile(`(?i)\b(?:feat|feature|fix|hotfix|release|refactor|chore|docs)/[a-z0-9][a-z0-9._-]*`)
 	remotePattern   = regexp.MustCompile(`(?i)\borigin/[a-z0-9][a-z0-9._-]*`)
 	statePattern    = regexp.MustCompile(`(?i)(?:^|[.:;!?\n]\s*)((?:estado|hecho|hecha|terminad[oa]|cerrad[oa]|abiert[oa]|reabiert[oa]|en curso|pendiente|bloquead[oa]|a la espera|siguiente paso|próximo paso|status|done|pending|in progress|next step)\s*:)`)
@@ -187,12 +193,21 @@ func (r textRule) agrees(field string) string {
 }
 
 // commitHash finds a commit hash: seven to forty hexadecimal characters with at
-// least one letter.
+// least one letter, precedidos en la misma cláusula por la palabra de Git que los
+// designa —`commit` o `commits`—. El hash suelto es la huella de otro registro y
+// no se rechaza.
 func commitHash(text string) string {
-	for _, fragment := range hexRunPattern.FindAllString(text, -1) {
-		if strings.ContainsAny(fragment, "abcdefABCDEF") {
-			return fragment
+	for _, found := range hexRunPattern.FindAllStringIndex(text, -1) {
+		fragment := text[found[0]:found[1]]
+		if !strings.ContainsAny(fragment, "abcdefABCDEF") {
+			continue
 		}
+
+		if !gitCommitPattern.MatchString(text[clauseStart(text[:found[0]]):found[0]]) {
+			continue
+		}
+
+		return fragment
 	}
 
 	return ""

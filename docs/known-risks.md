@@ -71,8 +71,9 @@ llegó a dibujarse ni ejecutó nada.
 ### RX-11 El validador del texto no alcanza todo lo que escribe el estado
 
 Las listas del apartado 8 de [`contracts.md`](contracts.md) son léxicas: reconocen una
-forma, no la intención de quien escribe. Se les escapa un hash escrito solo con dígitos, el
-nombre de una rama que no lleva uno de los prefijos del flujo de Git —uno que también es
+forma, no la intención de quien escribe. Se les escapa un hash sin la palabra de Git que lo
+designe —también el escrito solo con dígitos—, el nombre de una rama que no lleva uno de
+los prefijos del flujo de Git —uno que también es
 una carpeta del repositorio—, una declaración de estado en prosa sin marcador, y toda
 escritura que no pase por el producto. Y la regla cuesta también en el otro sentido: lo
 entrecomillado no exime, así que un texto que cita la frase rechazada se rechaza igual, y

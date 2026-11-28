@@ -565,14 +565,21 @@ resuelve a ningún commit y el nombre de rama es el que el repositorio usó; los
 aceptan son textos que el tablero ya lleva y la comprobación deja pasar.
 
 **`R1`: un hash de commit.** De siete a cuarenta caracteres hexadecimales, con al menos
-una letra.
+una letra, junto a la palabra `commit` o `commits` en la misma cláusula y antes del hash.
+La huella de otro registro —la de una fricción, por ejemplo— no nombra un commit: el hash
+suelto se acepta.
 
 ```text
 \b(?=[0-9a-fA-F]*[a-fA-F])[0-9a-fA-F]{7,40}\b
 ```
 
-- Se rechaza: `a1b2c3d`.
+```text
+\bcommits?\b
+```
+
+- Se rechaza: `el commit a1b2c3d lo hizo`.
 - Se acepta: `hashes de commit, nombres de rama, referencias a commits pendientes`.
+- Se acepta: `la huella 51d09fb3a752 del registro`.
 
 **`R2`: el nombre de una rama.** Uno de los prefijos de rama del flujo de Git seguido
 de su nombre. Incluye `docs`, la convención de ramas de este repositorio.
@@ -668,7 +675,8 @@ coincidencia.
 tras tres palabras de enlace (`de`, `del`, `en`, `con`, `a`, `al`, `la`, `el`, `los`,
 `las`, `the`), de un identificador designado: `main`, `master` o `HEAD`, la forma de una
 rama o una referencia a `origin/…`. Esta lista no enumera el hash: su expresión no tiene
-una rama que lo case, y el hash lo alcanza `R1`, que corre en primer lugar.
+una rama que lo case, y el hash que nombra un commit lo alcanza `R1`, que corre en primer
+lugar.
 
 ```text
 \b(?:commit|commits|merge|push|checkout|hash|rama|branch)\b[\s:]*(?:(?:de|del|en|con|a|al|la|el|los|las|the)\s+){0,3}(?:main|master|HEAD|origin/[a-z0-9][a-z0-9._-]*|(?:feat|feature|fix|hotfix|release|refactor|chore|docs)/[a-z0-9][a-z0-9._-]*)\b

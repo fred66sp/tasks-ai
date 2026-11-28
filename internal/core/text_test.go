@@ -54,7 +54,9 @@ var theWrites = []aWrite{
 // aState is a text the contract rejects, with the fragmento que el mensaje
 // nombra y lo que dice que hay que escribir en su lugar.
 type aState struct {
-	name     string
+	name string
+	// text is the text written; vacío cuando la frase entera es el fragmento.
+	text     string
 	fragment string
 	remedy   string
 }
@@ -64,6 +66,7 @@ type aState struct {
 var theRejectedStates = []aState{
 	{
 		name:     "a commit",
+		text:     "el commit " + commitText,
 		fragment: commitText,
 		remedy:   "a commit reaches its task through the commit message, with Refs: tk-N",
 	},
@@ -279,7 +282,7 @@ func TestText_namesEveryFragmentThatCaughtTheText(t *testing.T) {
 			name:  "un hash y una rama",
 			write: theWrites[0],
 			field: fieldDescription,
-			text:  "a1b2c3d feat/rich-task-text",
+			text:  "el commit a1b2c3d feat/rich-task-text",
 			want: `the description names a commit: "a1b2c3d"; ` +
 				`the description names a branch: "feat/rich-task-text"; ` +
 				`a commit reaches its task through the commit message, with Refs: tk-N; ` +
@@ -327,7 +330,7 @@ func TestText_namesEveryFragmentThatCaughtTheText(t *testing.T) {
 			name:  "un sustantivo con su referente y un hash",
 			write: theWrites[0],
 			field: fieldDescription,
-			text:  "la rama main y a1b2c3d",
+			text:  "el commit a1b2c3d. La rama main",
 			want: `the description names a commit: "a1b2c3d"; ` +
 				`the description names a Git reference: "rama main"; ` +
 				`a commit reaches its task through the commit message, with Refs: tk-N; ` +
@@ -377,10 +380,15 @@ func TestText_rejectsEveryListInEveryFieldOfEveryWrite(t *testing.T) {
 
 					apply, task := prepared(t)
 
-					_, err := write.write(t, apply, task, field, state.fragment)
+					text := state.text
+					if text == "" {
+						text = state.fragment
+					}
+
+					_, err := write.write(t, apply, task, field, text)
 					if !errors.Is(err, core.ErrInvalid) {
 						t.Fatalf("%s %q en %q devolvió %v, se esperaba ErrInvalid",
-							write.name, state.fragment, field, err)
+							write.name, text, field, err)
 					}
 
 					for _, want := range []string{"the " + field, `"` + state.fragment + `"`, state.remedy} {
@@ -391,6 +399,34 @@ func TestText_rejectsEveryListInEveryFieldOfEveryWrite(t *testing.T) {
 				})
 			}
 		}
+	}
+}
+
+// TestText_rejectsTheHashThatFollowsACommitWord comprueba que la palabra de Git
+// de la misma cláusula es lo que convierte una tirada hexadecimal en la
+// referencia a un commit: el mensaje nombra solo el hash y su remedio.
+func TestText_rejectsTheHashThatFollowsACommitWord(t *testing.T) {
+	t.Parallel()
+
+	want := `the description names a commit: "a79a642"; ` +
+		`a commit reaches its task through the commit message, with Refs: tk-N`
+
+	for _, text := range []string{"commit a79a642", "el commit a79a642 lo hizo", "COMMITS a79a642"} {
+		t.Run(text, func(t *testing.T) {
+			t.Parallel()
+
+			apply, task := prepared(t)
+
+			_, err := theWrites[0].write(t, apply, task, fieldDescription, text)
+
+			if !errors.Is(err, core.ErrInvalid) {
+				t.Fatalf("%q devolvió %v, se esperaba ErrInvalid", text, err)
+			}
+
+			if err.Error() != want {
+				t.Errorf("el rechazo dice %q, se esperaba %q", err, want)
+			}
+		})
 	}
 }
 
@@ -406,7 +442,7 @@ func TestText_readsTheListsWithoutDistinguishingCase(t *testing.T) {
 	}{
 		{name: "a branch in capitals", text: "FEAT/RICH-TASK-TEXT"},
 		{name: "the delivery in capitals", text: "Sin Commitear"},
-		{name: "a commit in capitals", text: "ABCDEF1"},
+		{name: "a commit in capitals", text: "COMMIT ABCDEF1"},
 		{name: "a remote reference in capitals", text: "Origin/HEAD"},
 		{name: "a Git reference named by a verb in capitals", text: "MERGEADO A MAIN"},
 		{name: "a Git noun with its identifier in capitals", text: "LA RAMA MAIN"},
@@ -470,6 +506,11 @@ func TestText_leavesTheAcceptedTextsAsTheyWereWritten(t *testing.T) {
 		"El CHANGELOG ya lo cuenta en [Sin publicar]",
 		"La base tenía el WAL sin integrar",
 		"Se quitó la mención de si algo estaba sin push",
+		// Una huella de otro registro —la de fricción del tablero— no nombra un
+		// commit: sin la palabra de Git en su cláusula, el hash se acepta.
+		"51d09fb3a752",
+		"la huella 51d09fb3a752 del registro",
+		"La fricción se anotó en 51d09fb3a752 y sigue igual",
 	}
 
 	for _, text := range accepted {
@@ -580,7 +621,7 @@ func TestText_writesNothingWhenItRejects(t *testing.T) {
 		text  string
 	}{
 		{name: "create refuses", write: theWrites[0], field: fieldNotes, text: deliveryText},
-		{name: "change refuses", write: theWrites[1], field: fieldDescription, text: commitText},
+		{name: "change refuses", write: theWrites[1], field: fieldDescription, text: "commit " + commitText},
 		{name: "adding a comment refuses", write: theWrites[2], field: fieldComment, text: "origin/HEAD"},
 		{name: "editing a comment refuses", write: theWrites[3], field: fieldComment, text: "feat/rich-task-text"},
 	}

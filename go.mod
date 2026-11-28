@@ -3,7 +3,7 @@ module tasks-ai
 go 1.27.1
 
 require (
-	github.com/fred66sp/agent-interaction-forms v0.0.0-20261126181707-9889d444d69f
+	github.com/fred66sp/agent-interaction-forms v0.0.0-20261128120522-88672020b6bd
 	github.com/spf13/cobra v1.10.2
 	modernc.org/sqlite v1.60.1
 )

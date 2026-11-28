@@ -14,6 +14,13 @@ install: ## Compila y refresca el binario y el contrato del tablero de este repo
 	$(GO) build -o .tasks-ai/bin/$(BINARY) ./cmd/$(BINARY)
 	cp internal/install/contract_tags.md .tasks-ai/CONTRATO_ETIQUETAS.md
 
+propagate: ## Compila el binario y lanza upgrade en los demás proyectos con .tasks-ai
+	$(MAKE) install
+	@for project in $$(find ~/PROJECTS -maxdepth 2 -name .tasks-ai -not -path '$(CURDIR)/*' | sort); do \
+		echo "== propagando a $$(dirname $$project)"; \
+		(cd $$(dirname $$project) && $(CURDIR)/.tasks-ai/bin/$(BINARY) upgrade) || true; \
+	done; true
+
 test: ## Ejecuta las pruebas del proyecto
 	$(GO) test ./...
 
